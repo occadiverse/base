@@ -6536,49 +6536,42 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     : Math.max(0, Math.floor(Number(row.minutes) || 0));
                 const yellow = Number(row.yellow) || 0;
                 const red = Number(row.red) || 0;
-                const pointsDetails = typeof window.calculatePlayerMatchPoints === 'function'
-                    ? window.calculatePlayerMatchPoints(match, playerObj, true)
-                    : null;
-                const bbBonus = Number(pointsDetails?.bbBonus) || 0;
                 const startStatusRaw = typeof window.getPlayerMatchStartStatus === 'function'
                     ? window.getPlayerMatchStartStatus(match, playerObj)
                     : '';
-                const startLabel = startStatusRaw === 'S'
-                    ? 'Fra start'
-                    : (startStatusRaw === 'B' ? 'Innbytter' : '');
-                const regularScore = typeof window.getMatchRegularScore === 'function'
-                    ? window.getMatchRegularScore(match)
-                    : (typeof window.parseScore === 'function' ? window.parseScore(match.result) : null);
-                const teamGoals = regularScore && Number.isFinite(Number(regularScore.bsk))
-                    ? Math.max(0, Math.floor(Number(regularScore.bsk) || 0))
-                    : null;
-                let posCode = String(row.posCode || '').trim();
-                if (!posCode && row.onPitch !== false) {
-                    const formationId = formation
-                        || (typeof window.getMatchGamePlanFormation === 'function'
-                            ? window.getMatchGamePlanFormation(match)
-                            : String(match.formation || match.lineupFormation || '').trim());
-                    const posId = typeof window.getPlayerMatchPlayedPositionIds === 'function'
+                const playLine = minutes != null
+                    ? (startStatusRaw === 'S'
+                        ? `Spilte ${minutes} min fra start`
+                        : (startStatusRaw === 'B'
+                            ? `Spilte ${minutes} min som innbytter`
+                            : `Spilte ${minutes} min`))
+                    : (startStatusRaw === 'S'
+                        ? 'Fra start'
+                        : (startStatusRaw === 'B' ? 'Innbytter' : ''));
+                let posId = '';
+                if (row.onPitch !== false) {
+                    posId = typeof window.getPlayerMatchPlayedPositionIds === 'function'
                         ? ((window.getPlayerMatchPlayedPositionIds(match, playerObj) || [])[0] || '')
                         : (typeof window.getPlayerMatchPlayedPositionId === 'function'
                             ? (window.getPlayerMatchPlayedPositionId(match, playerObj) || '')
                             : '');
-                    posCode = posId && typeof window.getMatchGamePlanPositionBadgeLabel === 'function'
-                        ? window.getMatchGamePlanPositionBadgeLabel(posId, formationId)
-                        : posId;
                 }
+                const posLabel = posId && typeof window.getMatchGamePlanPositionLabel === 'function'
+                    ? window.getMatchGamePlanPositionLabel(posId)
+                    : (String(row.posCode || '').trim() || '');
+                const teamName = match?.matchGroup || playerObj?.spillerLag || '';
+                const formScore = typeof window.calculatePlayerPerformanceChemistry === 'function'
+                    ? Math.round(Number(window.calculatePlayerPerformanceChemistry(playerObj.navn || name)) || 0)
+                    : 0;
+                const bidragScore = typeof window.getPlayerKampbidragSnitt === 'function'
+                    ? Math.round(Number(window.getPlayerKampbidragSnitt(playerObj, teamName)) || 0)
+                    : 0;
                 const metaBits = [
-                    posCode
-                        ? `<span class="stats-kamp-summary-bb-chip is-pos">${escapeStatisticsHtml(posCode)}</span>`
+                    posLabel
+                        ? `<span class="stats-kamp-summary-bb-pos-label">${escapeStatisticsHtml(posLabel)}</span>`
                         : '',
-                    startLabel
-                        ? `<span class="stats-kamp-summary-bb-chip">${escapeStatisticsHtml(startLabel)}</span>`
-                        : '',
-                    minutes != null
-                        ? `<span class="stats-kamp-summary-bb-chip">${escapeStatisticsHtml(String(minutes))} min</span>`
-                        : '',
-                    bbBonus > 0
-                        ? `<span class="stats-kamp-summary-bb-chip is-bb">+${escapeStatisticsHtml(String(bbBonus))} BB</span>`
+                    playLine
+                        ? `<span class="stats-kamp-summary-bb-play">${escapeStatisticsHtml(playLine)}</span>`
                         : ''
                 ].filter(Boolean).join('');
                 const tile = (value, label, opts = {}) => {
@@ -6594,20 +6587,21 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 };
                 const rackTiles = [
                     tile(goals, 'Mål', { empty: goals <= 0, tone: goals > 0 ? 'hot' : '' }),
-                    tile(assists, 'Assist', { empty: assists <= 0 }),
-                    tile(points, 'Poeng', { empty: points <= 0, tone: points > 0 ? 'gold' : '' }),
-                    teamGoals != null && goals > 0
-                        ? tile(`${goals}/${teamGoals}`, 'Lagets mål', { tone: 'hot' })
-                        : (minutes != null
-                            ? tile(`${minutes}'`, 'Spilletid')
-                            : tile(goals + assists, 'Bidrag', { empty: goals + assists <= 0 })),
+                    assists > 0
+                        ? tile(assists, 'Assist')
+                        : tile(points, 'Poeng', { empty: points <= 0, tone: points > 0 ? 'gold' : '' }),
+                    tile(formScore > 0 ? formScore : '–', 'Form', { empty: formScore <= 0 }),
+                    tile(bidragScore > 0 ? bidragScore : '–', 'Bidrag', { empty: bidragScore <= 0, tone: bidragScore > 0 ? 'gold' : '' }),
+                    assists > 0
+                        ? tile(points, 'Poeng', { empty: points <= 0, tone: points > 0 ? 'gold' : '' })
+                        : '',
                     yellow > 0 ? tile(yellow, 'Gult', { tone: 'card' }) : '',
                     red > 0 ? tile(red, 'Rødt', { tone: 'red' }) : ''
                 ].filter(Boolean).slice(0, 4);
                 const ratingHtml = rating > 0
                     ? `<span class="stats-kamp-summary-bb-rating-value">${escapeStatisticsHtml(String(rating))}</span>`
                     : `<span class="stats-kamp-summary-bb-rating-value is-empty">–</span>`;
-                const ariaPos = posCode ? `, ${posCode}` : '';
+                const ariaPos = posLabel ? `, ${posLabel}` : '';
                 return `
                     <div class="stats-kamp-summary-bb-hero" aria-label="Banens beste ${escapeStatisticsHtml(name)}${escapeStatisticsHtml(ariaPos)}">
                         <div class="stats-kamp-summary-bb-board">
