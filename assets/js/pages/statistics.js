@@ -6715,13 +6715,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                             ? `<div class="stats-kamp-summary-bb-meta">${metaBits}</div>`
                                             : ''}
                                     </div>
+                                    <div class="stats-kamp-summary-bb-bors">
+                                        ${ratingHtml}
+                                        <span class="stats-kamp-summary-bb-rating-label">Børs</span>
+                                    </div>
                                 </div>
                                 <div class="stats-kamp-summary-bb-rack" aria-label="Kampprestasjon">
                                     ${rackTiles.join('')}
-                                </div>
-                                <div class="stats-kamp-summary-bb-bors">
-                                    ${ratingHtml}
-                                    <span class="stats-kamp-summary-bb-rating-label">Børs</span>
                                 </div>
                             </div>
                         </div>
