@@ -11920,6 +11920,63 @@
             color: rgba(255, 255, 255, 0.55);
             font-weight: 800;
         }
+        .stats-kamp-summary-kampen-layout {
+            align-items: start;
+            display: grid;
+            gap: 0.85rem;
+            grid-template-columns: minmax(0, 1fr);
+            width: 100%;
+        }
+        .stats-kamp-summary-kampen-main,
+        .stats-kamp-summary-kampen-notes {
+            min-width: 0;
+        }
+        .stats-kamp-summary-kampen-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+        }
+        .stats-kamp-summary-kampen-notes {
+            display: grid;
+            gap: 0.65rem;
+        }
+        .stats-kamp-summary-kampen-note {
+            background: rgba(8, 28, 56, 0.35);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+            border-radius: 0.75rem;
+            padding: 0.7rem 0.8rem;
+        }
+        .stats-kamp-summary-kampen-note.is-challenge {
+            border-color: rgba(251, 146, 60, 0.35);
+        }
+        .stats-kamp-summary-kampen-note h5 {
+            color: #ffe08a;
+            font-size: 0.68rem;
+            font-weight: 950;
+            letter-spacing: 0.1em;
+            margin: 0 0 0.35rem;
+            text-transform: uppercase;
+        }
+        .stats-kamp-summary-kampen-note.is-challenge h5 {
+            color: #fdba74;
+        }
+        .stats-kamp-summary-kampen-note p {
+            color: rgba(255, 253, 245, 0.9);
+            font-size: 0.86rem;
+            font-weight: 650;
+            line-height: 1.45;
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        @media (min-width: 900px) {
+            .stats-kamp-summary-kampen-layout {
+                gap: 1rem 1.2rem;
+                grid-template-columns: minmax(0, 1.2fr) minmax(14rem, 0.8fr);
+            }
+            .stats-kamp-summary-kampen-layout.is-notes-only {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
         .stats-kamp-summary-usage-line {
             color: rgba(255, 255, 255, 0.88) !important;
             font-weight: 800 !important;
@@ -16327,7 +16384,6 @@
             padding: 0 0.05rem;
         }
         .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-fields > .match-subs-view-toolbar,
-        .match-detail-page .match-summary-panel.is-game-card .match-summary-notes .match-coach-notes-fields > .match-subs-view-toolbar,
         .match-detail-page .match-subs-panel.is-game-card .match-subs-view-toolbar,
         .match-detail-page .match-summary-panel.is-game-card .match-summary-view-toolbar {
             display: grid;
@@ -16338,7 +16394,6 @@
             position: relative;
         }
         .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-fields > .match-subs-view-toolbar::before,
-        .match-detail-page .match-summary-panel.is-game-card .match-summary-notes .match-coach-notes-fields > .match-subs-view-toolbar::before,
         .match-detail-page .match-subs-panel.is-game-card .match-subs-view-toolbar::before,
         .match-detail-page .match-summary-panel.is-game-card .match-summary-view-toolbar::before {
             align-self: center;
@@ -16357,7 +16412,6 @@
             width: 0.55rem;
         }
         .match-detail-page .match-coach-notes-panel.is-game-card .match-subs-view-heading,
-        .match-detail-page .match-summary-panel.is-game-card .match-summary-notes .match-subs-view-heading,
         .match-detail-page .match-subs-panel.is-game-card .match-subs-view-heading,
         .match-detail-page .match-summary-panel.is-game-card .match-subs-view-heading {
             align-items: center;
@@ -16372,7 +16426,6 @@
             width: 100%;
         }
         .match-detail-page .match-coach-notes-panel.is-game-card .match-subs-view-tabs,
-        .match-detail-page .match-summary-panel.is-game-card .match-summary-notes .match-subs-view-tabs,
         .match-detail-page .match-subs-panel.is-game-card .match-subs-view-tabs,
         .match-detail-page .match-summary-panel.is-game-card .match-subs-view-tabs {
             display: flex;
@@ -16426,7 +16479,6 @@
             font-weight: inherit;
         }
         .match-detail-page .match-coach-notes-panel.is-game-card .portal-field,
-        .match-detail-page .match-summary-panel.is-game-card .match-summary-notes .portal-field,
         .match-coach-notes-field {
             field-sizing: content;
             height: auto;
@@ -16434,8 +16486,7 @@
             overflow: hidden;
             resize: none;
         }
-        .match-detail-page .match-coach-notes-panel.is-game-card .portal-field,
-        .match-detail-page .match-summary-panel.is-game-card .match-summary-notes .portal-field {
+        .match-detail-page .match-coach-notes-panel.is-game-card .portal-field {
             background:
                 linear-gradient(180deg, rgba(18, 42, 72, 0.88) 0%, rgba(12, 32, 58, 0.78) 100%);
             border: 1.5px solid rgba(245, 197, 66, 0.48);
@@ -16451,12 +16502,10 @@
             padding: 0.75rem 0.85rem;
             transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
         }
-        .match-detail-page .match-coach-notes-panel.is-game-card .portal-field::placeholder,
-        .match-detail-page .match-summary-panel.is-game-card .match-summary-notes .portal-field::placeholder {
+        .match-detail-page .match-coach-notes-panel.is-game-card .portal-field::placeholder {
             color: rgba(255, 246, 214, 0.42);
         }
-        .match-detail-page .match-coach-notes-panel.is-game-card .portal-field:focus,
-        .match-detail-page .match-summary-panel.is-game-card .match-summary-notes .portal-field:focus {
+        .match-detail-page .match-coach-notes-panel.is-game-card .portal-field:focus {
             background:
                 linear-gradient(180deg, rgba(28, 58, 96, 0.92) 0%, rgba(16, 42, 74, 0.86) 100%);
             border-color: #ffe08a;
@@ -16468,8 +16517,7 @@
             outline: none;
             transform: none;
         }
-        .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-footer,
-        .match-detail-page .match-summary-panel.is-game-card .match-summary-notes .match-coach-notes-footer {
+        .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-footer {
             position: relative;
             z-index: 1;
         }
@@ -16695,39 +16743,6 @@
         .match-detail-page .match-summary-panel.is-game-card .match-summary-body {
             position: relative;
             z-index: 1;
-        }
-        .match-detail-page .match-summary-panel.is-game-card .match-summary-layout {
-            align-items: start;
-            display: grid;
-            gap: 1rem;
-            grid-template-columns: minmax(0, 1fr);
-        }
-        .match-detail-page .match-summary-panel.is-game-card .match-summary-main,
-        .match-detail-page .match-summary-panel.is-game-card .match-summary-notes {
-            min-width: 0;
-        }
-        .match-detail-page .match-summary-panel.is-game-card .match-summary-notes {
-            display: grid;
-            gap: 0.75rem;
-        }
-        .match-detail-page .match-summary-panel.is-game-card .match-summary-notes .match-coach-notes-fields {
-            display: grid;
-            gap: 0.75rem;
-            padding: 0 0.05rem;
-        }
-        .match-detail-page .match-summary-panel.is-game-card .match-summary-notes .match-subs-view-panel {
-            background: none;
-            border: 0;
-            border-radius: 0;
-            box-shadow: none;
-            min-width: 0;
-            padding: 0;
-        }
-        @media (min-width: 900px) {
-            .match-detail-page .match-summary-panel.is-game-card .match-summary-layout {
-                gap: 1.15rem 1.35rem;
-                grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
-            }
         }
         .match-detail-page .match-summary-panel.is-game-card .stats-kamp-summary.is-embedded {
             color: #f4f7fa;
@@ -18627,6 +18642,11 @@
             display: flex;
             flex-direction: column;
             gap: 0.55rem;
+            max-width: none;
+            width: 100%;
+        }
+        .match-detail-page .match-summary-panel.is-game-card .stats-kamp-summary-kampen-layout {
+            width: 100%;
         }
         .match-detail-page .match-summary-panel.is-game-card .match-summary-view-toolbar .match-subs-view-tabs {
             gap: 0.35rem;

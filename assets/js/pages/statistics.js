@@ -6587,8 +6587,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 ? window.getMatchGamePlanSelectedTemplateTitle(match)
                 : '';
             const kampplanText = getStatsSummaryFirstSentence(kampplanNotes, 110) || kampplanTemplate;
-            const notesPositive = getStatsSummaryFirstSentence(match?.notes?.positive, 90);
-            const notesChallenge = getStatsSummaryFirstSentence(match?.notes?.challenge, 90);
+            const notesPositiveRaw = String(match?.notes?.positive || '').trim();
+            const notesChallengeRaw = String(match?.notes?.challenge || '').trim();
+            const notesPositive = getStatsSummaryFirstSentence(notesPositiveRaw, 90);
+            const notesChallenge = getStatsSummaryFirstSentence(notesChallengeRaw, 90);
             const planLines = [];
             if (formation) planLines.push(formation);
             if (kampplanText) planLines.push(kampplanText);
@@ -6641,6 +6643,31 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (!text) return '';
                 return `<p><span class="stats-kamp-summary-note-label">${escapeStatisticsHtml(label)}</span> ${escapeStatisticsHtml(text)}</p>`;
             };
+            const buildKampenNotesInfoHtml = (positiveText, challengeText) => {
+                const blocks = [];
+                if (positiveText) {
+                    blocks.push(`
+                        <div class="stats-kamp-summary-kampen-note">
+                            <h5>Positivt</h5>
+                            <p>${escapeStatisticsHtml(positiveText)}</p>
+                        </div>
+                    `);
+                }
+                if (challengeText) {
+                    blocks.push(`
+                        <div class="stats-kamp-summary-kampen-note is-challenge">
+                            <h5>Utfordringer</h5>
+                            <p>${escapeStatisticsHtml(challengeText)}</p>
+                        </div>
+                    `);
+                }
+                if (!blocks.length) return '';
+                return `
+                    <aside class="stats-kamp-summary-kampen-notes" aria-label="Trenernotater">
+                        ${blocks.join('')}
+                    </aside>
+                `;
+            };
             const planHtml = context.embedInPanel
                 ? (planLines.length ? renderLines(planLines, '') : '')
                 : [
@@ -6679,12 +6706,23 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const eventsHtml = matchLines.length
                 ? renderLines(matchLines, 'Ikke fylt', { html: true })
                 : '';
-            const kampenBody = [
+            const kampenMainHtml = [
                 bbHeroHtml,
                 eventsHtml,
                 pitchChipsHtml
-            ].filter(Boolean).join('') || renderLines([], 'Ikke fylt');
-            const kampenEmpty = !bbHeroHtml && !eventsHtml && !pitchChipsHtml;
+            ].filter(Boolean).join('');
+            const kampenNotesHtml = buildKampenNotesInfoHtml(notesPositiveRaw, notesChallengeRaw);
+            const kampenBody = kampenNotesHtml
+                ? `
+                    <div class="stats-kamp-summary-kampen-layout${kampenMainHtml ? '' : ' is-notes-only'}">
+                        <div class="stats-kamp-summary-kampen-main">
+                            ${kampenMainHtml || renderLines([], 'Ikke fylt')}
+                        </div>
+                        ${kampenNotesHtml}
+                    </div>
+                `
+                : (kampenMainHtml || renderLines([], 'Ikke fylt'));
+            const kampenEmpty = !kampenMainHtml && !kampenNotesHtml;
             const planenBody = planEmpty ? renderLines([], 'Ikke fylt') : planHtml;
             const troppenBody = renderLines(troppLines, 'Ikke fylt', { html: true });
 

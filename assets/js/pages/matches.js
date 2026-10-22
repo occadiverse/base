@@ -9210,10 +9210,6 @@ window.buildMatchSummaryPanelHtml = function(match, isOpen = false) {
         `;
     }
 
-    const notesHtml = typeof window.buildMatchCoachNotesFieldsHtml === 'function'
-        ? window.buildMatchCoachNotesFieldsHtml(match)
-        : '';
-
     return `
         <section class="match-summary-panel match-collapsible-panel is-game-card ${isOpen ? '' : 'is-collapsed'}" data-match-panel="kampoppsummering">
             <div
@@ -9234,17 +9230,7 @@ window.buildMatchSummaryPanelHtml = function(match, isOpen = false) {
             </div>
             <div class="match-collapsible-content">
                 <div class="match-summary-body">
-                    <div class="match-summary-layout">
-                        <div class="match-summary-main">
-                            ${summaryBody}
-                        </div>
-                        <aside class="match-summary-notes" aria-label="Trenernotater">
-                            ${notesHtml}
-                            <div class="match-coach-notes-footer">
-                                <p class="match-inline-status match-coach-notes-save-state" data-notes-save-state aria-live="polite" hidden></p>
-                            </div>
-                        </aside>
-                    </div>
+                    ${summaryBody}
                 </div>
             </div>
             ${buildMatchPanelMobileCloseBarHtml('Lukk oppsummering')}
@@ -12866,7 +12852,7 @@ window.toggleMatchPanel = function(btnOrPanel) {
         });
     }
 
-    if (shouldOpen && (panelId === 'trenernotater' || panelId === 'kampoppsummering')) {
+    if (shouldOpen && panelId === 'trenernotater') {
         requestAnimationFrame(() => window.autosizeMatchCoachNotesFields(panel));
     }
 
