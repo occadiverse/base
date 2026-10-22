@@ -6647,17 +6647,27 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const blocks = [];
                 if (positiveText) {
                     blocks.push(`
-                        <div class="stats-kamp-summary-kampen-note">
-                            <h5>Positivt</h5>
-                            <p>${escapeStatisticsHtml(positiveText)}</p>
+                        <div class="stats-kamp-summary-kampen-note is-positive">
+                            <span class="stats-kamp-summary-kampen-note-gem" aria-hidden="true">
+                                <i class="fa-solid fa-thumbs-up"></i>
+                            </span>
+                            <div class="stats-kamp-summary-kampen-note-shell">
+                                <h5>Positivt</h5>
+                                <p>${escapeStatisticsHtml(positiveText)}</p>
+                            </div>
                         </div>
                     `);
                 }
                 if (challengeText) {
                     blocks.push(`
                         <div class="stats-kamp-summary-kampen-note is-challenge">
-                            <h5>Utfordringer</h5>
-                            <p>${escapeStatisticsHtml(challengeText)}</p>
+                            <span class="stats-kamp-summary-kampen-note-gem" aria-hidden="true">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </span>
+                            <div class="stats-kamp-summary-kampen-note-shell">
+                                <h5>Utfordringer</h5>
+                                <p>${escapeStatisticsHtml(challengeText)}</p>
+                            </div>
                         </div>
                     `);
                 }
