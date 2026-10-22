@@ -154,20 +154,41 @@ window.getPlayerJoinedFromDate = function(player) {
     return window.normalizeActivityDateKey(player.tilknyttetFra);
 };
 
+window.getPlayerLeftToDate = function(player) {
+    if (!player || player.isGuest) return '';
+    if (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id)) return '';
+    return window.normalizeActivityDateKey(player.tilknyttetTil);
+};
+
 window.isPlayerOnRosterForDate = function(player, dateValue) {
     if (!player) return false;
     if (player.isGuest || (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id))) {
         return true;
     }
-    const joinedFrom = window.getPlayerJoinedFromDate(player);
-    if (!joinedFrom) return true;
     const dateKey = window.normalizeActivityDateKey(dateValue);
     if (!dateKey) return true;
-    return dateKey >= joinedFrom;
+    const joinedFrom = window.getPlayerJoinedFromDate(player);
+    if (joinedFrom && dateKey < joinedFrom) return false;
+    const leftTo = window.getPlayerLeftToDate(player);
+    if (leftTo && dateKey > leftTo) return false;
+    return true;
 };
 
 window.isPlayerOnRosterForActivity = function(player, activity) {
     return window.isPlayerOnRosterForDate(player, activity?.date);
+};
+
+// Activity-dated lists (oppmøte, kamptropp, historikk): include players who belonged
+// that day. Passiv without sluttdato stays hidden (pause). Passiv with tilknyttetTil
+// still appears for activities inside their affiliation window.
+window.isPlayerListedForActivity = function(player, activity) {
+    if (!player) return false;
+    if (player.isGuest || (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id))) {
+        return true;
+    }
+    if (!window.isPlayerOnRosterForActivity(player, activity)) return false;
+    if (player.status !== 'Passiv') return true;
+    return Boolean(window.getPlayerLeftToDate(player));
 };
 
 window.getMatchSquadEmptyMessage = function(match) {
@@ -389,11 +410,11 @@ window.buildAttendanceMapFromModal = function(container, existingAttendance, tea
 
 window.getAttendanceModalTeamPlayers = function(ev) {
     const teamName = ev?.team || ev?.matchGroup;
-    let teamPlayers = (window.activePlayers || []).filter(p => p.spillerLag === teamName && p.status !== 'Passiv');
-    if (teamPlayers.length === 0) {
-        teamPlayers = (window.activePlayers || []).filter(p => p.status !== 'Passiv');
+    let teamPlayers = (window.activePlayers || []).filter(p => !teamName || p.spillerLag === teamName);
+    if (teamName && teamPlayers.length === 0) {
+        teamPlayers = [...(window.activePlayers || [])];
     }
-    return teamPlayers.filter(player => window.isPlayerOnRosterForActivity(player, ev));
+    return teamPlayers.filter(player => window.isPlayerListedForActivity(player, ev));
 };
 
 window.sanitizeAttendanceMap = function(map) {

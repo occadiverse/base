@@ -113,14 +113,23 @@ function getTodayDateString() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
+function formatPlayerAffiliationDate(value) {
+    if (!value) return '';
+    const date = new Date(`${value}T12:00:00`);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return date.toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
 function formatPlayerJoinedFromLabel(player) {
     const joinedFrom = typeof window.getPlayerJoinedFromDate === 'function'
         ? window.getPlayerJoinedFromDate(player)
         : (player?.tilknyttetFra || '');
-    if (!joinedFrom) return 'Fra start';
-    const date = new Date(`${joinedFrom}T12:00:00`);
-    if (Number.isNaN(date.getTime())) return joinedFrom;
-    return date.toLocaleDateString('no-NO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const leftTo = typeof window.getPlayerLeftToDate === 'function'
+        ? window.getPlayerLeftToDate(player)
+        : (player?.tilknyttetTil || '');
+    const fromLabel = joinedFrom ? formatPlayerAffiliationDate(joinedFrom) : 'Fra start';
+    if (!leftTo) return fromLabel;
+    return `${fromLabel} – ${formatPlayerAffiliationDate(leftTo)}`;
 }
 
 function formatPlayerInjuryHistoryDate(value) {
@@ -231,6 +240,14 @@ function finishPlayerInjury(player, tilDato = getTodayDateString()) {
     };
 }
 
+function isPlayerLeftSquad(player) {
+    const leftTo = typeof window.getPlayerLeftToDate === 'function'
+        ? window.getPlayerLeftToDate(player)
+        : (player?.tilknyttetTil || '');
+    if (!leftTo) return false;
+    return leftTo < getTodayDateString();
+}
+
 function getRosterFilteredPlayers() {
     const searchEl = document.getElementById('playerSearchInput');
     const searchTerm = (searchEl ? searchEl.value : '').trim().toLowerCase();
@@ -243,6 +260,10 @@ function getRosterFilteredPlayers() {
 
         if (window.rosterStatusFilter === 'skadet' && !injuryInfo.isInjured) return false;
         if (window.rosterStatusFilter !== 'alle' && window.rosterStatusFilter !== 'skadet' && p.status !== window.rosterStatusFilter) return false;
+
+        // Utmeldte (tilknyttet til i fortiden) skjules fra tropplisten,
+        // men forblir søkbare for historikk/profil.
+        if (!searchTerm && isPlayerLeftSquad(p)) return false;
 
         if (!searchTerm) return true;
 
@@ -1367,6 +1388,12 @@ window.openPlayerModal = function(editPlayerId = null, options = {}) {
                     ? window.getPlayerJoinedFromDate(pObj)
                     : (pObj.tilknyttetFra || '');
             }
+            const leftToInput = document.getElementById('playerLeftToInput');
+            if (leftToInput) {
+                leftToInput.value = typeof window.getPlayerLeftToDate === 'function'
+                    ? window.getPlayerLeftToDate(pObj)
+                    : (pObj.tilknyttetTil || '');
+            }
             document.getElementById('playerTeamInput').value = pObj.spillerLag || window.getPrimaryTeamName();
             document.getElementById('playerPos1Input').value = pObj.pos1;
             document.getElementById('playerPos2Input').value = pObj.pos2 || '-';
@@ -1388,6 +1415,8 @@ window.openPlayerModal = function(editPlayerId = null, options = {}) {
         document.getElementById('playerPos2Input').value = '-';
         const joinedFromInput = document.getElementById('playerJoinedFromInput');
         if (joinedFromInput) joinedFromInput.value = getTodayDateString();
+        const leftToInput = document.getElementById('playerLeftToInput');
+        if (leftToInput) leftToInput.value = '';
         document.getElementById('playerSkadeStatusInput').value = 'frisk';
         document.getElementById('playerSkadeNotatInput').value = '';
         document.getElementById('playerSkadeFraDatoInput').value = '';
@@ -1562,6 +1591,7 @@ window.savePlayer = async function(event) {
     const birthYearRaw = birthYearInput ? birthYearInput.value.trim() : '';
     const status = document.getElementById('playerStatusInput').value;
     const tilknyttetFra = (document.getElementById('playerJoinedFromInput')?.value || '').trim();
+    const tilknyttetTil = (document.getElementById('playerLeftToInput')?.value || '').trim();
     const pos1 = document.getElementById('playerPos1Input').value.trim();
     const pos2 = document.getElementById('playerPos2Input').value.trim();
     const fot = document.getElementById('playerFootInput').value.trim();
@@ -1597,6 +1627,7 @@ window.savePlayer = async function(event) {
         fodselsaar,
         status,
         tilknyttetFra,
+        tilknyttetTil,
         spillerLag: playerTeam,
         pos1,
         pos2,
@@ -1632,6 +1663,7 @@ window.savePlayer = async function(event) {
             fodselsaar,
             status,
             tilknyttetFra,
+            tilknyttetTil,
             spillerLag: playerTeam,
             pos1,
             pos2,

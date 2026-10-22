@@ -2460,7 +2460,13 @@ function getMatchDetailSquadPlayerCategory(match, player) {
 
 function getMatchDetailAttendingPlayers(match) {
     const teamPlayers = (window.activePlayers || [])
-        .filter(p => p.status !== 'Passiv' && (!match.matchGroup || p.spillerLag === match.matchGroup))
+        .filter(p => {
+            if (match.matchGroup && p.spillerLag !== match.matchGroup) return false;
+            if (typeof window.isPlayerListedForActivity === 'function') {
+                return window.isPlayerListedForActivity(p, match);
+            }
+            return p.status !== 'Passiv';
+        })
         .sort((a, b) => (Number(a.drakt) || 999) - (Number(b.drakt) || 999) || a.navn.localeCompare(b.navn));
     const attendingRefs = typeof window.getMatchParticipantRefs === 'function'
         ? window.getMatchParticipantRefs(match)
@@ -9659,15 +9665,21 @@ window.showMatchDetails = function(id) {
 };
 
 function getMatchGamePlanSelectablePlayers(match) {
-    const activePlayers = (window.activePlayers || [])
-        .filter(player => player.status !== 'Passiv' && (!match.matchGroup || player.spillerLag === match.matchGroup));
+    const listedPlayers = (window.activePlayers || [])
+        .filter(player => {
+            if (match.matchGroup && player.spillerLag !== match.matchGroup) return false;
+            if (typeof window.isPlayerListedForActivity === 'function') {
+                return window.isPlayerListedForActivity(player, match);
+            }
+            return player.status !== 'Passiv';
+        });
     const participantRefs = typeof window.getMatchParticipantRefs === 'function'
         ? window.getMatchParticipantRefs(match)
         : window.getAttendingPlayerRefs(match.attendance);
 
     if (!participantRefs.length) return [];
 
-    return activePlayers.filter(player =>
+    return listedPlayers.filter(player =>
         participantRefs.some(ref => window.playerRefMatches(ref, player))
     );
 }

@@ -634,12 +634,15 @@ function getTrainingSessionFocusForEvent(trainingEvent) {
 }
 
 function getTrainingTeamPlayers(teamName) {
-    return (window.activePlayers || []).filter(player => (
-        player.status !== 'Passiv'
-        && (!teamName || player.spillerLag === teamName)
-        && !(typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id))
-        && !player.isGuest
-    ));
+    return (window.activePlayers || []).filter(player => {
+        if (teamName && player.spillerLag !== teamName) return false;
+        if (player.isGuest) return false;
+        if (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id)) return false;
+        // Keep utmeldte (Passiv + tilknyttetTil) in season attendance lists for
+        // the period they were affiliated; temporary Passiv without sluttdato stays out.
+        if (player.status !== 'Passiv') return true;
+        return Boolean(typeof window.getPlayerLeftToDate === 'function' && window.getPlayerLeftToDate(player));
+    });
 }
 
 function getCurrentSeasonDateRange(asOf = new Date()) {
