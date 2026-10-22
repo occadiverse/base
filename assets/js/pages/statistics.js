@@ -6652,8 +6652,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 <i class="fa-solid fa-thumbs-up"></i>
                             </span>
                             <div class="stats-kamp-summary-kampen-note-shell">
-                                <h5>Positivt</h5>
-                                <p>${escapeStatisticsHtml(positiveText)}</p>
+                                <div class="stats-kamp-summary-kampen-note-main">
+                                    <p class="stats-kamp-summary-kampen-note-title">Positivt</p>
+                                    <p class="stats-kamp-summary-kampen-note-text">${escapeStatisticsHtml(positiveText)}</p>
+                                </div>
+                                <div class="stats-kamp-summary-kampen-note-footer" aria-hidden="true">
+                                    <span class="stats-kamp-summary-kampen-note-chip">Bra</span>
+                                </div>
                             </div>
                         </div>
                     `);
@@ -6665,8 +6670,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 <i class="fa-solid fa-triangle-exclamation"></i>
                             </span>
                             <div class="stats-kamp-summary-kampen-note-shell">
-                                <h5>Utfordringer</h5>
-                                <p>${escapeStatisticsHtml(challengeText)}</p>
+                                <div class="stats-kamp-summary-kampen-note-main">
+                                    <p class="stats-kamp-summary-kampen-note-title">Utfordringer</p>
+                                    <p class="stats-kamp-summary-kampen-note-text">${escapeStatisticsHtml(challengeText)}</p>
+                                </div>
+                                <div class="stats-kamp-summary-kampen-note-footer" aria-hidden="true">
+                                    <span class="stats-kamp-summary-kampen-note-chip">Fokus</span>
+                                </div>
                             </div>
                         </div>
                     `);
