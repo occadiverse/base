@@ -6641,12 +6641,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (!text) return '';
                 return `<p><span class="stats-kamp-summary-note-label">${escapeStatisticsHtml(label)}</span> ${escapeStatisticsHtml(text)}</p>`;
             };
-            const planHtml = [
-                planLines.length ? renderLines(planLines, '') : '',
-                renderNoteLine('Bra', notesPositive),
-                renderNoteLine('Utfordring', notesChallenge)
-            ].join('');
-            const planEmpty = !planLines.length && !notesPositive && !notesChallenge;
+            const planHtml = context.embedInPanel
+                ? (planLines.length ? renderLines(planLines, '') : '')
+                : [
+                    planLines.length ? renderLines(planLines, '') : '',
+                    renderNoteLine('Bra', notesPositive),
+                    renderNoteLine('Utfordring', notesChallenge)
+                ].join('');
+            const planEmpty = context.embedInPanel
+                ? !planLines.length
+                : !planLines.length && !notesPositive && !notesChallenge;
 
             const buildBlock = (id, title, bodyHtml, empty) => {
                 const extraClass = id === 'spillerbors'

@@ -9039,7 +9039,7 @@ window.buildMatchCoachNotesFieldsHtml = function(match) {
                         aria-label="Positivt"
                         title="Positivt"
                         data-notes-view-tab="positive"
-                        onclick="window.setMatchCoachNotesView('positive')"
+                        onclick="window.setMatchCoachNotesView('positive', this)"
                     ><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i></button>
                     <button
                         type="button"
@@ -9049,7 +9049,7 @@ window.buildMatchCoachNotesFieldsHtml = function(match) {
                         aria-label="Utfordringer"
                         title="Utfordringer"
                         data-notes-view-tab="challenge"
-                        onclick="window.setMatchCoachNotesView('challenge')"
+                        onclick="window.setMatchCoachNotesView('challenge', this)"
                     ><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></button>
                 </div>
             </div>
@@ -9079,9 +9079,12 @@ window.buildMatchCoachNotesFieldsHtml = function(match) {
     `;
 };
 
-window.setMatchCoachNotesView = function(view) {
+window.setMatchCoachNotesView = function(view, sourceEl) {
     matchCoachNotesActiveView = view === 'challenge' ? 'challenge' : 'positive';
-    const form = document.querySelector('.match-coach-notes-panel [data-match-notes-form]');
+    const form = (sourceEl && typeof sourceEl.closest === 'function'
+        ? sourceEl.closest('[data-match-notes-form]')
+        : null)
+        || document.querySelector('.match-summary-panel [data-match-notes-form], .match-coach-notes-panel [data-match-notes-form]');
     if (!form) return;
     form.dataset.notesView = matchCoachNotesActiveView;
     form.querySelectorAll('[data-notes-view-panel]').forEach((panel) => {
@@ -9207,6 +9210,10 @@ window.buildMatchSummaryPanelHtml = function(match, isOpen = false) {
         `;
     }
 
+    const notesHtml = typeof window.buildMatchCoachNotesFieldsHtml === 'function'
+        ? window.buildMatchCoachNotesFieldsHtml(match)
+        : '';
+
     return `
         <section class="match-summary-panel match-collapsible-panel is-game-card ${isOpen ? '' : 'is-collapsed'}" data-match-panel="kampoppsummering">
             <div
@@ -9227,7 +9234,17 @@ window.buildMatchSummaryPanelHtml = function(match, isOpen = false) {
             </div>
             <div class="match-collapsible-content">
                 <div class="match-summary-body">
-                    ${summaryBody}
+                    <div class="match-summary-layout">
+                        <div class="match-summary-main">
+                            ${summaryBody}
+                        </div>
+                        <aside class="match-summary-notes" aria-label="Trenernotater">
+                            ${notesHtml}
+                            <div class="match-coach-notes-footer">
+                                <p class="match-inline-status match-coach-notes-save-state" data-notes-save-state aria-live="polite" hidden></p>
+                            </div>
+                        </aside>
+                    </div>
                 </div>
             </div>
             ${buildMatchPanelMobileCloseBarHtml('Lukk oppsummering')}
@@ -12849,7 +12866,7 @@ window.toggleMatchPanel = function(btnOrPanel) {
         });
     }
 
-    if (shouldOpen && panelId === 'trenernotater') {
+    if (shouldOpen && (panelId === 'trenernotater' || panelId === 'kampoppsummering')) {
         requestAnimationFrame(() => window.autosizeMatchCoachNotesFields(panel));
     }
 
