@@ -6736,7 +6736,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const troppCount = presence.isRegistered
                 ? presence.presentCount
                 : squadPlayers.length;
-            const squadSize = Number(presence.squadSize) || 0;
             const subCount = Array.isArray(match.liveSubstitutions) ? match.liveSubstitutions.length : 0;
             const minutesTracked = typeof window.matchHasMinutesTracking === 'function'
                 ? window.matchHasMinutesTracking(match)
@@ -6764,9 +6763,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             };
             const troppLines = [];
             if (troppCount > 0) {
-                let intro = squadSize > troppCount
-                    ? `${troppCount} av ${squadSize} spillere var med i troppen`
-                    : `${troppCount} spillere var med i troppen`;
+                let intro = `${troppCount} spillere var med i troppen`;
                 if (subCount === 1) intro += ', og det ble gjort ett bytte underveis';
                 else if (subCount > 1) intro += `, og det ble gjort ${subCount} bytter underveis`;
                 troppLines.push(`<p class="stats-kamp-summary-text">${escapeStatisticsHtml(`${intro}.`)}</p>`);
@@ -6783,10 +6780,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 troppLines.push(`<p class="stats-kamp-summary-text">${escapeStatisticsHtml(`${longSpell}.`)}</p>`);
             }
             if (minutesTracked && littleMinutes.length) {
-                const shortNames = formatTroppNames(littleMinutes, 4);
-                const shortSpell = littleMinutes.length === 1
-                    ? `${shortNames} fikk under 20 minutter`
-                    : `Kort innsats under 20 minutter: ${shortNames}`;
+                const shortNames = formatTroppNames(littleMinutes, 8);
+                const shortCountLabel = littleMinutes.length === 1
+                    ? '1 spiller fikk lite spilletid, under 20 minutter'
+                    : `${littleMinutes.length} spillere fikk lite spilletid, under 20 minutter`;
+                const shortSpell = shortNames
+                    ? `${shortCountLabel}. ${shortNames}`
+                    : shortCountLabel;
                 troppLines.push(`<p class="stats-kamp-summary-text">${escapeStatisticsHtml(`${shortSpell}.`)}</p>`);
             }
             if (benchOnlyRows.length) {
@@ -6816,52 +6816,55 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (!text) return '';
                 return `<p><span class="stats-kamp-summary-note-label">${escapeStatisticsHtml(label)}</span> ${escapeStatisticsHtml(text)}</p>`;
             };
+            const buildKampenNoteCardHtml = (toneClass, icon, title, bodyHtml) => {
+                if (!bodyHtml) return '';
+                return `
+                    <div class="stats-kamp-summary-kampen-note ${escapeStatisticsHtml(toneClass)}">
+                        <div class="stats-kamp-summary-kampen-note-label">
+                            <span class="stats-kamp-summary-kampen-note-gem" aria-hidden="true">
+                                <i class="fa-solid ${escapeStatisticsHtml(icon)}"></i>
+                            </span>
+                            <span class="stats-kamp-summary-kampen-note-title">${escapeStatisticsHtml(title)}</span>
+                        </div>
+                        ${bodyHtml}
+                    </div>
+                `;
+            };
             const buildKampenNotesInfoHtml = (positiveText, challengeText, planText, troppHtml) => {
-                const blocks = [];
-                if (positiveText) {
-                    blocks.push(`
-                        <div class="stats-kamp-summary-kampen-note is-positive">
-                            <div class="stats-kamp-summary-kampen-note-label">
-                                <i class="fa-solid fa-thumbs-up" aria-hidden="true"></i>
-                                <span>Positivt</span>
-                            </div>
-                            <p class="stats-kamp-summary-kampen-note-text">${escapeStatisticsHtml(positiveText)}</p>
-                        </div>
-                    `);
-                }
-                if (challengeText) {
-                    blocks.push(`
-                        <div class="stats-kamp-summary-kampen-note is-challenge">
-                            <div class="stats-kamp-summary-kampen-note-label">
-                                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-                                <span>Utfordringer</span>
-                            </div>
-                            <p class="stats-kamp-summary-kampen-note-text">${escapeStatisticsHtml(challengeText)}</p>
-                        </div>
-                    `);
-                }
-                if (planText) {
-                    blocks.push(`
-                        <div class="stats-kamp-summary-kampen-note is-plan">
-                            <div class="stats-kamp-summary-kampen-note-label">
-                                <i class="fa-solid fa-diagram-project" aria-hidden="true"></i>
-                                <span>Planen</span>
-                            </div>
-                            <p class="stats-kamp-summary-kampen-note-text">${escapeStatisticsHtml(planText)}</p>
-                        </div>
-                    `);
-                }
-                if (troppHtml) {
-                    blocks.push(`
-                        <div class="stats-kamp-summary-kampen-note is-tropp">
-                            <div class="stats-kamp-summary-kampen-note-label">
-                                <i class="fa-solid fa-users" aria-hidden="true"></i>
-                                <span>Troppen</span>
-                            </div>
-                            <div class="stats-kamp-summary-kampen-note-text">${troppHtml}</div>
-                        </div>
-                    `);
-                }
+                const blocks = [
+                    positiveText
+                        ? buildKampenNoteCardHtml(
+                            'is-positive',
+                            'fa-thumbs-up',
+                            'Positivt',
+                            `<p class="stats-kamp-summary-kampen-note-text">${escapeStatisticsHtml(positiveText)}</p>`
+                        )
+                        : '',
+                    challengeText
+                        ? buildKampenNoteCardHtml(
+                            'is-challenge',
+                            'fa-triangle-exclamation',
+                            'Utfordringer',
+                            `<p class="stats-kamp-summary-kampen-note-text">${escapeStatisticsHtml(challengeText)}</p>`
+                        )
+                        : '',
+                    planText
+                        ? buildKampenNoteCardHtml(
+                            'is-plan',
+                            'fa-diagram-project',
+                            'Planen',
+                            `<p class="stats-kamp-summary-kampen-note-text">${escapeStatisticsHtml(planText)}</p>`
+                        )
+                        : '',
+                    troppHtml
+                        ? buildKampenNoteCardHtml(
+                            'is-tropp',
+                            'fa-users',
+                            'Troppen',
+                            `<div class="stats-kamp-summary-kampen-note-text">${troppHtml}</div>`
+                        )
+                        : ''
+                ].filter(Boolean);
                 if (!blocks.length) return '';
                 return `
                     <aside class="stats-kamp-summary-kampen-notes" aria-label="Trenernotater, plan og tropp">

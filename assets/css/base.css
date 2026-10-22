@@ -12115,52 +12115,82 @@
         .stats-kamp-summary-kampen-notes {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
-            padding-top: 0;
+            gap: 1.15rem;
+            overflow: visible;
+            padding-top: 0.85rem;
         }
         .stats-kamp-summary-kampen-note {
+            --note-ink: #061020;
+            --note-gem-hi: #fff8e1;
+            --note-gem-mid: #f5c542;
+            --note-gem-lo: #b8840f;
+            --note-ring: #6b4a0c;
             background:
-                linear-gradient(180deg, rgba(18, 42, 72, 0.9) 0%, rgba(10, 28, 52, 0.84) 100%);
-            border: 1.5px solid rgba(245, 197, 66, 0.48);
-            border-radius: 0.85rem;
+                radial-gradient(ellipse 90% 55% at 50% -5%, var(--note-wash), transparent 58%),
+                linear-gradient(180deg, rgba(18, 42, 72, 0.94) 0%, rgba(10, 28, 52, 0.88) 100%);
+            border: 2.5px solid rgba(245, 197, 66, 0.55);
+            border-radius: 0.95rem;
             box-shadow:
-                0 3px 0 rgba(10, 26, 48, 0.88),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                inset 0 0 0 1px rgba(245, 197, 66, 0.08);
+                0 0 0 1.5px rgba(6, 16, 32, 0.85),
+                0 5px 0 rgba(6, 16, 32, 0.92),
+                0 10px 18px rgba(2, 8, 20, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.14),
+                inset 0 -10px 20px rgba(0, 0, 0, 0.18);
             display: grid;
-            gap: 0.45rem;
-            padding: 0.75rem 0.85rem 0.8rem;
+            gap: 0.55rem;
+            overflow: visible;
+            padding: 1.55rem 0.9rem 0.85rem;
             position: relative;
-        }
-        .stats-kamp-summary-kampen-note::before {
-            background: var(--note-accent);
-            border-radius: 999px;
-            bottom: 0.7rem;
-            content: "";
-            left: 0;
-            position: absolute;
-            top: 0.7rem;
-            width: 3px;
         }
         .stats-kamp-summary-kampen-note-label {
             align-items: center;
-            color: var(--note-accent-text);
-            display: inline-flex;
-            font-size: 0.72rem;
-            font-weight: 950;
-            gap: 0.4rem;
-            letter-spacing: 0.12em;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            justify-content: center;
             margin: 0;
-            padding-left: 0.35rem;
-            text-shadow:
-                0 1px 0 rgba(2, 6, 23, 0.65),
-                0 0 10px var(--note-accent-glow);
-            text-transform: uppercase;
+            text-align: center;
         }
-        .stats-kamp-summary-kampen-note-label i {
-            color: inherit;
-            font-size: 0.85rem;
+        .stats-kamp-summary-kampen-note-gem {
+            align-items: center;
+            background: linear-gradient(180deg, var(--note-gem-hi) 0%, var(--note-gem-mid) 48%, var(--note-gem-lo) 100%);
+            border: 1.5px solid rgba(255, 253, 245, 0.92);
+            border-radius: 0.7rem;
+            box-shadow:
+                0 0 0 1.5px var(--note-ring),
+                0 3px 0 rgba(6, 16, 32, 0.75),
+                0 6px 12px rgba(2, 8, 20, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+            color: var(--note-ink);
+            display: inline-flex;
+            font-size: 0.95rem;
+            height: 2.05rem;
+            justify-content: center;
+            left: 50%;
             line-height: 1;
+            position: absolute;
+            top: 0;
+            transform: translate(-50%, -50%);
+            width: 2.05rem;
+            z-index: 2;
+        }
+        .stats-kamp-summary-kampen-note-gem i {
+            filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35));
+            line-height: 1;
+        }
+        .stats-kamp-summary-kampen-note-title {
+            color: #fff6d6;
+            font-size: 0.78rem;
+            font-weight: 950;
+            letter-spacing: 0.14em;
+            line-height: 1;
+            position: relative;
+            text-shadow:
+                0 1px 0 var(--note-ink),
+                0 2px 0 rgba(6, 16, 32, 0.75),
+                0 0 12px var(--note-accent-glow);
+            text-transform: uppercase;
+            z-index: 1;
         }
         .stats-kamp-summary-kampen-note-text {
             color: rgba(255, 253, 245, 0.92);
@@ -12170,28 +12200,40 @@
             line-height: 1.5;
             margin: 0;
             overflow-wrap: anywhere;
-            padding-left: 0.35rem;
+            text-align: left;
             white-space: pre-wrap;
         }
         .stats-kamp-summary-kampen-note.is-positive {
-            --note-accent: linear-gradient(180deg, #86efac 0%, #16a34a 100%);
-            --note-accent-text: #bbf7d0;
-            --note-accent-glow: rgba(74, 222, 128, 0.35);
+            --note-wash: rgba(74, 222, 128, 0.22);
+            --note-gem-hi: #ecfdf5;
+            --note-gem-mid: #4ade80;
+            --note-gem-lo: #15803d;
+            --note-ring: #14532d;
+            --note-accent-glow: rgba(74, 222, 128, 0.4);
         }
         .stats-kamp-summary-kampen-note.is-challenge {
-            --note-accent: linear-gradient(180deg, #fdba74 0%, #ea580c 100%);
-            --note-accent-text: #fed7aa;
-            --note-accent-glow: rgba(251, 146, 60, 0.35);
+            --note-wash: rgba(251, 146, 60, 0.22);
+            --note-gem-hi: #fff7ed;
+            --note-gem-mid: #fb923c;
+            --note-gem-lo: #c2410c;
+            --note-ring: #7c2d12;
+            --note-accent-glow: rgba(251, 146, 60, 0.4);
         }
         .stats-kamp-summary-kampen-note.is-plan {
-            --note-accent: linear-gradient(180deg, #93c5fd 0%, #2563eb 100%);
-            --note-accent-text: #bfdbfe;
-            --note-accent-glow: rgba(96, 165, 250, 0.35);
+            --note-wash: rgba(96, 165, 250, 0.22);
+            --note-gem-hi: #eff6ff;
+            --note-gem-mid: #60a5fa;
+            --note-gem-lo: #1d4ed8;
+            --note-ring: #1e3a8a;
+            --note-accent-glow: rgba(96, 165, 250, 0.4);
         }
         .stats-kamp-summary-kampen-note.is-tropp {
-            --note-accent: linear-gradient(180deg, #c4b5fd 0%, #7c3aed 100%);
-            --note-accent-text: #ddd6fe;
-            --note-accent-glow: rgba(167, 139, 250, 0.35);
+            --note-wash: rgba(167, 139, 250, 0.22);
+            --note-gem-hi: #f5f3ff;
+            --note-gem-mid: #a78bfa;
+            --note-gem-lo: #6d28d9;
+            --note-ring: #4c1d95;
+            --note-accent-glow: rgba(167, 139, 250, 0.4);
         }
         .stats-kamp-summary-kampen-note.is-tropp .stats-kamp-summary-kampen-note-text {
             display: flex;
@@ -16983,11 +17025,16 @@
             z-index: 1;
         }
         .match-detail-page .match-summary-panel.is-game-card .match-summary-body {
+            overflow: visible;
             position: relative;
             z-index: 1;
         }
         .match-detail-page .match-summary-panel.is-game-card .stats-kamp-summary.is-embedded {
             color: #f4f7fa;
+            overflow: visible;
+        }
+        .match-detail-page .match-summary-panel.is-game-card .stats-kamp-summary-kampen-layout {
+            overflow: visible;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-save-state {
             margin: 0;
