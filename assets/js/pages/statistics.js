@@ -1306,10 +1306,12 @@ window.checkIndividualChemistry = function() {
 
 window.getPlayerFormComponents = function(playerName, options = {}) {
     const yearFilter = options.yearFilter === undefined ? 'alle' : options.yearFilter;
+    const excludeMatchId = options.excludeMatchId ? String(options.excludeMatchId) : '';
+    const asOfDateRaw = options.asOfDate || null;
     const cache = typeof window.getDerivedStatsCache === 'function'
         ? window.getDerivedStatsCache('playerForm')
         : null;
-    const cacheKey = `${playerName}|${yearFilter}`;
+    const cacheKey = `${playerName}|${yearFilter}|${asOfDateRaw || ''}|${excludeMatchId}`;
     if (cache?.has(cacheKey)) return cache.get(cacheKey);
 
     const playerObj = (window.activePlayers || []).find(p => p.navn === playerName);
@@ -1333,10 +1335,30 @@ window.getPlayerFormComponents = function(playerName, options = {}) {
         return itemDate <= today;
     };
     const hasCompletedMatchResult = (item) => Boolean(item?.result && String(item.result).includes('-'));
+    let asOfCutoff = null;
+    if (asOfDateRaw) {
+        const asOf = new Date(asOfDateRaw);
+        if (!Number.isNaN(asOf.getTime())) {
+            asOf.setHours(23, 59, 59, 999);
+            asOfCutoff = asOf;
+        }
+    }
+    const isOnOrBeforeAsOf = (item) => {
+        if (!asOfCutoff) return true;
+        if (!item?.date) return false;
+        const itemDate = new Date(item.date);
+        if (Number.isNaN(itemDate.getTime())) return false;
+        return itemDate <= asOfCutoff;
+    };
+    const isExcludedMatch = (item) => (
+        Boolean(excludeMatchId) && String(item?.id || '') === excludeMatchId
+    );
     const teamEvents = allEvents
         .filter(e => {
             if (e.team !== spillerLag || !isHistorical(e)) return false;
             if (e.type === 'Kamp' && !hasCompletedMatchResult(e)) return false;
+            if (isExcludedMatch(e)) return false;
+            if (!isOnOrBeforeAsOf(e)) return false;
             if (typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(playerObj, e)) return false;
             if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(e, yearFilter)) return false;
             return true;
@@ -1356,6 +1378,8 @@ window.getPlayerFormComponents = function(playerName, options = {}) {
             m.matchGroup === spillerLag &&
             m.attendance &&
             window.isPlayerAttending(m.attendance, playerObj) &&
+            !isExcludedMatch(m) &&
+            isOnOrBeforeAsOf(m) &&
             (typeof window.activityBelongsToStatsYear !== 'function' || window.activityBelongsToStatsYear(m, yearFilter))
         ))
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
@@ -1389,6 +1413,7 @@ window.getPlayerFormComponents = function(playerName, options = {}) {
 
     (window.activeMatches || []).forEach(m => {
         if (!isHistorical(m) || m.matchGroup !== spillerLag || m.matchType !== 'Serie') return;
+        if (isExcludedMatch(m) || !isOnOrBeforeAsOf(m)) return;
         if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(m, yearFilter)) return;
         if (window.playerRefListIncludes(m.guleKort, playerObj)) totalYellowCards++;
     });
@@ -1400,6 +1425,8 @@ window.getPlayerFormComponents = function(playerName, options = {}) {
             m.matchType === 'Serie' &&
             m.attendance &&
             window.isPlayerAttending(m.attendance, playerObj) &&
+            !isExcludedMatch(m) &&
+            isOnOrBeforeAsOf(m) &&
             (typeof window.isPlayerOnPitch !== 'function' || window.isPlayerOnPitch(m, playerObj)) &&
             (typeof window.activityBelongsToStatsYear !== 'function' || window.activityBelongsToStatsYear(m, yearFilter))
         ))
@@ -6560,23 +6587,48 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ? window.getMatchGamePlanPositionLabel(posId)
                     : (String(row.posCode || '').trim() || '');
                 const teamName = match?.matchGroup || playerObj?.spillerLag || '';
-                const formScore = typeof window.calculatePlayerPerformanceChemistry === 'function'
-                    ? Math.round(Number(window.calculatePlayerPerformanceChemistry(playerObj.navn || name)) || 0)
+                const formPlayerName = playerObj.navn || name;
+                const formAfterParts = typeof window.getPlayerFormComponents === 'function'
+                    ? window.getPlayerFormComponents(formPlayerName, { asOfDate: match?.date || null })
+                    : { total: 0, hasFormData: false };
+                const formBeforeParts = typeof window.getPlayerFormComponents === 'function'
+                    ? window.getPlayerFormComponents(formPlayerName, {
+                        asOfDate: match?.date || null,
+                        excludeMatchId: match?.id || null
+                    })
+                    : { total: 0, hasFormData: false };
+                const formAfter = formAfterParts?.hasFormData
+                    ? Math.round(Number(formAfterParts.total) || 0)
                     : 0;
+                const formBefore = formBeforeParts?.hasFormData
+                    ? Math.round(Number(formBeforeParts.total) || 0)
+                    : 0;
+                let formValue = '–';
+                let formHint = '';
+                let formTitle = 'Form: ingen data';
+                let formToneClass = '';
+                let formEmpty = true;
+                if (formAfter > 0 && formBefore > 0) {
+                    const formDelta = formAfter - formBefore;
+                    const formDeltaText = formDelta === 0
+                        ? '±0'
+                        : `${formDelta > 0 ? '+' : ''}${formDelta}`;
+                    formValue = String(formAfter);
+                    formHint = formDeltaText === '±0'
+                        ? `fra ${formBefore}`
+                        : `${formDeltaText} · fra ${formBefore}`;
+                    formTitle = `Form etter kampen: ${formAfter} (${formDeltaText} fra ${formBefore} før kampen)`;
+                    formToneClass = formDelta > 0 ? 'hot' : (formDelta < 0 ? 'red' : '');
+                    formEmpty = false;
+                } else if (formAfter > 0) {
+                    formValue = String(formAfter);
+                    formHint = 'Etter kampen';
+                    formTitle = `Form etter kampen: ${formAfter}`;
+                    formEmpty = false;
+                }
                 const bidragScore = typeof window.getPlayerKampbidragSnitt === 'function'
                     ? Math.round(Number(window.getPlayerKampbidragSnitt(playerObj, teamName)) || 0)
                     : 0;
-                const formMedian = typeof window.getTeamFormMedian === 'function'
-                    ? Number(window.getTeamFormMedian(teamName)) || 0
-                    : 0;
-                const formTone = typeof window.getFormScoreTone === 'function'
-                    ? window.getFormScoreTone(formScore, teamName)
-                    : 'none';
-                const formVsLag = formScore > 0 && formMedian > 0
-                    ? (formTone === 'green'
-                        ? 'Over lagsnitt'
-                        : (formTone === 'red' ? 'Under lagsnitt' : 'På lagsnitt'))
-                    : 'Av 100';
                 const bidragHint = points > 0 && bidragScore > 0
                     ? (points > bidragScore ? `Kamp ${points} · snitt ${bidragScore}` : `Snitt ${bidragScore}/kamp`)
                     : 'Poeng per kamp';
@@ -6613,15 +6665,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         : tile(points, 'Poeng', {
                             empty: points <= 0,
                             tone: points > 0 ? 'gold' : '',
-                            hint: 'Denne kampen',
                             title: 'Spillerbørspoeng i denne kampen'
                         }),
-                    tile(formScore > 0 ? `${formScore}/100` : '–', 'Form', {
-                        empty: formScore <= 0,
-                        hint: formVsLag,
-                        title: formScore > 0
-                            ? `Form nå: ${formScore} av 100${formMedian > 0 ? ` (lagsnitt ${Math.round(formMedian)})` : ''} — nylig børs og spilletid`
-                            : 'Form: ingen data'
+                    tile(formValue, 'Form', {
+                        empty: formEmpty,
+                        tone: formToneClass,
+                        hint: formHint,
+                        title: formTitle
                     }),
                     tile(bidragScore > 0 ? bidragScore : '–', 'Snittbidrag', {
                         empty: bidragScore <= 0,
@@ -6635,7 +6685,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         ? tile(points, 'Poeng', {
                             empty: points <= 0,
                             tone: points > 0 ? 'gold' : '',
-                            hint: 'Denne kampen',
                             title: 'Spillerbørspoeng i denne kampen'
                         })
                         : '',
