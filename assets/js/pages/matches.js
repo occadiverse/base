@@ -2471,7 +2471,22 @@ function getMatchDetailAttendingPlayers(match) {
     const fallbackBenchPlayers = attendingRefs
         .filter(ref => !benchPlayers.some(p => window.playerRefMatches(ref, p)))
         .sort((a, b) => window.getPlayerNameFromRef(a).localeCompare(window.getPlayerNameFromRef(b)))
-        .map(ref => ({ navn: window.getPlayerNameFromRef(ref), drakt: '' }));
+        .map(ref => {
+            // Keep Passiv / other filtered-out players as full records when possible,
+            // so kamptropp clicks still have a stable player id for innsikt.
+            const known = typeof window.findPlayerByRef === 'function'
+                ? window.findPlayerByRef(ref)
+                : null;
+            if (known) return known;
+            const id = typeof window.isValidPlayerRefKey === 'function' && window.isValidPlayerRefKey(ref)
+                ? ref
+                : (ref || undefined);
+            return {
+                id,
+                navn: window.getPlayerNameFromRef(ref),
+                drakt: ''
+            };
+        });
 
     return [...benchPlayers, ...fallbackBenchPlayers];
 }

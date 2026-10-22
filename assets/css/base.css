@@ -15571,6 +15571,14 @@
             white-space: nowrap;
             max-width: 13rem;
         }
+        @media (min-width: 768px) {
+            .match-game-plan-heading-title,
+            .match-game-plan-heading-subtitle {
+                max-width: none;
+                overflow: visible;
+                text-overflow: clip;
+            }
+        }
         .match-game-plan-select-modal #tactical-pos-label {
             color: rgba(245, 197, 66, 0.88) !important;
             font-size: 0.72rem !important;
