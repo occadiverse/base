@@ -6648,36 +6648,22 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (positiveText) {
                     blocks.push(`
                         <div class="stats-kamp-summary-kampen-note is-positive">
-                            <span class="stats-kamp-summary-kampen-note-gem" aria-hidden="true">
-                                <i class="fa-solid fa-thumbs-up"></i>
-                            </span>
-                            <div class="stats-kamp-summary-kampen-note-shell">
-                                <div class="stats-kamp-summary-kampen-note-main">
-                                    <p class="stats-kamp-summary-kampen-note-title">Positivt</p>
-                                    <p class="stats-kamp-summary-kampen-note-text">${escapeStatisticsHtml(positiveText)}</p>
-                                </div>
-                                <div class="stats-kamp-summary-kampen-note-footer" aria-hidden="true">
-                                    <span class="stats-kamp-summary-kampen-note-chip">Bra</span>
-                                </div>
+                            <div class="stats-kamp-summary-kampen-note-label">
+                                <i class="fa-solid fa-thumbs-up" aria-hidden="true"></i>
+                                <span>Positivt</span>
                             </div>
+                            <p class="stats-kamp-summary-kampen-note-text">${escapeStatisticsHtml(positiveText)}</p>
                         </div>
                     `);
                 }
                 if (challengeText) {
                     blocks.push(`
                         <div class="stats-kamp-summary-kampen-note is-challenge">
-                            <span class="stats-kamp-summary-kampen-note-gem" aria-hidden="true">
-                                <i class="fa-solid fa-triangle-exclamation"></i>
-                            </span>
-                            <div class="stats-kamp-summary-kampen-note-shell">
-                                <div class="stats-kamp-summary-kampen-note-main">
-                                    <p class="stats-kamp-summary-kampen-note-title">Utfordringer</p>
-                                    <p class="stats-kamp-summary-kampen-note-text">${escapeStatisticsHtml(challengeText)}</p>
-                                </div>
-                                <div class="stats-kamp-summary-kampen-note-footer" aria-hidden="true">
-                                    <span class="stats-kamp-summary-kampen-note-chip">Fokus</span>
-                                </div>
+                            <div class="stats-kamp-summary-kampen-note-label">
+                                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                                <span>Utfordringer</span>
                             </div>
+                            <p class="stats-kamp-summary-kampen-note-text">${escapeStatisticsHtml(challengeText)}</p>
                         </div>
                     `);
                 }
