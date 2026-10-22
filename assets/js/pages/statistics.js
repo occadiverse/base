@@ -6566,6 +6566,20 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const bidragScore = typeof window.getPlayerKampbidragSnitt === 'function'
                     ? Math.round(Number(window.getPlayerKampbidragSnitt(playerObj, teamName)) || 0)
                     : 0;
+                const formMedian = typeof window.getTeamFormMedian === 'function'
+                    ? Number(window.getTeamFormMedian(teamName)) || 0
+                    : 0;
+                const formTone = typeof window.getFormScoreTone === 'function'
+                    ? window.getFormScoreTone(formScore, teamName)
+                    : 'none';
+                const formVsLag = formScore > 0 && formMedian > 0
+                    ? (formTone === 'green'
+                        ? 'Over lagsnitt'
+                        : (formTone === 'red' ? 'Under lagsnitt' : 'På lagsnitt'))
+                    : 'Av 100';
+                const bidragHint = points > 0 && bidragScore > 0
+                    ? (points > bidragScore ? `Kamp ${points} · snitt ${bidragScore}` : `Snitt ${bidragScore}/kamp`)
+                    : 'Poeng per kamp';
                 const metaBits = [
                     posLabel
                         ? `<span class="stats-kamp-summary-bb-pos-label">${escapeStatisticsHtml(posLabel)}</span>`
@@ -6578,10 +6592,17 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const empty = Boolean(opts.empty);
                     const tone = opts.tone ? ` is-${opts.tone}` : '';
                     const emptyClass = empty ? ' is-empty' : '';
+                    const hint = opts.hint
+                        ? `<em class="stats-kamp-summary-bb-tile-hint">${escapeStatisticsHtml(opts.hint)}</em>`
+                        : '';
+                    const titleAttr = opts.title
+                        ? ` title="${escapeStatisticsHtml(opts.title)}"`
+                        : '';
                     return `
-                        <div class="stats-kamp-summary-bb-tile${tone}${emptyClass}">
+                        <div class="stats-kamp-summary-bb-tile${tone}${emptyClass}"${titleAttr}>
                             <strong>${escapeStatisticsHtml(String(value))}</strong>
                             <span>${escapeStatisticsHtml(label)}</span>
+                            ${hint}
                         </div>
                     `;
                 };
@@ -6589,11 +6610,34 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     tile(goals, 'Mål', { empty: goals <= 0, tone: goals > 0 ? 'hot' : '' }),
                     assists > 0
                         ? tile(assists, 'Assist')
-                        : tile(points, 'Poeng', { empty: points <= 0, tone: points > 0 ? 'gold' : '' }),
-                    tile(formScore > 0 ? formScore : '–', 'Form', { empty: formScore <= 0 }),
-                    tile(bidragScore > 0 ? bidragScore : '–', 'Bidrag', { empty: bidragScore <= 0, tone: bidragScore > 0 ? 'gold' : '' }),
+                        : tile(points, 'Poeng', {
+                            empty: points <= 0,
+                            tone: points > 0 ? 'gold' : '',
+                            hint: 'Denne kampen',
+                            title: 'Spillerbørspoeng i denne kampen'
+                        }),
+                    tile(formScore > 0 ? `${formScore}/100` : '–', 'Form', {
+                        empty: formScore <= 0,
+                        hint: formVsLag,
+                        title: formScore > 0
+                            ? `Form nå: ${formScore} av 100${formMedian > 0 ? ` (lagsnitt ${Math.round(formMedian)})` : ''} — nylig børs og spilletid`
+                            : 'Form: ingen data'
+                    }),
+                    tile(bidragScore > 0 ? bidragScore : '–', 'Snittbidrag', {
+                        empty: bidragScore <= 0,
+                        tone: bidragScore > 0 ? 'gold' : '',
+                        hint: bidragHint,
+                        title: bidragScore > 0
+                            ? `Snitt kampbidrag: ${bidragScore} poeng per kamp denne sesongen${points > 0 ? ` (denne kampen ${points})` : ''}`
+                            : 'Snittbidrag: ingen data'
+                    }),
                     assists > 0
-                        ? tile(points, 'Poeng', { empty: points <= 0, tone: points > 0 ? 'gold' : '' })
+                        ? tile(points, 'Poeng', {
+                            empty: points <= 0,
+                            tone: points > 0 ? 'gold' : '',
+                            hint: 'Denne kampen',
+                            title: 'Spillerbørspoeng i denne kampen'
+                        })
                         : '',
                     yellow > 0 ? tile(yellow, 'Gult', { tone: 'card' }) : '',
                     red > 0 ? tile(red, 'Rødt', { tone: 'red' }) : ''
