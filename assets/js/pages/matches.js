@@ -13111,6 +13111,60 @@ function getMatchStatsRowStartGroup(match, playerObj) {
     return 'U';
 }
 
+/**
+ * Split Spillerbørs into two fixed column wrappers.
+ * CSS shows them stacked on mobile and side-by-side on PC.
+ * Once split, keep players in place — accordion open only grows a column downward.
+ */
+function layoutMatchStatsListColumns(list = document.getElementById('kampdetaljer-spillerbors'), options = {}) {
+    if (!list) return;
+    const force = options.force === true;
+
+    const unwrapColumns = () => {
+        list.querySelectorAll(':scope > .match-stats-list-col').forEach((col) => {
+            while (col.firstChild) list.insertBefore(col.firstChild, col);
+            col.remove();
+        });
+        list.classList.remove('is-two-col');
+    };
+
+    const hasTwo = list.classList.contains('is-two-col')
+        && list.querySelectorAll(':scope > .match-stats-list-col').length === 2;
+
+    // Keep existing column assignment stable (opening a card must not move players).
+    if (hasTwo && !force) return;
+
+    unwrapColumns();
+
+    if (list.querySelector(':scope > .match-stats-empty')) return;
+
+    let rows = Array.from(list.querySelectorAll(':scope > .match-stats-player-row'));
+    if (!rows.length) {
+        rows = Array.from(list.querySelectorAll('.match-stats-player-row'));
+    }
+    if (rows.length <= 1) return;
+
+    const visible = rows.filter((row) => !row.classList.contains('is-filter-hidden'));
+    const hidden = rows.filter((row) => row.classList.contains('is-filter-hidden'));
+    const splitCount = visible.length || rows.length;
+    if (splitCount <= 1) {
+        // One visible player: keep single flow, no wrappers.
+        return;
+    }
+    const mid = Math.ceil(splitCount / 2);
+    const colA = document.createElement('div');
+    const colB = document.createElement('div');
+    colA.className = 'match-stats-list-col';
+    colB.className = 'match-stats-list-col';
+    visible.forEach((row, index) => {
+        (index < mid ? colA : colB).appendChild(row);
+    });
+    hidden.forEach((row) => colA.appendChild(row));
+    list.appendChild(colA);
+    list.appendChild(colB);
+    list.classList.add('is-two-col');
+}
+
 function applyMatchStatsSquadFilter(list = document.getElementById('kampdetaljer-spillerbors')) {
     const panel = document.querySelector('#kampdetaljer-info .match-stats-panel');
     const toolbar = panel?.querySelector('[data-stats-squad-toolbar]') || null;
@@ -13140,6 +13194,7 @@ function applyMatchStatsSquadFilter(list = document.getElementById('kampdetaljer
     });
 
     if (openHidden) setMatchStatsAccordionOpen('', false);
+    layoutMatchStatsListColumns(list, { force: true });
 
     if (toolbar) {
         toolbar.querySelectorAll('[data-match-stat-action="squad-filter"]').forEach((btn) => {
@@ -13203,7 +13258,8 @@ function toggleMatchStatsAccordion(playerKey) {
     if (!key) return;
     const nextOpen = matchStatsAccordionOpenKey === key ? '' : key;
     setMatchStatsAccordionOpen(nextOpen, Boolean(nextOpen));
-    if (nextOpen) {
+    // Desktop 2-kolonne: ikke scrollIntoView — det flytter hele lista (begge kolonner) i viewport.
+    if (nextOpen && !(typeof window.matchMedia === 'function' && window.matchMedia('(min-width: 900px)').matches)) {
         const rows = document.querySelectorAll('#kampdetaljer-spillerbors .match-stats-player-row.is-accordion');
         const row = Array.from(rows).find((el) => el.dataset.playerKey === nextOpen);
         if (row) {
@@ -13492,8 +13548,12 @@ window.renderPlayerRowForm = function(match) {
 
     bindMatchStatsEvents();
     applyMatchStatsSquadFilter(formList);
+    // Layout after paint so list width is known (sidebar / zoom).
+    requestAnimationFrame(() => layoutMatchStatsListColumns(formList, { force: true }));
     window.updateMatchStatsResultBar();
 };
+
+/* No resize re-split: scrollbar / accordion height must not move players between columns. */
 
 window.toggleBenchOnly = function(btn) {
     const isActive = btn.getAttribute('data-active') === 'true';
