@@ -1181,9 +1181,7 @@ function getMatchBattleInfoChips(match, data) {
         ? window.getAttendancePresenceStats(match)
         : { presentCount: 0, squadSize: 0, isRegistered: false };
     const troppLabel = presenceStats.isRegistered
-        ? (presenceStats.squadSize > 0
-            ? `${presenceStats.presentCount}/${presenceStats.squadSize} tropp`
-            : `${presenceStats.presentCount} tropp`)
+        ? `${presenceStats.presentCount} tropp`
         : 'Tropp ikke satt';
     const opponentRecord = typeof getOpponentHistoryRecord === 'function'
         && typeof getOpponentRecordMatches === 'function'
@@ -1324,6 +1322,170 @@ function buildMatchPanelMobileCloseBarHtml(label = 'Lukk') {
             <span class="match-panel-close-bar-balance" aria-hidden="true"></span>
         </div>
     `;
+}
+
+function buildMatchGameCardTeaserHtml(text) {
+    const label = String(text || '').trim();
+    if (!label) return '';
+    return `<p class="match-game-card-teaser">${escapeMatchHtml(label)}</p>`;
+}
+
+function buildMatchDetailSectionDividerHtml(label) {
+    const text = String(label || '').trim();
+    if (!text) return '';
+    return `
+        <div class="match-detail-secondary-divider" aria-hidden="true">
+            <span class="match-detail-secondary-divider-line"></span>
+            <span class="match-detail-secondary-divider-label">${escapeMatchHtml(text)}</span>
+            <span class="match-detail-secondary-divider-line"></span>
+        </div>
+    `;
+}
+
+function matchHasSavedSpillerbors(match) {
+    const ratings = match?.ratings && typeof match.ratings === 'object'
+        ? match.ratings
+        : null;
+    if (!ratings) return false;
+    return Object.values(ratings).some((value) => Number(value) > 0);
+}
+
+function matchHasEnoughSquadForLineup(match) {
+    const players = typeof getMatchDetailAttendingPlayers === 'function'
+        ? getMatchDetailAttendingPlayers(match)
+        : [];
+    return players.length >= 11;
+}
+
+function getMatchDetailsDefaultOpenPanel(match) {
+    if (!match) return '';
+    const isFinished = Boolean(match.result && String(match.result).includes('-'));
+    if (isFinished) {
+        return matchHasSavedSpillerbors(match) ? 'kampoppsummering' : 'spillerbors';
+    }
+    return matchHasEnoughSquadForLineup(match) ? 'oppstilling' : 'kamptropp';
+}
+
+function applyMatchDetailsDefaultOpenState(match) {
+    const panelId = getMatchDetailsDefaultOpenPanel(match);
+    window.matchDetailPairPanelState = { kamptropp: false, oppstilling: false };
+    if (panelId === 'kamptropp') {
+        window.matchDetailPairPanelState.kamptropp = true;
+    } else if (panelId === 'oppstilling') {
+        window.matchDetailPairPanelState.oppstilling = true;
+    }
+    window.activeMatchDetailsOpenPanel = panelId || '';
+    return panelId || '';
+}
+
+function getMatchSummaryPanelTeaserText(match) {
+    if (!match) return '';
+
+    if (match.motm) {
+        const motmPlayer = typeof window.findPlayerByRef === 'function'
+            ? window.findPlayerByRef(match.motm)
+            : null;
+        const motmName = String(
+            motmPlayer?.navn
+            || (typeof window.getPlayerNameFromRef === 'function' ? window.getPlayerNameFromRef(match.motm) : '')
+            || match.motm
+        ).trim();
+        if (motmName) return `BB: ${motmName}`;
+    }
+
+    const countMapEntries = (map) => {
+        if (!map || typeof map !== 'object') return 0;
+        return Object.values(map).filter((value) => Number(value) > 0).length;
+    };
+    const scorerCount = countMapEntries(match.scorers);
+    const assistCount = countMapEntries(match.assists);
+    if (scorerCount > 0 || assistCount > 0) {
+        const parts = [];
+        if (scorerCount > 0) {
+            parts.push(`${scorerCount} ${scorerCount === 1 ? 'scorer' : 'scorere'}`);
+        }
+        if (assistCount > 0) {
+            parts.push(`${assistCount} ${assistCount === 1 ? 'assist' : 'assists'}`);
+        }
+        return parts.join(' · ');
+    }
+
+    return 'Se scorere og trekk';
+}
+
+function getMatchKamptroppPanelTeaserText(match) {
+    const players = typeof getMatchDetailAttendingPlayers === 'function'
+        ? getMatchDetailAttendingPlayers(match)
+        : [];
+    if (!players.length) return 'Ingen møtt opp';
+
+    const counts = { K: 0, F: 0, M: 0, A: 0 };
+    players.forEach((player) => {
+        const category = typeof getMatchDetailSquadPlayerCategory === 'function'
+            ? getMatchDetailSquadPlayerCategory(match, player)
+            : 'M';
+        if (Object.prototype.hasOwnProperty.call(counts, category)) {
+            counts[category] += 1;
+        } else {
+            counts.M += 1;
+        }
+    });
+    return `${players.length} · K${counts.K} · F${counts.F} · M${counts.M} · A${counts.A}`;
+}
+
+function getMatchLineupPanelTeaserText(match) {
+    const formation = typeof getMatchGamePlanDraftFormation === 'function'
+        ? getMatchGamePlanDraftFormation(match)
+        : (match?.formation || '4-2-4');
+    const placed = typeof getMatchGamePlanDraftLineupPlayerCount === 'function'
+        ? getMatchGamePlanDraftLineupPlayerCount(match)
+        : 0;
+    const slots = typeof getMatchGamePlanDraftPositionIds === 'function'
+        ? getMatchGamePlanDraftPositionIds(match).length
+        : 11;
+    const slotCount = slots || 11;
+    return `Formasjon ${formation} · ${placed}/${slotCount} plassert`;
+}
+
+function getMatchKampplanPanelTeaserText(match) {
+    const notes = typeof getMatchGamePlanNotesText === 'function'
+        ? String(getMatchGamePlanNotesText(match) || '').trim()
+        : '';
+    return notes ? 'Notater lagret' : 'Ingen notater';
+}
+
+function getMatchCoachNotesPanelTeaserText(match) {
+    const filled = [match?.notes?.positive, match?.notes?.challenge]
+        .filter((value) => String(value || '').trim()).length;
+    if (filled <= 0) return 'Ingen notater';
+    return `${filled} felt fylt`;
+}
+
+function getMatchBanetidPanelTeaserText(match) {
+    const minutes = match?.minutesPlayed && typeof match.minutesPlayed === 'object'
+        ? match.minutesPlayed
+        : null;
+    if (!minutes) return 'Ikke satt';
+    const count = Object.values(minutes).filter((value) => {
+        if (value === null || value === undefined || value === '') return false;
+        return Number.isFinite(Number(value));
+    }).length;
+    if (count <= 0) return 'Ikke satt';
+    return `${count} med minutter`;
+}
+
+function getMatchSpillerborsPanelTeaserText(match) {
+    const ratings = match?.ratings && typeof match.ratings === 'object'
+        ? match.ratings
+        : null;
+    if (!ratings) return 'Ikke vurdert';
+    const values = Object.values(ratings)
+        .map((value) => Number(value))
+        .filter((value) => Number.isFinite(value) && value > 0);
+    if (!values.length) return 'Ikke vurdert';
+    const sum = values.reduce((total, value) => total + value, 0);
+    const avg = Math.round((sum / values.length) * 10) / 10;
+    return `Snitt ${avg.toFixed(1)} · ${values.length} vurdert`;
 }
 
 function buildMatchDetailHeroNavHtml(match) {
@@ -9257,7 +9419,10 @@ window.buildMatchSummaryPanelHtml = function(match, isOpen = false) {
             >
                 <div class="match-bench-heading">
                     <span class="match-game-card-icon match-summary-mark" aria-hidden="true"></span>
-                    <h3>Oppsummering</h3>
+                    <div class="match-bench-heading-copy">
+                        <h3>Oppsummering</h3>
+                        ${buildMatchGameCardTeaserHtml(getMatchSummaryPanelTeaserText(match))}
+                    </div>
                 </div>
             </div>
             <div class="match-collapsible-content">
@@ -9286,16 +9451,6 @@ window.showMatchDetails = function(id) {
     const container = document.getElementById('kampdetaljer-info');
     bindMatchListEvents();
     ensureMatchGamePlanFormationMenuEventsBound();
-    const attendingRefs = typeof window.getMatchParticipantRefs === 'function'
-        ? window.getMatchParticipantRefs(match)
-        : window.getAttendingPlayerRefs(match.attendance);
-    const presenceStats = typeof window.getAttendancePresenceStats === 'function'
-        ? window.getAttendancePresenceStats(match)
-        : { presentCount: attendingRefs.length, squadSize: 0, isRegistered: false };
-    const squadBadgeCount = presenceStats.isRegistered
-        ? presenceStats.presentCount
-        : attendingRefs.length;
-    const squadBadgeLabel = String(squadBadgeCount);
     const benchPlayersHtml = buildMatchDetailSquadListHtml(match);
     const pendingAttendanceFeedback = window._pendingAttendanceFeedback;
     const openForAttendanceFeedback = Boolean(
@@ -9305,7 +9460,7 @@ window.showMatchDetails = function(id) {
         window.matchDetailPairPanelState = { kamptropp: false, oppstilling: false };
         window.matchDetailPairPanelMatchId = id;
         if (!openForAttendanceFeedback && !window.pendingMatchDetailsOpenPanel) {
-            window.activeMatchDetailsOpenPanel = '';
+            applyMatchDetailsDefaultOpenState(match);
         }
     }
     const openPanel = openForAttendanceFeedback
@@ -9319,7 +9474,16 @@ window.showMatchDetails = function(id) {
         || openPanel === 'kampoppsummering';
     window.matchDetailPairPanelState = window.matchDetailPairPanelState || { kamptropp: false, oppstilling: false };
     const pairState = window.matchDetailPairPanelState;
-    if (openForAttendanceFeedback) pairState.kamptropp = true;
+    if (openForAttendanceFeedback) {
+        pairState.kamptropp = true;
+        pairState.oppstilling = false;
+    } else if (openPanel === 'oppstilling') {
+        pairState.oppstilling = true;
+        pairState.kamptropp = false;
+    } else if (openPanel === 'kamptropp') {
+        pairState.kamptropp = true;
+        pairState.oppstilling = false;
+    }
     const isSquadPanelOpen = !exclusiveOpen && pairState.kamptropp === true;
     const isLineupPanelOpen = !exclusiveOpen && pairState.oppstilling === true;
     const isGamePlanOpen = openPanel === 'kampplan';
@@ -9338,7 +9502,7 @@ window.showMatchDetails = function(id) {
     window.activeMatchDetailsOpenPanel = openPanel;
     const matchSquadPanelHtml = `
         <div class="match-detail-squad-section ${getMatchGamePlanOverlayStateClasses(match).join(' ')}">
-            <section class="match-bench-panel match-collapsible-panel is-game-card ${isSquadPanelOpen ? '' : 'is-collapsed'}" data-match-panel="kamptropp">
+            <section class="match-bench-panel match-collapsible-panel is-game-card is-game-card-work ${isSquadPanelOpen ? '' : 'is-collapsed'}" data-match-panel="kamptropp">
                 <div
                     class="match-bench-action-row match-bench-topline"
                     onclick="window.onMatchPanelToplineClick(event)"
@@ -9354,8 +9518,10 @@ window.showMatchDetails = function(id) {
                         <span class="match-game-card-icon match-squad-mark" aria-hidden="true">
                             <i class="fa-solid fa-users"></i>
                         </span>
-                        <h3>Kamptropp</h3>
-                        <span class="match-detail-section-badge" aria-label="${squadBadgeCount} ${squadBadgeCount === 1 ? 'spiller' : 'spillere'} møtt opp">${squadBadgeLabel}</span>
+                        <div class="match-bench-heading-copy">
+                            <h3>Kamptropp</h3>
+                            ${buildMatchGameCardTeaserHtml(getMatchKamptroppPanelTeaserText(match))}
+                        </div>
                     </div>
                 </div>
                 <div class="match-collapsible-content">
@@ -9383,14 +9549,27 @@ window.showMatchDetails = function(id) {
                     <span class="match-squad-close-bar-balance" aria-hidden="true"></span>
                 </div>
             </section>
-            <section class="match-bench-panel match-collapsible-panel ${isLineupPanelOpen ? '' : 'is-collapsed'}" data-match-panel="oppstilling">
-                <div class="match-bench-action-row match-bench-topline" onclick="window.onMatchPanelToplineClick(event)">
+            <section class="match-bench-panel match-collapsible-panel is-game-card is-game-card-work ${isLineupPanelOpen ? '' : 'is-collapsed'}" data-match-panel="oppstilling">
+                <div
+                    class="match-bench-action-row match-bench-topline"
+                    onclick="window.onMatchPanelToplineClick(event)"
+                    role="button"
+                    tabindex="0"
+                    aria-expanded="${isLineupPanelOpen ? 'true' : 'false'}"
+                    aria-label="${isLineupPanelOpen ? 'Skjul lagoppstilling' : 'Vis lagoppstilling'}"
+                    data-show-label="Vis lagoppstilling"
+                    data-hide-label="Skjul lagoppstilling"
+                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onMatchPanelToplineClick(event);}"
+                >
                     <div class="match-bench-heading">
-                        <h3>Lagoppstilling</h3>
+                        <span class="match-game-card-icon match-lineup-mark" aria-hidden="true">
+                            <i class="fa-solid fa-chess-board"></i>
+                        </span>
+                        <div class="match-bench-heading-copy">
+                            <h3>Lagoppstilling</h3>
+                            ${buildMatchGameCardTeaserHtml(getMatchLineupPanelTeaserText(match))}
+                        </div>
                     </div>
-                    <button type="button" class="match-panel-toggle-btn" aria-expanded="${isLineupPanelOpen ? 'true' : 'false'}" aria-label="${isLineupPanelOpen ? 'Skjul lagoppstilling' : 'Vis lagoppstilling'}" data-show-label="Vis lagoppstilling" data-hide-label="Skjul lagoppstilling">
-                        <i class="fa-solid fa-chevron-up"></i>
-                    </button>
                     ${buildMatchGamePlanSamspillInfoButtonHtml()}
                 </div>
                 <div class="match-collapsible-content">
@@ -9420,17 +9599,31 @@ window.showMatchDetails = function(id) {
         ${buildMatchDetailCardHtml(match, { showWatermark: true, backOnClick: true, showHeroNav: true })}
 
         ${matchSummaryPanelHtml}
+        ${matchSummaryPanelHtml ? buildMatchDetailSectionDividerHtml('Oppsett') : ''}
 
         ${matchSquadPanelHtml}
 
-        <section class="match-game-plan-panel match-collapsible-panel ${isGamePlanOpen ? '' : 'is-collapsed'}" data-match-panel="kampplan">
-            <div class="match-bench-action-row match-bench-topline match-game-plan-topline" onclick="window.onMatchPanelToplineClick(event)">
+        <section class="match-game-plan-panel match-collapsible-panel is-game-card is-game-card-work ${isGamePlanOpen ? '' : 'is-collapsed'}" data-match-panel="kampplan">
+            <div
+                class="match-bench-action-row match-bench-topline match-game-plan-topline"
+                onclick="window.onMatchPanelToplineClick(event)"
+                role="button"
+                tabindex="0"
+                aria-expanded="${isGamePlanOpen ? 'true' : 'false'}"
+                aria-label="${isGamePlanOpen ? 'Skjul kampplan' : 'Vis kampplan'}"
+                data-show-label="Vis kampplan"
+                data-hide-label="Skjul kampplan"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onMatchPanelToplineClick(event);}"
+            >
                 <div class="match-bench-heading">
-                    <h3>Kampplan</h3>
+                    <span class="match-game-card-icon match-game-plan-mark" aria-hidden="true">
+                        <i class="fa-solid fa-futbol"></i>
+                    </span>
+                    <div class="match-bench-heading-copy">
+                        <h3>Kampplan</h3>
+                        ${buildMatchGameCardTeaserHtml(getMatchKampplanPanelTeaserText(match))}
+                    </div>
                 </div>
-                <button type="button" class="match-panel-toggle-btn" aria-expanded="${isGamePlanOpen ? 'true' : 'false'}" aria-label="${isGamePlanOpen ? 'Skjul kampplan' : 'Vis kampplan'}" data-show-label="Vis kampplan" data-hide-label="Skjul kampplan">
-                    <i class="fa-solid fa-chevron-up"></i>
-                </button>
                 <button type="button"
                         class="training-session-attendance-add-btn match-print-sheet-btn"
                         onclick="window.printMatchSheet()"
@@ -9449,60 +9642,7 @@ window.showMatchDetails = function(id) {
             ${buildMatchPanelMobileCloseBarHtml('Lukk kampplan')}
         </section>
 
-        <section class="match-coach-notes-panel match-collapsible-panel is-game-card ${isCoachNotesOpen ? '' : 'is-collapsed'}" data-match-panel="trenernotater">
-            <div
-                class="match-bench-action-row match-bench-topline match-coach-notes-topline"
-                onclick="window.onMatchPanelToplineClick(event)"
-                role="button"
-                tabindex="0"
-                aria-expanded="${isCoachNotesOpen ? 'true' : 'false'}"
-                aria-label="${isCoachNotesOpen ? 'Skjul trenernotater' : 'Vis trenernotater'}"
-                data-show-label="Vis trenernotater"
-                data-hide-label="Skjul trenernotater"
-                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onMatchPanelToplineClick(event);}"
-            >
-                <div class="match-bench-heading">
-                    <span class="match-game-card-icon match-coach-notes-mark" aria-hidden="true"></span>
-                    <h3>Trenernotater</h3>
-                </div>
-            </div>
-            <div class="match-collapsible-content">
-                <div class="match-coach-notes-body">
-                    ${typeof window.buildMatchCoachNotesFieldsHtml === 'function' ? window.buildMatchCoachNotesFieldsHtml(match) : ''}
-                </div>
-                <div class="match-coach-notes-footer">
-                    <p class="match-inline-status match-coach-notes-save-state" data-notes-save-state aria-live="polite" hidden></p>
-                </div>
-            </div>
-            ${buildMatchPanelMobileCloseBarHtml('Lukk trenernotater')}
-        </section>
-
-        <section class="match-subs-panel match-collapsible-panel is-game-card ${isSubsPanelOpen ? '' : 'is-collapsed'}" data-match-panel="bytter">
-            <div
-                class="match-bench-action-row match-bench-topline match-subs-topline"
-                onclick="window.onMatchPanelToplineClick(event)"
-                role="button"
-                tabindex="0"
-                aria-expanded="${isSubsPanelOpen ? 'true' : 'false'}"
-                aria-label="${isSubsPanelOpen ? 'Skjul banetid' : 'Vis banetid'}"
-                data-show-label="Vis banetid"
-                data-hide-label="Skjul banetid"
-                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onMatchPanelToplineClick(event);}"
-            >
-                <div class="match-bench-heading">
-                    <span class="match-game-card-icon match-subs-playing-time-mark" aria-hidden="true"></span>
-                    <h3>Banetid</h3>
-                </div>
-            </div>
-            <div class="match-collapsible-content">
-                <div class="match-subs-panel-body" id="kampdetaljer-bytter">
-                    ${buildMatchSubsPanelBodyHtml(match)}
-                </div>
-            </div>
-            ${buildMatchPanelMobileCloseBarHtml('Lukk banetid')}
-        </section>
-
-        <section class="match-stats-panel match-collapsible-panel is-game-card ${isStatsOpen ? '' : 'is-collapsed'}" data-match-panel="spillerbors">
+        <section class="match-stats-panel match-collapsible-panel is-game-card is-game-card-work ${isStatsOpen ? '' : 'is-collapsed'}" data-match-panel="spillerbors">
             <div
                 class="match-bench-action-row match-bench-topline match-stats-topline"
                 onclick="window.onMatchPanelToplineClick(event)"
@@ -9516,7 +9656,10 @@ window.showMatchDetails = function(id) {
             >
                 <div class="match-bench-heading">
                     <span class="match-game-card-icon match-stats-star-mark" aria-hidden="true"></span>
-                    <h3>Spillerbørs</h3>
+                    <div class="match-bench-heading-copy">
+                        <h3>Spillerbørs</h3>
+                        ${buildMatchGameCardTeaserHtml(getMatchSpillerborsPanelTeaserText(match))}
+                    </div>
                 </div>
             </div>
             <div class="match-collapsible-content">
@@ -9585,7 +9728,68 @@ window.showMatchDetails = function(id) {
             </div>
         </section>
 
-        <section class="match-opponent-info-panel match-collapsible-panel is-game-card ${isOpponentInfoOpen ? '' : 'is-collapsed'}" data-match-panel="motstanderinfo">
+        <div class="match-detail-secondary-stack">
+        ${buildMatchDetailSectionDividerHtml('Mer')}
+        <section class="match-coach-notes-panel match-collapsible-panel is-game-card is-game-card-secondary ${isCoachNotesOpen ? '' : 'is-collapsed'}" data-match-panel="trenernotater">
+            <div
+                class="match-bench-action-row match-bench-topline match-coach-notes-topline"
+                onclick="window.onMatchPanelToplineClick(event)"
+                role="button"
+                tabindex="0"
+                aria-expanded="${isCoachNotesOpen ? 'true' : 'false'}"
+                aria-label="${isCoachNotesOpen ? 'Skjul trenernotater' : 'Vis trenernotater'}"
+                data-show-label="Vis trenernotater"
+                data-hide-label="Skjul trenernotater"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onMatchPanelToplineClick(event);}"
+            >
+                <div class="match-bench-heading">
+                    <span class="match-game-card-icon match-coach-notes-mark" aria-hidden="true"></span>
+                    <div class="match-bench-heading-copy">
+                        <h3>Trenernotater</h3>
+                        ${buildMatchGameCardTeaserHtml(getMatchCoachNotesPanelTeaserText(match))}
+                    </div>
+                </div>
+            </div>
+            <div class="match-collapsible-content">
+                <div class="match-coach-notes-body">
+                    ${typeof window.buildMatchCoachNotesFieldsHtml === 'function' ? window.buildMatchCoachNotesFieldsHtml(match) : ''}
+                </div>
+                <div class="match-coach-notes-footer">
+                    <p class="match-inline-status match-coach-notes-save-state" data-notes-save-state aria-live="polite" hidden></p>
+                </div>
+            </div>
+            ${buildMatchPanelMobileCloseBarHtml('Lukk trenernotater')}
+        </section>
+
+        <section class="match-subs-panel match-collapsible-panel is-game-card is-game-card-secondary ${isSubsPanelOpen ? '' : 'is-collapsed'}" data-match-panel="bytter">
+            <div
+                class="match-bench-action-row match-bench-topline match-subs-topline"
+                onclick="window.onMatchPanelToplineClick(event)"
+                role="button"
+                tabindex="0"
+                aria-expanded="${isSubsPanelOpen ? 'true' : 'false'}"
+                aria-label="${isSubsPanelOpen ? 'Skjul banetid' : 'Vis banetid'}"
+                data-show-label="Vis banetid"
+                data-hide-label="Skjul banetid"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onMatchPanelToplineClick(event);}"
+            >
+                <div class="match-bench-heading">
+                    <span class="match-game-card-icon match-subs-playing-time-mark" aria-hidden="true"></span>
+                    <div class="match-bench-heading-copy">
+                        <h3>Banetid</h3>
+                        ${buildMatchGameCardTeaserHtml(getMatchBanetidPanelTeaserText(match))}
+                    </div>
+                </div>
+            </div>
+            <div class="match-collapsible-content">
+                <div class="match-subs-panel-body" id="kampdetaljer-bytter">
+                    ${buildMatchSubsPanelBodyHtml(match)}
+                </div>
+            </div>
+            ${buildMatchPanelMobileCloseBarHtml('Lukk banetid')}
+        </section>
+
+        <section class="match-opponent-info-panel match-collapsible-panel is-game-card is-game-card-secondary ${isOpponentInfoOpen ? '' : 'is-collapsed'}" data-match-panel="motstanderinfo">
             <div
                 class="match-bench-action-row match-bench-topline match-opponent-info-topline"
                 onclick="window.onMatchPanelToplineClick(event)"
@@ -9610,6 +9814,7 @@ window.showMatchDetails = function(id) {
             </div>
             ${buildMatchPanelMobileCloseBarHtml('Lukk motstanderinfo')}
         </section>
+        </div>
         </div>
     `;
 
