@@ -17300,23 +17300,6 @@
             position: relative;
             z-index: 3;
         }
-        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar::after {
-            background: linear-gradient(
-                90deg,
-                transparent,
-                #ffe08a 20%,
-                #f5c542 50%,
-                #ffe08a 80%,
-                transparent
-            );
-            bottom: 0;
-            box-shadow: 0 0 10px rgba(245, 197, 66, 0.35);
-            content: "";
-            height: 2.5px;
-            left: 0;
-            position: absolute;
-            right: 0;
-        }
         .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-players.match-detail-squad-zone {
             gap: 0.45rem;
         }
@@ -19185,10 +19168,6 @@
                 flex: 0 0 auto;
                 margin-bottom: 0;
                 padding-block: 0.65rem;
-            }
-            .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-detail-squad-overlay-toolbar::after {
-                left: calc(-1 * var(--focus-pad-x));
-                right: calc(-1 * var(--focus-pad-x));
             }
             .match-detail-page .match-bench-panel.is-game-card[data-match-panel="kamptropp"].is-mobile-focus .match-detail-squad-list {
                 -webkit-overflow-scrolling: touch;
