@@ -1698,8 +1698,8 @@ window.buildMatchDetailCardHtml = buildMatchDetailCardHtml;
 window.bindMatchListEvents = bindMatchListEvents;
 
 const matchGamePlanTabs = [
-    { id: 'offc', label: 'OffC' },
-    { id: 'defc', label: 'DefC' },
+    { id: 'offc', label: 'OffC', icon: 'flag-ofc' },
+    { id: 'defc', label: 'DefC', icon: 'flag-dfc' },
     { id: 'roller', label: 'Roller' },
     { id: 'bench', label: 'Bytter' },
     { id: 'kampplan', label: 'Kampplan' }
@@ -8804,7 +8804,7 @@ function buildMatchGamePlanHtml(match) {
                 ${matchGamePlanTabs.map((tab, index) => `
                     <button
                         type="button"
-                        class="match-game-plan-tab ${index === 0 ? 'is-active' : ''}"
+                        class="match-game-plan-tab ${tab.icon ? 'has-icon' : ''} ${index === 0 ? 'is-active' : ''}"
                         role="tab"
                         aria-selected="${index === 0 ? 'true' : 'false'}"
                         title="${escapeMatchHtml(tab.label)}"
@@ -8812,7 +8812,9 @@ function buildMatchGamePlanHtml(match) {
                         onclick="window.goToMatchGamePlanTab('${tab.id}')"
                         data-game-plan-tab="${tab.id}"
                         data-no-swipe
-                    >${escapeMatchHtml(tab.label)}</button>
+                    >${tab.icon
+                        ? `<img class="match-game-plan-tab-icon" src="assets/img/${escapeMatchHtml(tab.icon)}.svg?v=oc-dc-2" alt="" aria-hidden="true">`
+                        : escapeMatchHtml(tab.label)}</button>
                 `).join('')}
             </div>
         </div>
