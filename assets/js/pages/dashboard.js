@@ -122,106 +122,38 @@ window.updateDashboard = function() {
     const heroContainer = document.getElementById('hjem-hero-match-container');
 
     bindDashboardEvents();
-    
+    if (typeof window.bindMatchListEvents === 'function') {
+        window.bindMatchListEvents();
+    }
+
     if (heroContainer) {
-        if (upcoming.length > 0) {
+        if (upcoming.length > 0 && typeof window.buildMatchDetailCardHtml === 'function') {
             const nm = upcoming[0];
-            const dateValue = new Date(nm.date);
-            const dateFormatted = Number.isNaN(dateValue.getTime())
-                ? 'Dato ikke satt'
-                : dateValue.toLocaleDateString('no-NO', { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' });
-            const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
-            const matchTypeLabel = nm.matchType || 'Kamp';
-            const durationLabel = nm.duration || '90 min';
-            const sides = typeof window.getMatchCardSides === 'function'
-                ? window.getMatchCardSides(nm)
-                : {
-                    venueLabel: 'Borte',
-                    left: { name: nm.opponent, isBsk: false },
-                    right: { name: 'Bækkelaget', isBsk: true }
-                };
-            const renderHeroTeamHtml = (team) => {
-                const logoHtml = typeof window.buildClubLogoImgHtml === 'function'
-                    ? window.buildClubLogoImgHtml(team.name, 'match-detail-crest-logo')
-                    : '';
-                const crestClass = [
-                    'match-detail-crest',
-                    team.isBsk ? '' : 'match-detail-crest-opponent',
-                    logoHtml ? 'match-detail-crest-has-logo' : ''
-                ].filter(Boolean).join(' ');
-                const iconClass = team.isBsk ? 'fa-shield-halved' : 'fa-shield';
-                return `
-                    <div class="match-detail-team">
-                        <div class="${crestClass}">
-                            ${logoHtml || `<i class="fa-solid ${iconClass}"></i>`}
-                        </div>
-                        <span class="match-detail-team-name">${escapeDashboardHtml(team.name)}</span>
-                    </div>
-                `;
-            };
-            
-            const teamSuspensions = typeof window.getDisciplineStatusForTeam === 'function' ? window.getDisciplineStatusForTeam(nm.matchGroup, nm.date) : {};
-            const suspendedPlayers = Object.keys(teamSuspensions).filter(p => teamSuspensions[p].isSuspended);
-            const atRiskPlayers = Object.keys(teamSuspensions).filter(p => teamSuspensions[p].isAtRisk && !teamSuspensions[p].isSuspended);
             const dashboardAlerts = typeof window.buildMatchAlertData === 'function' ? window.buildMatchAlertData(nm) : [];
             window._dashboardAlertPopupData = dashboardAlerts;
 
-            let herosuspensionBadgeHtml = '';
-            const totalWarnings = suspendedPlayers.length + atRiskPlayers.length;
-            if (totalWarnings > 0) {
-                herosuspensionBadgeHtml = `
-                    <button type="button"
-                            data-dashboard-action="match-alert"
-                            class="bsk-btn bsk-btn-chip bsk-btn-danger dashboard-alert-chip"
-                            title="Vis varsel for neste seriekamp">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span>Varsel</span>
-                    </button>
-                `;
-            }
-
+            heroContainer.innerHTML = window.buildMatchDetailCardHtml(nm, {
+                extraClass: 'h-full',
+                clickable: true,
+                showWatermark: true,
+                battleHero: true,
+                showHeroNav: false
+            });
+        } else if (upcoming.length > 0) {
+            const nm = upcoming[0];
             heroContainer.innerHTML = `
                 <article data-dashboard-action="open-match" data-match-id="${escapeDashboardHtml(nm.id)}" role="button" tabindex="0" class="match-detail-card dashboard-next-match-card dashboard-click-card h-full">
-                    <div class="dashboard-next-match-watermark">
-                        <i class="fa-solid fa-shield-halved"></i>
-                    </div>
-
                     <div class="match-detail-card-top relative z-10">
-                        <div class="match-detail-meta relative">
+                        <div class="match-detail-meta">
                             <i class="fa-regular fa-calendar-days"></i>
-                            <span>${escapeDashboardHtml(dateLabel)}</span>
-                            ${herosuspensionBadgeHtml}
-                        </div>
-                        <div class="match-detail-chip">
-                            <i class="fa-solid fa-futbol"></i>
-                            <span>${escapeDashboardHtml(matchTypeLabel)}</span>
+                            <span>Neste kamp</span>
                         </div>
                     </div>
-
                     <div class="match-detail-main relative z-10">
-                        ${renderHeroTeamHtml(sides.left)}
-
-                        <div class="match-detail-center">
-                            <span class="match-detail-time">${escapeDashboardHtml(nm.time || '--:--')}</span>
-                            <span class="match-detail-sub">Kampstart</span>
-                        </div>
-
-                        ${renderHeroTeamHtml(sides.right)}
-                    </div>
-
-                    <div class="match-detail-footer relative z-10">
-                        <div class="match-detail-footer-item" title="${escapeDashboardHtml(nm.pitch || 'Ikke fastsatt')}">
-                            <i class="fa-solid fa-location-dot"></i>
-                            <span>${escapeDashboardHtml(nm.pitch || 'Ikke fastsatt')}</span>
-                        </div>
-                        <div class="match-detail-footer-item">
-                            <i class="fa-regular fa-clock"></i>
-                            <span>${durationLabel}</span>
-                        </div>
+                        <span class="match-detail-time">${escapeDashboardHtml(nm.opponent || 'Motstander')}</span>
                     </div>
                 </article>
             `;
-
         } else {
             heroContainer.innerHTML = `
                 <article data-dashboard-action="open-kamper-tab" role="button" tabindex="0" class="match-detail-card dashboard-next-match-card dashboard-click-card hjem-empty-card h-full">

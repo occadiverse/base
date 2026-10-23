@@ -13,7 +13,7 @@ function escapeMatchJsString(value) {
 }
 
 function bindMatchListEvents() {
-    ['matchListContainer', 'matchListUpcomingContainer', 'matchListPastContainer', 'kampdetaljer-info'].forEach((containerId) => {
+    ['matchListContainer', 'matchListUpcomingContainer', 'matchListPastContainer', 'kampdetaljer-info', 'hjem-hero-match-container'].forEach((containerId) => {
         const container = document.getElementById(containerId);
         if (!container || container.dataset.matchEventsBound === 'true') return;
 
@@ -65,6 +65,9 @@ function bindMatchListEvents() {
                 if (actionEl.closest('[data-match-panel="motstanderinfo"]')) {
                     window.pendingMatchDetailsOpenPanel = 'motstanderinfo';
                 }
+                if (actionEl.closest('#hjem-hero-match-container')) {
+                    window.pendingMatchDetailsBackTab = 'hjem';
+                }
                 window.showMatchDetails(matchId);
             } else if (action === 'edit') {
                 window.openMatchModal(matchId);
@@ -99,7 +102,12 @@ function bindMatchListEvents() {
             }
 
             const matchId = actionEl.dataset.matchId;
-            if (matchId) window.showMatchDetails(matchId);
+            if (matchId) {
+                if (actionEl.closest('#hjem-hero-match-container')) {
+                    window.pendingMatchDetailsBackTab = 'hjem';
+                }
+                window.showMatchDetails(matchId);
+            }
         });
     });
 }
@@ -1567,14 +1575,17 @@ function buildMatchDetailCardHtml(match, options = {}) {
         showWatermark = false,
         showAttendance = false,
         showHeroNav = false,
+        battleHero,
+        hideEdit = false,
         bottomContentHtml = ''
     } = options;
+    const useBattleHero = battleHero ?? showHeroNav;
     const data = getMatchCardPresentation(match);
     const sides = getMatchCardSides(match);
     const cardClasses = [
         'match-detail-card',
         extraClass,
-        showHeroNav ? 'is-battle-hero' : '',
+        useBattleHero ? 'is-battle-hero' : '',
         data.resultTone,
         (clickable || backOnClick) ? 'dashboard-click-card' : ''
     ].filter(Boolean).join(' ');
@@ -1605,7 +1616,7 @@ function buildMatchDetailCardHtml(match, options = {}) {
         : backOnClick
             ? 'data-match-action="go-back" role="button" tabindex="0" title="Tilbake" aria-label="Tilbake til forrige side"'
             : '';
-    const mainHtml = showHeroNav
+    const mainHtml = useBattleHero
         ? `
             <div class="match-detail-battle relative z-10">
                 <div class="match-detail-main match-detail-battle-arena">
@@ -1626,7 +1637,7 @@ function buildMatchDetailCardHtml(match, options = {}) {
                 ${renderMatchTeamHtml(sides.right)}
             </div>
         `;
-    const footerHtml = showHeroNav
+    const footerHtml = useBattleHero
         ? ''
         : `
             <div class="match-detail-footer relative z-10">
@@ -1641,6 +1652,19 @@ function buildMatchDetailCardHtml(match, options = {}) {
                 </div>
             </div>
         `;
+    const editButtonHtml = hideEdit
+        ? ''
+        : `
+                    <button
+                        type="button"
+                        data-match-action="edit"
+                        data-match-id="${escapeMatchHtml(match.id)}"
+                        class="${useBattleHero ? 'match-detail-edit-btn' : 'blknapp is-icon match-detail-edit-btn'}"
+                        title="Endre kamp"
+                        aria-label="Endre kamp"
+                    >
+                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                    </button>`;
     return `
         <article class="${cardClasses}" ${clickAttrs}>
             ${watermarkHtml}
@@ -1651,17 +1675,8 @@ function buildMatchDetailCardHtml(match, options = {}) {
                     ${alertChipHtml}
                 </div>
                 <div class="match-detail-top-chips">
-                    <button
-                        type="button"
-                        data-match-action="edit"
-                        data-match-id="${escapeMatchHtml(match.id)}"
-                        class="${showHeroNav ? 'match-detail-edit-btn' : 'blknapp is-icon match-detail-edit-btn'}"
-                        title="Endre kamp"
-                        aria-label="Endre kamp"
-                    >
-                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
-                    </button>
-                    <div class="${showHeroNav ? 'match-detail-chip match-detail-type-chip' : 'blknapp match-detail-chip'}" aria-label="${escapeMatchHtml(data.matchTypeLabel)}">
+                    ${editButtonHtml}
+                    <div class="${useBattleHero ? 'match-detail-chip match-detail-type-chip' : 'blknapp match-detail-chip'}" aria-label="${escapeMatchHtml(data.matchTypeLabel)}">
                         <i class="fa-solid fa-futbol" aria-hidden="true"></i>
                         <span>${escapeMatchHtml(data.matchTypeLabel)}</span>
                     </div>
@@ -1678,6 +1693,9 @@ function buildMatchDetailCardHtml(match, options = {}) {
         </article>
     `;
 }
+
+window.buildMatchDetailCardHtml = buildMatchDetailCardHtml;
+window.bindMatchListEvents = bindMatchListEvents;
 
 const matchGamePlanTabs = [
     { id: 'offc', label: 'OffC' },

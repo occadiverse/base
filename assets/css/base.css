@@ -1014,22 +1014,28 @@
             grid-template-columns: minmax(0, 1fr);
         }
         .hjem-home-grid > * {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
             min-width: 0;
         }
         .hjem-home-grid .match-detail-card {
+            flex: 1 1 auto;
             height: 100%;
+            min-height: 0;
         }
         #hjem-bottom-widgets {
-            display: grid;
+            display: flex;
+            flex-direction: column;
             gap: 1rem;
-            grid-template-columns: minmax(0, 1fr);
             min-height: 0;
         }
         #hjem-bottom-widgets .match-detail-card {
+            flex: 1 1 auto;
             height: 100%;
             min-height: 0;
         }
-        /* Lite Clash-ramme — kun neste kamp (ikke battle-hero) */
+        /* Empty/loading fallback on Hjem (battle hero uses kampdetaljer Clash styles) */
         .hjem-page .dashboard-next-match-card {
             background:
                 radial-gradient(ellipse 110% 55% at 50% -14%, rgba(255, 214, 102, 0.36), transparent 50%),
@@ -1043,8 +1049,19 @@
                 0 16px 34px rgba(2, 6, 23, 0.36),
                 inset 0 2px 0 rgba(255, 255, 255, 0.18),
                 inset 0 -10px 24px rgba(0, 0, 0, 0.26);
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
             position: relative;
+        }
+        .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+        }
+        .hjem-page .dashboard-next-match-card .match-detail-main {
+            flex: 1 1 auto;
         }
         .hjem-page .dashboard-next-match-card::before {
             background: linear-gradient(
@@ -1089,10 +1106,9 @@
         @media (min-width: 1024px) {
             .hjem-home-grid {
                 gap: 1.25rem;
-                grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
             #hjem-bottom-widgets {
-                align-content: stretch;
                 gap: 1.25rem;
             }
         }
@@ -3726,7 +3742,7 @@
             gap: 1rem;
         }
         /* Clash outer frame for kampdetaljer hero only (not shared .match-detail-card surfaces) */
-        .match-detail-page > .match-detail-card {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) {
             background:
                 radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255, 214, 102, 0.48), transparent 52%),
                 radial-gradient(ellipse 90% 50% at 50% 120%, rgba(28, 130, 68, 0.28), transparent 55%),
@@ -3743,7 +3759,7 @@
             overflow: hidden;
             position: relative;
         }
-        .match-detail-page > .match-detail-card::before {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero)::before {
             background: linear-gradient(
                 90deg,
                 transparent 0%,
@@ -3762,12 +3778,12 @@
             top: 0;
             z-index: 2;
         }
-        .match-detail-page > .match-detail-card .match-detail-card-top {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-card-top {
             background: rgba(255, 255, 255, 0.05);
             border-bottom: 0;
             position: relative;
         }
-        .match-detail-page > .match-detail-card .match-detail-card-top::after {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-card-top::after {
             background: linear-gradient(
                 90deg,
                 transparent,
@@ -3785,19 +3801,19 @@
             position: absolute;
             right: 0.85rem;
         }
-        .match-detail-page > .match-detail-card .match-detail-meta {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-meta {
             color: #fffdf5;
             text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
         }
-        .match-detail-page > .match-detail-card .match-detail-meta i {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-meta i {
             color: #ffe08a;
             filter: drop-shadow(0 1px 0 rgba(2, 6, 23, 0.35));
         }
-        .match-detail-page > .match-detail-card .match-detail-top-chips {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-top-chips {
             align-items: center;
             gap: 0.4rem;
         }
-        .match-detail-page > .match-detail-card .match-detail-edit-btn {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-edit-btn {
             -webkit-appearance: none;
             appearance: none;
             align-items: center;
@@ -3822,7 +3838,7 @@
             padding: 0;
             width: 1.7rem;
         }
-        .match-detail-page > .match-detail-card .match-detail-edit-btn i {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-edit-btn i {
             color: inherit;
             display: block;
             font-size: 0.7rem;
@@ -3830,17 +3846,17 @@
             text-shadow: none;
             transform: translateY(0.5px);
         }
-        .match-detail-page > .match-detail-card .match-detail-edit-btn:hover,
-        .match-detail-page > .match-detail-card .match-detail-edit-btn:focus-visible {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-edit-btn:hover,
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-edit-btn:focus-visible {
             border-color: rgba(255, 224, 138, 0.7);
             color: #fff6d6;
             outline: none;
         }
-        .match-detail-page > .match-detail-card .match-detail-edit-btn:active {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-edit-btn:active {
             opacity: 0.92;
             transform: none;
         }
-        .match-detail-page > .match-detail-card .match-detail-type-chip {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-type-chip {
             align-items: center;
             background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
             border: 1.5px solid rgba(255, 224, 138, 0.42);
@@ -3863,14 +3879,14 @@
             text-transform: uppercase;
             width: auto;
         }
-        .match-detail-page > .match-detail-card .match-detail-type-chip i {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-type-chip i {
             color: #ffe08a;
             font-size: 0.68rem;
             line-height: 1;
         }
-        .match-detail-page > .match-detail-card .match-detail-crest,
-        .match-detail-page > .match-detail-card .match-detail-crest-opponent,
-        .match-detail-page > .match-detail-card .match-detail-crest-has-logo {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-crest,
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-crest-opponent,
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-crest-has-logo {
             background: #ffffff;
             border: 2px solid #ffe08a !important;
             border-width: 2px !important;
@@ -3880,10 +3896,10 @@
             overflow: hidden;
             padding: 0.12rem;
         }
-        .match-detail-page > .match-detail-card .match-detail-crest-logo {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-crest-logo {
             border-radius: 999px;
         }
-        .match-detail-page > .match-detail-card .match-detail-team-name {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-team-name {
             color: #fffdf5;
             font-size: clamp(0.78rem, 2.8vw, 1.75rem);
             font-weight: 950;
@@ -3899,15 +3915,15 @@
             white-space: nowrap;
             word-break: normal;
         }
-        .match-detail-page > .match-detail-card .match-detail-main {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-main {
             column-gap: 0.45rem;
             grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
         }
-        .match-detail-page > .match-detail-card .match-detail-center {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-center {
             min-width: 3.75rem;
             padding-inline: 0.15rem;
         }
-        .match-detail-page > .match-detail-card .match-detail-time {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-time {
             color: #fffdf5;
             font-weight: 950;
             text-shadow:
@@ -3917,13 +3933,13 @@
                 0 1px 0 #0a1a30,
                 0 3px 0 rgba(2, 6, 23, 0.5);
         }
-        .match-detail-page > .match-detail-card .match-detail-sub {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-sub {
             color: #ffe08a;
             letter-spacing: 0.14em;
             text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
         }
         /* Clash battle arena (kampdetaljer hero only) */
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle {
             align-items: center;
             display: flex;
             flex: 1 1 auto;
@@ -3934,7 +3950,7 @@
             position: relative;
             width: 100%;
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle::before {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle::before {
             background:
                 radial-gradient(ellipse 70% 55% at 50% 45%, rgba(245, 197, 66, 0.16), transparent 68%),
                 radial-gradient(ellipse 90% 70% at 50% 100%, rgba(4, 14, 28, 0.45), transparent 70%);
@@ -3947,7 +3963,7 @@
             top: 0;
             z-index: 0;
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-arena {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-arena {
             align-items: center;
             column-gap: clamp(0.35rem, 2vw, 0.85rem);
             display: grid;
@@ -3957,9 +3973,9 @@
             width: 100%;
             z-index: 1;
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-crest,
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-crest-opponent,
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-crest-has-logo {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-crest,
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-crest-opponent,
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-crest-has-logo {
             animation: match-battle-crest-in 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
             border-width: 3px !important;
             box-shadow:
@@ -3971,23 +3987,23 @@
             padding: 0.16rem;
             width: clamp(4.6rem, 16vw, 6.1rem);
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-team:first-child .match-detail-crest {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-team:first-child .match-detail-crest {
             animation-delay: 40ms;
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-team:last-child .match-detail-crest {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-team:last-child .match-detail-crest {
             animation-delay: 120ms;
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-crest i {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-crest i {
             font-size: clamp(1.55rem, 5vw, 2.1rem);
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-team-name {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-team-name {
             font-size: clamp(0.82rem, 3.1vw, 1.35rem);
             margin-top: 0.15rem;
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-team {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-team {
             gap: 0.55rem;
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-center {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-center {
             align-items: center;
             display: flex;
             flex-direction: column;
@@ -3996,7 +4012,7 @@
             min-width: 4.75rem;
             padding-inline: 0.2rem;
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-vs {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-vs {
             animation: match-battle-vs-pop 520ms cubic-bezier(0.22, 1, 0.36, 1) 160ms both;
             background: linear-gradient(180deg, #ffe9a8 0%, #f5c542 48%, #c49214 100%);
             border: 2px solid #fff6d6;
@@ -4014,16 +4030,16 @@
             padding: 0.28rem 0.55rem;
             text-shadow: 0 1px 0 rgba(255, 248, 220, 0.55);
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-clock,
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-score {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-clock,
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-score {
             font-size: clamp(1.55rem, 6.2vw, 2.55rem);
             font-variant-numeric: tabular-nums;
             letter-spacing: 0.02em;
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-center .match-detail-sub {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-center .match-detail-sub {
             margin-top: 0;
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-info {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-info {
             display: flex;
             flex: 0 0 auto;
             flex-wrap: wrap;
@@ -4035,7 +4051,7 @@
             position: relative;
             z-index: 1;
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-chip {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-chip {
             align-items: center;
             background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
             border: 1.5px solid rgba(255, 224, 138, 0.42);
@@ -4054,25 +4070,25 @@
             text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
             text-transform: uppercase;
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-chip.is-primary {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-chip.is-primary {
             background: linear-gradient(180deg, rgba(40, 95, 150, 0.85) 0%, rgba(12, 36, 68, 0.95) 100%);
             border-color: rgba(255, 224, 138, 0.78);
             box-shadow:
                 0 2px 0 rgba(2, 6, 23, 0.5),
                 0 0 10px rgba(245, 197, 66, 0.22);
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-chip i {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-chip i {
             color: #ffe08a;
             flex: 0 0 auto;
             font-size: 0.68rem;
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-chip span {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-chip span {
             min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .match-detail-page > .match-detail-card.is-battle-hero.is-win .match-detail-battle-score {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero.is-win .match-detail-battle-score {
             color: #b8ffd0;
             text-shadow:
                 -1px 0 0 #0a1a30,
@@ -4082,7 +4098,7 @@
                 0 0 18px rgba(74, 222, 128, 0.55),
                 0 3px 0 rgba(2, 6, 23, 0.5);
         }
-        .match-detail-page > .match-detail-card.is-battle-hero.is-draw .match-detail-battle-score {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero.is-draw .match-detail-battle-score {
             color: #ffe08a;
             text-shadow:
                 -1px 0 0 #0a1a30,
@@ -4092,7 +4108,7 @@
                 0 0 16px rgba(245, 197, 66, 0.45),
                 0 3px 0 rgba(2, 6, 23, 0.5);
         }
-        .match-detail-page > .match-detail-card.is-battle-hero.is-loss .match-detail-battle-score {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero.is-loss .match-detail-battle-score {
             color: #ffb4b4;
             text-shadow:
                 -1px 0 0 #0a1a30,
@@ -4102,7 +4118,7 @@
                 0 0 16px rgba(248, 113, 113, 0.4),
                 0 3px 0 rgba(2, 6, 23, 0.5);
         }
-        .match-detail-page > .match-detail-card.is-battle-hero::after {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero::after {
             animation: match-battle-gold-shimmer 2.8s ease-in-out 0.4s infinite;
             background: linear-gradient(
                 100deg,
@@ -4155,20 +4171,20 @@
             }
         }
         @media (prefers-reduced-motion: reduce) {
-            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-crest,
-            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-crest-opponent,
-            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-crest-has-logo,
-            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-vs,
-            .match-detail-page > .match-detail-card.is-battle-hero::after {
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-crest,
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-crest-opponent,
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-crest-has-logo,
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-vs,
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero::after {
                 animation: none;
             }
         }
-        .match-detail-page > .match-detail-card .match-detail-footer {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-footer {
             background: rgba(2, 6, 23, 0.22);
             border-top: 0;
             position: relative;
         }
-        .match-detail-page > .match-detail-card .match-detail-footer::before {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-footer::before {
             background: linear-gradient(
                 90deg,
                 transparent,
@@ -4186,18 +4202,18 @@
             right: 0.85rem;
             top: 0;
         }
-        .match-detail-page > .match-detail-card .match-detail-footer-item {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-footer-item {
             color: #fffdf5;
             text-shadow: 0 1px 0 rgba(2, 6, 23, 0.35);
         }
-        .match-detail-page > .match-detail-card .match-detail-footer-item i {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-footer-item i {
             color: #ffe08a;
             filter: drop-shadow(0 1px 0 rgba(2, 6, 23, 0.35));
         }
         .match-detail-hero-nav {
             display: none;
         }
-        .match-detail-page > .match-detail-card .match-detail-hero-nav {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-hero-nav {
             background:
                 linear-gradient(180deg, rgba(8, 28, 56, 0.55) 0%, rgba(2, 6, 23, 0.72) 100%);
             border-top: 0;
@@ -4209,7 +4225,7 @@
             padding: 0.95rem 0.75rem 1.05rem;
             position: relative;
         }
-        .match-detail-page > .match-detail-card.is-battle-hero .match-detail-hero-nav {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-hero-nav {
             /* Sterkere dock-skille mot battle-arena */
             background:
                 linear-gradient(180deg, rgba(10, 34, 68, 0.72) 0%, rgba(2, 6, 23, 0.88) 100%);
@@ -4217,7 +4233,7 @@
                 inset 0 14px 22px rgba(2, 6, 23, 0.28),
                 0 -10px 28px rgba(2, 6, 23, 0.28);
         }
-        .match-detail-page > .match-detail-card .match-detail-hero-nav::before {
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-hero-nav::before {
             background: linear-gradient(
                 90deg,
                 transparent,
@@ -4332,7 +4348,7 @@
         }
         @media (max-width: 767px) {
             /* Hero som egen fullskjerm-side — samme kant-i-kant som troppkort/fokuspaneler */
-            .match-detail-page > .match-detail-card {
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) {
                 --focus-pad-x: clamp(0.55rem, 3.2vw, 1rem);
                 --focus-pad-y: clamp(0.35rem, 1.4vw, 0.55rem);
                 border-left: 0;
@@ -4355,35 +4371,35 @@
                 width: 100%;
                 z-index: 35;
             }
-            .match-detail-page > .match-detail-card::before {
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero)::before {
                 left: 0;
                 right: 0;
             }
-            .match-detail-page > .match-detail-card .match-detail-card-top {
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-card-top {
                 flex: 0 0 auto;
                 margin: 0 calc(-1 * var(--focus-pad-x));
                 padding-left: var(--focus-pad-x);
                 padding-right: var(--focus-pad-x);
             }
-            .match-detail-page > .match-detail-card .match-detail-card-top::after,
-            .match-detail-page > .match-detail-card .match-detail-footer::before,
-            .match-detail-page > .match-detail-card .match-detail-hero-nav::before {
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-card-top::after,
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-footer::before,
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-hero-nav::before {
                 left: 0;
                 right: 0;
             }
-            .match-detail-page > .match-detail-card .match-detail-main,
-            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle {
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-main,
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle {
                 align-content: center;
                 flex: 1 1 auto;
                 min-height: 0;
             }
-            .match-detail-page > .match-detail-card .match-detail-footer {
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-footer {
                 flex: 0 0 auto;
                 margin: 0 calc(-1 * var(--focus-pad-x));
                 padding-left: var(--focus-pad-x);
                 padding-right: var(--focus-pad-x);
             }
-            .match-detail-page > .match-detail-card .match-detail-hero-nav {
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-hero-nav {
                 display: grid;
                 flex: 0 0 auto;
                 margin: 0 calc(-1 * var(--focus-pad-x));
@@ -4391,22 +4407,22 @@
                 padding-left: var(--focus-pad-x);
                 padding-right: var(--focus-pad-x);
             }
-            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-crest,
-            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-crest-opponent,
-            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-crest-has-logo {
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-crest,
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-crest-opponent,
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-crest-has-logo {
                 height: clamp(5rem, 22vw, 6.4rem);
                 width: clamp(5rem, 22vw, 6.4rem);
             }
-            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-clock,
-            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-score {
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-clock,
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-score {
                 font-size: clamp(1.7rem, 8vw, 2.7rem);
             }
-            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-info {
+            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-info {
                 gap: 0.35rem;
                 margin-top: 0.85rem;
                 padding-bottom: 0.35rem;
             }
-            body.is-match-panel-focus .match-detail-page > .match-detail-card {
+            body.is-match-panel-focus :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) {
                 display: none;
             }
             .match-detail-page .match-collapsible-panel.is-collapsed {
@@ -19251,7 +19267,7 @@
                 width: 0;
                 height: 0;
             }
-            body.is-match-panel-focus .match-detail-page > .match-detail-card {
+            body.is-match-panel-focus :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) {
                 display: none;
             }
             .match-detail-page .match-collapsible-panel.is-mobile-focus {
