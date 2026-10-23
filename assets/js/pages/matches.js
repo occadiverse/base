@@ -2315,12 +2315,12 @@ function syncMatchGamePlanLineupSaveState(match) {
 
     if (saveBtn) {
         saveBtn.classList.toggle('is-dirty', isDirty);
-        saveBtn.setAttribute('aria-label', isDirty ? 'Lagre ulagrede endringer' : 'Lagre lagoppstilling');
-        saveBtn.title = isDirty ? 'Ulagrede endringer i 11eren' : 'Lagre lagoppstilling';
+        saveBtn.setAttribute('aria-label', isDirty ? 'Lagre lagoppstilling' : 'Lagoppstilling lagret');
+        saveBtn.title = isDirty ? 'Ulagrede endringer — trykk for å lagre' : 'Ingen ulagrede endringer';
 
         const label = saveBtn.querySelector('.match-game-plan-lineup-save-label');
         if (label) {
-            label.textContent = isDirty ? 'Lagre · ulagret' : 'Lagre';
+            label.textContent = isDirty ? 'Lagre' : 'Lagret';
         }
     }
 
@@ -6187,6 +6187,7 @@ function buildMatchGamePlanLineupViewSegmentHtml(match, options = {}) {
         viewOptions.push({
             id: 'samspill',
             label: 'Samspill',
+            icon: 'fa-share-nodes',
             active: Boolean(overlayState.samspill)
         });
     }
@@ -6277,31 +6278,37 @@ function buildMatchGamePlanLineupClearBtnHtml(match) {
             onclick="window.clearMatchGamePlanLineup('${escapeMatchJsString(match.id)}')"
         >
             <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
-            <span class="match-game-plan-lineup-clear-label">Nullstill</span>
         </button>
     `;
 }
 
 function buildMatchGamePlanLineupSaveBtnHtml(match) {
+    const isDirty = checkMatchGamePlanDraftDirty(match);
     return `
         <button
             type="button"
-            class="match-game-plan-lineup-save-btn"
-            aria-label="Lagre lagoppstilling"
-            title="Lagre lagoppstilling"
+            class="match-game-plan-lineup-save-btn${isDirty ? ' is-dirty' : ''}"
+            aria-label="${isDirty ? 'Lagre lagoppstilling' : 'Lagoppstilling lagret'}"
+            title="${isDirty ? 'Ulagrede endringer — trykk for å lagre' : 'Ingen ulagrede endringer'}"
             onclick="window.completeMatchGamePlanLineup('${escapeMatchJsString(match.id)}')"
         >
             <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
-            <span class="match-game-plan-lineup-save-label">Lagre</span>
+            <span class="match-game-plan-lineup-save-label">${isDirty ? 'Lagre' : 'Lagret'}</span>
         </button>
     `;
 }
 
 function buildMatchGamePlanLineupToolbarHtml(match) {
+    const overlaysHtml = buildMatchGamePlanLineupViewSegmentHtml(match, {
+        includeSamspill: true,
+        includePlayerOverlays: true,
+        ariaLabel: 'Visning',
+        extraClass: 'match-detail-lineup-overlay-segment'
+    });
     return `
         <div class="match-game-plan-lineup-toolbar">
             ${buildMatchGamePlanFormationPickerHtml(match)}
-            ${buildMatchGamePlanSamspillControlHtml(match)}
+            ${overlaysHtml}
             <div class="match-game-plan-lineup-actions">
                 ${buildMatchGamePlanLineupClearBtnHtml(match)}
                 ${buildMatchGamePlanLineupSaveBtnHtml(match)}
