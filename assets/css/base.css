@@ -1417,84 +1417,127 @@
         }
         .match-detail-squad-overlay-sep {
             align-self: center;
-            background: rgba(255, 253, 245, 0.28);
+            background: rgba(255, 224, 138, 0.35);
             flex: 0 0 auto;
-            height: 1.55rem;
+            height: 1.45rem;
             width: 1px;
         }
-        .match-detail-squad-overlay-toolbar .match-squad-update-btn.blknapp {
-            background: linear-gradient(180deg, #6ee7b7 0%, #047857 100%);
-            border-color: #a7f3d0;
-            box-shadow: 0 3px 0 #064e3b;
-            color: #ecfdf5;
-            flex: 0 0 2.35rem;
-            height: 2.35rem;
-            max-width: 2.35rem;
-            min-width: 2.35rem;
-            text-shadow: 0 1px 0 rgba(6, 78, 59, 0.65);
-            width: 2.35rem;
+        /* Kamptropp toolbar: navy/gull som hero-chips (ikke blå/grønn gem) */
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp,
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-squad-update-btn.blknapp {
+            border-radius: 0.7rem;
+            border-width: 1.5px;
+            box-sizing: border-box;
+            font-weight: 900;
+            height: 2.15rem;
+            text-transform: none;
         }
-        .match-detail-squad-overlay-toolbar .match-squad-update-btn.blknapp:hover {
-            background: linear-gradient(180deg, #86efac 0%, #059669 100%);
-            border-color: #bbf7d0;
-            box-shadow: 0 3px 0 #064e3b;
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp {
+            flex: 0 0 2.15rem;
+            max-width: 2.15rem;
+            min-width: 2.15rem;
+            width: 2.15rem;
         }
-        .match-detail-squad-overlay-toolbar .match-squad-update-btn.blknapp:active {
-            box-shadow: 0 1px 0 #022c22;
-        }
-        .match-detail-squad-overlay-toolbar .match-squad-update-btn.blknapp:focus-visible {
-            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.45), 0 3px 0 #064e3b;
-            outline: none;
-        }
-        .match-detail-squad-overlay-toolbar .match-squad-update-btn.blknapp i {
-            font-size: 1rem;
-        }
-        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp {
-            flex: 0 0 2.35rem;
-            height: 2.35rem;
-            max-width: 2.35rem;
-            min-width: 2.35rem;
-            width: 2.35rem;
-        }
-        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp:not(.is-active) {
-            background: linear-gradient(180deg, rgba(94, 176, 255, 0.45) 0%, rgba(26, 79, 158, 0.45) 100%);
-            border-color: rgba(200, 228, 255, 0.45);
-            box-shadow: 0 2px 0 rgba(10, 34, 68, 0.75);
-            color: rgba(244, 249, 255, 0.78);
-            opacity: 0.85;
-        }
-        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp:not(.is-active):hover {
-            background: linear-gradient(180deg, rgba(94, 176, 255, 0.62) 0%, rgba(26, 79, 158, 0.62) 100%);
-            border-color: rgba(200, 228, 255, 0.7);
-            color: #f4f9ff;
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp:not(.is-active) {
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
+            border-color: rgba(255, 224, 138, 0.42);
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
+            color: rgba(255, 253, 245, 0.88);
             opacity: 1;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
         }
-        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp.is-active {
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp:not(.is-active):hover {
+            background: linear-gradient(180deg, rgba(40, 95, 150, 0.85) 0%, rgba(12, 36, 68, 0.95) 100%);
+            border-color: rgba(255, 224, 138, 0.7);
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.5);
+            color: #fffdf5;
+        }
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp.is-active {
             background: linear-gradient(180deg, #ffe066 0%, #e69d10 60%, #a85800 100%);
             border-color: #fff099;
-            box-shadow: 0 3px 0 #5c2e00;
+            box-shadow: 0 2px 0 #5c2e00;
             color: #fffdf5;
             opacity: 1;
             text-shadow: 0 1px 0 #5c2e00;
         }
-        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp.is-active:hover {
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp.is-active:hover {
             background: linear-gradient(180deg, #ffe58a 0%, #f0b429 60%, #b86300 100%);
             border-color: #fff3b0;
-            box-shadow: 0 3px 0 #5c2e00;
+            box-shadow: 0 2px 0 #5c2e00;
             color: #fffdf5;
         }
-        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp.is-active:active {
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp.is-active:active {
             box-shadow: 0 1px 0 #3d1e00;
         }
-        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp:focus-visible {
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp:focus-visible {
             outline: none;
-            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.4), 0 3px 0 #0a2244;
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.4), 0 2px 0 rgba(2, 6, 23, 0.45);
         }
-        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp.is-active:focus-visible {
-            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.45), 0 3px 0 #5c2e00;
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp.is-active:focus-visible {
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.45), 0 2px 0 #5c2e00;
         }
-        .match-detail-squad-players .match-detail-squad-overlay-segment .match-game-plan-lineup-overlay-btn.blknapp i {
-            font-size: 1rem;
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp i {
+            color: inherit;
+            font-size: 0.95rem;
+            text-shadow: inherit;
+        }
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp.has-text {
+            align-items: center;
+            display: inline-flex;
+            font-size: 0.68rem;
+            justify-content: center;
+            letter-spacing: 0.02em;
+            line-height: 1;
+            padding: 0;
+        }
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn-text {
+            color: inherit;
+            font-weight: 900;
+            text-shadow: inherit;
+        }
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-squad-update-btn.blknapp {
+            align-items: center;
+            background: linear-gradient(180deg, #ffe08a 0%, #f5c542 48%, #c4921a 100%);
+            border-color: #fff6d6;
+            box-shadow: 0 2px 0 #6b4a0c;
+            color: #1a1204;
+            display: inline-flex;
+            flex: 0 0 auto;
+            gap: 0.35rem;
+            justify-content: center;
+            letter-spacing: 0.02em;
+            max-width: none;
+            min-width: 0;
+            padding: 0 0.7rem;
+            text-shadow: 0 1px 0 rgba(255, 253, 245, 0.45);
+            width: auto;
+        }
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-squad-update-btn.blknapp:hover {
+            background: linear-gradient(180deg, #fff0b0 0%, #f7d05a 48%, #d4a017 100%);
+            border-color: #fff9e0;
+            box-shadow: 0 2px 0 #7a5610;
+            color: #1a1204;
+        }
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-squad-update-btn.blknapp:active {
+            box-shadow: 0 1px 0 #4a3408;
+            transform: translateY(1px);
+        }
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-squad-update-btn.blknapp:focus-visible {
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.45), 0 2px 0 #6b4a0c;
+            outline: none;
+        }
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-squad-update-btn.blknapp i {
+            color: inherit;
+            font-size: 0.82rem;
+            text-shadow: inherit;
+        }
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-squad-update-btn-text {
+            color: inherit;
+            font-size: 0.72rem;
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: inherit;
+            white-space: nowrap;
         }
         .match-detail-squad-list {
             padding: 0;
@@ -13586,34 +13629,27 @@
             gap: 0.5rem;
             min-width: 0;
         }
+        /* Kamptropp linjeheaders: Clash-gull, lesbart uten gem-barer */
         .match-detail-squad-list .match-bench-group-title.stats-kamp-summary-metric-heading {
             align-self: stretch;
-            background:
-                linear-gradient(180deg, rgba(255, 233, 168, 0.28) 0%, transparent 46%),
-                linear-gradient(180deg, #3a84d6 0%, #1a569c 48%, #0d3268 100%);
-            border: 2px solid #f5c542;
-            border-radius: 0.55rem;
-            box-shadow:
-                0 0 0 1.5px #0a1a30,
-                0 3px 0 #071428,
-                inset 0 1px 0 rgba(255, 255, 255, 0.32),
-                inset 0 -5px 12px rgba(0, 0, 0, 0.28);
+            background: linear-gradient(90deg, rgba(245, 197, 66, 0.16) 0%, rgba(245, 197, 66, 0.04) 70%, transparent 100%);
+            border: 0;
+            border-bottom: 1.5px solid rgba(255, 224, 138, 0.55);
+            border-radius: 0.2rem 0.2rem 0 0;
+            box-shadow: none;
             box-sizing: border-box;
-            color: #fff6d6;
+            color: #fff3c4;
             display: block;
-            font-size: 0.72rem;
+            font-size: 0.74rem;
             font-weight: 950;
-            letter-spacing: 0.1em;
-            margin: 0;
-            padding: 0.42rem 0.55rem;
+            letter-spacing: 0.12em;
+            margin: 0 0 0.12rem;
+            padding: 0.28rem 0.4rem 0.4rem;
             position: relative;
-            text-align: center;
+            text-align: left;
             text-shadow:
-                -1px 0 0 #0a1a30,
-                1px 0 0 #0a1a30,
-                0 -1px 0 #0a1a30,
                 0 1px 0 #0a1a30,
-                0 2px 0 rgba(2, 6, 23, 0.5);
+                0 0 14px rgba(255, 214, 102, 0.4);
             text-transform: uppercase;
             width: 100%;
         }
@@ -13888,9 +13924,9 @@
         }
         @media (min-width: 700px) {
             .match-detail-squad-list .match-bench-group-title.stats-kamp-summary-metric-heading {
-                font-size: 0.66rem;
-                letter-spacing: 0.08em;
-                padding: 0.36rem 0.35rem;
+                font-size: 0.7rem;
+                letter-spacing: 0.11em;
+                padding: 0.24rem 0.35rem 0.36rem;
             }
             .match-detail-squad-list .match-bench-player {
                 padding: 0.45rem 0.5rem;

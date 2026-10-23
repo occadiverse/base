@@ -1767,7 +1767,7 @@ const matchGamePlanFormations = {
 
 const matchGamePlanLineupOverlayOptions = [
     { id: 'bidrag', label: 'Bidrag', icon: 'fa-chart-line' },
-    { id: 'startBenk', label: 'Start/benk', icon: 'fa-shuffle' },
+    { id: 'startBenk', label: 'Start/benk', text: 'S/B' },
     { id: 'form', label: 'Form', icon: 'fa-heart-pulse' }
 ];
 
@@ -6197,6 +6197,7 @@ function buildMatchGamePlanLineupViewSegmentHtml(match, options = {}) {
                 id: option.id,
                 label: option.label,
                 icon: option.icon || '',
+                text: option.text || '',
                 active: Boolean(overlayState[option.id])
             });
         });
@@ -6207,13 +6208,15 @@ function buildMatchGamePlanLineupViewSegmentHtml(match, options = {}) {
     return `
         <div class="match-game-plan-lineup-view-segment${extraClass ? ` ${extraClass}` : ''}" data-lineup-view-segment data-match-id="${escapeMatchHtml(match.id)}" role="group" aria-label="${escapeMatchHtml(ariaLabel)}">
             ${viewOptions.map(option => {
-                const content = option.icon
-                    ? `<i class="fa-solid ${escapeMatchHtml(option.icon)}" aria-hidden="true"></i>`
-                    : escapeMatchHtml(option.label);
+                const content = option.text
+                    ? `<span class="match-game-plan-lineup-overlay-btn-text">${escapeMatchHtml(option.text)}</span>`
+                    : option.icon
+                        ? `<i class="fa-solid ${escapeMatchHtml(option.icon)}" aria-hidden="true"></i>`
+                        : escapeMatchHtml(option.label);
                 return `
                 <button
                     type="button"
-                    class="match-game-plan-lineup-overlay-btn${buttonClass ? ` ${buttonClass}` : ''}${option.active ? ' is-active' : ''}"
+                    class="match-game-plan-lineup-overlay-btn${buttonClass ? ` ${buttonClass}` : ''}${option.active ? ' is-active' : ''}${option.text ? ' has-text' : ''}"
                     data-lineup-view-toggle="${escapeMatchHtml(option.id)}"
                     aria-pressed="${option.active ? 'true' : 'false'}"
                     title="${escapeMatchHtml(option.label)}"
@@ -6235,12 +6238,12 @@ function buildMatchGamePlanSquadOverlaySegmentHtml(match) {
         <span class="match-detail-squad-overlay-sep" aria-hidden="true"></span>
         <button
             type="button"
-            class="blknapp is-icon match-squad-update-btn"
+            class="blknapp match-squad-update-btn has-text"
             data-match-action="attendance"
             data-match-id="${escapeMatchHtml(match.id)}"
             title="Oppdater oppmøte"
             aria-label="Oppdater oppmøte"
-        ><i class="fa-solid fa-clipboard-user" aria-hidden="true"></i></button>
+        ><i class="fa-solid fa-user-check" aria-hidden="true"></i><span class="match-squad-update-btn-text">Oppmøte</span></button>
     `;
     return `${overlaysHtml}${updateBtnHtml}`;
 }
