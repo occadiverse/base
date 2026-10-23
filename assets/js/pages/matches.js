@@ -1174,7 +1174,6 @@ function getMatchBattleCenterPresentation(match, data) {
 }
 
 function getMatchBattleInfoChips(match, data) {
-    const presentation = data || getMatchCardPresentation(match);
     const venue = typeof getMatchVenue === 'function' ? getMatchVenue(match) : (match?.venue || '');
     const venueLabel = venue === 'Hjemme' ? 'Hjemme' : (venue === 'Borte' ? 'Borte' : '');
     const presenceStats = typeof window.getAttendancePresenceStats === 'function'
@@ -1183,7 +1182,9 @@ function getMatchBattleInfoChips(match, data) {
     const troppLabel = presenceStats.isRegistered
         ? `${presenceStats.presentCount} tropp`
         : 'Tropp ikke satt';
-    const opponentRecord = typeof getOpponentHistoryRecord === 'function'
+    const finished = isMatchBattleFinished(match);
+    const opponentRecord = finished
+        && typeof getOpponentHistoryRecord === 'function'
         && typeof getOpponentRecordMatches === 'function'
         ? getOpponentHistoryRecord(getOpponentRecordMatches(match))
         : null;
@@ -1204,27 +1205,16 @@ function getMatchBattleInfoChips(match, data) {
         title: 'Bane'
     });
     chips.push({
-        icon: 'fa-hourglass-half',
-        text: presentation.durationLabel || '90 min',
-        title: 'Spilletid'
-    });
-    chips.push({
         icon: 'fa-users',
         text: troppLabel,
-        title: 'Kamptropp'
+        title: 'Kamptropp',
+        primary: true
     });
-    if (opponentPlayed > 0) {
+    if (finished && opponentPlayed > 0) {
         chips.push({
             icon: 'fa-shield-halved',
             text: `${opponentRecord.wins}-${opponentRecord.draws}-${opponentRecord.losses}`,
             title: `Mot ${match?.opponent || 'motstander'}: ${opponentPlayed} kamper`
-        });
-    }
-    if (isMatchBattleFinished(match) && match?.time) {
-        chips.unshift({
-            icon: 'fa-clock',
-            text: `Kl. ${match.time}`,
-            title: 'Kampstart'
         });
     }
     return chips;
@@ -1255,7 +1245,7 @@ function buildMatchDetailBattleInfoHtml(match, data) {
     return `
         <div class="match-detail-battle-info" data-battle-info>
             ${chips.map(chip => `
-                <div class="match-detail-battle-chip" title="${escapeMatchHtml(chip.title || chip.text)}">
+                <div class="match-detail-battle-chip${chip.primary ? ' is-primary' : ''}" title="${escapeMatchHtml(chip.title || chip.text)}">
                     <i class="fa-solid ${escapeMatchHtml(chip.icon)}" aria-hidden="true"></i>
                     <span>${escapeMatchHtml(chip.text)}</span>
                 </div>
@@ -1644,13 +1634,13 @@ function buildMatchDetailCardHtml(match, options = {}) {
                         type="button"
                         data-match-action="edit"
                         data-match-id="${escapeMatchHtml(match.id)}"
-                        class="blknapp is-icon match-detail-edit-btn"
+                        class="${showHeroNav ? 'match-detail-edit-btn' : 'blknapp is-icon match-detail-edit-btn'}"
                         title="Endre kamp"
                         aria-label="Endre kamp"
                     >
                         <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
                     </button>
-                    <div class="blknapp match-detail-chip" aria-label="${escapeMatchHtml(data.matchTypeLabel)}">
+                    <div class="${showHeroNav ? 'match-detail-chip match-detail-type-chip' : 'blknapp match-detail-chip'}" aria-label="${escapeMatchHtml(data.matchTypeLabel)}">
                         <i class="fa-solid fa-futbol" aria-hidden="true"></i>
                         <span>${escapeMatchHtml(data.matchTypeLabel)}</span>
                     </div>
