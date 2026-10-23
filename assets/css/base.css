@@ -65,10 +65,21 @@
             scrollbar-gutter: stable;
         }
         @media (max-width: 767px) {
-            /* Keep the scrollport above the fixed mobile nav so content cannot sit under it. */
+            /* No reserved scrollbar strip on phone — touch scroll only */
+            html,
+            .portal-main-shell {
+                scrollbar-gutter: auto;
+            }
             .portal-main-shell {
                 margin-bottom: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+                scrollbar-width: none;
             }
+            .portal-main-shell::-webkit-scrollbar {
+                display: none;
+                width: 0;
+                height: 0;
+            }
+            /* Keep the scrollport above the fixed mobile nav so content cannot sit under it. */
             #main-view.portal-main-view {
                 padding-bottom: 1.25rem;
             }
@@ -6232,28 +6243,51 @@
             flex-direction: column;
             min-width: 0;
         }
-        /* Kamper mobil A: kant-i-kant shell + sticky chrome (< desktop 2-col) */
+        /* Kamper mobil: full bleed of #main-view (no portal padding gaps) */
         @media (max-width: 1023px) {
-            .match-list-page {
-                max-width: none;
-            }
-            .match-list-mobile-card {
-                border-left: 0;
-                border-radius: 0;
-                border-right: 0;
-                box-shadow: none;
-                margin-left: -1rem;
-                margin-right: -1rem;
-                /* Fill viewport so short lists keep navy (not white portal) below */
+            #main-view:has(#view-kamper:not(.hidden)) {
+                background:
+                    radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.12), transparent 34%),
+                    linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+                display: flex;
+                flex-direction: column;
                 min-height: calc(
                     100dvh
                     - 3.5rem
                     - env(safe-area-inset-top, 0px)
-                    - 1rem
-                    - 1.25rem
                 );
-                overflow: visible;
-                width: calc(100% + 2rem);
+                padding: 0;
+            }
+            #main-view:has(#view-kamper:not(.hidden)) #view-kamper {
+                background: transparent;
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                max-width: none;
+                min-height: 100%;
+                width: 100%;
+            }
+            .match-list-page {
+                max-width: none;
+            }
+            .match-list-mobile-card {
+                background:
+                    radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.12), transparent 34%),
+                    linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+                border-left: 0;
+                border-radius: 0;
+                border-right: 0;
+                box-shadow: none;
+                flex: 1 1 auto;
+                margin: 0;
+                min-height: 100%;
+                /* clip watermark without creating a sticky-blocking scrollport */
+                overflow-x: clip;
+                overflow-y: visible;
+                width: 100%;
+            }
+            .match-list-mobile-card .match-list-mobile-watermark {
+                right: -1.25rem;
             }
             .match-list-mobile-chrome {
                 background:
@@ -6279,26 +6313,23 @@
                 padding: 0.45rem 0 0.85rem;
             }
         }
-        /* Phone: subtract fixed bottom nav from fill height */
+        /* Phone: fill between header and fixed bottom nav; navy follows scroll */
         @media (max-width: 767px) {
-            .match-list-mobile-card {
+            #main-view:has(#view-kamper:not(.hidden)) {
                 min-height: calc(
                     100dvh
                     - 3.5rem
                     - env(safe-area-inset-top, 0px)
-                    - 1rem
-                    - 1.25rem
                     - var(--portal-mobile-nav-height)
                     - env(safe-area-inset-bottom, 0px)
                 );
             }
+            /* Overscroll / end of list stays navy, not portal white */
+            body:has(#view-kamper:not(.hidden)) {
+                background: #0b2b4c;
+            }
         }
         @media (min-width: 768px) and (max-width: 1023px) {
-            .match-list-mobile-card {
-                margin-left: -2rem;
-                margin-right: -2rem;
-                width: calc(100% + 4rem);
-            }
             .match-list-mobile-top {
                 padding-left: 1.15rem;
                 padding-right: 1.15rem;
@@ -6384,7 +6415,7 @@
         .match-list-mobile-toolbar .match-filter-btn,
         .match-list-mobile-toolbar .match-filter-btn.bsk-btn-chip {
             border-radius: 0.7rem;
-            font-size: 0.62rem;
+            font-size: 0.72rem;
             height: 2.15rem;
             letter-spacing: 0.02em;
             max-height: 2.15rem;
@@ -6392,7 +6423,7 @@
             padding: 0 0.4rem;
         }
         .match-list-mobile-toolbar .match-filter-btn i {
-            font-size: 0.62rem;
+            font-size: 0.7rem;
         }
         .match-list-toolbar-sep {
             align-self: center;
@@ -6669,7 +6700,7 @@
         }
         .match-list-mobile-card .match-fixture-group-rows {
             gap: 0.28rem;
-            padding: 0 0.65rem;
+            padding: 0;
         }
         .match-list-mobile-card .match-fixture-year-group {
             gap: 0.55rem;
@@ -6678,12 +6709,16 @@
             gap: 0.7rem;
         }
         .match-list-mobile-card .match-fixture-month {
+            border-bottom-color: rgba(255, 224, 138, 0.18);
+            border-radius: 0.5rem;
             font-size: 0.6rem;
             letter-spacing: 0.12em;
             margin: 0;
             padding: 0.22rem 0.65rem 0.26rem;
         }
         .match-list-mobile-card .match-fixture-year-toggle {
+            border-bottom-color: rgba(255, 224, 138, 0.16);
+            border-radius: 0.5rem;
             padding: 0.26rem 0.65rem 0.3rem;
         }
         .match-list-mobile-card .match-fixture-row {
@@ -6694,6 +6729,7 @@
                 inset 0 1px 0 rgba(255, 253, 245, 0.08);
             gap: 0.55rem;
             padding: 0.55rem 0.65rem;
+            width: 100%;
         }
         .match-list-mobile-card .match-fixture-date {
             border-radius: 0.6rem;
