@@ -10269,6 +10269,43 @@ function buildMatchGamePlanSelectActionsHtml(matchId, posId, mode) {
     `;
 }
 
+function buildMatchGamePlanSelectCurrentStripHtml(match, posId, player) {
+    if (!player) return '';
+
+    const posStat = getPlayerPositionStatForPos(player, posId);
+    const seasonStat = getMatchGamePlanPlayerSeasonStat(player);
+    const posCode = getMatchGamePlanPositionBadgeLabel(posId, getMatchPlayerSelectFormation(match));
+    const matches = Math.max(0, Math.floor(Number(posStat?.matches) || 0));
+    const bidrag = matches > 0
+        ? (Math.round((Number(posStat.points) || 0) / matches * 10) / 10)
+        : null;
+    const formValue = posStat ? Number(computeMatchGamePlanPositionForm(posStat.entries)) || 0 : 0;
+    const seasonValue = posStat ? Number(computeMatchGamePlanPositionSeason(posStat, seasonStat)) || 0 : 0;
+    const stats = [
+        { label: 'K', value: matches > 0 ? String(matches) : '—' },
+        { label: 'Bidrag', value: bidrag != null ? String(bidrag) : '—' },
+        { label: 'Form', value: formValue > 0 ? String(formValue) : '—' },
+        {
+            label: 'Sesong',
+            value: seasonValue > 0 ? (Math.round(seasonValue * 10) / 10).toFixed(1) : '—'
+        }
+    ];
+
+    return `
+        <div class="match-game-plan-select-current" aria-label="Nåværende på ${escapeMatchHtml(posCode)}">
+            <p class="match-game-plan-select-current-label">Nå på ${escapeMatchHtml(posCode)}</p>
+            <div class="match-game-plan-select-current-stats">
+                ${stats.map(stat => `
+                    <div class="match-game-plan-select-current-stat">
+                        <span class="match-game-plan-select-current-stat-label">${escapeMatchHtml(stat.label)}</span>
+                        <span class="match-game-plan-select-current-stat-value">${escapeMatchHtml(stat.value)}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
 function buildMatchGamePlanPositionOptionsHtml(match, posId) {
     const lineup = getMatchPlayerSelectLineup(match);
     const currentPlayer = lineup[posId];
@@ -10387,22 +10424,20 @@ function buildMatchGamePlanExperiencedPlayersTableHtml(match, posId, experienced
     }).join('');
 
     return `
-        <div class="match-game-plan-insight-table-wrap match-game-plan-pos-pick-table-wrap">
-            <table class="match-game-plan-insight-table match-game-plan-pos-pick-table">
-                <thead>
-                    <tr>
-                        <th aria-label="Spiller"></th>
-                        <th title="Antall kamper">K</th>
-                        <th title="Snitt kampbidrag">Bidrag</th>
-                        <th title="Mål / Assist">M/A</th>
-                        <th title="Mål+assist per kamp">XP</th>
-                        <th title="Form fra snitt på posisjonen (siste 5)">Form</th>
-                        <th title="Sesongscore fra snitt på posisjonen">Sesong</th>
-                    </tr>
-                </thead>
-                <tbody>${bodyRows}</tbody>
-            </table>
-        </div>
+        <table class="match-game-plan-insight-table match-game-plan-pos-pick-table">
+            <thead>
+                <tr>
+                    <th aria-label="Spiller"></th>
+                    <th title="Antall kamper">K</th>
+                    <th title="Snitt kampbidrag">Bidrag</th>
+                    <th title="Mål / Assist">M/A</th>
+                    <th title="Mål+assist per kamp">XP</th>
+                    <th title="Form fra snitt på posisjonen (siste 5)">Form</th>
+                    <th title="Sesongscore fra snitt på posisjonen">Sesong</th>
+                </tr>
+            </thead>
+            <tbody>${bodyRows}</tbody>
+        </table>
     `;
 }
 
@@ -10500,11 +10535,13 @@ function buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer) {
     if (experienced.length) {
         sections.push(`
             <div class="match-game-plan-player-section">
-                <p class="match-game-plan-player-section-title">
-                    Har spilt ${escapeMatchHtml(posCode)}
-                    <span>${experienced.length}</span>
-                </p>
-                ${buildMatchGamePlanExperiencedPlayersTableHtml(match, posId, experienced, selectedPlayer)}
+                <div class="match-game-plan-pos-pick-table-wrap match-game-plan-select-section-panel">
+                    <p class="match-game-plan-player-section-title">
+                        Har spilt ${escapeMatchHtml(posCode)}
+                        <span class="match-game-plan-player-section-count">${experienced.length}</span>
+                    </p>
+                    ${buildMatchGamePlanExperiencedPlayersTableHtml(match, posId, experienced, selectedPlayer)}
+                </div>
             </div>
         `);
     }
@@ -10512,11 +10549,11 @@ function buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer) {
     if (others.length) {
         sections.push(`
             <div class="match-game-plan-player-section">
-                <p class="match-game-plan-player-section-title">
-                    Øvrige i troppen
-                    <span>${others.length}</span>
-                </p>
-                <div class="match-game-plan-player-section-list">
+                <div class="match-game-plan-player-section-list match-game-plan-pos-pick-table-wrap match-game-plan-select-section-panel match-game-plan-select-others">
+                    <p class="match-game-plan-player-section-title">
+                        Øvrige i troppen
+                        <span class="match-game-plan-player-section-count">${others.length}</span>
+                    </p>
                     ${others.map(player =>
                         buildMatchGamePlanPlayerSelectOptionHtml(match, posId, player)
                     ).join('')}
@@ -10562,13 +10599,17 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
     const lineup = getMatchPlayerSelectLineup(match);
     const selectedPlayer = lineup[posId] || null;
     const currentMode = mode || 'player';
+    const positionLabel = getMatchGamePlanPositionLabel(posId);
+    const actionSubtitle = !selectedPlayer
+        ? 'Velg spiller'
+        : (currentMode === 'position' ? 'Bytt posisjon' : 'Bytt spiller');
 
     if (title) {
         title.innerHTML = `
             ${buildMatchGamePlanHeadingAvatarHtml(selectedPlayer, posId)}
             <span class="match-game-plan-heading-copy">
                 <span class="match-game-plan-heading-title">${escapeMatchHtml(selectedPlayer ? selectedPlayer.navn : 'Ledig')}</span>
-                <span class="match-game-plan-heading-subtitle">${escapeMatchHtml(getMatchGamePlanPositionLabel(posId))}</span>
+                <span class="match-game-plan-heading-subtitle">${escapeMatchHtml(actionSubtitle)} · ${escapeMatchHtml(positionLabel)}</span>
             </span>
         `;
     }
@@ -10576,14 +10617,10 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
     removeMatchGamePlanClearPlayerButton(modal);
     modal.classList.remove('is-player-insight');
 
-    const listHtml = [
-        selectedPlayer ? buildMatchGamePlanSelectActionsHtml(matchId, posId, currentMode) : '',
-        currentMode === 'position' && selectedPlayer
-            ? buildMatchGamePlanPositionOptionsHtml(match, posId)
-            : buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer)
-    ].join('');
-
-    list.innerHTML = listHtml || `
+    const bodyHtml = currentMode === 'position' && selectedPlayer
+        ? buildMatchGamePlanPositionOptionsHtml(match, posId)
+        : buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer);
+    const emptyHtml = `
         <div class="match-game-plan-player-empty">
             ${currentMode === 'position'
                 ? 'Ingen posisjoner å bytte til.'
@@ -10592,6 +10629,12 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
                     : 'Ingen spillere i kamptroppen. Trykk oppmøte for å registrere.')}
         </div>
     `;
+
+    list.innerHTML = [
+        selectedPlayer ? buildMatchGamePlanSelectActionsHtml(matchId, posId, currentMode) : '',
+        selectedPlayer ? buildMatchGamePlanSelectCurrentStripHtml(match, posId, selectedPlayer) : '',
+        bodyHtml || emptyHtml
+    ].join('');
 
     if (selectedPlayer) {
         renderMatchGamePlanClearPlayerButton(modal, matchId, posId);
