@@ -6208,9 +6208,6 @@
             display: none;
         }
         .match-list-column {
-            background:
-                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.12), transparent 34%),
-                linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
             display: flex;
             flex-direction: column;
             min-height: 100%;
@@ -6247,6 +6244,14 @@
                 box-shadow: none;
                 margin-left: -1rem;
                 margin-right: -1rem;
+                /* Fill viewport so short lists keep navy (not white portal) below */
+                min-height: calc(
+                    100dvh
+                    - 3.5rem
+                    - env(safe-area-inset-top, 0px)
+                    - 1rem
+                    - 1.25rem
+                );
                 overflow: visible;
                 width: calc(100% + 2rem);
             }
@@ -6270,7 +6275,22 @@
                 padding: 0.55rem 0.85rem 0.7rem;
             }
             .match-list-mobile-main {
+                flex: 1 1 auto;
                 padding: 0.45rem 0 0.85rem;
+            }
+        }
+        /* Phone: subtract fixed bottom nav from fill height */
+        @media (max-width: 767px) {
+            .match-list-mobile-card {
+                min-height: calc(
+                    100dvh
+                    - 3.5rem
+                    - env(safe-area-inset-top, 0px)
+                    - 1rem
+                    - 1.25rem
+                    - var(--portal-mobile-nav-height)
+                    - env(safe-area-inset-bottom, 0px)
+                );
             }
         }
         @media (min-width: 768px) and (max-width: 1023px) {
@@ -6892,18 +6912,10 @@
         }
         @media (min-width: 1024px) {
             .match-list-desktop-columns {
-                align-items: stretch;
+                align-items: start;
                 display: grid;
                 gap: 1.25rem;
                 grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-            .match-list-column {
-                height: 100%;
-                min-height: 100%;
-            }
-            .match-list-column-main {
-                flex: 1 1 auto;
-                min-height: 0;
             }
             .match-list-mobile-card {
                 display: none !important;
