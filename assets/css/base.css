@@ -1048,6 +1048,57 @@
         .hjem-page .dashboard-next-match-card .match-detail-main {
             flex: 1 1 auto;
         }
+        /* C: økt-kort — Clash, men sekundær til kamp-hero */
+        .hjem-page .dashboard-next-session-card {
+            background:
+                radial-gradient(ellipse 100% 50% at 50% -10%, rgba(255, 214, 102, 0.18), transparent 52%),
+                linear-gradient(168deg, #163a62 0%, #0f2d52 48%, #0a2240 100%) !important;
+            border: 1.5px solid rgba(245, 197, 66, 0.42);
+            border-radius: 1.1rem;
+            box-shadow:
+                0 0 0 1px rgba(10, 26, 48, 0.65),
+                0 10px 24px rgba(2, 6, 23, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            min-height: 0;
+            overflow: hidden;
+            position: relative;
+        }
+        .hjem-page .dashboard-next-session-card::before {
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 248, 220, 0.14) 20%,
+                rgba(255, 224, 138, 0.75) 50%,
+                rgba(255, 248, 220, 0.14) 80%,
+                transparent 100%
+            );
+            content: "";
+            height: 2px;
+            left: 12%;
+            pointer-events: none;
+            position: absolute;
+            right: 12%;
+            top: 0;
+            z-index: 2;
+        }
+        .hjem-page .dashboard-next-session-card .dashboard-next-match-watermark {
+            opacity: 0.04;
+        }
+        .hjem-page .dashboard-next-session-card .dashboard-session-main {
+            padding: 1.35rem 1.1rem 1.2rem;
+        }
+        .hjem-page .dashboard-next-session-card .dashboard-session-middle {
+            min-height: 0;
+        }
+        .hjem-page .dashboard-next-session-card .match-detail-footer {
+            padding: 0.75rem 1.1rem;
+        }
+        .hjem-page .dashboard-next-session-card .match-detail-footer-item {
+            font-size: 0.85rem;
+        }
+        .hjem-page .dashboard-next-session-card .match-detail-time {
+            font-size: clamp(1.45rem, 3.2vw, 1.95rem);
+        }
         .hjem-page .dashboard-next-match-card::before {
             background: linear-gradient(
                 90deg,
@@ -1097,6 +1148,111 @@
             }
         }
         @media (max-width: 767px) {
+            /* A: stacked Hjem — hero + økt in document flow (not fullscreen) */
+            .hjem-page {
+                gap: 0.75rem;
+            }
+            .hjem-page-topline {
+                padding: 0 0.05rem;
+            }
+            .hjem-home-grid {
+                gap: 0.85rem;
+            }
+            #hjem-bottom-widgets {
+                gap: 0.85rem;
+            }
+            /* B: battle hero mobile scale inside card (radius + padding kept) */
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero {
+                border-radius: 1.15rem;
+                position: relative;
+                width: 100%;
+            }
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero .match-detail-battle {
+                padding: 0.85rem 0.35rem 0.65rem;
+            }
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero .match-detail-battle-arena {
+                column-gap: clamp(0.4rem, 3vw, 0.9rem);
+            }
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero .match-detail-crest,
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero .match-detail-crest-opponent,
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero .match-detail-crest-has-logo {
+                height: clamp(4.9rem, 20vw, 6.1rem);
+                width: clamp(4.9rem, 20vw, 6.1rem);
+            }
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero .match-detail-crest i {
+                font-size: clamp(1.6rem, 5.5vw, 2.05rem);
+            }
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero .match-detail-team-name {
+                font-size: clamp(0.88rem, 3.4vw, 1.2rem);
+            }
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero .match-detail-battle-center {
+                gap: 0.32rem;
+                min-width: 5rem;
+            }
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero .match-detail-battle-vs {
+                font-size: clamp(1.05rem, 4vw, 1.3rem);
+                min-width: 3rem;
+                padding: 0.32rem 0.6rem;
+            }
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero .match-detail-battle-clock,
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero .match-detail-battle-score {
+                font-size: clamp(1.7rem, 7.5vw, 2.45rem);
+            }
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero .match-detail-battle-info {
+                gap: 0.35rem;
+                margin-top: 0.9rem;
+                padding-bottom: 0.45rem;
+            }
+            /* C mobile: kompakt økt under hero */
+            .hjem-page .dashboard-next-session-card {
+                border-radius: 1rem;
+                min-height: 0;
+            }
+            .hjem-page .dashboard-next-session-card.hjem-empty-card {
+                min-height: 11rem;
+            }
+            .hjem-page .dashboard-next-session-card .match-detail-card-top {
+                padding: 0.55rem 0.85rem;
+            }
+            .hjem-page .dashboard-next-session-card .match-detail-chip {
+                font-size: 0.58rem;
+                height: 1.55rem;
+                min-height: 1.55rem;
+                padding: 0 0.5rem;
+            }
+            .hjem-page .dashboard-next-session-card .dashboard-session-main {
+                padding: 0.95rem 0.85rem 0.85rem !important;
+            }
+            .hjem-page .dashboard-next-session-card .dashboard-session-middle {
+                gap: 0.55rem !important;
+                min-height: 0 !important;
+            }
+            .hjem-page .dashboard-next-session-card .dashboard-session-stats-line {
+                gap: 0.28rem !important;
+            }
+            .hjem-page .dashboard-next-session-card .match-detail-time {
+                font-size: clamp(1.35rem, 6vw, 1.75rem) !important;
+            }
+            .hjem-page .dashboard-next-session-card .dashboard-session-attendance-label,
+            .hjem-page .dashboard-next-session-card .dashboard-session-unregistered-label {
+                font-size: 0.58rem;
+            }
+            .hjem-page .dashboard-next-session-card .dashboard-session-radar-inline {
+                font-size: 0.72rem !important;
+            }
+            .hjem-page .dashboard-next-session-card .dashboard-session-actions {
+                flex-basis: 7.5rem !important;
+            }
+            .hjem-page .dashboard-next-session-card .match-detail-footer {
+                gap: 0.65rem;
+                padding: 0.65rem 0.85rem !important;
+            }
+            .hjem-page .dashboard-next-session-card .match-detail-footer-item {
+                font-size: 0.78rem !important;
+            }
+            .hjem-page .dashboard-next-session-card .match-detail-footer-item i {
+                font-size: 0.85rem;
+            }
             #hjem-hero-match-container > div:not(.is-battle-hero),
             #hjem-hero-match-container > section:not(.is-battle-hero),
             #hjem-hero-match-container > article:not(.is-battle-hero) {
