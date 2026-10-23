@@ -28,7 +28,7 @@ function bindDashboardEvents() {
             if (!actionEl) return;
 
             const action = actionEl.dataset.dashboardAction;
-            if (action === 'match-alert' || action === 'session-injury') {
+            if (action === 'match-alert' || action === 'session-injury' || action === 'add-match') {
                 event.stopPropagation();
             }
 
@@ -37,6 +37,10 @@ function bindDashboardEvents() {
                 if (matchId) window.goToMatchDetails(matchId);
             } else if (action === 'match-alert') {
                 window.showDashboardAlertModal();
+            } else if (action === 'add-match') {
+                if (typeof window.openActivityModal === 'function') {
+                    window.openActivityModal('Kamp');
+                }
             } else if (action === 'open-kamper-tab') {
                 switchTab('kamper');
             } else if (action === 'open-calendar-date') {
@@ -105,28 +109,17 @@ window.activateDashboardCardFromKeyboard = function(event) {
 };
 
 window.updateDashboard = function() {
-    let upcoming = [], totalGoals = 0, wins = 0, played = 0, draws = 0, losses = 0;
     const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
-    
-    matches.forEach(m => {
-        const regularScore = typeof window.getMatchRegularScore === 'function'
-            ? window.getMatchRegularScore(m)
-            : window.parseScore(m.result);
-        const outcomeScore = typeof window.getMatchOutcomeScore === 'function'
-            ? window.getMatchOutcomeScore(m)
-            : regularScore;
-        if (regularScore !== null && outcomeScore !== null) {
-            played++; totalGoals += regularScore.bsk;
-            if (outcomeScore.bsk > outcomeScore.opponent) wins++;
-            else if (outcomeScore.bsk === outcomeScore.opponent) draws++;
-            else losses++;
-        } else upcoming.push(m);
-    });
-
-    upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
+    const upcoming = matches
+        .filter((m) => {
+            const regularScore = typeof window.getMatchRegularScore === 'function'
+                ? window.getMatchRegularScore(m)
+                : window.parseScore(m.result);
+            return regularScore === null;
+        })
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const heroContainer = document.getElementById('hjem-hero-match-container');
-    const dangerZoneContainer = document.getElementById('hjem-suspensions-danger-zone');
 
     bindDashboardEvents();
     
@@ -167,57 +160,12 @@ window.updateDashboard = function() {
                 `;
             };
             
-            // Henter ut karantener
             const teamSuspensions = typeof window.getDisciplineStatusForTeam === 'function' ? window.getDisciplineStatusForTeam(nm.matchGroup, nm.date) : {};
             const suspendedPlayers = Object.keys(teamSuspensions).filter(p => teamSuspensions[p].isSuspended);
             const atRiskPlayers = Object.keys(teamSuspensions).filter(p => teamSuspensions[p].isAtRisk && !teamSuspensions[p].isSuspended);
             const dashboardAlerts = typeof window.buildMatchAlertData === 'function' ? window.buildMatchAlertData(nm) : [];
             window._dashboardAlertPopupData = dashboardAlerts;
 
-            const injuredPlayers = (window.activePlayers || [])
-                .filter(p => p.spillerLag === nm.matchGroup && typeof window.getPlayerInjuryInfo === 'function' && window.getPlayerInjuryInfo(p).isInjured)
-                .map(p => ({
-                    navn: p.navn,
-                    info: window.getPlayerInjuryInfo(p)
-                }));
-            
-            // Oppdaterer den dedikerte "Utilgjengelig"-boksen til høyre på forsiden
-            if (dangerZoneContainer) {
-                dangerZoneContainer.innerHTML = '';
-                if (suspendedPlayers.length === 0 && atRiskPlayers.length === 0 && injuredPlayers.length === 0) {
-                    dangerZoneContainer.innerHTML = `<p class="text-xs text-slate-400 italic py-4 text-center">Alle mann er meldt klare og tilgjengelige! 🦅</p>`;
-                } else {
-                    suspendedPlayers.forEach(playerRef => {
-                        const s = teamSuspensions[playerRef];
-                        const badgeColor = s.cardType === 'red' ? 'bg-red-600 text-white' : 'bg-yellow-400 text-slate-900';
-                        dangerZoneContainer.innerHTML += `
-                            <div class="flex items-center justify-between bg-rose-50 border border-rose-100 p-2 rounded-xl text-xs font-bold text-rose-900 shadow-sm">
-                                <span class="truncate">🚨 ${escapeDashboardHtml(window.getPlayerNameFromRef(playerRef))}</span>
-                                <span class="${badgeColor} px-2 py-0.5 rounded text-[9px] font-black shrink-0">${escapeDashboardHtml(s.reason || 'KARANTENE')}</span>
-                            </div>`;
-                    });
-                    atRiskPlayers.forEach(playerRef => {
-                        const s = teamSuspensions[playerRef];
-                        dangerZoneContainer.innerHTML += `
-                            <div class="flex items-center justify-between bg-amber-50 border border-amber-100 p-2 rounded-xl text-xs font-bold text-amber-900 shadow-sm">
-                                <span class="truncate">⚠️ ${escapeDashboardHtml(window.getPlayerNameFromRef(playerRef))}</span>
-                                <span class="bg-amber-400 text-slate-900 px-2 py-0.5 rounded text-[9px] font-black shrink-0">${s.yellows} gule · karantene ved ${s.nextKaranteneAt || 4}</span>
-                            </div>`;
-                    });
-                    injuredPlayers.forEach(p => {
-                        const badgeClass = p.info.type === 'langvarig'
-                            ? 'bg-rose-600 text-white'
-                            : 'bg-orange-500 text-white';
-                        dangerZoneContainer.innerHTML += `
-                            <div class="flex items-center justify-between bg-orange-50 border border-orange-100 p-2 rounded-xl text-xs font-bold text-orange-900 shadow-sm">
-                                <span class="truncate">🩹 ${escapeDashboardHtml(p.navn)}</span>
-                                <span class="${badgeClass} px-2 py-0.5 rounded text-[9px] font-black shrink-0">${escapeDashboardHtml(p.info.shortLabel)}</span>
-                            </div>`;
-                    });
-                }
-            }
-
-            // --- KLIKKBAR VARSELCHIP FOR KARANTENER OG FARESONE ---
             let herosuspensionBadgeHtml = '';
             const totalWarnings = suspendedPlayers.length + atRiskPlayers.length;
             if (totalWarnings > 0) {
@@ -232,9 +180,8 @@ window.updateDashboard = function() {
                 `;
             }
 
-            // HTML for forsiden bruker samme kortspråk som kampdetaljer.
             heroContainer.innerHTML = `
-                <article data-dashboard-action="open-match" data-match-id="${escapeDashboardHtml(nm.id)}" role="button" tabindex="0" class="match-detail-card dashboard-next-match-card dashboard-click-card">
+                <article data-dashboard-action="open-match" data-match-id="${escapeDashboardHtml(nm.id)}" role="button" tabindex="0" class="match-detail-card dashboard-next-match-card dashboard-click-card h-full">
                     <div class="dashboard-next-match-watermark">
                         <i class="fa-solid fa-shield-halved"></i>
                     </div>
@@ -277,18 +224,29 @@ window.updateDashboard = function() {
 
         } else {
             heroContainer.innerHTML = `
-                <div data-dashboard-action="open-kamper-tab" role="button" tabindex="0" class="dashboard-widget-card dashboard-click-card rounded-2xl p-8 md:p-10 text-center relative overflow-hidden border min-h-[210px] flex flex-col items-center justify-center">
-                    <div class="absolute -right-8 -bottom-10 opacity-5 pointer-events-none">
-                        <i class="fa-solid fa-futbol text-[13rem] text-bsk-blue"></i>
+                <article data-dashboard-action="open-kamper-tab" role="button" tabindex="0" class="match-detail-card dashboard-next-match-card dashboard-click-card hjem-empty-card h-full">
+                    <div class="dashboard-next-match-watermark">
+                        <i class="fa-solid fa-futbol"></i>
                     </div>
-                    <div class="portal-status-label mb-4 relative z-10">
-                        <i class="fa-solid fa-calendar-plus"></i>
-                        <span>Neste kamp</span>
+                    <div class="relative z-10 px-6 py-8 text-center">
+                        <div class="match-detail-chip mb-4 mx-auto">
+                            <i class="fa-solid fa-calendar-plus"></i>
+                            <span>Neste kamp</span>
+                        </div>
+                        <h3 class="font-black text-white text-sm">Ingen kommende kamp</h3>
+                        <p class="text-xs text-white/60 mt-2 max-w-[240px] mx-auto">Legg til en kamp for å komme i gang.</p>
+                        <button
+                            type="button"
+                            class="bsk-btn bsk-btn-chip match-list-add-btn hjem-empty-cta"
+                            data-dashboard-action="add-match"
+                            title="Legg til kamp"
+                            aria-label="Legg til kamp"
+                        >
+                            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                            <span>Legg til kamp</span>
+                        </button>
                     </div>
-                    <h3 class="font-black text-bsk-blue text-lg relative z-10">Ingen kommende kamp</h3>
-                    <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto relative z-10">Når en kamp uten resultat ligger inne, vises den automatisk her.</p>
-                </div>`;
-            if (dangerZoneContainer) dangerZoneContainer.innerHTML = `<p class="text-xs text-slate-400 italic py-4 text-center">Ingen aktiv kamp. Ingen varsler å vise.</p>`;
+                </article>`;
         }
     }
 
@@ -480,17 +438,17 @@ window.updateHjemWidget = function() {
         `;
     } else {
         sessionWidgetHtml = `
-            <article data-dashboard-action="open-calendar-date" data-event-date="${escapeDashboardHtml(todayStr)}" role="button" tabindex="0" class="match-detail-card dashboard-next-session-card dashboard-click-card h-full flex flex-col items-center justify-center text-center min-h-[220px]">
+            <article data-dashboard-action="open-calendar-date" data-event-date="${escapeDashboardHtml(todayStr)}" role="button" tabindex="0" class="match-detail-card dashboard-next-session-card dashboard-click-card hjem-empty-card h-full">
                 <div class="dashboard-next-match-watermark">
                     <i class="fa-solid fa-calendar-days"></i>
                 </div>
-                <div class="relative z-10 px-6 py-8">
+                <div class="relative z-10 px-6 py-8 text-center">
                     <div class="match-detail-chip mb-4 mx-auto">
                         <i class="fa-solid fa-stopwatch"></i>
                         <span>Neste økt</span>
                     </div>
                     <h3 class="font-black text-white text-sm">Ingen kommende økter</h3>
-                    <p class="text-xs text-white/60 mt-2 max-w-[240px] mx-auto">Legg inn trening eller aktivitet i kalenderen, så dukker neste økt opp her.</p>
+                    <p class="text-xs text-white/60 mt-2 max-w-[240px] mx-auto">Legg inn trening eller aktivitet i kalenderen.</p>
                 </div>
             </article>
         `;

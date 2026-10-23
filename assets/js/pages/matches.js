@@ -545,7 +545,6 @@ function applyFilters() {
     const listContainer = document.getElementById('matchListContainer');
     const upcomingContainer = document.getElementById('matchListUpcomingContainer');
     const pastContainer = document.getElementById('matchListPastContainer');
-    const noMatchesView = document.getElementById('no-matches-view');
     if (!listContainer && !upcomingContainer && !pastContainer) return;
 
     if (listContainer) listContainer.innerHTML = '';
@@ -586,23 +585,27 @@ function applyFilters() {
     renderMatchListIntoContainer(upcomingContainer, upcomingMatches, {
         isUpcoming: true,
         emptyTitle: 'Ingen kommende kamper',
-        emptyText: 'Når en ny kamp legges inn, vises den her.'
+        emptyText: 'Legg til en kamp for å komme i gang.',
+        showAddCta: true
     });
     renderMatchListIntoContainer(pastContainer, pastMatches, {
         isUpcoming: false,
         archiveOlderYears: true,
         emptyTitle: 'Ingen tidligere kamper',
-        emptyText: 'Resultater dukker opp her etter hvert som kampene er spilt.'
+        emptyText: 'Resultater vises her når kamper er spilt.',
+        showAddCta: false
     });
 
     const isUpcoming = currentTimeFilter === 'kommende';
     renderMatchListIntoContainer(listContainer, sortedMatches, {
         isUpcoming,
         archiveOlderYears: !isUpcoming,
-        showEmpty: false
+        emptyTitle: isUpcoming ? 'Ingen kommende kamper' : 'Ingen tidligere kamper',
+        emptyText: isUpcoming
+            ? 'Legg til en kamp for å komme i gang.'
+            : 'Resultater vises her når kamper er spilt.',
+        showAddCta: isUpcoming
     });
-
-    if (noMatchesView) noMatchesView.classList.toggle('hidden', sortedMatches.length > 0);
 }
 
 function updateMatchListCount(elementId, count) {
@@ -626,12 +629,13 @@ function renderMatchListIntoContainer(container, matches, options = {}) {
         showEmpty = true,
         archiveOlderYears = false,
         emptyTitle = 'Ingen kamper funnet',
-        emptyText = 'Du kan registrere en ny kamp ved å trykke på plussknappen eller i Admin-panelet.'
+        emptyText = 'Legg til en kamp for å komme i gang.',
+        showAddCta = false
     } = options;
 
     if (!matches.length) {
         container.innerHTML = showEmpty
-            ? buildMatchListEmptyHtml(emptyTitle, emptyText)
+            ? buildMatchListEmptyHtml(emptyTitle, emptyText, { showAddCta })
             : '';
         return;
     }
@@ -799,7 +803,23 @@ function buildMatchOpponentInfoBodyHtml(match) {
     `;
 }
 
-function buildMatchListEmptyHtml(title, text) {
+function buildMatchListEmptyHtml(title, text, options = {}) {
+    const { showAddCta = false } = options;
+    const ctaHtml = showAddCta
+        ? `
+            <button
+                type="button"
+                class="bsk-btn bsk-btn-chip match-list-add-btn match-list-empty-cta"
+                onclick="window.openActivityModal('Kamp')"
+                title="Legg til kamp"
+                aria-label="Legg til kamp"
+            >
+                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                <span>Legg til kamp</span>
+            </button>
+        `
+        : '';
+
     return `
         <div class="match-list-empty match-list-column-empty">
             <div class="match-list-empty-icon">
@@ -807,6 +827,7 @@ function buildMatchListEmptyHtml(title, text) {
             </div>
             <p class="match-list-empty-title">${escapeMatchHtml(title)}</p>
             <p class="match-list-empty-text">${escapeMatchHtml(text)}</p>
+            ${ctaHtml}
         </div>
     `;
 }

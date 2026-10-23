@@ -844,6 +844,10 @@
             gap: 0.25rem;
             min-height: 1.25rem;
         }
+        .dashboard-series-form-row.is-emphasis {
+            gap: 0.3rem;
+            padding: 0.15rem 0.2rem;
+        }
         .dashboard-series-form-pill {
             align-items: center;
             border-radius: 999px;
@@ -854,6 +858,11 @@
             justify-content: center;
             line-height: 1;
             width: 1.25rem;
+        }
+        .dashboard-series-form-row.is-emphasis .dashboard-series-form-pill {
+            font-size: 0.6rem;
+            height: 1.4rem;
+            width: 1.4rem;
         }
         .dashboard-series-form-pill.is-win {
             background: rgba(143, 176, 138, 0.24);
@@ -869,12 +878,6 @@
             background: rgba(196, 181, 149, 0.22);
             border: 1px solid rgba(196, 181, 149, 0.48);
             color: #ece4d3;
-        }
-        .dashboard-series-form-empty {
-            color: rgba(255, 255, 255, 0.55);
-            font-size: 0.625rem;
-            font-style: italic;
-            font-weight: 600;
         }
         .dashboard-series-main {
             display: flex;
@@ -974,9 +977,129 @@
         .dashboard-click-card:focus-visible {
             box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.42), 0 18px 38px rgba(15, 23, 42, 0.09);
         }
+        /* Hjem A/B: layout + Clash-løft neste kamp */
+        .hjem-page {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            margin: 0 auto;
+            max-width: 88rem;
+            width: 100%;
+        }
+        .hjem-page-topline {
+            align-items: center;
+            display: flex;
+            gap: 0.75rem;
+            min-width: 0;
+            padding: 0 0.15rem;
+        }
+        .hjem-page-topline-label {
+            color: #0b2b4c;
+            flex: 0 0 auto;
+            font-size: 0.72rem;
+            font-weight: 950;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .hjem-page-topline-rule {
+            background: linear-gradient(90deg, rgba(245, 197, 66, 0.7) 0%, rgba(18, 63, 115, 0.12) 100%);
+            flex: 1 1 auto;
+            height: 1.5px;
+            min-width: 2rem;
+        }
+        .hjem-home-grid {
+            align-items: stretch;
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .hjem-home-grid > * {
+            min-width: 0;
+        }
+        .hjem-home-grid .match-detail-card {
+            height: 100%;
+        }
+        #hjem-bottom-widgets {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: minmax(0, 1fr);
+            min-height: 0;
+        }
+        #hjem-bottom-widgets .match-detail-card {
+            height: 100%;
+            min-height: 0;
+        }
+        /* Lite Clash-ramme — kun neste kamp (ikke battle-hero) */
+        .hjem-page .dashboard-next-match-card {
+            background:
+                radial-gradient(ellipse 110% 55% at 50% -14%, rgba(255, 214, 102, 0.36), transparent 50%),
+                radial-gradient(ellipse 80% 40% at 50% 120%, rgba(18, 63, 115, 0.28), transparent 55%),
+                linear-gradient(168deg, #1a4570 0%, #12386a 42%, #0a2448 100%) !important;
+            border: 2.5px solid #f5c542;
+            border-radius: 1.2rem;
+            box-shadow:
+                0 0 0 1.5px #0a1a30,
+                0 0 0 4px rgba(196, 146, 20, 0.38),
+                0 16px 34px rgba(2, 6, 23, 0.36),
+                inset 0 2px 0 rgba(255, 255, 255, 0.18),
+                inset 0 -10px 24px rgba(0, 0, 0, 0.26);
+            overflow: hidden;
+            position: relative;
+        }
+        .hjem-page .dashboard-next-match-card::before {
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 248, 220, 0.18) 18%,
+                #ffe08a 50%,
+                rgba(255, 248, 220, 0.18) 82%,
+                transparent 100%
+            );
+            box-shadow: 0 0 10px rgba(245, 197, 66, 0.35);
+            content: "";
+            height: 3px;
+            left: 10%;
+            pointer-events: none;
+            position: absolute;
+            right: 10%;
+            top: 0;
+            z-index: 2;
+        }
+        .hjem-empty-card {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 14rem;
+            text-align: center;
+        }
+        .hjem-empty-cta {
+            margin-top: 0.85rem;
+        }
+        .hjem-page .hjem-empty-cta.match-list-add-btn {
+            font-size: 0.72rem;
+            height: 2.45rem;
+            max-height: 2.45rem;
+            min-height: 2.45rem;
+            padding: 0 0.95rem;
+        }
+        .hjem-loading-card {
+            min-height: 14rem;
+        }
+        @media (min-width: 1024px) {
+            .hjem-home-grid {
+                gap: 1.25rem;
+                grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+            }
+            #hjem-bottom-widgets {
+                align-content: stretch;
+                gap: 1.25rem;
+            }
+        }
         @media (max-width: 767px) {
             #hjem-hero-match-container > div,
-            #hjem-hero-match-container > section {
+            #hjem-hero-match-container > section,
+            #hjem-hero-match-container > article {
                 padding: 1.5rem 1rem !important;
             }
             #hjem-bottom-widgets > .dashboard-click-card:not(.match-detail-card) {
@@ -5675,9 +5798,101 @@
             position: relative;
             z-index: 2;
         }
-        .match-list-page .match-list-add-btn {
+        /* Kamper A: filter = navy/gull (som Kamptropp), Legg til = gull-CTA */
+        .match-list-page .match-filter-btn:not(.match-list-add-btn),
+        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn) {
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
+            border: 1.5px solid rgba(255, 224, 138, 0.42);
+            border-radius: 0.7rem;
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
+            color: rgba(255, 253, 245, 0.92);
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
+            transform: none;
+        }
+        .match-list-page .match-filter-btn:not(.match-list-add-btn):hover:not(.is-active),
+        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn):hover:not(.is-active) {
+            background: linear-gradient(180deg, rgba(40, 95, 150, 0.85) 0%, rgba(12, 36, 68, 0.95) 100%);
+            border-color: rgba(255, 224, 138, 0.7);
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.5);
+            color: #fffdf5;
+            transform: none;
+        }
+        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active,
+        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active {
+            background: linear-gradient(180deg, #ffe066 0%, #e69d10 60%, #a85800 100%);
+            border-color: #fff099;
+            box-shadow: 0 2px 0 #5c2e00;
+            color: #fffdf5;
+            text-shadow: 0 1px 0 #5c2e00;
+        }
+        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active i,
+        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active i {
+            color: inherit;
+        }
+        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active:hover,
+        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active:hover {
+            background: linear-gradient(180deg, #ffe58a 0%, #f0b429 60%, #b86300 100%);
+            border-color: #fff3b0;
+            box-shadow: 0 2px 0 #5c2e00;
+            color: #fffdf5;
+            transform: none;
+        }
+        .match-list-page .match-filter-btn:not(.match-list-add-btn):focus-visible {
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.4), 0 2px 0 rgba(2, 6, 23, 0.45);
+            outline: none;
+        }
+        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active:focus-visible {
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.45), 0 2px 0 #5c2e00;
+        }
+        .match-list-page .match-list-add-btn,
+        .match-list-page .match-list-add-btn.bsk-btn-chip,
+        .match-list-page .match-list-add-btn.match-filter-btn,
+        .hjem-page .match-list-add-btn,
+        .hjem-page .match-list-add-btn.bsk-btn-chip {
+            align-items: center;
+            background: linear-gradient(180deg, #ffe08a 0%, #f5c542 48%, #c4921a 100%);
+            border: 1.5px solid #fff6d6;
+            border-radius: 0.7rem;
+            box-shadow: 0 2px 0 #6b4a0c;
+            color: #1a1204;
+            display: inline-flex;
             flex-shrink: 0;
+            font-weight: 900;
+            gap: 0.35rem;
+            justify-content: center;
+            letter-spacing: 0.02em;
+            text-shadow: 0 1px 0 rgba(255, 253, 245, 0.45);
+            transform: none;
             white-space: nowrap;
+        }
+        .match-list-page .match-list-add-btn i,
+        .hjem-page .match-list-add-btn i {
+            color: inherit;
+            font-size: 0.82rem;
+            text-shadow: inherit;
+        }
+        .match-list-page .match-list-add-btn:hover,
+        .match-list-page .match-list-add-btn.bsk-btn-chip:hover,
+        .match-list-page .match-list-add-btn.match-filter-btn:hover,
+        .hjem-page .match-list-add-btn:hover,
+        .hjem-page .match-list-add-btn.bsk-btn-chip:hover {
+            background: linear-gradient(180deg, #fff0b0 0%, #f7d05a 48%, #d4a017 100%);
+            border-color: #fff9e0;
+            box-shadow: 0 2px 0 #7a5610;
+            color: #1a1204;
+            transform: none;
+        }
+        .match-list-page .match-list-add-btn:active,
+        .match-list-page .match-list-add-btn.bsk-btn-chip:active,
+        .hjem-page .match-list-add-btn:active,
+        .hjem-page .match-list-add-btn.bsk-btn-chip:active {
+            box-shadow: 0 1px 0 #4a3408;
+            transform: translateY(1px);
+        }
+        .match-list-page .match-list-add-btn:focus-visible,
+        .hjem-page .match-list-add-btn:focus-visible {
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.45), 0 2px 0 #6b4a0c;
+            outline: none;
         }
         .match-list-toolbar {
             align-items: center;
@@ -5875,6 +6090,8 @@
             top: -3rem;
         }
         .match-list-column-header {
+            align-items: center;
+            gap: 0.75rem;
             min-height: var(--portal-topline-min-height);
         }
         .match-list-column-header .match-list-column-title {
@@ -5885,6 +6102,14 @@
             flex: 0 0 auto;
             flex-shrink: 0;
         }
+        /* Kamper B: desktop — Legg til mer synlig i kommende-header */
+        .match-list-column-header .match-list-add-btn {
+            font-size: 0.72rem;
+            height: 2.45rem;
+            max-height: 2.45rem;
+            min-height: 2.45rem;
+            padding: 0 0.85rem;
+        }
         .match-list-mobile-top .match-list-column-title {
             flex: 1 1 auto;
             min-width: 0;
@@ -5893,17 +6118,18 @@
             flex: 0 0 auto;
             flex-shrink: 0;
         }
+        /* Kamper B: smal — filtergruppe + handling, ikke tre like slots */
         .match-list-mobile-toolbar {
-            align-items: stretch;
-            background: rgba(255, 255, 255, 0.04);
+            align-items: center;
+            background: transparent;
             border-bottom: 1px solid rgba(245, 197, 66, 0.14);
             display: grid;
-            gap: 0.5rem;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            justify-content: center;
+            gap: 0.55rem 0.65rem;
+            grid-template-columns: minmax(0, 1fr) auto auto;
+            justify-content: stretch;
             margin: 0 auto;
             max-width: 100%;
-            padding: 0.85rem 1rem;
+            padding: 0.7rem 1rem 0.8rem;
             width: 100%;
         }
         .match-list-mobile-card .match-filter-segmented {
@@ -5911,15 +6137,29 @@
             border: 0;
             box-shadow: none;
             display: grid;
-            gap: 0.5rem;
-            grid-column: 1 / span 2;
+            gap: 0.45rem;
+            grid-column: auto;
             grid-template-columns: repeat(2, minmax(0, 1fr));
+            min-width: 0;
             padding: 0;
             width: 100%;
         }
+        .match-list-toolbar-sep {
+            align-self: center;
+            background: rgba(255, 224, 138, 0.35);
+            flex: 0 0 auto;
+            height: 1.45rem;
+            width: 1px;
+        }
         .match-list-mobile-toolbar .match-list-add-btn {
             align-self: stretch;
-            width: 100%;
+            font-size: 0.7rem;
+            height: 2.45rem;
+            max-height: 2.45rem;
+            min-height: 2.45rem;
+            min-width: 5.6rem;
+            padding: 0 0.75rem;
+            width: auto;
         }
         .match-list-mobile-top {
             background: rgba(255, 255, 255, 0.07);
@@ -5937,9 +6177,11 @@
             white-space: nowrap;
         }
         .match-list-count-badge {
-            background: var(--bsk-yellow);
+            background: linear-gradient(180deg, #ffe08a 0%, #f5c542 48%, #c4921a 100%);
+            border: 1px solid #fff6d6;
             border-radius: 999px;
-            color: var(--bsk-blue-dark);
+            box-shadow: 0 1px 0 #6b4a0c;
+            color: #1a1204;
             flex: 0 0 auto;
             font-size: 0.68rem;
             font-weight: 950;
@@ -5947,6 +6189,7 @@
             min-width: 1.35rem;
             padding: 0.2rem 0.42rem;
             text-align: center;
+            text-shadow: none;
         }
         .match-list-column-main {
             flex: 1 1 auto;
@@ -5957,10 +6200,6 @@
         }
         .match-list-footer-spacer {
             min-height: 3.25rem;
-        }
-        .match-list-mobile-card .match-list-column-footer {
-            background: rgba(255, 255, 255, 0.06);
-            border-top: 1px solid rgba(245, 197, 66, 0.18);
         }
         .match-fixture-group {
             display: flex;
@@ -5983,13 +6222,22 @@
             flex: 1 1 auto;
             height: 1px;
         }
+        /* Kamper D: månedsbanner som Kamptropp-seksjoner */
         .match-list-column .match-fixture-month,
         .match-list-mobile-card .match-fixture-month {
-            color: rgba(255, 255, 255, 0.72);
+            background: linear-gradient(90deg, rgba(245, 197, 66, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%);
+            border-bottom: 1px solid rgba(255, 224, 138, 0.32);
+            color: #ffe9a8;
+            font-size: 0.68rem;
+            font-weight: 950;
+            letter-spacing: 0.1em;
+            margin: 0 0 0.15rem;
+            padding: 0.28rem 0.4rem 0.35rem;
+            text-shadow: 0 1px 0 #0a1a30;
         }
         .match-list-column .match-fixture-month::after,
         .match-list-mobile-card .match-fixture-month::after {
-            background: linear-gradient(90deg, rgba(245, 197, 66, 0.52), rgba(255, 255, 255, 0.1));
+            display: none;
         }
         .match-fixture-group-rows {
             display: flex;
@@ -6018,16 +6266,23 @@
             text-transform: uppercase;
             width: 100%;
         }
+        .match-list-column .match-fixture-year-toggle,
+        .match-list-mobile-card .match-fixture-year-toggle {
+            background: linear-gradient(90deg, rgba(245, 197, 66, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%);
+            border-bottom: 1px solid rgba(255, 224, 138, 0.28);
+            padding: 0.32rem 0.4rem 0.38rem;
+        }
         .match-list-column .match-fixture-year-label,
         .match-list-mobile-card .match-fixture-year-label {
-            color: rgba(255, 255, 255, 0.72);
+            color: #ffe9a8;
+            text-shadow: 0 1px 0 #0a1a30;
         }
         .match-fixture-year-count {
             align-items: center;
-            background: rgba(245, 197, 66, 0.14);
-            border: 1px solid rgba(245, 197, 66, 0.28);
+            background: rgba(255, 224, 138, 0.14);
+            border: 1px solid rgba(255, 224, 138, 0.35);
             border-radius: 999px;
-            color: #f5c542;
+            color: #ffe9a8;
             display: inline-flex;
             font-size: 0.62rem;
             font-weight: 900;
@@ -6038,16 +6293,17 @@
             text-transform: none;
         }
         .match-fixture-year-toggle i {
-            color: #f5c542;
+            color: #ffe08a;
             flex: 0 0 auto;
             font-size: 0.7rem;
             transition: transform 160ms ease;
         }
         .match-fixture-year-toggle::after {
-            background: linear-gradient(90deg, rgba(245, 197, 66, 0.52), rgba(255, 255, 255, 0.1));
-            content: "";
-            flex: 1 1 auto;
-            height: 1px;
+            display: none;
+        }
+        .match-list-column .match-fixture-year-toggle::after,
+        .match-list-mobile-card .match-fixture-year-toggle::after {
+            display: none;
         }
         .match-fixture-year-toggle:focus-visible {
             border-radius: 0.55rem;
@@ -6077,11 +6333,27 @@
             padding: 0.8rem 0.95rem;
             position: relative;
         }
+        /* Kamper D: rader — Clash navy/gull uten battle-hero */
         .match-list-column .match-fixture-row,
         .match-list-mobile-card .match-fixture-row {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 20px rgba(2, 6, 23, 0.12);
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.55) 0%, rgba(8, 28, 56, 0.72) 100%);
+            border: 1.5px solid rgba(255, 224, 138, 0.32);
+            border-radius: 0.9rem;
+            box-shadow:
+                0 2px 0 rgba(2, 6, 23, 0.35),
+                inset 0 1px 0 rgba(255, 253, 245, 0.1);
+            transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+        }
+        .match-list-column .match-fixture-row:hover,
+        .match-list-mobile-card .match-fixture-row:hover,
+        .match-list-column .match-fixture-row:focus-visible,
+        .match-list-mobile-card .match-fixture-row:focus-visible {
+            background: linear-gradient(180deg, rgba(40, 95, 150, 0.68) 0%, rgba(12, 36, 68, 0.82) 100%);
+            border-color: rgba(255, 224, 138, 0.55);
+            box-shadow:
+                0 2px 0 rgba(2, 6, 23, 0.4),
+                inset 0 1px 0 rgba(255, 253, 245, 0.14);
+            outline: none;
         }
         .match-fixture-row.is-win {
             border-left: 3px solid var(--bsk-green);
@@ -6091,6 +6363,18 @@
         }
         .match-fixture-row.is-loss {
             border-left: 3px solid #f87171;
+        }
+        .match-list-column .match-fixture-row.is-win,
+        .match-list-mobile-card .match-fixture-row.is-win {
+            border-left-color: #4ade80;
+        }
+        .match-list-column .match-fixture-row.is-draw,
+        .match-list-mobile-card .match-fixture-row.is-draw {
+            border-left-color: #f5c542;
+        }
+        .match-list-column .match-fixture-row.is-loss,
+        .match-list-mobile-card .match-fixture-row.is-loss {
+            border-left-color: #f87171;
         }
         .match-fixture-date {
             align-items: center;
@@ -6102,6 +6386,25 @@
             justify-content: center;
             min-width: 3.1rem;
             padding: 0.42rem 0.5rem;
+        }
+        .match-list-column .match-fixture-date,
+        .match-list-mobile-card .match-fixture-date {
+            background: rgba(8, 28, 56, 0.45);
+            border: 1px solid rgba(255, 224, 138, 0.28);
+            border-radius: 0.75rem;
+            box-shadow: inset 0 1px 0 rgba(255, 253, 245, 0.08);
+        }
+        .match-list-column .match-fixture-date-month,
+        .match-list-mobile-card .match-fixture-date-month {
+            color: #ffe08a;
+        }
+        .match-list-column .match-fixture-chevron,
+        .match-list-mobile-card .match-fixture-chevron {
+            color: rgba(255, 224, 138, 0.78);
+        }
+        .match-list-column .match-fixture-weekday,
+        .match-list-mobile-card .match-fixture-weekday {
+            color: rgba(255, 224, 138, 0.62);
         }
         .match-fixture-date-day {
             color: #ffffff;
@@ -6261,11 +6564,30 @@
             color: rgba(255, 255, 255, 0.62);
         }
         .match-list-column-empty {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
             padding: 2rem 1rem;
         }
         .match-list-column-empty .match-list-empty-icon {
             height: 3.25rem;
+            margin-bottom: 0.55rem;
             width: 3.25rem;
+        }
+        .match-list-column-empty .match-list-empty-title {
+            margin-bottom: 0;
+        }
+        .match-list-empty-cta {
+            margin-top: 0.85rem;
+            width: auto;
+        }
+        .match-list-page .match-list-empty-cta.match-list-add-btn {
+            font-size: 0.72rem;
+            height: 2.45rem;
+            max-height: 2.45rem;
+            min-height: 2.45rem;
+            padding: 0 0.95rem;
         }
         @media (min-width: 1024px) {
             .match-list-desktop-columns {

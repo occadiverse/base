@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20261023-kamptropp-no-toolbar-line">
+    <link rel="stylesheet" href="assets/css/base.css?v=20261023-hjem-drop-siste">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -26,21 +26,34 @@
         <main class="flex-1 px-4 md:px-8 w-full min-w-0 overflow-x-hidden portal-main-view" id="main-view">
             
             <!-- FORSIDE / DASHBOARD REDESIGN -->
-            <div id="view-hjem" class="portal-view portal-page space-y-4 md:space-y-6">
-                <div id="hjem-hero-match-container">
-                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                        <p class="text-xs font-black text-bsk-blue uppercase tracking-[0.2em] mb-2">Laster portal</p>
-                        <h1 class="text-2xl font-black text-slate-900 mb-2">BSK Fotball</h1>
-                        <p class="text-sm text-slate-600 leading-relaxed">
-                            Hvis denne meldingen blir stående, mangler sannsynligvis en fil i <code>assets/</code>-mappen, eller siden er åpnet uten lokal webserver.
-                        </p>
+            <div id="view-hjem" class="portal-view portal-page hjem-page">
+                <div class="hjem-page-topline">
+                    <span class="hjem-page-topline-label">Neste</span>
+                    <span class="hjem-page-topline-rule" aria-hidden="true"></span>
+                </div>
+                <div class="hjem-home-grid">
+                    <div id="hjem-hero-match-container">
+                        <div class="match-detail-card hjem-loading-card">
+                            <div class="dashboard-next-match-watermark">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <div class="relative z-10 px-6 py-8 text-center">
+                                <p class="match-detail-chip mx-auto mb-4">
+                                    <i class="fa-solid fa-futbol"></i>
+                                    <span>Laster portal</span>
+                                </p>
+                                <h1 class="font-black text-white text-lg mb-2">BSK Fotball</h1>
+                                <p class="text-xs text-white/60 max-w-sm mx-auto leading-relaxed">
+                                    Hvis denne meldingen blir stående, mangler sannsynligvis en fil i <code>assets/</code>-mappen, eller siden er åpnet uten lokal webserver.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="hjem-bottom-widgets">
+                        <!-- Neste økt genereres av JavaScript -->
                     </div>
                 </div>
-                <!-- Neste trening -->
-                <div id="hjem-bottom-widgets" class="grid grid-cols-1 gap-4 md:gap-6">
-                    <!-- Neste økt genereres av JavaScript -->
-                </div>
-            </div> <!-- Dette er den lukkende taggen for view-hjem -->
+            </div>
                         
             <div id="view-kamper" class="hidden portal-view portal-page match-list-page">
                 <div id="matchListDesktopColumns" class="match-list-desktop-columns" aria-label="Kommende og tidligere kamper">
@@ -58,7 +71,7 @@
                             <div class="match-detail-top-chips">
                                 <button type="button"
                                         onclick="window.openActivityModal('Kamp')"
-                                        class="bsk-btn bsk-btn-chip match-filter-btn match-list-add-btn"
+                                        class="bsk-btn bsk-btn-chip match-list-add-btn"
                                         title="Legg til kamp"
                                         aria-label="Legg til kamp">
                                     <i class="fa-solid fa-plus" aria-hidden="true"></i>
@@ -70,8 +83,6 @@
                         <div class="match-list-column-main relative z-10">
                             <div id="matchListUpcomingContainer" class="match-list-grid"></div>
                         </div>
-
-                        <div class="match-detail-footer match-list-column-footer match-list-footer-spacer relative z-10" aria-hidden="true"></div>
                     </section>
 
                     <section class="match-detail-card match-list-column match-list-column-past">
@@ -90,8 +101,6 @@
                         <div class="match-list-column-main relative z-10">
                             <div id="matchListPastContainer" class="match-list-grid"></div>
                         </div>
-
-                        <div class="match-detail-footer match-list-column-footer match-list-footer-spacer relative z-10" aria-hidden="true"></div>
                     </section>
                 </div>
 
@@ -122,9 +131,10 @@
                                 <span>Tidligere</span>
                             </button>
                         </div>
+                        <span class="match-list-toolbar-sep" aria-hidden="true"></span>
                         <button type="button"
                                 onclick="window.openActivityModal('Kamp')"
-                                class="bsk-btn bsk-btn-chip match-filter-btn match-list-add-btn"
+                                class="bsk-btn bsk-btn-chip match-list-add-btn"
                                 title="Legg til kamp"
                                 aria-label="Legg til kamp">
                             <i class="fa-solid fa-plus" aria-hidden="true"></i>
@@ -134,17 +144,7 @@
 
                     <div class="match-list-column-main match-list-mobile-main relative z-10">
                         <div id="matchListContainer" class="match-list-grid match-list-mobile-grid"></div>
-
-                        <div id="no-matches-view" class="hidden match-list-empty">
-                            <div class="match-list-empty-icon">
-                                <i class="fa-solid fa-futbol"></i>
-                            </div>
-                            <p class="match-list-empty-title">Ingen kamper funnet</p>
-                            <p class="match-list-empty-text">Du kan registrere en ny kamp ved å trykke på plussknappen eller i Admin-panelet.</p>
-                        </div>
                     </div>
-
-                    <div class="match-detail-footer match-list-column-footer match-list-footer-spacer relative z-10" aria-hidden="true"></div>
                 </section>
             </div>
             <div id="view-kampdetaljer" class="hidden portal-view portal-page space-y-4">
@@ -1546,11 +1546,11 @@
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20260904-lyn-logo-v1"></script>
     <script src="assets/js/pages/players.js?v=20261022-utregistrert-v1"></script>
-    <script src="assets/js/pages/matches.js?v=20261023-select-modal-d2"></script>
+    <script src="assets/js/pages/matches.js?v=20261023-kamper-c-empty"></script>
     <script src="assets/js/pages/attendance.js?v=20261022-utregistrert-v1"></script>
     <script src="assets/js/pages/statistics.js?v=20261022-stats-season-v1"></script>
     <script src="assets/js/pages/tactics.js?v=20261022-utregistrert-v1"></script>
-    <script src="assets/js/pages/dashboard.js?v=20261022-utregistrert-v1"></script>
+    <script src="assets/js/pages/dashboard.js?v=20261023-hjem-drop-siste"></script>
     <script src="assets/js/pages/training-session.js?v=20261022-utregistrert-v1"></script>
     <script type="module" src="assets/js/firebase-sync.js?v=20260908-local-hydrate-v1"></script>
     <script src="assets/js/app.js?v=20260612-swipe-widgets2"></script>
