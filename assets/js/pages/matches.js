@@ -1407,7 +1407,7 @@ function getMatchKamptroppPanelTeaserText(match) {
     const players = typeof getMatchDetailAttendingPlayers === 'function'
         ? getMatchDetailAttendingPlayers(match)
         : [];
-    if (!players.length) return 'Ingen møtt opp';
+    if (!players.length) return 'Ingen spillere registrert';
 
     const counts = { K: 0, F: 0, M: 0, A: 0 };
     players.forEach((player) => {
