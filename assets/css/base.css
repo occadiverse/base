@@ -6208,6 +6208,9 @@
             display: none;
         }
         .match-list-column {
+            background:
+                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.12), transparent 34%),
+                linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
             display: flex;
             flex-direction: column;
             min-height: 100%;
@@ -6889,10 +6892,18 @@
         }
         @media (min-width: 1024px) {
             .match-list-desktop-columns {
-                align-items: start;
+                align-items: stretch;
                 display: grid;
                 gap: 1.25rem;
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .match-list-column {
+                height: 100%;
+                min-height: 100%;
+            }
+            .match-list-column-main {
+                flex: 1 1 auto;
+                min-height: 0;
             }
             .match-list-mobile-card {
                 display: none !important;
