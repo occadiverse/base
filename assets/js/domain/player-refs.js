@@ -208,11 +208,8 @@ window.isPlayerListedForActivity = function(player, activity) {
     return true;
 };
 
-window.getMatchSquadEmptyMessage = function(match) {
-    if (window.hasRegisteredAttendance(match?.attendance)) {
-        return 'Ingen spillere er registrert med oppmøte.';
-    }
-    return 'Registrer oppmøte for å se hvem som møtte opp.';
+window.getMatchSquadEmptyMessage = function(_match) {
+    return 'Ingen spillere i kamptroppen. Trykk oppmøte for å registrere.';
 };
 
 window.getAttendancePresenceStats = function(record) {

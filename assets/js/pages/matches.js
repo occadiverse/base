@@ -5879,7 +5879,7 @@ function buildMatchDetailSquadListHtml(match) {
     if (!selectedPlayers.length) {
         const emptyMessage = typeof window.getMatchSquadEmptyMessage === 'function'
             ? window.getMatchSquadEmptyMessage(match)
-            : 'Registrer oppmøte for å se hvem som møtte opp.';
+            : 'Ingen spillere i kamptroppen. Trykk oppmøte for å registrere.';
         return `
             <div class="match-bench-empty">
                 <i class="fa-solid fa-clipboard-user"></i>
@@ -10582,7 +10582,7 @@ window.openMatchGamePlanPlayerSelect = function(matchId, posId, mode = null) {
                 ? 'Ingen posisjoner å bytte til.'
                 : (isMatchPlayerSelectSandbox(match)
                     ? 'Ingen spillere å velge.'
-                    : 'Registrer oppmøte for å se hvem som møtte opp.')}
+                    : 'Ingen spillere i kamptroppen. Trykk oppmøte for å registrere.')}
         </div>
     `;
 
@@ -13656,7 +13656,7 @@ window.renderPlayerRowForm = function(match) {
     if (participantRefs.length === 0) {
         const emptyMessage = typeof window.getMatchSquadEmptyMessage === 'function'
             ? window.getMatchSquadEmptyMessage(match)
-            : 'Registrer oppmøte for å se hvem som møtte opp.';
+            : 'Ingen spillere i kamptroppen. Trykk oppmøte for å registrere.';
         formList.innerHTML = `
             <div class="match-stats-empty">
                 <i class="fa-solid fa-clipboard-user"></i>
