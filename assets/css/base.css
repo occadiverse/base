@@ -6267,7 +6267,7 @@
                 padding: 0.55rem 0.85rem 0.7rem;
             }
             .match-list-mobile-main {
-                padding: 0.7rem 0.85rem 1rem;
+                padding: 0.45rem 0 0.85rem;
             }
         }
         @media (min-width: 768px) and (max-width: 1023px) {
@@ -6280,8 +6280,7 @@
                 padding-left: 1.15rem;
                 padding-right: 1.15rem;
             }
-            .match-list-mobile-toolbar,
-            .match-list-mobile-main {
+            .match-list-mobile-toolbar {
                 padding-left: 1.15rem;
                 padding-right: 1.15rem;
             }
@@ -6637,6 +6636,73 @@
         .match-list-column .match-fixture-weekday,
         .match-list-mobile-card .match-fixture-weekday {
             color: rgba(255, 224, 138, 0.62);
+        }
+        /* Kamper mobil C: lista = hovedflaten — tettere rader, tynne månedsbånd */
+        .match-list-mobile-card .match-list-mobile-grid {
+            gap: 0.7rem;
+        }
+        .match-list-mobile-card .match-fixture-group {
+            gap: 0.28rem;
+        }
+        .match-list-mobile-card .match-fixture-group-rows {
+            gap: 0.28rem;
+            padding: 0 0.65rem;
+        }
+        .match-list-mobile-card .match-fixture-year-group {
+            gap: 0.55rem;
+        }
+        .match-list-mobile-card .match-fixture-year-content {
+            gap: 0.7rem;
+        }
+        .match-list-mobile-card .match-fixture-month {
+            font-size: 0.6rem;
+            letter-spacing: 0.12em;
+            margin: 0;
+            padding: 0.22rem 0.65rem 0.26rem;
+        }
+        .match-list-mobile-card .match-fixture-year-toggle {
+            padding: 0.26rem 0.65rem 0.3rem;
+        }
+        .match-list-mobile-card .match-fixture-row {
+            border-radius: 0.7rem;
+            border-width: 1px;
+            box-shadow:
+                0 1px 0 rgba(2, 6, 23, 0.28),
+                inset 0 1px 0 rgba(255, 253, 245, 0.08);
+            gap: 0.55rem;
+            padding: 0.55rem 0.65rem;
+        }
+        .match-list-mobile-card .match-fixture-date {
+            border-radius: 0.6rem;
+            min-width: 2.7rem;
+            padding: 0.28rem 0.35rem;
+        }
+        .match-list-mobile-card .match-fixture-date-day {
+            font-size: 1.02rem;
+        }
+        .match-list-mobile-card .match-fixture-date-month {
+            font-size: 0.5rem;
+            margin-top: 0.1rem;
+        }
+        .match-list-mobile-card .match-fixture-opponent {
+            font-size: clamp(0.88rem, 2.2vw, 1.02rem);
+        }
+        .match-list-mobile-card .match-fixture-opponent-logo {
+            height: 1.35rem;
+            width: 1.35rem;
+        }
+        .match-list-mobile-card .match-fixture-meta {
+            font-size: 0.62rem;
+        }
+        .match-list-mobile-card .match-fixture-side {
+            min-width: 2.9rem;
+        }
+        .match-list-mobile-card .match-fixture-side-value {
+            font-size: 0.92rem;
+        }
+        .match-list-mobile-card .match-list-empty {
+            margin: 0.35rem 0.65rem 0;
+            padding: 1.35rem 0.85rem;
         }
         .match-fixture-date-day {
             color: #ffffff;
