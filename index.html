@@ -15,7 +15,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20261023-hjem-mobile-c">
+    <link rel="stylesheet" href="assets/css/base.css?v=20261023-kamper-mobile-b">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -109,37 +109,39 @@
                         <i class="fa-solid fa-calendar-days"></i>
                     </div>
 
-                    <div class="match-detail-card-top match-list-mobile-top relative z-10">
-                        <div class="match-detail-meta match-list-column-title">
-                            <i class="fa-regular fa-calendar-days"></i>
-                            <span>Kamper</span>
-                        </div>
-                        <div class="match-detail-top-chips">
-                            <div class="match-detail-chip">
-                                <i class="fa-solid fa-futbol"></i>
-                                <span id="matchListMobileCount">0 kamper</span>
+                    <div class="match-list-mobile-chrome relative z-10">
+                        <div class="match-detail-card-top match-list-mobile-top">
+                            <div class="match-detail-meta match-list-column-title">
+                                <i class="fa-regular fa-calendar-days"></i>
+                                <span>Kamper</span>
+                            </div>
+                            <div class="match-detail-top-chips">
+                                <div class="match-detail-chip">
+                                    <i class="fa-solid fa-futbol"></i>
+                                    <span id="matchListMobileCount">0 kamper</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="match-list-toolbar match-list-mobile-toolbar relative z-10">
-                        <div class="match-filter-segmented" role="tablist" aria-label="Filtrer kamper">
-                            <button type="button" role="tab" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="bsk-btn bsk-btn-chip match-filter-btn is-active" aria-selected="true">
-                                <span>Kommende</span>
-                            </button>
-                            <button type="button" role="tab" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="bsk-btn bsk-btn-chip match-filter-btn" aria-selected="false">
-                                <span>Tidligere</span>
+                        <div class="match-list-toolbar match-list-mobile-toolbar">
+                            <div class="match-filter-segmented" role="tablist" aria-label="Filtrer kamper">
+                                <button type="button" role="tab" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="bsk-btn bsk-btn-chip match-filter-btn is-active" aria-selected="true">
+                                    <span>Kommende</span>
+                                </button>
+                                <button type="button" role="tab" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="bsk-btn bsk-btn-chip match-filter-btn" aria-selected="false">
+                                    <span>Tidligere</span>
+                                </button>
+                            </div>
+                            <span class="match-list-toolbar-sep" aria-hidden="true"></span>
+                            <button type="button"
+                                    onclick="window.openActivityModal('Kamp')"
+                                    class="bsk-btn bsk-btn-chip match-list-add-btn"
+                                    title="Legg til kamp"
+                                    aria-label="Legg til kamp">
+                                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                                <span>Legg til</span>
                             </button>
                         </div>
-                        <span class="match-list-toolbar-sep" aria-hidden="true"></span>
-                        <button type="button"
-                                onclick="window.openActivityModal('Kamp')"
-                                class="bsk-btn bsk-btn-chip match-list-add-btn"
-                                title="Legg til kamp"
-                                aria-label="Legg til kamp">
-                            <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                            <span>Legg til</span>
-                        </button>
                     </div>
 
                     <div class="match-list-column-main match-list-mobile-main relative z-10">

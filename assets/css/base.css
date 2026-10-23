@@ -6227,6 +6227,65 @@
             overflow: hidden;
             position: relative;
         }
+        .match-list-mobile-chrome {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        /* Kamper mobil A: kant-i-kant shell + sticky chrome (< desktop 2-col) */
+        @media (max-width: 1023px) {
+            .match-list-page {
+                max-width: none;
+            }
+            .match-list-mobile-card {
+                border-left: 0;
+                border-radius: 0;
+                border-right: 0;
+                box-shadow: none;
+                margin-left: -1rem;
+                margin-right: -1rem;
+                overflow: visible;
+                width: calc(100% + 2rem);
+            }
+            .match-list-mobile-chrome {
+                background:
+                    radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.12), transparent 34%),
+                    linear-gradient(180deg, #123f73 0%, #0f3560 100%);
+                border-bottom: 1px solid rgba(245, 197, 66, 0.16);
+                position: sticky;
+                top: 0;
+                z-index: 25;
+            }
+            .match-list-mobile-top {
+                background: rgba(255, 255, 255, 0.07);
+                border-bottom: 1px solid rgba(245, 197, 66, 0.14);
+                padding: 0.75rem 0.85rem;
+            }
+            .match-list-mobile-toolbar {
+                background: transparent;
+                border-bottom: 0;
+                padding: 0.55rem 0.85rem 0.7rem;
+            }
+            .match-list-mobile-main {
+                padding: 0.7rem 0.85rem 1rem;
+            }
+        }
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .match-list-mobile-card {
+                margin-left: -2rem;
+                margin-right: -2rem;
+                width: calc(100% + 4rem);
+            }
+            .match-list-mobile-top {
+                padding-left: 1.15rem;
+                padding-right: 1.15rem;
+            }
+            .match-list-mobile-toolbar,
+            .match-list-mobile-main {
+                padding-left: 1.15rem;
+                padding-right: 1.15rem;
+            }
+        }
         .match-list-column-past {
             background:
                 radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.1), transparent 32%),
@@ -6274,13 +6333,13 @@
             flex: 0 0 auto;
             flex-shrink: 0;
         }
-        /* Kamper B: smal — filtergruppe + handling, ikke tre like slots */
+        /* Kamper mobil B: Clash-chips 2.15rem (som Kampplan/Kamptropp) */
         .match-list-mobile-toolbar {
             align-items: center;
             background: transparent;
             border-bottom: 1px solid rgba(245, 197, 66, 0.14);
             display: grid;
-            gap: 0.55rem 0.65rem;
+            gap: 0.4rem 0.5rem;
             grid-template-columns: minmax(0, 1fr) auto auto;
             justify-content: stretch;
             margin: 0 auto;
@@ -6293,29 +6352,46 @@
             border: 0;
             box-shadow: none;
             display: grid;
-            gap: 0.45rem;
+            gap: 0.35rem;
             grid-column: auto;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             min-width: 0;
             padding: 0;
             width: 100%;
         }
+        .match-list-mobile-toolbar .match-filter-btn,
+        .match-list-mobile-toolbar .match-filter-btn.bsk-btn-chip {
+            border-radius: 0.7rem;
+            font-size: 0.62rem;
+            height: 2.15rem;
+            letter-spacing: 0.02em;
+            max-height: 2.15rem;
+            min-height: 2.15rem;
+            padding: 0 0.4rem;
+        }
+        .match-list-mobile-toolbar .match-filter-btn i {
+            font-size: 0.62rem;
+        }
         .match-list-toolbar-sep {
             align-self: center;
             background: rgba(255, 224, 138, 0.35);
             flex: 0 0 auto;
-            height: 1.45rem;
+            height: 1.25rem;
             width: 1px;
         }
         .match-list-mobile-toolbar .match-list-add-btn {
-            align-self: stretch;
-            font-size: 0.7rem;
-            height: 2.45rem;
-            max-height: 2.45rem;
-            min-height: 2.45rem;
-            min-width: 5.6rem;
-            padding: 0 0.75rem;
+            align-self: center;
+            border-radius: 0.7rem;
+            font-size: 0.62rem;
+            height: 2.15rem;
+            max-height: 2.15rem;
+            min-height: 2.15rem;
+            min-width: 5rem;
+            padding: 0 0.65rem;
             width: auto;
+        }
+        .match-list-mobile-toolbar .match-list-add-btn i {
+            font-size: 0.72rem;
         }
         .match-list-mobile-top {
             background: rgba(255, 255, 255, 0.07);
