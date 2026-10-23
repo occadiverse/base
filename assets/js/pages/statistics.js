@@ -4485,6 +4485,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 } else if (typeof window.renderSpillereView === 'function') {
                     window.renderSpillereView();
                 }
+                window.updateStatsLagSectionVisibility();
+                return;
+            }
+            // Deferred section paint (69d8df1) only fills the active section on full render.
+            // Re-paint when switching so Trening/Kamp cards are not left empty.
+            if (typeof window.renderStatsLagSummary === 'function') {
+                window.renderStatsLagSummary();
+                return;
             }
             window.updateStatsLagSectionVisibility();
         };
