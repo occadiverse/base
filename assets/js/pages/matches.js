@@ -67,6 +67,11 @@ function bindMatchListEvents() {
                 }
                 if (actionEl.closest('#hjem-hero-match-container')) {
                     window.pendingMatchDetailsBackTab = 'hjem';
+                } else if (
+                    !window.pendingMatchDetailsBackTab
+                    && actionEl.closest('#matchListContainer, #matchListUpcomingContainer, #matchListPastContainer')
+                ) {
+                    window.pendingMatchDetailsBackTab = 'kamper';
                 }
                 window.showMatchDetails(matchId);
             } else if (action === 'edit') {
@@ -105,6 +110,11 @@ function bindMatchListEvents() {
             if (matchId) {
                 if (actionEl.closest('#hjem-hero-match-container')) {
                     window.pendingMatchDetailsBackTab = 'hjem';
+                } else if (
+                    !window.pendingMatchDetailsBackTab
+                    && actionEl.closest('#matchListContainer, #matchListUpcomingContainer, #matchListPastContainer')
+                ) {
+                    window.pendingMatchDetailsBackTab = 'kamper';
                 }
                 window.showMatchDetails(matchId);
             }
@@ -1343,6 +1353,22 @@ function buildMatchPanelMobileCloseBarHtml(label = 'Lukk') {
     `;
 }
 
+/** Mobile kampdetaljer hero: LUKK back to Kamper list (or previous portal page). */
+function buildMatchHeroMobileCloseBarHtml(label = 'Lukk') {
+    return `
+        <div class="match-hero-mobile-close-bar" data-no-swipe>
+            <span class="match-panel-close-bar-balance" aria-hidden="true"></span>
+            <button
+                type="button"
+                class="blknapp match-hero-mobile-close-btn"
+                data-match-action="go-back"
+                aria-label="${escapeMatchHtml(label)}"
+            >LUKK</button>
+            <span class="match-panel-close-bar-balance" aria-hidden="true"></span>
+        </div>
+    `;
+}
+
 function buildMatchGameCardTeaserHtml(text) {
     const label = String(text || '').trim();
     if (!label) return '';
@@ -1386,6 +1412,12 @@ function getMatchDetailsDefaultOpenPanel(match) {
 }
 
 function applyMatchDetailsDefaultOpenState(match) {
+    /* Mobile: hero hub — no default panel (desktop keeps smart default). */
+    if (isMatchPanelMobileFocusViewport()) {
+        window.matchDetailPairPanelState = { kamptropp: false, oppstilling: false };
+        window.activeMatchDetailsOpenPanel = '';
+        return '';
+    }
     const panelId = getMatchDetailsDefaultOpenPanel(match);
     window.matchDetailPairPanelState = { kamptropp: false, oppstilling: false };
     if (panelId === 'kamptropp') {
@@ -1491,6 +1523,18 @@ function getMatchBanetidPanelTeaserText(match) {
     }).length;
     if (count <= 0) return 'Ikke satt';
     return `${count} med minutter`;
+}
+
+function getMatchMotstanderPanelTeaserText(match) {
+    if (!match) return 'Historikk mot laget';
+    const record = typeof getOpponentHistoryRecord === 'function'
+        && typeof getOpponentRecordMatches === 'function'
+        ? getOpponentHistoryRecord(getOpponentRecordMatches(match))
+        : null;
+    if (!record) return 'Historikk mot laget';
+    const total = Number(record.wins || 0) + Number(record.draws || 0) + Number(record.losses || 0);
+    if (!total) return 'Ingen tidligere kamper';
+    return `${record.wins}–${record.draws}–${record.losses} · ${record.goalsFor}-${record.goalsAgainst}`;
 }
 
 function getMatchSpillerborsPanelTeaserText(match) {
@@ -1665,9 +1709,7 @@ function buildMatchDetailCardHtml(match, options = {}) {
                     >
                         <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
                     </button>`;
-    return `
-        <article class="${cardClasses}" ${clickAttrs}>
-            ${watermarkHtml}
+    const cardTopHtml = `
             <div class="match-detail-card-top relative z-10">
                 <div class="match-detail-meta">
                     <i class="fa-regular fa-calendar-days"></i>
@@ -1681,15 +1723,28 @@ function buildMatchDetailCardHtml(match, options = {}) {
                         <span>${escapeMatchHtml(data.matchTypeLabel)}</span>
                     </div>
                 </div>
-            </div>
-
+            </div>`;
+    /* Kampdetaljer: gold frame wraps battle hero only; nav + LUKK sit on navy page */
+    const heroCoreHtml = showHeroNav
+        ? `
+            <div class="match-detail-hero-frame">
+                ${watermarkHtml}
+                ${cardTopHtml}
+                ${mainHtml}
+                ${bottomContentHtml}
+                ${footerHtml}
+            </div>`
+        : `
+            ${watermarkHtml}
+            ${cardTopHtml}
             ${mainHtml}
-
             ${bottomContentHtml}
-
-            ${footerHtml}
-
+            ${footerHtml}`;
+    return `
+        <article class="${cardClasses}" ${clickAttrs}>
+            ${heroCoreHtml}
             ${showHeroNav ? buildMatchDetailHeroNavHtml(match) : ''}
+            ${showHeroNav ? buildMatchHeroMobileCloseBarHtml('Lukk kampdetaljer') : ''}
         </article>
     `;
 }
@@ -9638,7 +9693,7 @@ window.showMatchDetails = function(id) {
 
     container.innerHTML = `
         <div class="match-detail-page">
-        ${buildMatchDetailCardHtml(match, { showWatermark: true, backOnClick: true, showHeroNav: true })}
+        ${buildMatchDetailCardHtml(match, { showWatermark: true, backOnClick: false, showHeroNav: true })}
 
         ${matchSummaryPanelHtml}
         ${matchSummaryPanelHtml ? buildMatchDetailSectionDividerHtml('Oppsett') : ''}
@@ -9845,7 +9900,10 @@ window.showMatchDetails = function(id) {
             >
                 <div class="match-bench-heading">
                     <span class="match-game-card-icon match-opponent-info-mark" aria-hidden="true"></span>
-                    <h3>Motstanderinfo</h3>
+                    <div class="match-bench-heading-copy">
+                        <h3>Motstanderinfo</h3>
+                        ${buildMatchGameCardTeaserHtml(getMatchMotstanderPanelTeaserText(match))}
+                    </div>
                     <span class="match-detail-section-badge" aria-label="${escapeMatchHtml(opponentInfoBadgeLabel)} kamper mot ${escapeMatchHtml(match.opponent || 'motstanderen')} totalt">${escapeMatchHtml(opponentInfoBadgeLabel)}</span>
                 </div>
             </div>
@@ -9860,13 +9918,15 @@ window.showMatchDetails = function(id) {
         </div>
     `;
 
-    const backTarget = window.pendingMatchDetailsBackTab || (window.currentTab && window.currentTab !== 'kampdetaljer' ? window.currentTab : 'kamper');
+    const backTarget = window.pendingMatchDetailsBackTab
+        || (window.currentTab && window.currentTab !== 'kampdetaljer' ? window.currentTab : 'kamper');
     window.pendingMatchDetailsBackTab = null;
-    switchTab('kampdetaljer', { backTarget });
+    switchTab('kampdetaljer', { backTarget: backTarget || 'kamper' });
     if (stayOnDetails) restorePortalMainScroll(savedScrollTop);
     if (typeof window.syncMatchDetailHeroNavActive === 'function') {
         window.syncMatchDetailHeroNavActive(window.activeMatchDetailsOpenPanel || '');
     }
+    /* Mobile: only auto-focus when a panel is actually open (deep-link / re-render). */
     if (isMatchPanelMobileFocusViewport() && window.activeMatchDetailsOpenPanel) {
         const openPanelEl = container?.querySelector(
             `[data-match-panel="${window.activeMatchDetailsOpenPanel}"]`

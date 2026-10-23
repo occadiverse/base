@@ -25,6 +25,20 @@ function getMobileTabIndex(tabId) {
     return MOBILE_TAB_ORDER.indexOf(tabId);
 }
 
+/** Mobile-only Clash shell for kampdetaljer (hides portal header/nav). */
+function syncKamperEnvClass(tabId = window.currentTab) {
+    const inEnv = Boolean(tabId === 'kampdetaljer' && window.innerWidth < 768);
+    document.body.classList.toggle('is-kamper-env', inEnv);
+    if (!inEnv) {
+        document.body.classList.remove('is-match-panel-focus', 'is-spillerbors-focus', 'is-kamptropp-focus');
+    }
+}
+window.syncKamperEnvClass = syncKamperEnvClass;
+
+window.addEventListener('resize', () => {
+    syncKamperEnvClass(window.currentTab);
+});
+
 function setMobileNavProgress(progress, isSwiping = false) {
     const mobileNav = document.querySelector('.portal-mobile-nav-shell');
     if (!mobileNav) return;
@@ -100,6 +114,7 @@ function switchTab(tabId, options = {}) {
             }
         }
     }
+    syncKamperEnvClass(tabId);
 
     ['hjem', 'kamper', 'oppmote', 'tropp', 'statistikk', 'admin', 'taktikk', 'kampdetaljer', 'spillerprofil', 'oktside'].forEach(id => {
         const el = document.getElementById(`view-${id}`);
@@ -216,11 +231,22 @@ window.goBackToPreviousPortalPage = function(options = {}) {
         }
     }
 
+    /* Lista ← Hero ← Panel */
+    if (currentTab === 'kampdetaljer' && document.body.classList.contains('is-match-panel-focus')) {
+        if (typeof window.closeMatchPanelMobileFocus === 'function') {
+            window.closeMatchPanelMobileFocus();
+            return true;
+        }
+    }
+
     const stack = window.portalBackStack || [];
     const previous = stack.pop();
-    if (!previous || previous === currentTab) return false;
+    /* Hero LUKK: keep Hjem/statistikk/etc when stacked; missing/invalid → Kamper lista */
+    const fallbackTab = currentTab === 'kampdetaljer' ? 'kamper' : '';
+    const target = previous && previous !== currentTab ? previous : fallbackTab;
+    if (!target) return false;
 
-    switchTab(previous, {
+    switchTab(target, {
         skipHistory: true,
         animate: options.animate,
         direction: options.direction
@@ -267,6 +293,9 @@ function setupMobileSwipeNavigation() {
 
     const shouldIgnoreSwipe = (target) => {
         if (!target || !target.closest) return false;
+        if (document.body.classList.contains('is-kamper-env') && document.body.classList.contains('is-match-panel-focus')) {
+            return true;
+        }
         return Boolean(target.closest(
             'input, textarea, select, table, .overflow-x-auto, .stats-sort-scroller, .stats-player-sort-dock, .portal-segmented, .portal-mobile-nav-shell, .portal-mobile-tools, .modal-base, [role="dialog"], [data-no-swipe]'
         ));
