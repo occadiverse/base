@@ -1511,18 +1511,19 @@ function buildMatchDetailHeroNavHtml(match) {
         ? opponentRecord.wins + opponentRecord.draws + opponentRecord.losses
         : 0;
 
-    const items = [
-        { id: 'kamptropp', label: 'Tropp', icon: 'fa-users', badge: squadCount > 0 ? String(squadCount) : '' },
-        { id: 'oppstilling', label: 'Oppstilling', icon: 'fa-sitemap' },
-        { id: 'kampplan', label: 'Kampplan', icon: 'fa-clipboard-list' },
-        { id: 'trenernotater', label: 'Notater', icon: 'fa-note-sticky' },
-        { id: 'bytter', label: 'Banetid', icon: 'fa-clock' },
-        { id: 'spillerbors', label: 'Børs', icon: 'fa-star' },
-        { id: 'motstanderinfo', label: 'Motstander', icon: 'fa-shield-halved', badge: opponentCount > 0 ? String(opponentCount) : '' }
-    ];
+    const items = [];
     if (isFinished) {
         items.push({ id: 'kampoppsummering', label: 'Oppsumm.', icon: 'fa-chart-pie' });
     }
+    items.push(
+        { id: 'kamptropp', label: 'Tropp', icon: 'fa-users', badge: squadCount > 0 ? String(squadCount) : '' },
+        { id: 'oppstilling', label: 'Oppstilling', icon: 'fa-sitemap' },
+        { id: 'kampplan', label: 'Kampplan', icon: 'fa-clipboard-list' },
+        { id: 'spillerbors', label: 'Børs', icon: 'fa-star' },
+        { id: 'trenernotater', label: 'Notater', icon: 'fa-note-sticky' },
+        { id: 'bytter', label: 'Banetid', icon: 'fa-clock' },
+        { id: 'motstanderinfo', label: 'Motstander', icon: 'fa-shield-halved', badge: opponentCount > 0 ? String(opponentCount) : '' }
+    );
 
     return `
         <nav class="match-detail-hero-nav relative z-10" aria-label="Kampseksjoner">
