@@ -1008,32 +1008,18 @@
             min-width: 2rem;
         }
         .hjem-home-grid {
-            align-items: stretch;
             display: grid;
             gap: 1rem;
             grid-template-columns: minmax(0, 1fr);
         }
         .hjem-home-grid > * {
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
             min-width: 0;
-        }
-        .hjem-home-grid .match-detail-card {
-            flex: 1 1 auto;
-            height: 100%;
-            min-height: 0;
         }
         #hjem-bottom-widgets {
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            min-height: 0;
-        }
-        #hjem-bottom-widgets .match-detail-card {
-            flex: 1 1 auto;
-            height: 100%;
-            min-height: 0;
+            min-width: 0;
         }
         /* Empty/loading fallback on Hjem (battle hero uses kampdetaljer Clash styles) */
         .hjem-page .dashboard-next-match-card {
@@ -1057,8 +1043,7 @@
         .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero {
             display: flex;
             flex-direction: column;
-            height: 100%;
-            min-height: 0;
+            width: 100%;
         }
         .hjem-page .dashboard-next-match-card .match-detail-main {
             flex: 1 1 auto;
@@ -1106,16 +1091,15 @@
         @media (min-width: 1024px) {
             .hjem-home-grid {
                 gap: 1.25rem;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
             #hjem-bottom-widgets {
                 gap: 1.25rem;
             }
         }
         @media (max-width: 767px) {
-            #hjem-hero-match-container > div,
-            #hjem-hero-match-container > section,
-            #hjem-hero-match-container > article {
+            #hjem-hero-match-container > div:not(.is-battle-hero),
+            #hjem-hero-match-container > section:not(.is-battle-hero),
+            #hjem-hero-match-container > article:not(.is-battle-hero) {
                 padding: 1.5rem 1rem !important;
             }
             #hjem-bottom-widgets > .dashboard-click-card:not(.match-detail-card) {
@@ -4348,7 +4332,7 @@
         }
         @media (max-width: 767px) {
             /* Hero som egen fullskjerm-side — samme kant-i-kant som troppkort/fokuspaneler */
-            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) {
+            .match-detail-page > .match-detail-card {
                 --focus-pad-x: clamp(0.55rem, 3.2vw, 1rem);
                 --focus-pad-y: clamp(0.35rem, 1.4vw, 0.55rem);
                 border-left: 0;
@@ -4371,35 +4355,35 @@
                 width: 100%;
                 z-index: 35;
             }
-            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero)::before {
+            .match-detail-page > .match-detail-card::before {
                 left: 0;
                 right: 0;
             }
-            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-card-top {
+            .match-detail-page > .match-detail-card .match-detail-card-top {
                 flex: 0 0 auto;
                 margin: 0 calc(-1 * var(--focus-pad-x));
                 padding-left: var(--focus-pad-x);
                 padding-right: var(--focus-pad-x);
             }
-            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-card-top::after,
-            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-footer::before,
-            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-hero-nav::before {
+            .match-detail-page > .match-detail-card .match-detail-card-top::after,
+            .match-detail-page > .match-detail-card .match-detail-footer::before,
+            .match-detail-page > .match-detail-card .match-detail-hero-nav::before {
                 left: 0;
                 right: 0;
             }
-            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-main,
-            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle {
+            .match-detail-page > .match-detail-card .match-detail-main,
+            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle {
                 align-content: center;
                 flex: 1 1 auto;
                 min-height: 0;
             }
-            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-footer {
+            .match-detail-page > .match-detail-card .match-detail-footer {
                 flex: 0 0 auto;
                 margin: 0 calc(-1 * var(--focus-pad-x));
                 padding-left: var(--focus-pad-x);
                 padding-right: var(--focus-pad-x);
             }
-            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-hero-nav {
+            .match-detail-page > .match-detail-card .match-detail-hero-nav {
                 display: grid;
                 flex: 0 0 auto;
                 margin: 0 calc(-1 * var(--focus-pad-x));
@@ -4407,22 +4391,22 @@
                 padding-left: var(--focus-pad-x);
                 padding-right: var(--focus-pad-x);
             }
-            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-crest,
-            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-crest-opponent,
-            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-crest-has-logo {
+            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-crest,
+            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-crest-opponent,
+            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-crest-has-logo {
                 height: clamp(5rem, 22vw, 6.4rem);
                 width: clamp(5rem, 22vw, 6.4rem);
             }
-            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-clock,
-            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-score {
+            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-clock,
+            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-score {
                 font-size: clamp(1.7rem, 8vw, 2.7rem);
             }
-            :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero).is-battle-hero .match-detail-battle-info {
+            .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-info {
                 gap: 0.35rem;
                 margin-top: 0.85rem;
                 padding-bottom: 0.35rem;
             }
-            body.is-match-panel-focus :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) {
+            body.is-match-panel-focus .match-detail-page > .match-detail-card {
                 display: none;
             }
             .match-detail-page .match-collapsible-panel.is-collapsed {
@@ -19267,7 +19251,7 @@
                 width: 0;
                 height: 0;
             }
-            body.is-match-panel-focus :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) {
+            body.is-match-panel-focus .match-detail-page > .match-detail-card {
                 display: none;
             }
             .match-detail-page .match-collapsible-panel.is-mobile-focus {
