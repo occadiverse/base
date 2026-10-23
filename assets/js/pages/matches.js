@@ -1463,7 +1463,7 @@ function getMatchLineupPanelTeaserText(match) {
         ? getMatchGamePlanDraftPositionIds(match).length
         : 11;
     const slotCount = slots || 11;
-    return `Formasjon ${formation} · ${placed}/${slotCount} plassert`;
+    return `${placed}/${slotCount} plassert · ${formation}`;
 }
 
 function getMatchKampplanPanelTeaserText(match) {
