@@ -897,9 +897,16 @@ function buildMatchFixtureRowHtml(match, options = {}) {
 
 function getMatchCardPresentation(match) {
     const dateValue = new Date(match.date);
+    const isFinished = Boolean(match?.result && String(match.result).includes('-'));
+    /* Spilt kamp: bare dato. Kommende: ukedag + dato. */
     const dateFormatted = Number.isNaN(dateValue.getTime())
         ? 'Dato ikke satt'
-        : dateValue.toLocaleDateString('no-NO', { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' });
+        : dateValue.toLocaleDateString(
+            'no-NO',
+            isFinished
+                ? { day: '2-digit', month: '2-digit', year: '2-digit' }
+                : { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' }
+        );
     const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
     const matchTypeLabel = match.matchType || 'Kamp';
     const venue = getMatchVenue(match);

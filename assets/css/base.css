@@ -4670,8 +4670,8 @@
             body.is-kamper-env .match-detail-page > .match-detail-card .match-detail-hero-frame .match-detail-card-top {
                 margin-left: 0;
                 margin-right: 0;
-                padding-bottom: 0.25rem;
-                padding-top: 0.55rem;
+                /* Explicit inset — var(--focus-pad-x) is unset here and collapses to 0 */
+                padding: 0.55rem clamp(0.75rem, 3.6vw, 1.05rem) 0.25rem;
             }
             /* Same battle rhythm as Hjem mobile hero */
             body.is-kamper-env .match-detail-page > .match-detail-card .match-detail-hero-frame .match-detail-main,
@@ -6515,9 +6515,12 @@
         /* Kamper mobil: full bleed of #main-view (no portal padding gaps) */
         @media (max-width: 1023px) {
             #main-view:has(#view-kamper:not(.hidden)) {
+                /* Samme Clash-gullvask som Oppsummering-kortet */
                 background:
-                    radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.12), transparent 34%),
-                    linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+                    radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255, 214, 102, 0.5), transparent 52%),
+                    radial-gradient(ellipse 90% 50% at 50% 120%, rgba(28, 130, 68, 0.28), transparent 55%),
+                    radial-gradient(circle at 10% 55%, rgba(245, 197, 66, 0.12), transparent 32%),
+                    linear-gradient(168deg, #1e5088 0%, #12386a 34%, #0a2448 68%, #040e1c 100%);
                 display: flex;
                 flex-direction: column;
                 min-height: calc(
@@ -6541,8 +6544,10 @@
             }
             .match-list-mobile-card {
                 background:
-                    radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.12), transparent 34%),
-                    linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+                    radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255, 214, 102, 0.5), transparent 52%),
+                    radial-gradient(ellipse 90% 50% at 50% 120%, rgba(28, 130, 68, 0.28), transparent 55%),
+                    radial-gradient(circle at 10% 55%, rgba(245, 197, 66, 0.12), transparent 32%),
+                    linear-gradient(168deg, #1e5088 0%, #12386a 34%, #0a2448 68%, #040e1c 100%);
                 border-left: 0;
                 border-radius: 0;
                 border-right: 0;
@@ -6560,8 +6565,8 @@
             }
             .match-list-mobile-chrome {
                 background:
-                    radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.12), transparent 34%),
-                    linear-gradient(180deg, #123f73 0%, #0f3560 100%);
+                    radial-gradient(ellipse 110% 55% at 50% -28%, rgba(255, 214, 102, 0.48), transparent 58%),
+                    linear-gradient(180deg, #1a4574 0%, #12386a 55%, #0c2a4e 100%);
                 border-bottom: 1px solid rgba(245, 197, 66, 0.16);
                 position: sticky;
                 top: 0;
@@ -6594,8 +6599,92 @@
                 );
             }
             /* Overscroll / end of list stays navy, not portal white */
+            html.is-kamper-list,
+            html.is-kamper-list body,
+            body.is-kamper-list,
             body:has(#view-kamper:not(.hidden)) {
-                background: #0b2b4c;
+                background: #0b2b4c !important;
+                color-scheme: dark;
+            }
+            /* Portal topplinje = samme navy som lista */
+            body.is-kamper-list .portal-mobile-header,
+            body:has(#view-kamper:not(.hidden)) .portal-mobile-header {
+                background:
+                    radial-gradient(ellipse 90% 120% at 50% -60%, rgba(255, 214, 102, 0.22), transparent 55%),
+                    linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+                backdrop-filter: none;
+                border-bottom: 1px solid rgba(245, 197, 66, 0.22);
+                box-shadow:
+                    0 8px 20px rgba(2, 6, 23, 0.28),
+                    inset 0 -1px 0 rgba(255, 253, 245, 0.04);
+            }
+            /* Logo-chip: gullkant så den ikke forsvinner i navy */
+            body.is-kamper-list .portal-mobile-brand-chip,
+            body:has(#view-kamper:not(.hidden)) .portal-mobile-brand-chip {
+                background:
+                    radial-gradient(circle at 88% 8%, rgba(255, 224, 138, 0.28), transparent 40%),
+                    linear-gradient(160deg, #1a4a7a 0%, #0d3058 55%, #081f3c 100%);
+                border: 1.5px solid rgba(255, 224, 138, 0.55);
+                box-shadow:
+                    0 2px 0 rgba(2, 6, 23, 0.45),
+                    inset 0 1px 0 rgba(255, 253, 245, 0.22);
+            }
+            body.is-kamper-list .portal-mobile-brand-mark .portal-brand-shield,
+            body:has(#view-kamper:not(.hidden)) .portal-mobile-brand-mark .portal-brand-shield {
+                filter: drop-shadow(0 2px 4px rgba(2, 6, 23, 0.55));
+            }
+            /* Tre prikker: Clash-gullknapp */
+            body.is-kamper-list .portal-mobile-admin-btn,
+            body:has(#view-kamper:not(.hidden)) .portal-mobile-admin-btn {
+                background: linear-gradient(180deg, rgba(30, 80, 136, 0.85) 0%, rgba(8, 28, 56, 0.95) 100%);
+                border: 1.5px solid rgba(255, 224, 138, 0.5);
+                border-radius: 999px;
+                box-shadow:
+                    0 2px 0 rgba(2, 6, 23, 0.4),
+                    inset 0 1px 0 rgba(255, 253, 245, 0.12);
+                color: #ffe08a;
+            }
+            body.is-kamper-list .portal-mobile-admin-btn:hover,
+            body.is-kamper-list .portal-mobile-admin-btn.is-active,
+            body:has(#view-kamper:not(.hidden)) .portal-mobile-admin-btn:hover,
+            body:has(#view-kamper:not(.hidden)) .portal-mobile-admin-btn.is-active {
+                background: linear-gradient(180deg, rgba(40, 100, 160, 0.9) 0%, rgba(12, 40, 72, 0.98) 100%);
+                border-color: rgba(255, 224, 138, 0.75);
+                color: #fff6d6;
+            }
+            body.is-kamper-list .portal-mobile-tools-menu,
+            body:has(#view-kamper:not(.hidden)) .portal-mobile-tools-menu {
+                background: linear-gradient(180deg, #1a3f6a 0%, #0f2744 100%);
+                border: 1.5px solid rgba(255, 224, 138, 0.35);
+                box-shadow: 0 16px 36px rgba(2, 6, 23, 0.45);
+            }
+            body.is-kamper-list .portal-mobile-tools-item,
+            body:has(#view-kamper:not(.hidden)) .portal-mobile-tools-item {
+                color: #fffdf5;
+            }
+            body.is-kamper-list .portal-mobile-tools-item i,
+            body:has(#view-kamper:not(.hidden)) .portal-mobile-tools-item i {
+                color: #ffe08a;
+            }
+            body.is-kamper-list .portal-mobile-tools-item:hover,
+            body:has(#view-kamper:not(.hidden)) .portal-mobile-tools-item:hover {
+                background: rgba(245, 197, 66, 0.16);
+            }
+            /* Liste-overskrift: ingen lys stripe — gullvask kommer fra chrome/kort */
+            body.is-kamper-list .match-list-mobile-chrome,
+            #main-view:has(#view-kamper:not(.hidden)) .match-list-mobile-chrome {
+                border-bottom: 1px solid rgba(245, 197, 66, 0.18);
+            }
+            body.is-kamper-list .match-list-mobile-top,
+            #main-view:has(#view-kamper:not(.hidden)) .match-list-mobile-top {
+                background: transparent;
+                border-bottom: 0;
+                padding-bottom: 0.45rem;
+                padding-top: 0.55rem;
+            }
+            body.is-kamper-list .match-list-mobile-toolbar,
+            #main-view:has(#view-kamper:not(.hidden)) .match-list-mobile-toolbar {
+                background: transparent;
             }
         }
         @media (min-width: 768px) and (max-width: 1023px) {
@@ -6647,13 +6736,80 @@
             min-height: 2.45rem;
             padding: 0 0.85rem;
         }
-        .match-list-mobile-top .match-list-column-title {
+        .match-list-mobile-top .match-list-column-title,
+        .match-list-mobile-top .match-list-mobile-heading {
             flex: 1 1 auto;
             min-width: 0;
         }
         .match-list-mobile-top .match-detail-top-chips {
             flex: 0 0 auto;
             flex-shrink: 0;
+        }
+        /* Kamper-liste heading = samme Clash-typografi/merke som Oppsummering */
+        .match-list-mobile-card .match-list-mobile-top {
+            position: relative;
+            padding-bottom: 0.55rem;
+        }
+        .match-list-mobile-card .match-list-mobile-top::after {
+            background: linear-gradient(
+                90deg,
+                transparent,
+                #ffe08a 20%,
+                #f5c542 50%,
+                #ffe08a 80%,
+                transparent
+            );
+            bottom: 0;
+            box-shadow: 0 0 10px rgba(245, 197, 66, 0.35);
+            content: "";
+            height: 2.5px;
+            left: 0.35rem;
+            pointer-events: none;
+            position: absolute;
+            right: 0.35rem;
+            z-index: 1;
+        }
+        .match-list-mobile-card .match-list-mobile-heading {
+            align-items: center;
+            gap: 0.55rem;
+            min-height: 2.65rem;
+            padding-left: 0.05rem;
+            position: relative;
+            z-index: 2;
+        }
+        .match-list-mobile-card .match-list-mobile-heading h3 {
+            color: #ffe9a8;
+            font-size: clamp(1.32rem, 3.7vw, 1.58rem);
+            font-weight: 950;
+            letter-spacing: 0.08em;
+            line-height: 1;
+            margin: 0;
+            position: relative;
+            text-shadow:
+                0 1px 0 rgba(255, 253, 245, 0.28),
+                0 2px 0 rgba(10, 26, 48, 0.55),
+                0 3px 0 rgba(122, 86, 8, 0.35),
+                0 0 18px rgba(255, 214, 102, 0.28);
+            text-transform: uppercase;
+            z-index: 2;
+        }
+        .match-list-mobile-card .match-list-mark {
+            background:
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28' fill='none'%3E%3Crect x='4' y='6.5' width='20' height='17.5' rx='2.4' fill='%23f5c542' stroke='%23fffdf5' stroke-width='1.5'/%3E%3Cpath d='M4 11.2h20' stroke='%237a5608' stroke-width='1.6' stroke-linecap='round'/%3E%3Crect x='7.2' y='3.6' width='2.2' height='5' rx='1.1' fill='%23ffe08a' stroke='%23fffdf5' stroke-width='1.1'/%3E%3Crect x='18.6' y='3.6' width='2.2' height='5' rx='1.1' fill='%23ffe08a' stroke='%23fffdf5' stroke-width='1.1'/%3E%3Crect x='7.4' y='14.2' width='3.2' height='3.2' rx='0.7' fill='%23fff6d6'/%3E%3Crect x='12.4' y='14.2' width='3.2' height='3.2' rx='0.7' fill='%23fff6d6'/%3E%3Crect x='17.4' y='14.2' width='3.2' height='3.2' rx='0.7' fill='%23fff6d6'/%3E%3Crect x='7.4' y='19' width='3.2' height='3.2' rx='0.7' fill='%23ffe08a'/%3E%3Crect x='12.4' y='19' width='3.2' height='3.2' rx='0.7' fill='%23ffe08a'/%3E%3C/svg%3E")
+                    center / contain no-repeat;
+            display: inline-block;
+            filter:
+                drop-shadow(0 1px 0 rgba(255, 253, 245, 0.85))
+                drop-shadow(0 3px 0 #6b4a0c)
+                drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
+            flex: 0 0 auto;
+            height: 2.85rem;
+            margin: -0.15rem 0 -0.4rem;
+            position: relative;
+            transform: rotate(-8deg);
+            transform-origin: 50% 55%;
+            width: 2.85rem;
+            z-index: 3;
         }
         /* Kamper mobil B: Clash-chips 2.15rem (som Kampplan/Kamptropp) */
         .match-list-mobile-toolbar {
