@@ -6515,12 +6515,8 @@
         /* Kamper mobil: full bleed of #main-view (no portal padding gaps) */
         @media (max-width: 1023px) {
             #main-view:has(#view-kamper:not(.hidden)) {
-                /* Samme Clash-gullvask som Oppsummering-kortet */
                 background:
-                    radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255, 214, 102, 0.5), transparent 52%),
-                    radial-gradient(ellipse 90% 50% at 50% 120%, rgba(28, 130, 68, 0.28), transparent 55%),
-                    radial-gradient(circle at 10% 55%, rgba(245, 197, 66, 0.12), transparent 32%),
-                    linear-gradient(168deg, #1e5088 0%, #12386a 34%, #0a2448 68%, #040e1c 100%);
+                    linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
                 display: flex;
                 flex-direction: column;
                 min-height: calc(
@@ -6544,10 +6540,7 @@
             }
             .match-list-mobile-card {
                 background:
-                    radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255, 214, 102, 0.5), transparent 52%),
-                    radial-gradient(ellipse 90% 50% at 50% 120%, rgba(28, 130, 68, 0.28), transparent 55%),
-                    radial-gradient(circle at 10% 55%, rgba(245, 197, 66, 0.12), transparent 32%),
-                    linear-gradient(168deg, #1e5088 0%, #12386a 34%, #0a2448 68%, #040e1c 100%);
+                    linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
                 border-left: 0;
                 border-radius: 0;
                 border-right: 0;
@@ -6564,12 +6557,11 @@
                 right: -1.25rem;
             }
             .match-list-mobile-chrome {
-                background:
-                    radial-gradient(ellipse 110% 55% at 50% -28%, rgba(255, 214, 102, 0.48), transparent 58%),
-                    linear-gradient(180deg, #1a4574 0%, #12386a 55%, #0c2a4e 100%);
-                border-bottom: 1px solid rgba(245, 197, 66, 0.16);
-                position: sticky;
-                top: 0;
+                /* Samme toppfarge som portal-header — sømløs */
+                background: #123f73;
+                border-bottom: 0;
+                flex: 0 0 auto;
+                position: relative;
                 z-index: 25;
             }
             .match-list-mobile-top {
@@ -6589,14 +6581,68 @@
         }
         /* Phone: fill between header and fixed bottom nav; navy follows scroll */
         @media (max-width: 767px) {
+            /* Kamper-liste: ytre scroll låst — bare lista under knapperaden scroller */
+            body.is-kamper-list .portal-main-shell,
+            body:has(#view-kamper:not(.hidden)) .portal-main-shell {
+                box-sizing: border-box;
+                height: 100dvh;
+                margin-bottom: 0 !important;
+                max-height: 100dvh;
+                overflow: hidden !important;
+                padding-bottom: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+                scrollbar-gutter: auto;
+                scrollbar-width: none;
+            }
+            body.is-kamper-list .portal-main-shell::-webkit-scrollbar,
+            body:has(#view-kamper:not(.hidden)) .portal-main-shell::-webkit-scrollbar {
+                display: none;
+                height: 0;
+                width: 0;
+            }
+            body.is-kamper-list #main-view.portal-main-view,
+            body:has(#view-kamper:not(.hidden)) #main-view.portal-main-view {
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                min-height: 0;
+                overflow: hidden;
+                padding-bottom: 0;
+            }
             #main-view:has(#view-kamper:not(.hidden)) {
-                min-height: calc(
-                    100dvh
-                    - 3.5rem
-                    - env(safe-area-inset-top, 0px)
-                    - var(--portal-mobile-nav-height)
-                    - env(safe-area-inset-bottom, 0px)
-                );
+                height: auto;
+                max-height: none;
+                min-height: 0;
+            }
+            #main-view:has(#view-kamper:not(.hidden)) #view-kamper {
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow: hidden;
+            }
+            body.is-kamper-list .match-list-mobile-card,
+            #main-view:has(#view-kamper:not(.hidden)) .match-list-mobile-card {
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                min-height: 0;
+                overflow: hidden;
+            }
+            body.is-kamper-list .match-list-mobile-main,
+            #main-view:has(#view-kamper:not(.hidden)) .match-list-mobile-main {
+                -webkit-overflow-scrolling: touch;
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow-x: hidden;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                padding-bottom: calc(0.85rem + env(safe-area-inset-bottom, 0px));
+                scrollbar-gutter: auto;
+                scrollbar-width: none;
+            }
+            body.is-kamper-list .match-list-mobile-main::-webkit-scrollbar,
+            #main-view:has(#view-kamper:not(.hidden)) .match-list-mobile-main::-webkit-scrollbar {
+                display: none;
+                height: 0;
+                width: 0;
             }
             /* Overscroll / end of list stays navy, not portal white */
             html.is-kamper-list,
@@ -6606,17 +6652,13 @@
                 background: #0b2b4c !important;
                 color-scheme: dark;
             }
-            /* Portal topplinje = samme navy som lista */
+            /* Portal topplinje = sømløs navy inn i lista (ingen skillelinje) */
             body.is-kamper-list .portal-mobile-header,
             body:has(#view-kamper:not(.hidden)) .portal-mobile-header {
-                background:
-                    radial-gradient(ellipse 90% 120% at 50% -60%, rgba(255, 214, 102, 0.22), transparent 55%),
-                    linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+                background: #123f73;
                 backdrop-filter: none;
-                border-bottom: 1px solid rgba(245, 197, 66, 0.22);
-                box-shadow:
-                    0 8px 20px rgba(2, 6, 23, 0.28),
-                    inset 0 -1px 0 rgba(255, 253, 245, 0.04);
+                border-bottom: 0;
+                box-shadow: none;
             }
             /* Logo-chip: gullkant så den ikke forsvinner i navy */
             body.is-kamper-list .portal-mobile-brand-chip,
@@ -6670,10 +6712,11 @@
             body:has(#view-kamper:not(.hidden)) .portal-mobile-tools-item:hover {
                 background: rgba(245, 197, 66, 0.16);
             }
-            /* Liste-overskrift: ingen lys stripe — gullvask kommer fra chrome/kort */
+            /* Liste-overskrift: sømløs inn i kortbakgrunn; gullinje beholdes under heading */
             body.is-kamper-list .match-list-mobile-chrome,
             #main-view:has(#view-kamper:not(.hidden)) .match-list-mobile-chrome {
-                border-bottom: 1px solid rgba(245, 197, 66, 0.18);
+                background: #123f73;
+                border-bottom: 0;
             }
             body.is-kamper-list .match-list-mobile-top,
             #main-view:has(#view-kamper:not(.hidden)) .match-list-mobile-top {
