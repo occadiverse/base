@@ -36,11 +36,13 @@ function syncPortalThemeColor(useNavy) {
     meta.setAttribute('content', useNavy ? PORTAL_THEME_COLOR_KAMPER : PORTAL_THEME_COLOR_DEFAULT);
 }
 
-/** Mobile navy shells: Kamper list / Hjem keep chrome; detail hides portal header/nav. */
+/** Mobile navy shells: Kamper list / Hjem keep chrome; detail hides portal header/nav.
+ *  Class-only (no :has on visible views) so swipe peek cannot leak shell styles. */
 function syncKamperEnvClass(tabId = window.currentTab) {
     const mobile = window.innerWidth < 768;
+    const narrow = window.innerWidth < 1024;
     const inDetailEnv = Boolean(tabId === 'kampdetaljer' && mobile);
-    const inListEnv = Boolean(tabId === 'kamper' && mobile);
+    const inListEnv = Boolean(tabId === 'kamper' && narrow);
     const inHjemEnv = Boolean(tabId === 'hjem' && mobile);
     document.body.classList.toggle('is-kamper-env', inDetailEnv);
     document.documentElement.classList.toggle('is-kamper-env', inDetailEnv);
@@ -334,11 +336,7 @@ function setupMobileSwipeNavigation() {
         if (swipePageOffset) return swipePageOffset;
 
         const layout = getSwipeLayout();
-        const pageWidth = activeSwipeEl
-            ? activeSwipeEl.getBoundingClientRect().width
-            : window.innerWidth - layout.gap * 2;
-
-        swipePageOffset = pageWidth + layout.gap;
+        swipePageOffset = layout.width + layout.gap;
         return swipePageOffset;
     };
 
@@ -346,18 +344,23 @@ function setupMobileSwipeNavigation() {
         if (swipeLayout) return swipeLayout;
 
         const mainView = document.getElementById('main-view');
-        const mainRect = mainView ? mainView.getBoundingClientRect() : { left: 0, top: 0 };
-        const activeRect = activeSwipeEl
-            ? activeSwipeEl.getBoundingClientRect()
-            : { left: 16, top: 16, width: window.innerWidth - 32 };
+        const mainRect = mainView
+            ? mainView.getBoundingClientRect()
+            : { left: 0, top: 0, width: window.innerWidth };
         const styles = mainView ? window.getComputedStyle(mainView) : null;
-        const gap = styles ? parseFloat(styles.paddingLeft) || 16 : 16;
+        const padL = styles ? parseFloat(styles.paddingLeft) || 0 : 0;
+        const padR = styles ? parseFloat(styles.paddingRight) || 0 : 0;
+        const padT = styles ? parseFloat(styles.paddingTop) || 0 : 0;
+        /* Frame = main-view content box so pages share width even if inner padding differs */
+        const contentWidth = Math.max(0, (mainRect.width || window.innerWidth) - padL - padR);
+        const activeRect = activeSwipeEl ? activeSwipeEl.getBoundingClientRect() : null;
+        const top = activeRect ? Math.max(0, activeRect.top - mainRect.top) : padT;
 
         swipeLayout = {
-            gap,
-            left: activeRect.left - mainRect.left,
-            top: activeRect.top - mainRect.top,
-            width: activeRect.width
+            gap: padL,
+            left: padL,
+            top,
+            width: contentWidth
         };
 
         return swipeLayout;
@@ -544,10 +547,8 @@ function setupMobileSwipeNavigation() {
         currentX = startX;
         activeSwipeEl = document.getElementById(`view-${currentTab}`);
         swipeLayout = null;
-        const layout = getSwipeLayout();
-        swipePageOffset = activeSwipeEl
-            ? activeSwipeEl.getBoundingClientRect().width + layout.gap
-            : 0;
+        swipePageOffset = 0;
+        getSwipePageOffset();
         hasHorizontalIntent = false;
         isTracking = true;
     }, { passive: true });
