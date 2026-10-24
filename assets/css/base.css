@@ -2645,6 +2645,41 @@
             padding: 0.55rem 0.65rem;
             width: 100%;
         }
+        /* Empty A/M/F suggest: high-contrast chip on navy game cards */
+        .match-game-plan-line-suggest-bar.is-empty {
+            background: linear-gradient(180deg, #fff8dc 0%, #ffe9a8 100%);
+            border: 1.5px solid rgba(196, 146, 20, 0.7);
+            box-shadow:
+                0 0 0 1px rgba(10, 26, 48, 0.35),
+                0 10px 22px rgba(2, 6, 23, 0.28);
+        }
+        .match-game-plan-line-suggest-bar.is-empty .match-game-plan-line-suggest-copy {
+            color: #1a1204;
+            font-size: 0.78rem;
+            font-weight: 750;
+            line-height: 1.4;
+        }
+        .match-game-plan-line-suggest-bar.is-empty .match-game-plan-line-suggest-copy strong {
+            color: #5c4205;
+            display: block;
+            font-size: 0.68rem;
+            font-weight: 950;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.12rem;
+            text-transform: uppercase;
+        }
+        .match-game-plan-line-suggest-empty-msg {
+            color: #2a1c06;
+            display: block;
+            font-weight: 800;
+        }
+        .match-detail-lineup-builder .match-game-plan-lineup-save-state.is-pending {
+            background: rgba(255, 248, 220, 0.95);
+            border: 1px solid rgba(196, 146, 20, 0.55);
+            border-radius: 0.55rem;
+            color: #2a1c06;
+            padding: 0.45rem 0.55rem;
+        }
         @media (min-width: 768px) {
             .match-detail-lineup-builder .match-game-plan-line-suggest-bar {
                 max-width: min(100%, 27rem, calc((100dvh - 10rem) * 2 / 3));
@@ -4537,83 +4572,79 @@
                 background: #0b2b4c !important;
                 color-scheme: dark;
             }
+            /* Scrollable page like desktop: battle on top, panels below */
             body.is-kamper-env,
             body.is-kamper-env .portal-main-shell {
-                overflow: hidden !important;
+                overflow-x: hidden !important;
+                overflow-y: auto !important;
             }
-
-            /* Hero som egen fullskjerm-side — samme kant-i-kant som troppkort/fokuspaneler */
-            .match-detail-page > .match-detail-card {
-                --focus-pad-x: clamp(0.55rem, 3.2vw, 1rem);
-                --focus-pad-y: clamp(0.35rem, 1.4vw, 0.55rem);
-                --focus-close-bar-height: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
-                border-left: 0;
-                border-radius: 0;
-                border-right: 0;
-                border-top: 0;
-                bottom: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
-                box-shadow: none;
+            body.is-kamper-env #view-kampdetaljer {
+                padding-bottom: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 0.75rem);
+            }
+            body.is-kamper-env .match-detail-page {
                 display: flex;
                 flex-direction: column;
-                height: auto;
-                left: 0;
-                margin: 0;
-                max-height: none;
-                overflow: hidden;
-                padding: var(--focus-pad-y) var(--focus-pad-x) 0;
-                position: fixed;
-                right: 0;
-                top: calc(3.5rem + env(safe-area-inset-top, 0px));
-                width: 100%;
-                z-index: 35;
+                gap: 0.75rem;
+                padding:
+                    calc(0.45rem + env(safe-area-inset-top, 0px))
+                    clamp(0.55rem, 3vw, 0.85rem)
+                    0.85rem;
             }
-            /* Env: navy page shell (no gold). Gold lives on .match-detail-hero-frame only. */
+            /* Battle card in normal flow (not fixed fullscreen) */
             body.is-kamper-env .match-detail-page > .match-detail-card {
-                --focus-pad-x: clamp(0.4rem, 2.4vw, 0.65rem);
-                --focus-pad-y: clamp(0.28rem, 1.1vw, 0.45rem);
-                background:
-                    radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.1), transparent 34%),
-                    linear-gradient(180deg, #123f73 0%, #0b2b4c 55%, #071828 100%) !important;
+                background: transparent !important;
                 border: 0 !important;
                 border-radius: 0 !important;
-                bottom: 0 !important;
+                bottom: auto !important;
                 box-shadow: none !important;
-                height: 100dvh !important;
-                left: 0 !important;
-                max-height: 100dvh !important;
-                padding:
-                    calc(0.35rem + env(safe-area-inset-top, 0px))
-                    var(--focus-pad-x)
-                    0 !important;
-                position: fixed !important;
-                right: 0 !important;
-                top: 0 !important;
+                display: block !important;
+                height: auto !important;
+                left: auto !important;
+                margin: 0 !important;
+                max-height: none !important;
+                overflow: visible !important;
+                padding: 0 !important;
+                position: relative !important;
+                right: auto !important;
+                top: auto !important;
                 width: 100% !important;
-                z-index: 35 !important;
+                z-index: 1 !important;
             }
             body.is-kamper-env .match-detail-page > .match-detail-card::before {
                 display: none !important;
             }
-            /* Lighter gold frame — same language as Hjem, less weight on navy page */
+            /* Show collapsed panel cards on mobile (same as desktop), not hide them */
+            body.is-kamper-env .match-detail-page .match-collapsible-panel.is-collapsed {
+                display: block;
+            }
+            body.is-kamper-env .match-detail-page .match-detail-squad-section {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            /* Same Clash frame as Kamptropp / game cards */
             body.is-kamper-env .match-detail-page > .match-detail-card .match-detail-hero-frame {
                 background:
-                    radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255, 214, 102, 0.4), transparent 52%),
-                    radial-gradient(ellipse 90% 50% at 50% 120%, rgba(28, 130, 68, 0.24), transparent 55%),
-                    radial-gradient(circle at 10% 55%, rgba(245, 197, 66, 0.08), transparent 32%),
+                    radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255, 214, 102, 0.5), transparent 52%),
+                    radial-gradient(ellipse 90% 50% at 50% 120%, rgba(28, 130, 68, 0.38), transparent 55%),
+                    radial-gradient(circle at 10% 55%, rgba(245, 197, 66, 0.12), transparent 32%),
                     linear-gradient(168deg, #1e5088 0%, #12386a 34%, #0a2448 68%, #040e1c 100%);
-                border: 2.5px solid #f5c542;
-                border-radius: 1.15rem;
+                border: 3.5px solid #f5c542;
+                border-radius: 1.25rem;
                 box-shadow:
-                    0 0 0 1px rgba(10, 26, 48, 0.9),
-                    0 0 0 3px rgba(196, 146, 20, 0.32),
-                    0 12px 28px rgba(2, 6, 23, 0.34),
-                    inset 0 2px 0 rgba(255, 255, 255, 0.18),
-                    inset 0 -12px 28px rgba(0, 0, 0, 0.28);
+                    0 0 0 2px #0a1a30,
+                    0 0 0 5px rgba(196, 146, 20, 0.55),
+                    0 20px 40px rgba(2, 6, 23, 0.42),
+                    inset 0 3px 0 rgba(255, 255, 255, 0.28),
+                    inset 0 -16px 36px rgba(0, 0, 0, 0.38);
                 display: flex;
-                flex: 1 1 auto;
+                flex: 0 1 auto;
                 flex-direction: column;
+                justify-content: flex-start;
                 min-height: 0;
+                min-width: 0;
                 overflow: hidden;
+                padding-bottom: 0.45rem;
                 position: relative;
                 width: 100%;
             }
@@ -4621,31 +4652,46 @@
                 background: linear-gradient(
                     90deg,
                     transparent 0%,
-                    rgba(255, 248, 220, 0.16) 18%,
+                    rgba(255, 248, 220, 0.2) 18%,
                     #ffe08a 50%,
-                    rgba(255, 248, 220, 0.16) 82%,
+                    rgba(255, 248, 220, 0.2) 82%,
                     transparent 100%
                 );
-                box-shadow: 0 0 8px rgba(245, 197, 66, 0.32);
+                box-shadow: 0 0 12px rgba(245, 197, 66, 0.45);
                 content: "";
-                height: 2.5px;
-                left: 10%;
+                height: 3.5px;
+                left: 8%;
                 pointer-events: none;
                 position: absolute;
-                right: 10%;
+                right: 8%;
                 top: 0;
                 z-index: 2;
             }
             body.is-kamper-env .match-detail-page > .match-detail-card .match-detail-hero-frame .match-detail-card-top {
                 margin-left: 0;
                 margin-right: 0;
-                padding-top: 0.4rem;
+                padding-bottom: 0.25rem;
+                padding-top: 0.55rem;
             }
-            body.is-kamper-env .match-detail-page > .match-detail-card .match-detail-hero-nav {
-                margin-left: 0;
-                margin-right: 0;
-                padding-left: 0;
-                padding-right: 0;
+            /* Same battle rhythm as Hjem mobile hero */
+            body.is-kamper-env .match-detail-page > .match-detail-card .match-detail-hero-frame .match-detail-main,
+            body.is-kamper-env .match-detail-page > .match-detail-card.is-battle-hero .match-detail-hero-frame .match-detail-battle {
+                align-content: flex-start;
+                flex: 0 0 auto;
+                justify-content: flex-start;
+                min-height: 0;
+                padding: 0.85rem 0.35rem 0.65rem;
+            }
+            body.is-kamper-env .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-arena {
+                column-gap: clamp(0.4rem, 3vw, 0.9rem);
+            }
+            body.is-kamper-env .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-info {
+                gap: 0.35rem;
+                margin-top: 0.9rem;
+                padding-bottom: 0.45rem;
+            }
+            body.is-kamper-env .match-detail-page > .match-detail-card.is-battle-hero .match-detail-footer {
+                display: none;
             }
             .match-detail-page > .match-detail-card::before {
                 left: 0;
@@ -4683,49 +4729,42 @@
                 padding-left: var(--focus-pad-x);
                 padding-right: var(--focus-pad-x);
             }
-            body.is-kamper-env .match-detail-page > .match-detail-card .match-detail-hero-nav {
-                gap: 0.35rem 0.2rem;
-                padding-bottom: 0.35rem;
-                padding-top: 0.35rem;
-            }
-            body.is-kamper-env .match-detail-page > .match-detail-card .match-detail-hero-nav-label {
-                font-size: clamp(0.58rem, 2.4vw, 0.68rem);
-            }
-            body.is-kamper-env .match-detail-page > .match-detail-card .match-detail-hero-nav-icon {
-                height: clamp(2.05rem, 9.5vw, 2.45rem);
-                width: clamp(2.05rem, 9.5vw, 2.45rem);
-            }
-            body.is-kamper-env .match-detail-page > .match-detail-card .match-hero-mobile-close-bar {
+            /* Sticky page LUKK — navy/gull som Clash-kortene */
+            body.is-kamper-env .match-detail-page > .match-hero-mobile-close-bar {
+                --focus-close-bar-height: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
                 align-items: center;
-                background: linear-gradient(
-                    180deg,
-                    #4e5c70 0%,
-                    #647489 36%,
-                    #546276 100%
-                );
-                box-shadow: inset 0 14px 22px rgba(2, 6, 23, 0.22);
+                background:
+                    radial-gradient(ellipse 80% 120% at 50% -40%, rgba(255, 214, 102, 0.22), transparent 55%),
+                    linear-gradient(180deg, #1a3f6a 0%, #123258 42%, #0a1f3c 100%);
+                bottom: 0;
+                box-shadow:
+                    0 -10px 28px rgba(2, 6, 23, 0.35),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                    inset 0 -10px 20px rgba(2, 6, 23, 0.28);
                 display: flex;
-                flex: 0 0 auto;
                 flex-wrap: nowrap;
                 gap: 0.4rem;
                 height: var(--focus-close-bar-height);
                 justify-content: center;
-                margin: 0 calc(-1 * var(--focus-pad-x)) 0;
+                left: 0;
                 padding: 0.28rem clamp(0.45rem, 2.6vw, 0.85rem) calc(0.28rem + env(safe-area-inset-bottom, 0px));
-                position: relative;
-                width: calc(100% + (2 * var(--focus-pad-x)));
-                z-index: 2;
+                position: fixed;
+                right: 0;
+                width: 100%;
+                z-index: 40;
             }
-            body.is-kamper-env .match-detail-page > .match-detail-card .match-hero-mobile-close-bar::before {
+            body.is-kamper-env .match-detail-page > .match-hero-mobile-close-bar::before {
                 background: linear-gradient(
                     90deg,
-                    #c4921a 0%,
-                    #ffe08a 22%,
+                    transparent 0%,
+                    #c4921a 12%,
+                    #ffe08a 28%,
                     #f5c542 50%,
-                    #ffe08a 78%,
-                    #c4921a 100%
+                    #ffe08a 72%,
+                    #c4921a 88%,
+                    transparent 100%
                 );
-                box-shadow: 0 0 8px rgba(245, 197, 66, 0.4);
+                box-shadow: 0 0 10px rgba(245, 197, 66, 0.45);
                 content: "";
                 height: 2.5px;
                 left: 0;
@@ -4733,7 +4772,11 @@
                 right: 0;
                 top: 0;
             }
-            body.is-kamper-env .match-detail-page > .match-detail-card .match-hero-mobile-close-btn.blknapp {
+            body.is-kamper-env .match-detail-page > .match-hero-mobile-close-bar .match-hero-mobile-close-btn.blknapp {
+                background: linear-gradient(180deg, #ffe08a 0%, #f5c542 48%, #c4921a 100%);
+                border-color: #fff6d6;
+                box-shadow: 0 3px 0 #6b4a0c;
+                color: #1a1204;
                 flex: 0 0 auto;
                 font-size: clamp(0.74rem, 2.2vw, 0.86rem);
                 font-weight: 950;
@@ -4742,9 +4785,18 @@
                 max-width: none;
                 min-width: clamp(5.5rem, 22vw, 7rem);
                 padding: 0 clamp(0.85rem, 3.2vw, 1.2rem);
+                text-shadow: 0 1px 0 rgba(255, 253, 245, 0.45);
                 width: auto;
             }
-            body.is-kamper-env .match-detail-page > .match-detail-card .match-hero-mobile-close-bar .match-panel-close-bar-balance {
+            body.is-kamper-env .match-detail-page > .match-hero-mobile-close-bar .match-hero-mobile-close-btn.blknapp:hover {
+                background: linear-gradient(180deg, #fff0b0 0%, #f7d05a 48%, #d4a017 100%);
+                box-shadow: 0 3px 0 #7a5610;
+            }
+            body.is-kamper-env .match-detail-page > .match-hero-mobile-close-bar .match-hero-mobile-close-btn.blknapp:active {
+                box-shadow: 0 1px 0 #4a3408;
+                transform: translateY(2px);
+            }
+            body.is-kamper-env .match-detail-page > .match-hero-mobile-close-bar .match-panel-close-bar-balance {
                 flex: 0 0 auto;
                 height: clamp(2.25rem, 6.2vw, 2.55rem);
                 width: clamp(2.25rem, 6.2vw, 2.55rem);
@@ -4764,17 +4816,43 @@
                 margin-top: 0.85rem;
                 padding-bottom: 0.35rem;
             }
+            /* Env: match Hjem battle scale + luft */
+            body.is-kamper-env .match-detail-page > .match-detail-card.is-battle-hero .match-detail-crest,
+            body.is-kamper-env .match-detail-page > .match-detail-card.is-battle-hero .match-detail-crest-opponent,
+            body.is-kamper-env .match-detail-page > .match-detail-card.is-battle-hero .match-detail-crest-has-logo {
+                height: clamp(4.9rem, 20vw, 6.1rem);
+                width: clamp(4.9rem, 20vw, 6.1rem);
+            }
+            body.is-kamper-env .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-clock,
+            body.is-kamper-env .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-score {
+                font-size: clamp(1.7rem, 7.5vw, 2.45rem);
+            }
+            body.is-kamper-env .match-detail-page > .match-detail-card.is-battle-hero .match-detail-battle-info {
+                gap: 0.35rem;
+                margin-top: 0.9rem;
+                padding-bottom: 0.45rem;
+            }
             body.is-match-panel-focus .match-detail-page > .match-detail-card {
                 display: none;
             }
             .match-detail-page .match-collapsible-panel.is-collapsed {
                 display: none;
             }
+            /* Kamper env: keep collapsed cards visible like desktop */
+            body.is-kamper-env .match-detail-page .match-collapsible-panel.is-collapsed {
+                display: block;
+            }
             .match-detail-page .match-detail-squad-section:not(:has(.match-collapsible-panel:not(.is-collapsed))) {
                 display: none;
             }
             .match-detail-page .match-detail-squad-section:has(.match-collapsible-panel:not(.is-collapsed)) {
                 display: flex;
+            }
+            body.is-kamper-env .match-detail-page .match-detail-squad-section:not(:has(.match-collapsible-panel:not(.is-collapsed))),
+            body.is-kamper-env .match-detail-page .match-detail-squad-section {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
             }
         }
         .match-detail-page .match-bench-panel,

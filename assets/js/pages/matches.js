@@ -1412,12 +1412,7 @@ function getMatchDetailsDefaultOpenPanel(match) {
 }
 
 function applyMatchDetailsDefaultOpenState(match) {
-    /* Mobile: hero hub — no default panel (desktop keeps smart default). */
-    if (isMatchPanelMobileFocusViewport()) {
-        window.matchDetailPairPanelState = { kamptropp: false, oppstilling: false };
-        window.activeMatchDetailsOpenPanel = '';
-        return '';
-    }
+    /* Same smart default on mobile and desktop (e.g. finished → Oppsummering). */
     const panelId = getMatchDetailsDefaultOpenPanel(match);
     window.matchDetailPairPanelState = { kamptropp: false, oppstilling: false };
     if (panelId === 'kamptropp') {
@@ -1551,9 +1546,108 @@ function getMatchSpillerborsPanelTeaserText(match) {
     return `Snitt ${avg.toFixed(1)} · ${values.length} vurdert`;
 }
 
-function buildMatchDetailHeroNavHtml(match) {
-    if (!match) return '';
+function getMatchHeroDockPanelTeaser(match, panelId) {
+    switch (String(panelId || '')) {
+        case 'kampoppsummering': return getMatchSummaryPanelTeaserText(match);
+        case 'kamptropp': return getMatchKamptroppPanelTeaserText(match);
+        case 'oppstilling': return getMatchLineupPanelTeaserText(match);
+        case 'kampplan': return getMatchKampplanPanelTeaserText(match);
+        case 'spillerbors': return getMatchSpillerborsPanelTeaserText(match);
+        case 'trenernotater': return getMatchCoachNotesPanelTeaserText(match);
+        case 'bytter': return getMatchBanetidPanelTeaserText(match);
+        case 'motstanderinfo': return getMatchMotstanderPanelTeaserText(match);
+        default: return '';
+    }
+}
 
+function getMatchHeroDockInviteCopy(match, panelId, isFinished) {
+    const teaser = getMatchHeroDockPanelTeaser(match, panelId);
+    const finished = Boolean(isFinished);
+    switch (String(panelId || '')) {
+        case 'kampoppsummering':
+            return { cta: 'Se oppsummering', hint: teaser || 'Scorere, trekk og høydepunkt' };
+        case 'spillerbors':
+            return {
+                cta: finished && matchHasSavedSpillerbors(match) ? 'Se spillerbørs' : 'Gi karakterer',
+                hint: teaser || 'Vurder laget etter kampen'
+            };
+        case 'kamptropp':
+            return {
+                cta: finished ? 'Se troppen' : 'Sett troppen',
+                hint: teaser || 'Hvem er med i troppen'
+            };
+        case 'oppstilling':
+            return {
+                cta: finished ? 'Se oppstilling' : 'Sett oppstilling',
+                hint: teaser || 'Plasser elleveren'
+            };
+        case 'kampplan':
+            return { cta: 'Åpne kampplan', hint: teaser || 'Faser, roller og plan' };
+        case 'trenernotater':
+            return { cta: 'Trenernotater', hint: teaser || 'Pluss og utfordringer' };
+        case 'bytter':
+            return { cta: 'Banetid', hint: teaser || 'Minutter per spiller' };
+        case 'motstanderinfo':
+            return { cta: 'Motstander', hint: teaser || 'Historikk og tidligere oppgjør' };
+        default:
+            return { cta: 'Åpne', hint: teaser || '' };
+    }
+}
+
+function buildMatchDetailHeroNavButtonHtml(match, item, variant = '') {
+    if (!match || !item?.id) return '';
+    const variantClass = variant ? ` is-${variant}` : '';
+    const label = String(item.label || '').trim();
+    const shortLabel = String(item.shortLabel || item.label || '').trim();
+    const cta = String(item.cta || label).trim();
+    const hint = String(item.hint || '').trim();
+    const badgeHtml = item.badge
+        ? `<span class="match-detail-hero-nav-badge">${escapeMatchHtml(item.badge)}</span>`
+        : '';
+
+    if (variant === 'primary') {
+        return `
+            <button
+                type="button"
+                class="match-detail-hero-nav-btn${variantClass}"
+                data-match-action="open-summary-card"
+                data-summary-card="${escapeMatchHtml(item.id)}"
+                data-match-id="${escapeMatchHtml(match.id)}"
+                title="${escapeMatchHtml(cta)}"
+                aria-label="${escapeMatchHtml(cta)}${hint ? `. ${hint}` : ''}"
+            >
+                <span class="match-detail-hero-nav-cta">
+                    <span class="match-detail-hero-nav-cta-kicker">Neste steg</span>
+                    <span class="match-detail-hero-nav-label">${escapeMatchHtml(cta)}</span>
+                    ${hint ? `<span class="match-detail-hero-nav-hint">${escapeMatchHtml(hint)}</span>` : ''}
+                    ${badgeHtml}
+                </span>
+            </button>
+        `;
+    }
+
+    /* Orbit / well: circular Clash-style side & flank icons */
+    return `
+        <button
+            type="button"
+            class="match-detail-hero-nav-btn${variantClass}"
+            data-match-action="open-summary-card"
+            data-summary-card="${escapeMatchHtml(item.id)}"
+            data-match-id="${escapeMatchHtml(match.id)}"
+            title="${escapeMatchHtml(label)}${hint ? ` — ${hint}` : ''}"
+            aria-label="${escapeMatchHtml(label)}"
+        >
+            <span class="match-detail-hero-nav-orbit" aria-hidden="true">
+                <i class="fa-solid ${escapeMatchHtml(item.icon)}"></i>
+                ${badgeHtml}
+            </span>
+            <span class="match-detail-hero-nav-label">${escapeMatchHtml(shortLabel)}</span>
+        </button>
+    `;
+}
+
+function getMatchHeroStageCatalog(match) {
+    if (!match) return {};
     const isFinished = Boolean(match.result && String(match.result).includes('-'));
     const attendingRefs = typeof window.getMatchParticipantRefs === 'function'
         ? window.getMatchParticipantRefs(match)
@@ -1574,41 +1668,102 @@ function buildMatchDetailHeroNavHtml(match) {
         ? opponentRecord.wins + opponentRecord.draws + opponentRecord.losses
         : 0;
 
-    const items = [];
-    if (isFinished) {
-        items.push({ id: 'kampoppsummering', label: 'Oppsumm.', icon: 'fa-chart-pie' });
-    }
-    items.push(
-        { id: 'kamptropp', label: 'Tropp', icon: 'fa-users', badge: squadCount > 0 ? String(squadCount) : '' },
-        { id: 'oppstilling', label: 'Oppstilling', icon: 'fa-sitemap' },
-        { id: 'kampplan', label: 'Kampplan', icon: 'fa-clipboard-list' },
-        { id: 'spillerbors', label: 'Børs', icon: 'fa-star' },
-        { id: 'trenernotater', label: 'Notater', icon: 'fa-note-sticky' },
-        { id: 'bytter', label: 'Banetid', icon: 'fa-clock' },
-        { id: 'motstanderinfo', label: 'Motstander', icon: 'fa-shield-halved', badge: opponentCount > 0 ? String(opponentCount) : '' }
-    );
+    const enrich = (base) => {
+        const invite = getMatchHeroDockInviteCopy(match, base.id, isFinished);
+        return { ...base, cta: invite.cta, hint: invite.hint };
+    };
 
+    return {
+        isFinished,
+        catalog: {
+            kampoppsummering: enrich({ id: 'kampoppsummering', label: 'Oppsummering', shortLabel: 'Oppsumm.', icon: 'fa-chart-pie' }),
+            kamptropp: enrich({
+                id: 'kamptropp',
+                label: 'Tropp',
+                shortLabel: 'Tropp',
+                icon: 'fa-users',
+                badge: squadCount > 0 ? String(squadCount) : ''
+            }),
+            oppstilling: enrich({ id: 'oppstilling', label: 'Oppstilling', shortLabel: 'Oppstilling', icon: 'fa-sitemap' }),
+            kampplan: enrich({ id: 'kampplan', label: 'Kampplan', shortLabel: 'Kampplan', icon: 'fa-clipboard-list' }),
+            spillerbors: enrich({ id: 'spillerbors', label: 'Spillerbørs', shortLabel: 'Børs', icon: 'fa-star' }),
+            trenernotater: enrich({ id: 'trenernotater', label: 'Notater', shortLabel: 'Notater', icon: 'fa-note-sticky' }),
+            bytter: enrich({ id: 'bytter', label: 'Banetid', shortLabel: 'Banetid', icon: 'fa-clock' }),
+            motstanderinfo: enrich({
+                id: 'motstanderinfo',
+                label: 'Motstander',
+                shortLabel: 'Motstander',
+                icon: 'fa-shield-halved',
+                badge: opponentCount > 0 ? String(opponentCount) : ''
+            })
+        }
+    };
+}
+
+/** Clash-style: battle center, orbit icons on sides, Kamp CTA under. */
+function getMatchHeroStageLayout(match) {
+    const { isFinished, catalog } = getMatchHeroStageCatalog(match);
+    const primaryId = getMatchDetailsDefaultOpenPanel(match) || (isFinished ? 'kampoppsummering' : 'kamptropp');
+    let flankIds;
+    if (isFinished) {
+        flankIds = primaryId === 'kampoppsummering'
+            ? ['kamptropp', 'spillerbors']
+            : ['kamptropp', 'motstanderinfo'];
+    } else {
+        flankIds = primaryId === 'oppstilling'
+            ? ['kamptropp', 'kampplan']
+            : ['oppstilling', 'kampplan'];
+    }
+    flankIds = flankIds.filter((id) => id && id !== primaryId && catalog[id]);
+
+    const used = new Set([primaryId, ...flankIds]);
+    const railOrder = isFinished
+        ? ['oppstilling', 'kampplan', 'trenernotater', 'bytter', 'motstanderinfo', 'spillerbors', 'kampoppsummering']
+        : ['spillerbors', 'trenernotater', 'bytter', 'motstanderinfo', 'kampplan', 'oppstilling', 'kamptropp'];
+    const railItems = railOrder
+        .filter((id) => catalog[id] && !used.has(id))
+        .map((id) => catalog[id]);
+    const splitAt = Math.ceil(railItems.length / 2);
+
+    return {
+        primary: catalog[primaryId],
+        leftFlank: catalog[flankIds[0]] || null,
+        rightFlank: catalog[flankIds[1]] || null,
+        leftRail: railItems.slice(0, splitAt),
+        rightRail: railItems.slice(splitAt)
+    };
+}
+
+function buildMatchDetailHeroRailHtml(match, items, side = 'left') {
+    if (!match || !items?.length) {
+        return `<aside class="match-detail-hero-rail is-${side}" aria-hidden="true"></aside>`;
+    }
     return `
-        <nav class="match-detail-hero-nav relative z-10" aria-label="Kampseksjoner">
-            ${items.map(item => `
-                <button
-                    type="button"
-                    class="match-detail-hero-nav-btn"
-                    data-match-action="open-summary-card"
-                    data-summary-card="${escapeMatchHtml(item.id)}"
-                    data-match-id="${escapeMatchHtml(match.id)}"
-                    title="${escapeMatchHtml(item.label)}"
-                    aria-label="${escapeMatchHtml(item.label)}"
-                >
-                    <span class="match-detail-hero-nav-icon" aria-hidden="true">
-                        <i class="fa-solid ${escapeMatchHtml(item.icon)}"></i>
-                        ${item.badge ? `<span class="match-detail-hero-nav-badge">${escapeMatchHtml(item.badge)}</span>` : ''}
-                    </span>
-                    <span class="match-detail-hero-nav-label">${escapeMatchHtml(item.label)}</span>
-                </button>
-            `).join('')}
+        <aside class="match-detail-hero-rail is-${side}" aria-label="${side === 'left' ? 'Kampmeny venstre' : 'Kampmeny høyre'}">
+            ${items.map((item) => buildMatchDetailHeroNavButtonHtml(match, item, 'orbit')).join('')}
+        </aside>
+    `;
+}
+
+function buildMatchDetailHeroDockHtml(match) {
+    if (!match) return '';
+    const layout = getMatchHeroStageLayout(match);
+    return `
+        <nav class="match-detail-hero-nav is-clash-dock relative z-10" aria-label="Kampseksjoner">
+            <div class="match-detail-hero-dock-tray">
+                <div class="match-detail-hero-dock-main">
+                    ${layout.leftFlank ? buildMatchDetailHeroNavButtonHtml(match, layout.leftFlank, 'well') : '<span class="match-detail-hero-dock-spacer" aria-hidden="true"></span>'}
+                    ${buildMatchDetailHeroNavButtonHtml(match, layout.primary, 'primary')}
+                    ${layout.rightFlank ? buildMatchDetailHeroNavButtonHtml(match, layout.rightFlank, 'well') : '<span class="match-detail-hero-dock-spacer" aria-hidden="true"></span>'}
+                </div>
+            </div>
         </nav>
     `;
+}
+
+function buildMatchDetailHeroNavHtml(match) {
+    /* Kept for callers; kampdetaljer uses stage + dock assembly in buildMatchDetailCardHtml. */
+    return buildMatchDetailHeroDockHtml(match);
 }
 
 function buildMatchDetailCardHtml(match, options = {}) {
@@ -1724,7 +1879,7 @@ function buildMatchDetailCardHtml(match, options = {}) {
                     </div>
                 </div>
             </div>`;
-    /* Kampdetaljer: gold frame wraps battle hero only; nav + LUKK sit on navy page */
+    /* Kampdetaljer: battle card only (panels live below, same as desktop). */
     const heroCoreHtml = showHeroNav
         ? `
             <div class="match-detail-hero-frame">
@@ -1743,8 +1898,6 @@ function buildMatchDetailCardHtml(match, options = {}) {
     return `
         <article class="${cardClasses}" ${clickAttrs}>
             ${heroCoreHtml}
-            ${showHeroNav ? buildMatchDetailHeroNavHtml(match) : ''}
-            ${showHeroNav ? buildMatchHeroMobileCloseBarHtml('Lukk kampdetaljer') : ''}
         </article>
     `;
 }
@@ -3528,15 +3681,57 @@ function getMatchGamePlanLineSuggestZoneShortLabel(zoneId) {
     return zoneId || '';
 }
 
+function getMatchGamePlanLineSuggestZoneFullLabel(zoneId) {
+    if (zoneId === 'lag') return 'hele XI';
+    if (zoneId === 'angrep') return 'angrep';
+    if (zoneId === 'midtbane') return 'midtbane';
+    if (zoneId === 'forsvar') return 'forsvar';
+    return getMatchGamePlanLineSuggestZoneShortLabel(zoneId);
+}
+
 function getMatchGamePlanLineSuggestBarTitle(zoneId) {
     if (zoneId === 'lag') return 'Forslag XI';
+    if (zoneId === 'angrep') return 'Forslag angrep';
+    if (zoneId === 'midtbane') return 'Forslag midtbane';
+    if (zoneId === 'forsvar') return 'Forslag forsvar';
     return `Forslag ${getMatchGamePlanLineSuggestZoneShortLabel(zoneId)}`;
 }
 
 function getMatchGamePlanLineSuggestEmptyFeedback(zoneId) {
-    if (zoneId === 'lag') return 'Ingen bedre XI-forslag fra kamptroppen akkurat nå';
-    const label = getMatchGamePlanLineSuggestZoneShortLabel(zoneId);
-    return `Ingen bedre ${label}-forslag fra kamptroppen akkurat nå`;
+    if (zoneId === 'lag') return 'Troppen har ingen sterkere XI akkurat nå.';
+    const label = getMatchGamePlanLineSuggestZoneFullLabel(zoneId);
+    return `Ingen sterkere ${label}-linje i troppen akkurat nå.`;
+}
+
+function showMatchGamePlanLineSuggestEmptyFeedback(match, zoneId) {
+    clearMatchGamePlanLineSuggestPreview();
+    const footer = document.querySelector('.match-detail-lineup-builder .match-game-plan-lineup-footer');
+    const title = getMatchGamePlanLineSuggestBarTitle(zoneId);
+    const message = getMatchGamePlanLineSuggestEmptyFeedback(zoneId);
+    if (!footer) {
+        setMatchDetailFeedback('[data-lineup-save-state]', message, 'pending', 3600);
+        return;
+    }
+
+    document.querySelector('[data-line-suggest-bar]')?.remove();
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `
+        <div class="match-game-plan-line-suggest-bar is-empty" data-line-suggest-bar data-line-suggest-empty role="status" aria-live="polite">
+            <div class="match-game-plan-line-suggest-main">
+                <p class="match-game-plan-line-suggest-copy">
+                    <strong>${escapeMatchHtml(title)}</strong>
+                    <span class="match-game-plan-line-suggest-empty-msg">${escapeMatchHtml(message)}</span>
+                </p>
+            </div>
+        </div>
+    `.trim();
+    const bar = wrap.firstElementChild;
+    if (!bar) return;
+    footer.prepend(bar);
+    if (bar._emptyTimer) clearTimeout(bar._emptyTimer);
+    bar._emptyTimer = setTimeout(() => {
+        if (bar.isConnected) bar.remove();
+    }, 3600);
 }
 
 function getMatchGamePlanLineSuggest(match) {
@@ -5256,12 +5451,7 @@ window.toggleMatchGamePlanLineSuggest = function(matchId, zoneId) {
     if (!suggestion) {
         clearMatchGamePlanLineSuggest(match);
         syncMatchGamePlanPitchSamspillZoneTotals(match);
-        setMatchDetailFeedback(
-            '[data-lineup-save-state]',
-            getMatchGamePlanLineSuggestEmptyFeedback(zoneId),
-            'pending',
-            3200
-        );
+        showMatchGamePlanLineSuggestEmptyFeedback(match, zoneId);
         return;
     }
 
@@ -9915,6 +10105,7 @@ window.showMatchDetails = function(id) {
             ${buildMatchPanelMobileCloseBarHtml('Lukk motstanderinfo')}
         </section>
         </div>
+        ${buildMatchHeroMobileCloseBarHtml('Lukk kampdetaljer')}
         </div>
     `;
 
@@ -9926,13 +10117,7 @@ window.showMatchDetails = function(id) {
     if (typeof window.syncMatchDetailHeroNavActive === 'function') {
         window.syncMatchDetailHeroNavActive(window.activeMatchDetailsOpenPanel || '');
     }
-    /* Mobile: only auto-focus when a panel is actually open (deep-link / re-render). */
-    if (isMatchPanelMobileFocusViewport() && window.activeMatchDetailsOpenPanel) {
-        const openPanelEl = container?.querySelector(
-            `[data-match-panel="${window.activeMatchDetailsOpenPanel}"]`
-        );
-        if (openPanelEl) window.enterMatchPanelMobileFocus(openPanelEl);
-    }
+    /* Mobile mirrors desktop: panels stay in-page (no auto fullscreen focus). */
 
     requestAnimationFrame(() => {
         if (stayOnDetails) restorePortalMainScroll(savedScrollTop);
@@ -13219,10 +13404,14 @@ window.toggleMatchPanel = function(btnOrPanel) {
         setMatchDetailsPanelCollapsed(panel, false);
         window.activeMatchDetailsOpenPanel = panelId;
         if (isPairPanel) window.matchDetailPairPanelState[panelId] = true;
-        if (isMatchPanelMobileFocusViewport()) {
-            window.enterMatchPanelMobileFocus(panel);
-        } else if (typeof window.syncMatchDetailHeroNavActive === 'function') {
+        /* Mobile = same in-page accordion as desktop (Clash focus only via explicit helpers). */
+        if (typeof window.syncMatchDetailHeroNavActive === 'function') {
             window.syncMatchDetailHeroNavActive(panelId);
+        }
+        if (isMatchPanelMobileFocusViewport() && typeof panel.scrollIntoView === 'function') {
+            requestAnimationFrame(() => {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
         }
     } else {
         setMatchDetailsPanelCollapsed(panel, true);
@@ -13289,10 +13478,11 @@ window.toggleMatchPanel = function(btnOrPanel) {
 window.toggleMatchBenchPanel = window.toggleMatchPanel;
 
 window.syncMatchDetailHeroNavActive = function(activeId = '') {
-    const nav = document.querySelector('#kampdetaljer-info .match-detail-hero-nav');
-    if (!nav) return;
+    const root = document.querySelector('#kampdetaljer-info .match-detail-card')
+        || document.getElementById('kampdetaljer-info');
+    if (!root) return;
     const id = String(activeId || window.activeMatchDetailsOpenPanel || '').trim();
-    nav.querySelectorAll('[data-summary-card]').forEach(btn => {
+    root.querySelectorAll('[data-summary-card]').forEach(btn => {
         const isActive = Boolean(id) && btn.dataset.summaryCard === id;
         btn.classList.toggle('is-active', isActive);
         btn.setAttribute('aria-current', isActive ? 'true' : 'false');
@@ -13328,17 +13518,13 @@ window.openMatchDetailsPanelFromSummary = function(cardId, matchId) {
     if (!panel) return;
     if (panel.classList.contains('is-collapsed')) {
         window.toggleMatchPanel(panel);
-    } else if (isMatchPanelMobileFocusViewport() && !panel.classList.contains('is-mobile-focus')) {
-        window.enterMatchPanelMobileFocus(panel);
     } else {
         window.syncMatchDetailHeroNavActive(id);
-    }
-    if (!isMatchPanelMobileFocusViewport()) {
-        requestAnimationFrame(() => {
-            if (typeof panel.scrollIntoView === 'function') {
+        if (typeof panel.scrollIntoView === 'function') {
+            requestAnimationFrame(() => {
                 panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        });
+            });
+        }
     }
 };
 
