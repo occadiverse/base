@@ -1166,7 +1166,8 @@
                 height: 0;
                 width: 0;
             }
-            body.is-hjem-env .hjem-page {
+            /* Padding always on (also during swipe peek) so settle does not jump vertically */
+            #view-hjem.hjem-page {
                 box-sizing: border-box;
                 padding-left: 0.85rem;
                 padding-right: 0.85rem;
@@ -6822,6 +6823,43 @@
                 display: none;
                 height: 0;
                 width: 0;
+            }
+            /* Peek uses settled Kamper chrome metrics so the list does not jump up on commit */
+            #view-kamper.portal-view-mobile-peek {
+                display: flex;
+                flex-direction: column;
+                max-width: none;
+                min-height: 0;
+                width: 100%;
+            }
+            #view-kamper.portal-view-mobile-peek .match-list-mobile-card {
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                min-height: 0;
+                overflow: hidden;
+            }
+            #view-kamper.portal-view-mobile-peek .match-list-mobile-chrome {
+                background: #123f73;
+                border-bottom: 0 !important;
+                box-shadow: 0 1px 0 #123f73;
+                flex: 0 0 auto;
+            }
+            #view-kamper.portal-view-mobile-peek .match-list-mobile-top {
+                background: transparent;
+                border-bottom: 0;
+                padding-bottom: 0.45rem;
+                padding-top: 0.55rem;
+            }
+            #view-kamper.portal-view-mobile-peek .match-list-mobile-toolbar {
+                background: transparent;
+                border-bottom: 0 !important;
+                box-shadow: none;
+            }
+            #view-kamper.portal-view-mobile-peek .match-list-mobile-main {
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow: hidden;
             }
             /* Overscroll / end of list stays navy, not portal white */
             html.is-kamper-list,
