@@ -346,24 +346,46 @@ function setupMobileSwipeNavigation() {
         const mainView = document.getElementById('main-view');
         const mainRect = mainView
             ? mainView.getBoundingClientRect()
-            : { left: 0, top: 0, width: window.innerWidth };
+            : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
         const styles = mainView ? window.getComputedStyle(mainView) : null;
         const padL = styles ? parseFloat(styles.paddingLeft) || 0 : 0;
         const padR = styles ? parseFloat(styles.paddingRight) || 0 : 0;
         const padT = styles ? parseFloat(styles.paddingTop) || 0 : 0;
-        /* Frame = main-view content box so pages share width even if inner padding differs */
+        const padB = styles ? parseFloat(styles.paddingBottom) || 0 : 0;
+        /* Shared frame = main-view content box (width + height) so peek matches landing size */
         const contentWidth = Math.max(0, (mainRect.width || window.innerWidth) - padL - padR);
-        const activeRect = activeSwipeEl ? activeSwipeEl.getBoundingClientRect() : null;
-        const top = activeRect ? Math.max(0, activeRect.top - mainRect.top) : padT;
+        const contentHeight = Math.max(0, (mainRect.height || window.innerHeight) - padT - padB);
 
         swipeLayout = {
             gap: padL,
             left: padL,
-            top,
-            width: contentWidth
+            top: padT,
+            width: contentWidth,
+            height: contentHeight
         };
 
         return swipeLayout;
+    };
+
+    const applySwipeFrameStyles = (el, layout) => {
+        if (!el || !layout) return;
+        el.style.boxSizing = 'border-box';
+        el.style.left = `${layout.left}px`;
+        el.style.top = `${layout.top}px`;
+        el.style.width = `${layout.width}px`;
+        el.style.height = `${layout.height}px`;
+    };
+
+    const clearSwipeFrameStyles = (el) => {
+        if (!el) return;
+        el.style.boxSizing = '';
+        el.style.left = '';
+        el.style.top = '';
+        el.style.width = '';
+        el.style.height = '';
+        el.style.transition = '';
+        el.style.transform = '';
+        el.style.opacity = '';
     };
 
     const cleanupNextSwipePreview = (hideNext = true) => {
@@ -376,12 +398,7 @@ function setupMobileSwipeNavigation() {
         nextSwipeEl.classList.remove('portal-view-mobile-peek');
         nextSwipeEl.removeAttribute('aria-hidden');
         nextSwipeEl.inert = false;
-        nextSwipeEl.style.transition = '';
-        nextSwipeEl.style.transform = '';
-        nextSwipeEl.style.opacity = '';
-        nextSwipeEl.style.left = '';
-        nextSwipeEl.style.top = '';
-        nextSwipeEl.style.width = '';
+        clearSwipeFrameStyles(nextSwipeEl);
         nextSwipeEl = null;
         preparedSwipeIndex = -1;
     };
@@ -422,9 +439,7 @@ function setupMobileSwipeNavigation() {
         nextSwipeEl.setAttribute('aria-hidden', 'true');
         nextSwipeEl.inert = true;
         const layout = getSwipeLayout();
-        nextSwipeEl.style.left = `${layout.left}px`;
-        nextSwipeEl.style.top = `${layout.top}px`;
-        nextSwipeEl.style.width = `${layout.width}px`;
+        applySwipeFrameStyles(nextSwipeEl, layout);
         nextSwipeEl.style.transition = 'none';
         nextSwipeEl.style.transform = `translate3d(${direction * getSwipePageOffset()}px, 0, 0)`;
         nextSwipeEl.style.opacity = '1';
@@ -466,12 +481,7 @@ function setupMobileSwipeNavigation() {
                     nextEl.classList.remove('portal-view-mobile-peek');
                     nextEl.removeAttribute('aria-hidden');
                     nextEl.inert = false;
-                    nextEl.style.transition = '';
-                    nextEl.style.transform = '';
-                    nextEl.style.opacity = '';
-                    nextEl.style.left = '';
-                    nextEl.style.top = '';
-                    nextEl.style.width = '';
+                    clearSwipeFrameStyles(nextEl);
                 }
 
                 if (activeSwipeEl === activeEl) activeSwipeEl = null;
@@ -506,9 +516,7 @@ function setupMobileSwipeNavigation() {
         setMobileNavProgress(nextIndex, false);
 
         swipeCompletionTimer = window.setTimeout(() => {
-            const mainView = document.getElementById('main-view');
-            if (mainView) mainView.classList.remove('portal-swipe-peeking');
-
+            /* Commit tab while peek frame still covers — then drop absolute after layout matches */
             switchTab(swipeTabs[nextIndex]);
 
             activeEl.classList.remove('portal-view-mobile-dragging');
@@ -516,22 +524,26 @@ function setupMobileSwipeNavigation() {
             activeEl.style.transform = '';
             activeEl.style.opacity = '';
 
-            nextEl.classList.remove('portal-view-mobile-peek');
-            nextEl.removeAttribute('aria-hidden');
-            nextEl.inert = false;
-            nextEl.style.transition = '';
-            nextEl.style.transform = '';
-            nextEl.style.opacity = '';
-            nextEl.style.left = '';
-            nextEl.style.top = '';
-            nextEl.style.width = '';
+            const releasePeekFrame = () => {
+                const mainView = document.getElementById('main-view');
+                if (mainView) mainView.classList.remove('portal-swipe-peeking');
 
-            activeSwipeEl = null;
-            nextSwipeEl = null;
-            preparedSwipeIndex = -1;
-            swipePageOffset = 0;
-            swipeLayout = null;
-            swipeCompletionTimer = null;
+                nextEl.classList.remove('portal-view-mobile-peek');
+                nextEl.removeAttribute('aria-hidden');
+                nextEl.inert = false;
+                clearSwipeFrameStyles(nextEl);
+
+                activeSwipeEl = null;
+                nextSwipeEl = null;
+                preparedSwipeIndex = -1;
+                swipePageOffset = 0;
+                swipeLayout = null;
+                swipeCompletionTimer = null;
+            };
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(releasePeekFrame);
+            });
         }, 380);
     };
 
