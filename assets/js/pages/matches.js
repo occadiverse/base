@@ -1508,10 +1508,12 @@ function getMatchKampplanPanelTeaserText(match) {
 }
 
 function getMatchCoachNotesPanelTeaserText(match) {
-    const filled = [match?.notes?.positive, match?.notes?.challenge]
-        .filter((value) => String(value || '').trim()).length;
-    if (filled <= 0) return 'Ingen notater';
-    return `${filled} felt fylt`;
+    const hasPositive = Boolean(String(match?.notes?.positive || '').trim());
+    const hasChallenge = Boolean(String(match?.notes?.challenge || '').trim());
+    if (hasPositive && hasChallenge) return '2 notater';
+    if (hasPositive) return 'Mangler utfordringer';
+    if (hasChallenge) return 'Mangler positivt';
+    return 'Mangler notater';
 }
 
 function getMatchBanetidPanelTeaserText(match) {
@@ -9255,6 +9257,12 @@ window.saveMatchSummaryNotes = async function(matchId, sourceElement) {
     const root = sourceElement && typeof sourceElement.closest === 'function'
         ? sourceElement.closest('[data-match-notes-form]')
         : null;
+    const panel = (root && typeof root.closest === 'function'
+        ? root.closest('.match-coach-notes-panel, [data-match-panel="trenernotater"]')
+        : null)
+        || document.querySelector('.match-coach-notes-panel, [data-match-panel="trenernotater"]');
+    const statusEl = (panel && panel.querySelector('[data-notes-save-state]'))
+        || document.querySelector('[data-notes-save-state]');
     const positiveInput = root
         ? root.querySelector('[data-match-note-positive]')
         : document.querySelector(`textarea[data-match-note-positive="${matchId}"]`);
@@ -9268,13 +9276,29 @@ window.saveMatchSummaryNotes = async function(matchId, sourceElement) {
         challenge: challengeInput ? challengeInput.value.trim() : (match.notes?.challenge || '')
     };
 
+    const whichField = sourceElement?.matches?.('[data-match-note-challenge]')
+        ? 'Utfordringer'
+        : (sourceElement?.matches?.('[data-match-note-positive]') ? 'Positivt' : 'Notater');
+
     try {
+        if (statusEl) {
+            setMatchDetailFeedback(statusEl, 'Lagrer…', 'pending');
+        }
         if (typeof window.saveMatchToDatabase === 'function') {
             await window.saveMatchToDatabase(match);
         }
+        if (statusEl) {
+            setMatchDetailFeedback(statusEl, `${whichField} lagret`, 'success', 2800);
+        }
+        const teaser = panel?.querySelector('.match-game-card-teaser');
+        if (teaser) {
+            teaser.textContent = getMatchCoachNotesPanelTeaserText(match);
+        }
     } catch (error) {
         console.error(error);
-        setMatchDetailFeedback('[data-notes-save-state]', error.message || 'Kunne ikke lagre notater', 'error', 6000);
+        if (statusEl) {
+            setMatchDetailFeedback(statusEl, error.message || 'Kunne ikke lagre notater', 'error', 6000);
+        }
     }
 };
 
@@ -9489,8 +9513,6 @@ window.autosizeMatchCoachNotesFields = function(root = document) {
         .forEach((el) => window.autosizeMatchCoachNoteField(el));
 };
 
-let matchCoachNotesActiveView = 'positive';
-
 window.buildMatchCoachNotesFieldsHtml = function(match) {
     if (!match || !match.id) return '';
 
@@ -9498,39 +9520,11 @@ window.buildMatchCoachNotesFieldsHtml = function(match) {
     const matchIdJs = escapeMatchJsString(match.id);
     const positiveNote = escapeMatchHtml(match.notes?.positive || '');
     const challengeNote = escapeMatchHtml(match.notes?.challenge || '');
-    const positiveActive = matchCoachNotesActiveView !== 'challenge';
-    const headingLabel = positiveActive ? 'Positivt' : 'Utfordringer';
 
     return `
-        <div class="match-coach-notes-fields" data-match-notes-form="${matchId}" data-notes-view="${positiveActive ? 'positive' : 'challenge'}">
-            <div class="match-subs-view-toolbar">
-                <div class="match-subs-section-heading match-subs-playing-time-heading match-subs-view-heading">
-                    <span data-notes-view-heading>${escapeMatchHtml(headingLabel)}</span>
-                </div>
-                <div class="match-subs-view-tabs" role="tablist" aria-label="Trenernotater">
-                    <button
-                        type="button"
-                        class="blknapp match-subs-view-tab is-icon${positiveActive ? ' is-active' : ''}"
-                        role="tab"
-                        aria-selected="${positiveActive ? 'true' : 'false'}"
-                        aria-label="Positivt"
-                        title="Positivt"
-                        data-notes-view-tab="positive"
-                        onclick="window.setMatchCoachNotesView('positive', this)"
-                    ><i class="fa-solid fa-thumbs-up" aria-hidden="true"></i></button>
-                    <button
-                        type="button"
-                        class="blknapp match-subs-view-tab is-icon${positiveActive ? '' : ' is-active'}"
-                        role="tab"
-                        aria-selected="${positiveActive ? 'false' : 'true'}"
-                        aria-label="Utfordringer"
-                        title="Utfordringer"
-                        data-notes-view-tab="challenge"
-                        onclick="window.setMatchCoachNotesView('challenge', this)"
-                    ><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></button>
-                </div>
-            </div>
-            <div class="match-subs-view-panel" data-notes-view-panel="positive"${positiveActive ? '' : ' hidden'}>
+        <div class="match-coach-notes-fields" data-match-notes-form="${matchId}">
+            <div class="match-coach-notes-field-frame" data-notes-emblem="positive">
+                <span class="match-coach-notes-frame-emblem" aria-hidden="true">Positivt</span>
                 <textarea
                     rows="2"
                     data-match-note-positive="${matchId}"
@@ -9541,7 +9535,8 @@ window.buildMatchCoachNotesFieldsHtml = function(match) {
                     aria-label="Positivt"
                 >${positiveNote}</textarea>
             </div>
-            <div class="match-subs-view-panel" data-notes-view-panel="challenge"${positiveActive ? ' hidden' : ''}>
+            <div class="match-coach-notes-field-frame" data-notes-emblem="challenge">
+                <span class="match-coach-notes-frame-emblem" aria-hidden="true">Utfordringer</span>
                 <textarea
                     rows="2"
                     data-match-note-challenge="${matchId}"
@@ -9554,33 +9549,6 @@ window.buildMatchCoachNotesFieldsHtml = function(match) {
             </div>
         </div>
     `;
-};
-
-window.setMatchCoachNotesView = function(view, sourceEl) {
-    matchCoachNotesActiveView = view === 'challenge' ? 'challenge' : 'positive';
-    const form = (sourceEl && typeof sourceEl.closest === 'function'
-        ? sourceEl.closest('[data-match-notes-form]')
-        : null)
-        || document.querySelector('.match-summary-panel [data-match-notes-form], .match-coach-notes-panel [data-match-notes-form]');
-    if (!form) return;
-    form.dataset.notesView = matchCoachNotesActiveView;
-    form.querySelectorAll('[data-notes-view-panel]').forEach((panel) => {
-        const isActive = panel.dataset.notesViewPanel === matchCoachNotesActiveView;
-        panel.hidden = !isActive;
-    });
-    form.querySelectorAll('[data-notes-view-tab]').forEach((btn) => {
-        const isActive = btn.dataset.notesViewTab === matchCoachNotesActiveView;
-        btn.classList.toggle('is-active', isActive);
-        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
-    });
-    const heading = form.querySelector('[data-notes-view-heading]');
-    if (heading) {
-        heading.textContent = matchCoachNotesActiveView === 'challenge' ? 'Utfordringer' : 'Positivt';
-    }
-    const activeField = form.querySelector(`[data-notes-view-panel="${matchCoachNotesActiveView}"] textarea`);
-    if (activeField && typeof window.autosizeMatchCoachNoteField === 'function') {
-        window.autosizeMatchCoachNoteField(activeField);
-    }
 };
 
 window.promptDeleteMatch = function(id) {
