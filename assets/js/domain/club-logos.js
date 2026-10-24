@@ -126,6 +126,11 @@
         const club = window.getClubLogoByName(name);
         if (!club) return '';
 
-        return `<img src="${escapeClubLogoHtml(club.logo)}" alt="" aria-hidden="true" loading="lazy" decoding="async" class="${escapeClubLogoHtml(className)}">`;
+        /* Crests are above-the-fold on Hjem/battle — eager avoids lazy-load flicker mid-swipe */
+        const isCrest = /crest|battle/i.test(String(className || ''));
+        const loading = isCrest ? 'eager' : 'lazy';
+        const decoding = isCrest ? 'sync' : 'async';
+
+        return `<img src="${escapeClubLogoHtml(club.logo)}" alt="" aria-hidden="true" loading="${loading}" decoding="${decoding}" class="${escapeClubLogoHtml(className)}">`;
     };
 })();

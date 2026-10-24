@@ -132,13 +132,23 @@ window.updateDashboard = function() {
             const dashboardAlerts = typeof window.buildMatchAlertData === 'function' ? window.buildMatchAlertData(nm) : [];
             window._dashboardAlertPopupData = dashboardAlerts;
 
-            heroContainer.innerHTML = window.buildMatchDetailCardHtml(nm, {
-                extraClass: 'h-full',
-                clickable: true,
-                showWatermark: true,
-                battleHero: true,
-                showHeroNav: false
-            });
+            /* Keep existing hero DOM on tab revisit (swipe back) — recreating <img> crests flickers */
+            const existingMatchId = heroContainer.querySelector('[data-match-id]')?.getAttribute('data-match-id');
+            const heroAlreadyCurrent = Boolean(
+                existingMatchId
+                && String(existingMatchId) === String(nm.id)
+                && heroContainer.querySelector('.is-battle-hero')
+            );
+
+            if (!heroAlreadyCurrent) {
+                heroContainer.innerHTML = window.buildMatchDetailCardHtml(nm, {
+                    extraClass: 'h-full',
+                    clickable: true,
+                    showWatermark: true,
+                    battleHero: true,
+                    showHeroNav: false
+                });
+            }
         } else if (upcoming.length > 0) {
             const nm = upcoming[0];
             heroContainer.innerHTML = `
