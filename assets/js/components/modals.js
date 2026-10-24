@@ -49,12 +49,11 @@ window.buildMatchAlertData = function(match) {
             return {
                 type: 'suspended',
                 tone: isRedCard ? 'critical' : 'warning',
-                icon: isRedCard ? 'fa-square' : 'fa-ban',
                 playerName,
                 badge: status.reason || 'Karantene',
                 detail: isRedCard
-                    ? `${playerName} fikk rødt kort i forrige seriekamp og har karantene i neste seriekamp.`
-                    : `${playerName} har karantene i neste seriekamp (${cleanText(status.reason) || 'kortgrense'}).`,
+                    ? 'Rødt kort i forrige seriekamp — karantene i neste.'
+                    : `Karantene i neste seriekamp (${cleanText(status.reason) || 'kortgrense'}).`,
                 meta: matchLabel
             };
         }),
@@ -65,10 +64,9 @@ window.buildMatchAlertData = function(match) {
             return {
                 type: 'at-risk',
                 tone: 'notice',
-                icon: 'fa-triangle-exclamation',
                 playerName,
-                badge: 'Faresone',
-                detail: `${playerName} står med ${status.yellows || 0} gule kort og får karantene ved ${status.nextKaranteneAt || 4} gule kort.`,
+                badge: 'Gule kort',
+                detail: `${status.yellows || 0} gule — karantene ved ${status.nextKaranteneAt || 4}.`,
                 meta: matchLabel
             };
         })
@@ -79,7 +77,7 @@ window.showMatchAlertModal = function(matchId) {
     const match = (window.activeMatches || []).find(m => m.id === matchId);
     if (!match) return;
 
-    window.showDashboardAlertModal(window.buildMatchAlertData(match));
+    window.showDashboardAlertModal(window.buildMatchAlertData(match), { fromMatch: true });
 };
 
 window.captureModalReturnContext = function() {
@@ -207,7 +205,7 @@ window.closeSessionInjuryModal = function() {
     window.restoreModalReturnContext(context);
 };
 
-window.showDashboardAlertModal = function(alertsOverride) {
+window.showDashboardAlertModal = function(alertsOverride, options = {}) {
     window._modalReturnContext = window.captureModalReturnContext();
 
     const alerts = Array.isArray(alertsOverride) ? alertsOverride : (window._dashboardAlertPopupData || []);
@@ -215,27 +213,27 @@ window.showDashboardAlertModal = function(alertsOverride) {
     window._dashboardAlertPopupData = alerts;
 
     const titleEl = document.getElementById('dashboardAlertModalTitle');
-    const leadEl = document.getElementById('dashboardAlertModalLead');
     const listEl = document.getElementById('dashboardAlertList');
+    const fromMatch = Boolean(
+        options.fromMatch
+        || window._modalReturnContext?.tab === 'kampdetaljer'
+    );
 
     if (titleEl) {
-        titleEl.textContent = alerts.length === 1
-            ? 'Varsel før neste kamp'
-            : `${alerts.length} varsler før neste kamp`;
-    }
-
-    if (leadEl) {
-        leadEl.textContent = alerts.length === 1
-            ? 'Dette må tas hensyn til i laguttaket.'
-            : 'Disse punktene må tas hensyn til i laguttaket.';
+        if (fromMatch) {
+            titleEl.textContent = alerts.length === 1
+                ? 'Til kampen'
+                : `${alerts.length} spillere`;
+        } else {
+            titleEl.textContent = alerts.length === 1
+                ? 'Før neste kamp'
+                : `${alerts.length} spillere før neste kamp`;
+        }
     }
 
     if (listEl) {
         listEl.innerHTML = alerts.map(alert => `
             <div class="dashboard-alert-modal-item is-${window.escapeModalHtml(alert.tone || 'notice')}">
-                <div class="dashboard-alert-modal-icon">
-                    <i class="fa-solid ${window.escapeModalHtml(alert.icon || 'fa-triangle-exclamation')}"></i>
-                </div>
                 <div class="dashboard-alert-modal-copy min-w-0">
                     <div class="dashboard-alert-modal-row">
                         <span class="dashboard-alert-modal-name">${window.escapeModalHtml(alert.playerName)}</span>

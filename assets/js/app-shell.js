@@ -36,16 +36,19 @@ function syncPortalThemeColor(useNavy) {
     meta.setAttribute('content', useNavy ? PORTAL_THEME_COLOR_KAMPER : PORTAL_THEME_COLOR_DEFAULT);
 }
 
-/** Mobile Kamper shells: list keeps chrome (navy); detail hides portal header/nav. */
+/** Mobile navy shells: Kamper list / Hjem keep chrome; detail hides portal header/nav. */
 function syncKamperEnvClass(tabId = window.currentTab) {
     const mobile = window.innerWidth < 768;
     const inDetailEnv = Boolean(tabId === 'kampdetaljer' && mobile);
     const inListEnv = Boolean(tabId === 'kamper' && mobile);
+    const inHjemEnv = Boolean(tabId === 'hjem' && mobile);
     document.body.classList.toggle('is-kamper-env', inDetailEnv);
     document.documentElement.classList.toggle('is-kamper-env', inDetailEnv);
     document.body.classList.toggle('is-kamper-list', inListEnv);
     document.documentElement.classList.toggle('is-kamper-list', inListEnv);
-    syncPortalThemeColor(inDetailEnv || inListEnv);
+    document.body.classList.toggle('is-hjem-env', inHjemEnv);
+    document.documentElement.classList.toggle('is-hjem-env', inHjemEnv);
+    syncPortalThemeColor(inDetailEnv || inListEnv || inHjemEnv);
     if (!inDetailEnv) {
         document.body.classList.remove('is-match-panel-focus', 'is-spillerbors-focus', 'is-kamptropp-focus');
     }

@@ -897,16 +897,14 @@ function buildMatchFixtureRowHtml(match, options = {}) {
 
 function getMatchCardPresentation(match) {
     const dateValue = new Date(match.date);
-    const isFinished = Boolean(match?.result && String(match.result).includes('-'));
-    /* Spilt kamp: bare dato. Kommende: ukedag + dato. */
+    /* Battle-kort: bare dato (uten ukedag). */
     const dateFormatted = Number.isNaN(dateValue.getTime())
         ? 'Dato ikke satt'
-        : dateValue.toLocaleDateString(
-            'no-NO',
-            isFinished
-                ? { day: '2-digit', month: '2-digit', year: '2-digit' }
-                : { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' }
-        );
+        : dateValue.toLocaleDateString('no-NO', {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit'
+        });
     const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
     const matchTypeLabel = match.matchType || 'Kamp';
     const venue = getMatchVenue(match);
@@ -1807,9 +1805,10 @@ function buildMatchDetailCardHtml(match, options = {}) {
                     data-match-action="alert"
                     data-match-id="${escapeMatchHtml(match.id)}"
                     class="bsk-btn bsk-btn-chip bsk-btn-danger dashboard-alert-chip"
-                    title="Vis varsel for denne kampen">
+                    title="Vis merknader for denne kampen"
+                    aria-label="Vis merknader for denne kampen">
                 <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-                <span>Varsel</span>
+                <span>Merknader</span>
             </button>
         `
         : '';
