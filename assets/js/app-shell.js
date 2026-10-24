@@ -25,10 +25,23 @@ function getMobileTabIndex(tabId) {
     return MOBILE_TAB_ORDER.indexOf(tabId);
 }
 
+const PORTAL_THEME_COLOR_DEFAULT = '#f8fafc';
+const PORTAL_THEME_COLOR_KAMPER = '#0b2b4c';
+
+/** Keep iOS status-bar / browser chrome in sync with Kamper navy shell. */
+function syncPortalThemeColor(inKamperEnv) {
+    const meta = document.getElementById('portal-theme-color')
+        || document.querySelector('meta[name="theme-color"]');
+    if (!meta) return;
+    meta.setAttribute('content', inKamperEnv ? PORTAL_THEME_COLOR_KAMPER : PORTAL_THEME_COLOR_DEFAULT);
+}
+
 /** Mobile-only Clash shell for kampdetaljer (hides portal header/nav). */
 function syncKamperEnvClass(tabId = window.currentTab) {
     const inEnv = Boolean(tabId === 'kampdetaljer' && window.innerWidth < 768);
     document.body.classList.toggle('is-kamper-env', inEnv);
+    document.documentElement.classList.toggle('is-kamper-env', inEnv);
+    syncPortalThemeColor(inEnv);
     if (!inEnv) {
         document.body.classList.remove('is-match-panel-focus', 'is-spillerbors-focus', 'is-kamptropp-focus');
     }

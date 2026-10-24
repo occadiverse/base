@@ -4529,9 +4529,16 @@
                 padding: 0;
                 width: 100%;
             }
+            /* html + body must be navy — iOS paints status-bar safe area from html bg */
+            html.is-kamper-env,
+            html.is-kamper-env body,
             body.is-kamper-env,
             body.is-kamper-env .portal-main-shell {
-                background: #0b2b4c;
+                background: #0b2b4c !important;
+                color-scheme: dark;
+            }
+            body.is-kamper-env,
+            body.is-kamper-env .portal-main-shell {
                 overflow: hidden !important;
             }
 
