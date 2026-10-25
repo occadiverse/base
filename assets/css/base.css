@@ -22947,10 +22947,23 @@
             background: transparent;
             border-bottom: 0;
             display: flex;
+            gap: 0.65rem;
             justify-content: space-between;
             min-height: 0;
             padding: 0.2rem 1rem 0.55rem;
             position: relative;
+        }
+        .calendar-section-top .calendar-section-heading {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .calendar-section-actions {
+            align-items: center;
+            display: flex;
+            flex: 0 0 auto;
+            gap: 0.35rem;
+            position: relative;
+            z-index: 3;
         }
         .calendar-section-top::after {
             background: linear-gradient(
@@ -23031,12 +23044,21 @@
         .calendar-heading-panel {
             background: transparent;
             border-bottom: 0;
-            display: grid;
-            gap: 0.4rem 0.75rem;
-            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-            padding: 0.4rem 0.85rem 0.45rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            /* Samme luft under gullstripe som lagoppstilling-topline (margin-bottom: 0.85rem) */
+            padding: 0.85rem 0.85rem 0.5rem;
             position: relative;
             z-index: 1;
+        }
+        .calendar-nav-row {
+            align-items: center;
+            display: grid;
+            gap: 0.4rem 0.55rem;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            min-width: 0;
+            width: 100%;
         }
         .calendar-board-top {
             min-height: 0;
@@ -23050,27 +23072,27 @@
             z-index: 1;
         }
         .calendar-heading-title {
-            color: #ffe9a8;
-            font-size: clamp(1.02rem, 2.8vw, 1.22rem);
+            color: rgba(255, 253, 245, 0.95);
+            flex: 1 1 auto;
+            font-size: 0.78rem;
             font-weight: 950;
-            letter-spacing: 0.07em;
+            letter-spacing: 0.1em;
             line-height: 1;
-            min-width: 6.5rem;
+            margin: 0;
+            min-width: 5.25rem;
             text-align: center;
-            text-shadow:
-                0 1px 0 rgba(255, 253, 245, 0.18),
-                0 1px 0 rgba(10, 26, 48, 0.4),
-                0 0 10px rgba(255, 214, 102, 0.16);
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
             text-transform: uppercase;
             white-space: nowrap;
         }
         .calendar-heading-year {
-            color: rgba(255, 253, 245, 0.55);
             display: inline-flex;
-            font-size: 0.82rem;
+            font-family: inherit;
+            font-size: 0.78rem;
             font-weight: 950;
             letter-spacing: 0.1em;
             line-height: 1;
+            text-transform: uppercase;
         }
         .calendar-heading-actions {
             align-items: center;
@@ -23078,13 +23100,23 @@
             justify-content: flex-end;
             min-width: 0;
         }
-        .calendar-heading-actions .calendar-add-btn {
-            font-size: 0.62rem;
+        .calendar-heading-actions .calendar-today-mini-btn {
+            font-size: 0.58rem;
+            min-width: 0;
+            padding: 0 0.55rem;
+        }
+        .calendar-section-actions .calendar-add-btn {
+            font-size: 0.58rem;
+            gap: 0.28rem;
             height: 2.15rem;
             max-height: 2.15rem;
             min-height: 2.15rem;
             min-width: 0;
-            padding: 0 0.7rem;
+            padding: 0 0.55rem;
+        }
+        .calendar-section-actions .calendar-add-btn i {
+            color: inherit;
+            font-size: 0.82rem;
         }
         .calendar-heading-panel:has(.calendar-year-menu.is-open) {
             z-index: 40;
@@ -23093,10 +23125,13 @@
             z-index: 1;
         }
         .calendar-year-block {
-            align-items: flex-start;
+            align-items: center;
             display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
+            flex: 0 0 auto;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            gap: 0.3rem;
+            min-width: 0;
             position: relative;
             z-index: 4;
         }
@@ -23107,41 +23142,88 @@
         .calendar-year-menu.is-open {
             z-index: 8;
         }
-        .calendar-year-trigger {
+        /*
+         * Nav-knapper = samme chip som Lagoppstilling-meny / calendar-detail-card-actions
+         * (navy gradient + guldkant, cream-tekst — ikke gullfyll/gullikon).
+         */
+        .calendar-nav-row .calendar-year-trigger,
+        .calendar-nav-row .calendar-today-mini-btn,
+        .calendar-nav-row .calendar-today-mini-btn.bsk-btn-chip {
             align-items: center;
             appearance: none;
-            background: transparent;
-            border: 0;
-            border-radius: 0.4rem;
-            color: inherit;
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
+            border: 1.5px solid rgba(255, 224, 138, 0.42);
+            border-radius: 0.7rem;
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
+            color: rgba(255, 253, 245, 0.92);
             cursor: pointer;
-            font: inherit;
-            gap: 0.35rem;
-            letter-spacing: inherit;
+            display: inline-flex;
+            font-family: inherit;
+            font-weight: 900;
+            justify-content: center;
+            letter-spacing: 0.05em;
+            line-height: 1;
             margin: 0;
-            padding: 0.1rem 0.15rem 0.1rem 0;
-            transition: color 150ms ease;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
+            transition: background 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
         }
-        .calendar-year-trigger:hover,
+        .calendar-nav-row .calendar-year-trigger:hover,
+        .calendar-nav-row .calendar-today-mini-btn:hover,
+        .calendar-nav-row .calendar-today-mini-btn.bsk-btn-chip:hover {
+            background: linear-gradient(180deg, rgba(40, 95, 150, 0.85) 0%, rgba(12, 36, 68, 0.95) 100%);
+            border-color: rgba(255, 224, 138, 0.7);
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.5);
+            color: #fffdf5;
+            transform: none;
+        }
+        .calendar-nav-row .calendar-year-trigger:active,
+        .calendar-nav-row .calendar-today-mini-btn:active {
+            box-shadow: 0 1px 0 rgba(2, 6, 23, 0.55);
+            transform: translateY(1px);
+        }
+        .calendar-nav-row .calendar-year-trigger:focus-visible,
+        .calendar-nav-row .calendar-today-mini-btn:focus-visible {
+            box-shadow:
+                0 0 0 3px rgba(245, 197, 66, 0.4),
+                0 2px 0 rgba(2, 6, 23, 0.45);
+            outline: none;
+        }
+        .calendar-nav-row .calendar-year-trigger i {
+            color: inherit;
+            text-shadow: inherit;
+        }
+        .calendar-year-trigger {
+            gap: 0.32rem;
+            font-size: 0.7rem;
+            min-height: 2.15rem;
+            padding: 0 0.55rem;
+            text-transform: uppercase;
+        }
         .calendar-year-menu.is-open .calendar-year-trigger {
-            color: #ffffff;
+            background: linear-gradient(180deg, #ffe066 0%, #e69d10 60%, #a85800 100%);
+            border-color: #fff099;
+            box-shadow: 0 2px 0 #5c2e00;
+            color: #fffdf5;
+            text-shadow: 0 1px 0 #5c2e00;
         }
-        .calendar-year-trigger:focus-visible {
-            outline: 2px solid rgba(245, 197, 66, 0.55);
-            outline-offset: 3px;
+        .calendar-year-menu.is-open .calendar-year-trigger:hover {
+            background: linear-gradient(180deg, #ffe58a 0%, #f0b429 60%, #b86300 100%);
+            border-color: #fff3b0;
+            box-shadow: 0 2px 0 #5c2e00;
+            color: #fffdf5;
+            transform: none;
         }
         .calendar-year-trigger-chevron {
-            color: #f5c542;
-            font-size: 0.52rem;
+            color: rgba(255, 224, 138, 0.9);
+            font-size: 0.55rem;
             line-height: 1;
-            opacity: 0.88;
-            transition: transform 140ms ease, opacity 140ms ease;
+            transition: transform 140ms ease, color 140ms ease;
         }
-        .calendar-year-trigger:hover .calendar-year-trigger-chevron,
-        .calendar-year-menu.is-open .calendar-year-trigger-chevron {
-            opacity: 1;
+        .calendar-year-trigger:hover .calendar-year-trigger-chevron {
+            color: inherit;
         }
         .calendar-year-menu.is-open .calendar-year-trigger-chevron {
+            color: #fffdf5;
             transform: rotate(180deg);
         }
         .calendar-year-dropdown {
@@ -23191,82 +23273,113 @@
             border-color: rgba(245, 197, 66, 0.28);
             color: #f5c542;
         }
-        .calendar-today-mini-btn {
+        .calendar-today-mini-btn,
+        .calendar-section-actions .calendar-today-mini-btn,
+        .calendar-today-mini-btn.bsk-btn-chip,
+        .calendar-section-actions .calendar-today-mini-btn.bsk-btn-chip {
             align-items: center;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(245, 197, 66, 0.22);
-            border-radius: 999px;
-            color: #f5c542;
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
+            border: 1.5px solid rgba(255, 224, 138, 0.42);
+            border-radius: 0.7rem;
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
+            color: rgba(255, 253, 245, 0.92);
             display: inline-flex;
-            font-size: 0.62rem;
+            font-size: 0.58rem;
             font-weight: 900;
             letter-spacing: 0.08em;
             line-height: 1;
-            padding: 0.35rem 0.55rem;
+            min-height: 2.15rem;
+            padding: 0 0.55rem;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
             text-transform: uppercase;
-            transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+            transition: background 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
         }
-        .calendar-today-mini-btn.bsk-btn-chip {
-            font-size: 0.62rem;
-            letter-spacing: 0.08em;
-            line-height: 1;
-            min-height: auto;
-            padding: 0.35rem 0.55rem;
-            text-transform: uppercase;
+        .calendar-today-mini-btn:hover,
+        .calendar-section-actions .calendar-today-mini-btn:hover,
+        .calendar-today-mini-btn.bsk-btn-chip:hover {
+            background: linear-gradient(180deg, rgba(40, 95, 150, 0.85) 0%, rgba(12, 36, 68, 0.95) 100%);
+            border-color: rgba(255, 224, 138, 0.7);
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.5);
+            color: #fffdf5;
         }
-        .calendar-today-mini-btn:hover {
-            background: rgba(245, 197, 66, 0.14);
-            border-color: rgba(245, 197, 66, 0.36);
-            color: #ffe08a;
-        }
-        .calendar-month-chevron.bsk-btn-icon {
-            height: 2rem;
-            min-width: 2rem;
-            width: 2rem;
-        }
+        /*
+         * Måned: én samlet navy-plate (< OKTOBER >) i stedet for tre løse chips.
+         */
         .calendar-month-nav {
-            align-items: center;
+            align-items: stretch;
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
+            border: 1.5px solid rgba(255, 224, 138, 0.42);
+            border-radius: 0.7rem;
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
             display: inline-flex;
-            gap: 0.8rem;
+            gap: 0;
+            height: 2.15rem;
             justify-content: center;
+            max-width: 100%;
+            min-height: 2.15rem;
             min-width: 0;
+            overflow: hidden;
+            padding: 0 0.1rem;
         }
-        .calendar-month-chevron {
+        .calendar-month-nav .calendar-month-chevron,
+        .calendar-month-nav .calendar-month-chevron.bsk-btn-icon {
+            align-items: center;
+            appearance: none;
+            background: transparent !important;
+            border: 0 !important;
+            border-radius: 0.5rem;
+            box-shadow: none !important;
+            color: rgba(255, 253, 245, 0.72) !important;
+            cursor: pointer;
             display: inline-flex;
-            flex: 0 0 auto;
-            height: 2rem;
+            flex: 0 0 1.85rem;
+            height: auto;
+            justify-content: center;
+            margin: 0.12rem 0;
+            min-height: 0;
+            min-width: 1.85rem;
             opacity: 1;
+            padding: 0;
             pointer-events: auto;
             position: static;
+            text-shadow: none;
             transform: none;
-            width: 2rem;
+            transition: background 140ms ease, color 140ms ease;
+            width: 1.85rem;
         }
-        .calendar-month-chevron:hover {
+        .calendar-month-nav .calendar-month-chevron i {
+            color: inherit !important;
+            font-size: 0.68rem;
+            line-height: 1;
+            text-shadow: none;
+        }
+        .calendar-month-nav .calendar-month-chevron:hover,
+        .calendar-month-nav .calendar-month-chevron.bsk-btn-icon:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 0 !important;
+            box-shadow: none !important;
+            color: #fffdf5 !important;
             transform: none;
         }
-        .calendar-legend {
-            align-items: center;
-            color: rgba(255, 253, 245, 0.34);
-            display: flex;
-            flex-wrap: wrap;
-            font-size: 0.54rem;
-            font-weight: 900;
-            gap: 0.35rem 0.65rem;
-            grid-column: 1 / -1;
-            justify-content: center;
-            letter-spacing: 0.08em;
-            opacity: 0.88;
-            text-transform: uppercase;
+        .calendar-month-nav .calendar-month-chevron:active {
+            background: rgba(255, 255, 255, 0.16) !important;
+            box-shadow: none !important;
+            transform: none;
         }
-        .calendar-legend-item {
-            align-items: center;
-            display: inline-flex;
-            gap: 0.35rem;
+        .calendar-month-nav .calendar-month-chevron:focus-visible {
+            background: rgba(255, 224, 138, 0.14) !important;
+            box-shadow: inset 0 0 0 1.5px rgba(255, 224, 138, 0.55) !important;
+            outline: none;
         }
-        .calendar-legend .calendar-day-event-dot {
-            flex: 0 0 auto;
-            height: 0.42rem;
-            width: 0.42rem;
+        .calendar-month-nav .calendar-heading-title {
+            align-self: center;
+            padding: 0 0.15rem;
+        }
+        .calendar-nav-row .calendar-today-mini-btn {
+            flex-shrink: 0;
+            height: 2.15rem;
+            max-height: 2.15rem;
+            min-height: 2.15rem;
         }
         .calendar-empty-state > .bsk-btn-primary {
             margin-top: 1rem;
@@ -23282,15 +23395,16 @@
         .calendar-board-body {
             display: flex;
             flex-direction: column;
-            gap: 0.7rem;
-            padding: 0.75rem 0.85rem 0.35rem;
+            gap: 0.45rem;
+            padding: 0.45rem 0.85rem 0.25rem;
         }
         .calendar-weekday-row {
             align-items: center;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 224, 138, 0.16);
-            border-radius: 0.75rem;
-            color: rgba(255, 253, 245, 0.42);
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.45) 0%, rgba(8, 28, 56, 0.65) 100%);
+            border: 1.5px solid rgba(255, 224, 138, 0.28);
+            border-radius: 0.7rem;
+            box-shadow: 0 1px 0 rgba(2, 6, 23, 0.35);
+            color: rgba(255, 253, 245, 0.5);
             display: grid;
             font-size: 0.58rem;
             font-weight: 950;
@@ -23313,10 +23427,12 @@
         }
         .calendar-day-cell {
             appearance: none;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1.5px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1rem;
-            box-shadow: 0 8px 20px rgba(2, 6, 23, 0.12);
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.92) 100%);
+            border: 1.5px solid rgba(255, 224, 138, 0.38);
+            border-radius: 0.75rem;
+            box-shadow:
+                0 2px 0 rgba(2, 6, 23, 0.45),
+                inset 0 1px 0 rgba(255, 253, 245, 0.08);
             color: #ffffff;
             cursor: pointer;
             display: flex;
@@ -23389,8 +23505,8 @@
             background: #94a3b8;
             border-radius: 999px;
             flex: 0 0 auto;
-            height: 0.48rem;
-            width: 0.48rem;
+            height: 0.52rem;
+            width: 0.52rem;
         }
         .calendar-day-event-dot.is-match {
             background: #34d399;
@@ -23402,46 +23518,84 @@
             background: #94a3b8;
         }
         .calendar-day-cell.is-outside-month {
-            opacity: 0.45;
+            background: linear-gradient(180deg, rgba(12, 32, 56, 0.42) 0%, rgba(4, 14, 28, 0.55) 100%);
+            border-color: rgba(255, 224, 138, 0.1);
+            border-width: 1px;
+            box-shadow: none;
+            opacity: 0.38;
+        }
+        .calendar-day-cell.is-outside-month .calendar-day-number {
+            color: rgba(255, 253, 245, 0.42);
+        }
+        .calendar-day-cell.is-outside-month .calendar-day-event-dot {
+            opacity: 0.55;
+        }
+        .calendar-day-cell.is-outside-month:hover {
+            background: linear-gradient(180deg, rgba(18, 48, 82, 0.55) 0%, rgba(6, 20, 40, 0.68) 100%);
+            border-color: rgba(255, 224, 138, 0.22);
+            box-shadow: none;
+            opacity: 0.55;
+        }
+        .calendar-day-cell.is-outside-month:active {
+            box-shadow: none;
+            transform: none;
         }
         .calendar-day-cell:hover {
-            background: rgba(255, 255, 255, 0.13);
-            border-color: rgba(245, 197, 66, 0.45);
+            background: linear-gradient(180deg, rgba(40, 95, 150, 0.85) 0%, rgba(12, 36, 68, 0.98) 100%);
+            border-color: rgba(255, 224, 138, 0.72);
+            box-shadow:
+                0 2px 0 rgba(2, 6, 23, 0.5),
+                inset 0 1px 0 rgba(255, 253, 245, 0.12);
         }
         .calendar-day-cell:active {
-            transform: scale(0.97);
+            box-shadow:
+                0 1px 0 rgba(2, 6, 23, 0.55),
+                inset 0 1px 0 rgba(255, 253, 245, 0.06);
+            transform: translateY(1px);
         }
-        /* I dag = gullring; valgt = fylt flate + understrek */
-        .calendar-day-cell.is-today {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 224, 138, 0.88);
-            box-shadow: 0 0 0 1.5px rgba(245, 197, 66, 0.4);
+        /*
+         * I dag = kun gullring (ingen fyll).
+         * Valgt = gullfyll + understrek (ingen ring).
+         * Begge = valgt vinner (fyll/understrek), ingen ekstra ring.
+         */
+        .calendar-day-cell.is-today:not(.is-selected) {
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.92) 100%);
+            border-color: rgba(255, 224, 138, 0.85);
+            box-shadow:
+                0 0 0 2px rgba(245, 197, 66, 0.7),
+                0 2px 0 rgba(2, 6, 23, 0.45),
+                inset 0 1px 0 rgba(255, 253, 245, 0.1);
         }
         .calendar-day-cell.is-selected {
-            background: rgba(245, 197, 66, 0.18);
-            border-color: rgba(245, 197, 66, 0.78);
-            box-shadow: 0 10px 24px rgba(2, 6, 23, 0.22);
-        }
-        /* Valgt + i dag: behold fyll/understrek, beholde subtil i-dag-ring */
-        .calendar-day-cell.is-today.is-selected {
-            background: rgba(245, 197, 66, 0.18);
+            background: linear-gradient(180deg, rgba(245, 197, 66, 0.28) 0%, rgba(122, 86, 8, 0.42) 100%);
             border-color: rgba(255, 224, 138, 0.95);
             box-shadow:
-                0 0 0 1.5px rgba(245, 197, 66, 0.45),
-                0 10px 24px rgba(2, 6, 23, 0.22);
+                0 2px 0 #6b4a0c,
+                inset 0 1px 0 rgba(255, 253, 245, 0.28);
+        }
+        .calendar-day-cell.is-today.is-selected {
+            background: linear-gradient(180deg, rgba(245, 197, 66, 0.28) 0%, rgba(122, 86, 8, 0.42) 100%);
+            border-color: rgba(255, 224, 138, 0.95);
+            box-shadow:
+                0 2px 0 #6b4a0c,
+                inset 0 1px 0 rgba(255, 253, 245, 0.28);
         }
         .calendar-day-cell.is-selected .calendar-day-number {
-            color: #ffe9a8;
+            color: #fff6d6;
+            text-shadow:
+                0 1px 0 rgba(10, 26, 48, 0.45),
+                0 0 10px rgba(255, 214, 102, 0.28);
         }
         .calendar-day-cell.is-selected::after {
-            background: #f5c542;
+            background: #ffe08a;
             border-radius: 999px;
-            bottom: 0.32rem;
+            bottom: 0.28rem;
+            box-shadow: 0 0 6px rgba(245, 197, 66, 0.55);
             content: "";
             height: 2.5px;
-            left: 0.55rem;
+            left: 0.45rem;
             position: absolute;
-            right: 0.55rem;
+            right: 0.45rem;
         }
         .calendar-daily-panel {
             border-top: 1px solid rgba(18, 63, 115, 0.12);
@@ -23471,122 +23625,150 @@
         }
         .calendar-bottomline-heading h3,
         .calendar-bottomline > #selected-calendar-date {
-            color: rgba(255, 253, 245, 0.58);
-            font-size: 0.72rem;
-            font-weight: 850;
-            letter-spacing: 0.04em;
+            color: #ffe9a8;
+            font-size: 0.78rem;
+            font-weight: 950;
+            letter-spacing: 0.07em;
             line-height: 1.25;
             margin: 0;
-            text-transform: capitalize;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.35);
+            text-transform: uppercase;
         }
         .calendar-daily-list {
             display: grid;
             gap: 0.65rem;
             grid-template-columns: minmax(0, 1fr);
         }
+        /* Tom = samme Clash-plate som kamp/trening/annet, lilla */
+        .calendar-empty-state,
         .calendar-bottomline .calendar-empty-state {
             align-items: center;
-            background: transparent !important;
-            border: 0 !important;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.06) 40%, transparent 55%),
+                linear-gradient(180deg, #a56bff 0%, #7b3cf0 46%, #5a22c8 100%) !important;
+            border: 3px solid #2a0a58 !important;
             border-bottom: 0 !important;
-            box-shadow: none;
-            color: #ffffff;
+            border-radius: 1.05rem;
+            box-shadow:
+                0 5px 0 #16042f,
+                0 9px 18px rgba(2, 6, 23, 0.42),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 -2px 0 rgba(30, 6, 70, 0.35);
+            color: #fffdf8;
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            gap: 0.25rem;
             justify-content: center;
-            margin: 0;
-            padding: 0 !important;
+            margin: 0 0 0.35rem;
+            min-height: 0;
+            overflow: hidden;
+            padding: 0.9rem 0.95rem 1.05rem !important;
+            position: relative;
             text-align: center;
             width: 100%;
         }
+        .calendar-empty-state::before,
         .calendar-bottomline .calendar-empty-state::before {
-            content: none;
+            background: radial-gradient(ellipse 60% 50% at 82% 8%, rgba(255, 255, 255, 0.38), transparent 65%);
+            border-radius: inherit;
+            content: "";
+            inset: 0;
+            pointer-events: none;
+            position: absolute;
+            z-index: 0;
         }
-        .calendar-bottomline .calendar-empty-icon {
-            background: transparent;
-            border: 0;
-            color: #f5c542;
-            height: auto;
-            margin: 0;
-            width: auto;
-        }
-        .calendar-bottomline .calendar-empty-icon i {
-            font-size: 1.05rem;
-        }
-        .calendar-bottomline .calendar-empty-title {
-            color: #ffffff;
-            margin: 0;
-        }
-        .calendar-bottomline .calendar-empty-text {
-            color: rgba(255, 255, 255, 0.62);
-        }
-        .calendar-empty-state {
-            align-items: center;
-            background: rgba(255, 255, 255, 0.05) !important;
-            border: 1px solid rgba(255, 224, 138, 0.18) !important;
-            border-bottom: 0 !important;
-            border-radius: 0.85rem;
-            box-shadow: none;
-            color: #fffdf5;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.55rem;
-            justify-content: center;
-            overflow: hidden;
-            padding: 0.85rem 1rem !important;
-            position: relative;
-        }
-        .calendar-empty-state::before {
+        .calendar-empty-state::after,
+        .calendar-bottomline .calendar-empty-state::after {
             content: none;
         }
         .calendar-empty-state > * {
             position: relative;
             z-index: 1;
         }
-        .calendar-empty-icon {
+        .calendar-empty-icon,
+        .calendar-bottomline .calendar-empty-icon {
             align-items: center;
-            background: transparent;
-            border: 0;
-            border-radius: 0;
-            color: #ffe08a;
-            display: flex;
-            height: auto;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(60, 20, 120, 0.55) 100%);
+            border: 2px solid rgba(255, 245, 255, 0.45);
+            border-radius: 999px;
+            box-shadow:
+                0 2px 0 rgba(22, 4, 47, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
+            color: #fff8ff;
+            display: inline-flex;
+            flex: 0 0 auto;
+            height: 52px;
             justify-content: center;
+            margin: 0 0 0.15rem;
+            width: 52px;
+        }
+        .calendar-empty-icon i,
+        .calendar-bottomline .calendar-empty-icon i {
+            filter: drop-shadow(0 1px 0 rgba(22, 4, 47, 0.75));
+            font-size: 1.15rem;
+            line-height: 1;
+        }
+        .calendar-empty-title,
+        .calendar-bottomline .calendar-empty-title {
+            color: #fffdf8;
+            font-size: 1.02rem;
+            font-weight: 950;
+            letter-spacing: 0.04em;
+            line-height: 1.2;
             margin: 0;
-            width: auto;
+            text-shadow: 0 1px 0 rgba(22, 4, 47, 0.55);
+            text-transform: none;
         }
-        .calendar-empty-icon i {
-            font-size: 1.05rem;
-        }
-        .calendar-empty-title {
-            color: rgba(255, 253, 245, 0.78);
-            font-size: 0.82rem;
-            font-weight: 900;
+        .calendar-empty-text,
+        .calendar-bottomline .calendar-empty-text {
+            color: rgba(245, 230, 255, 0.78);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            line-height: 1.35;
             margin: 0;
+            text-shadow: none;
+            text-transform: none;
         }
-        .calendar-empty-text {
-            color: rgba(255, 253, 245, 0.5);
-            font-size: 0.72rem;
-            line-height: 1.45;
-            margin-top: 0.25rem;
-        }
+        /* Detaljkort = samme Clash-plate-DNA som tom (gloss + tykk lip), typefarget */
         .calendar-detail-card {
             background:
-                linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.92) 100%);
-            border: 1.5px solid rgba(255, 224, 138, 0.42);
-            border-bottom: 1.5px solid rgba(255, 224, 138, 0.42);
-            border-radius: 0.85rem;
-            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
+                linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 42%),
+                linear-gradient(180deg, #3a6fb5 0%, #1a3f72 48%, #0c2748 100%);
+            border: 3px solid #061526;
+            border-bottom: 0;
+            border-radius: 1.05rem;
+            box-shadow:
+                0 5px 0 #040c18,
+                0 9px 18px rgba(2, 6, 23, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.28);
             color: #ffffff;
-            overflow: hidden;
-            padding: 0.85rem 0.9rem;
+            margin-bottom: 0.35rem;
+            overflow: visible;
+            padding: 0.9rem 0.95rem 1.05rem;
             position: relative;
+        }
+        .calendar-detail-card::before {
+            background: radial-gradient(ellipse 60% 50% at 82% 8%, rgba(255, 255, 255, 0.38), transparent 65%);
+            border-radius: inherit;
+            content: "";
+            inset: 0;
+            pointer-events: none;
+            position: absolute;
+            z-index: 0;
+        }
+        .calendar-detail-card > * {
+            position: relative;
+            z-index: 1;
+        }
+        .calendar-detail-card > .calendar-detail-watermark {
+            z-index: 0;
         }
         .calendar-detail-card-actions {
             align-items: center;
             display: flex;
-            gap: 0.55rem;
+            gap: 0.4rem;
             pointer-events: auto;
             position: absolute;
             right: 1rem;
@@ -23594,14 +23776,101 @@
             transform: translateY(-50%);
             z-index: 30;
         }
-        .calendar-detail-card-actions .bsk-btn-icon {
-            height: 2.65rem;
-            min-height: 2.65rem;
-            min-width: 2.65rem;
-            width: 2.65rem;
+        /*
+         * Handlinger på detaljplate: glass-chip i samme DNA som .calendar-detail-icon
+         * (ikke navy/gull-meny — den lå for hardt på blå/grønn plate).
+         */
+        .calendar-detail-card-actions .bsk-btn-icon,
+        .calendar-detail-card-actions .bsk-btn-icon.bsk-btn-primary,
+        .calendar-detail-card-actions .bsk-btn-icon.bsk-btn-secondary {
+            align-items: center;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(8, 40, 80, 0.35) 100%);
+            border: 1.5px solid rgba(255, 253, 248, 0.5);
+            border-radius: 0.7rem;
+            box-shadow:
+                0 2px 0 rgba(6, 26, 51, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            color: #fffdf8;
+            display: inline-flex;
+            height: 2.15rem;
+            justify-content: center;
+            min-height: 2.15rem;
+            min-width: 2.15rem;
+            padding: 0;
+            text-shadow: 0 1px 0 rgba(6, 26, 51, 0.45);
+            width: 2.15rem;
+        }
+        .calendar-detail-card-actions .bsk-btn-icon:hover,
+        .calendar-detail-card-actions .bsk-btn-icon.bsk-btn-primary:hover,
+        .calendar-detail-card-actions .bsk-btn-icon.bsk-btn-secondary:hover {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(12, 55, 110, 0.42) 100%);
+            border-color: rgba(255, 253, 248, 0.72);
+            box-shadow:
+                0 2px 0 rgba(6, 26, 51, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+            color: #ffffff;
+            transform: none;
+        }
+        .calendar-detail-card-actions .bsk-btn-icon:active {
+            box-shadow:
+                0 1px 0 rgba(6, 26, 51, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
+            transform: translateY(1px);
         }
         .calendar-detail-card-actions .bsk-btn-icon i {
-            font-size: 1rem;
+            color: inherit;
+            font-size: 0.9rem;
+            text-shadow: inherit;
+        }
+        .calendar-event-detail-card.is-training .calendar-detail-card-actions .bsk-btn-icon,
+        .calendar-event-detail-card.is-training .calendar-detail-card-actions .bsk-btn-icon.bsk-btn-primary,
+        .calendar-event-detail-card.is-training .calendar-detail-card-actions .bsk-btn-icon.bsk-btn-secondary {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(20, 70, 140, 0.42) 100%);
+            border-color: rgba(255, 253, 248, 0.55);
+            box-shadow:
+                0 2px 0 rgba(6, 26, 51, 0.38),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+        .calendar-event-detail-card.is-training .calendar-detail-card-actions .bsk-btn-icon:hover,
+        .calendar-event-detail-card.is-training .calendar-detail-card-actions .bsk-btn-icon.bsk-btn-primary:hover,
+        .calendar-event-detail-card.is-training .calendar-detail-card-actions .bsk-btn-icon.bsk-btn-secondary:hover {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(30, 90, 170, 0.5) 100%);
+            border-color: rgba(255, 253, 248, 0.78);
+        }
+        .calendar-match-detail-card .calendar-detail-card-actions .bsk-btn-icon,
+        .calendar-match-detail-card .calendar-detail-card-actions .bsk-btn-icon.bsk-btn-primary,
+        .calendar-match-detail-card .calendar-detail-card-actions .bsk-btn-icon.bsk-btn-secondary {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(6, 78, 42, 0.45) 100%);
+            border-color: rgba(255, 253, 248, 0.5);
+            box-shadow:
+                0 2px 0 rgba(2, 44, 22, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            text-shadow: 0 1px 0 rgba(2, 44, 22, 0.5);
+        }
+        .calendar-match-detail-card .calendar-detail-card-actions .bsk-btn-icon:hover,
+        .calendar-match-detail-card .calendar-detail-card-actions .bsk-btn-icon.bsk-btn-primary:hover,
+        .calendar-match-detail-card .calendar-detail-card-actions .bsk-btn-icon.bsk-btn-secondary:hover {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(10, 100, 55, 0.5) 100%);
+            border-color: rgba(255, 253, 248, 0.72);
+            box-shadow:
+                0 2px 0 rgba(2, 44, 22, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
+        .calendar-event-detail-card.is-other .calendar-detail-card-actions .bsk-btn-icon,
+        .calendar-event-detail-card.is-other .calendar-detail-card-actions .bsk-btn-icon.bsk-btn-primary,
+        .calendar-event-detail-card.is-other .calendar-detail-card-actions .bsk-btn-icon.bsk-btn-secondary {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.26) 0%, rgba(51, 65, 85, 0.5) 100%);
+            border-color: rgba(255, 253, 248, 0.45);
+            box-shadow:
+                0 2px 0 rgba(15, 23, 42, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            text-shadow: 0 1px 0 rgba(15, 23, 42, 0.45);
+        }
+        .calendar-event-detail-card.is-other .calendar-detail-card-actions .bsk-btn-icon:hover,
+        .calendar-event-detail-card.is-other .calendar-detail-card-actions .bsk-btn-icon.bsk-btn-primary:hover,
+        .calendar-event-detail-card.is-other .calendar-detail-card-actions .bsk-btn-icon.bsk-btn-secondary:hover {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.38) 0%, rgba(71, 85, 105, 0.55) 100%);
+            border-color: rgba(255, 253, 248, 0.65);
         }
         .bsk-modal-close.calendar-action-danger i {
             color: #fecdd3;
@@ -23650,27 +23919,99 @@
             position: absolute;
             right: -0.75rem;
         }
+        /* Samme ring/border-DNA som tom-ikonet */
         .calendar-detail-icon {
             align-items: center;
-            background: #f5c542;
-            border: 1px solid rgba(214, 168, 32, 0.55);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(20, 70, 140, 0.55) 100%);
+            border: 2px solid rgba(255, 253, 248, 0.45);
             border-radius: 999px;
-            color: #0b2b4c;
+            box-shadow:
+                0 2px 0 rgba(6, 26, 51, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
+            color: #fffdf8;
             display: flex;
             flex: 0 0 auto;
             height: 52px;
             justify-content: center;
             width: 52px;
         }
+        .calendar-detail-icon i {
+            filter: drop-shadow(0 1px 0 rgba(6, 26, 51, 0.55));
+            font-size: 1.15rem;
+            line-height: 1;
+        }
         .calendar-event-detail-card.is-training .calendar-detail-icon {
-            background: #3b82f6;
-            border-color: rgba(96, 165, 250, 0.7);
-            color: #ffffff;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(20, 70, 140, 0.55) 100%);
+            border-color: rgba(255, 253, 248, 0.45);
+            box-shadow:
+                0 2px 0 rgba(6, 26, 51, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
+            color: #fffdf8;
         }
         .calendar-event-detail-card.is-other .calendar-detail-icon {
-            background: #94a3b8;
-            border-color: rgba(203, 213, 225, 0.58);
-            color: #ffffff;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(51, 65, 85, 0.65) 100%);
+            border-color: rgba(255, 253, 248, 0.42);
+            box-shadow:
+                0 2px 0 rgba(15, 23, 42, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.22);
+            color: #fffdf8;
+        }
+        /*
+         * Kamp-logo: samme Clash-plate som trening (.calendar-detail-icon),
+         * med hvit crest-badge oppå — ikke ring-i-ringen via mark-padding.
+         */
+        .calendar-match-detail-card .calendar-match-icon-slot {
+            flex: 0 0 52px;
+            height: 52px;
+            width: 52px;
+        }
+        .calendar-match-detail-card .calendar-match-mark {
+            align-items: center;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(6, 78, 42, 0.55) 100%);
+            border: 2px solid rgba(255, 253, 248, 0.45);
+            border-radius: 999px;
+            box-shadow:
+                0 2px 0 rgba(2, 44, 22, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
+            box-sizing: border-box;
+            display: flex;
+            flex: 0 0 auto;
+            height: 52px;
+            justify-content: center;
+            overflow: visible;
+            padding: 0;
+            width: 52px;
+        }
+        .calendar-match-detail-card .calendar-match-mark .calendar-match-opponent-logo {
+            background: #ffffff;
+            border: 1.5px solid #166534;
+            border-radius: 999px;
+            box-shadow: none;
+            box-sizing: border-box;
+            display: block;
+            flex: 0 0 auto;
+            height: 38px;
+            object-fit: contain;
+            object-position: center 55%;
+            padding: 3px;
+            width: 38px;
+        }
+        .calendar-match-detail-card .calendar-match-mark .calendar-match-opponent-fallback {
+            align-items: center;
+            background: #ffffff;
+            border: 1.5px solid #166534;
+            border-radius: 999px;
+            box-shadow: none;
+            color: #166534;
+            display: inline-flex;
+            height: 38px;
+            justify-content: center;
+            width: 38px;
+        }
+        .calendar-match-detail-card .calendar-match-mark .calendar-match-opponent-fallback i {
+            color: #166534;
+            filter: none;
+            font-size: 1.05rem;
         }
         .calendar-detail-date {
             color: rgba(245, 197, 66, 0.9);
@@ -23706,24 +24047,69 @@
             color: #ffffff;
         }
         .calendar-bottomline .calendar-detail-card {
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.95rem;
-            box-shadow: none;
             overflow: visible;
-            padding: 0.85rem;
+            padding: 0.9rem 0.95rem 1.05rem;
         }
-        .calendar-bottomline .calendar-match-detail-card {
-            border-color: rgba(245, 197, 66, 0.16);
+        /* Kamp = grønn Clash-plate (samme DNA som trening, matcher prikk) */
+        .calendar-bottomline .calendar-match-detail-card,
+        .calendar-match-detail-card {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.06) 40%, transparent 55%),
+                linear-gradient(180deg, #4ade9a 0%, #22c55e 46%, #15803d 100%);
+            border-color: #064e2a;
+            box-shadow:
+                0 5px 0 #022c16,
+                0 9px 18px rgba(2, 6, 23, 0.42),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 -2px 0 rgba(6, 60, 30, 0.35);
+            color: #fffdf8;
+        }
+        .calendar-match-detail-card .calendar-detail-watermark {
+            color: #022c16;
+            opacity: 0.12;
+        }
+        /* Trening = blå Clash-plate */
+        .calendar-bottomline .calendar-event-detail-card.is-training,
+        .calendar-event-detail-card.is-training {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.06) 40%, transparent 55%),
+                linear-gradient(180deg, #5eb0ff 0%, #2f7fd6 46%, #1a5aa8 100%);
+            border-color: #0a2f5c;
+            box-shadow:
+                0 5px 0 #061a33,
+                0 9px 18px rgba(2, 6, 23, 0.42),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 -2px 0 rgba(8, 40, 80, 0.35);
+            color: #fffdf8;
+        }
+        .calendar-event-detail-card.is-training .calendar-detail-title,
+        .calendar-event-detail-card.is-training .calendar-daily-title {
+            color: #fffdf8;
+            text-shadow: 0 1px 0 rgba(6, 26, 51, 0.55);
+        }
+        /* Annet = stålplate */
+        .calendar-bottomline .calendar-event-detail-card.is-other,
+        .calendar-event-detail-card.is-other {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.05) 40%, transparent 55%),
+                linear-gradient(180deg, #9aa8b8 0%, #64748b 48%, #475569 100%);
+            border-color: #1e293b;
+            box-shadow:
+                0 5px 0 #0f172a,
+                0 9px 18px rgba(2, 6, 23, 0.42),
+                inset 0 1px 0 rgba(255, 255, 255, 0.35),
+                inset 0 -2px 0 rgba(15, 23, 42, 0.35);
+            color: #fffdf8;
         }
         .calendar-daily-card-content,
         .calendar-match-card-content,
         .calendar-event-card-content {
             align-items: center;
             display: grid;
-            gap: 0.8rem;
+            gap: 0.7rem;
             grid-template-columns: 52px minmax(0, 1fr);
-            padding-right: 9rem;
+            /* Plass til 3 action-ikoner uten å kutte tittel (desktop/abs) */
+            padding-right: 9.75rem;
         }
         .calendar-daily-icon-slot,
         .calendar-match-icon-slot,
@@ -23754,19 +24140,14 @@
         .calendar-event-title-block {
             min-width: 0;
         }
-        .calendar-daily-title-line,
-        .calendar-match-opponent-line {
-            align-items: center;
-            display: flex;
-            gap: 0.55rem;
-            min-width: 0;
-        }
         .calendar-match-opponent-logo {
             align-items: center;
             background: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.72);
+            border: 2px solid rgba(255, 253, 248, 0.55);
             border-radius: 999px;
-            box-shadow: 0 4px 10px rgba(2, 6, 23, 0.16);
+            box-shadow:
+                0 2px 0 rgba(2, 6, 23, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45);
             color: #123f73;
             display: inline-flex;
             flex: 0 0 auto;
@@ -23777,27 +24158,43 @@
         }
         .calendar-match-opponent-fallback i {
             color: #123f73;
-            font-size: 0.8rem;
+            font-size: 0.95rem;
         }
         .calendar-daily-title,
-        .calendar-match-title {
-            flex: 0 1 auto;
-            font-size: 1.08rem;
-            font-weight: 900;
+        .calendar-match-title,
+        .calendar-detail-title {
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            display: -webkit-box;
+            flex: 1 1 auto;
+            font-size: 1.02rem;
+            font-weight: 950;
             line-height: 1.2;
             min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
+            white-space: normal;
         }
-        .calendar-event-title-line {
-            align-items: center;
+        .calendar-daily-title-line,
+        .calendar-event-title-line,
+        .calendar-match-opponent-line {
+            align-items: flex-start;
             display: flex;
-            gap: 0.55rem;
+            flex-wrap: nowrap;
+            gap: 0.45rem;
             min-width: 0;
         }
-        .calendar-daily-title-line {
-            flex-wrap: nowrap;
+        .calendar-daily-title-line .calendar-daily-time,
+        .calendar-event-title-line .calendar-event-time,
+        .calendar-match-opponent-line .calendar-match-time-result {
+            flex: 0 0 auto;
+            padding-top: 0.12rem;
+        }
+        .calendar-daily-title-line .calendar-detail-time-dot,
+        .calendar-event-title-line .calendar-detail-time-dot,
+        .calendar-match-opponent-line .calendar-detail-time-dot {
+            flex: 0 0 auto;
+            margin-top: 0.55rem;
         }
         .calendar-detail-time-dot {
             background: rgba(203, 213, 225, 0.62);
@@ -23854,6 +24251,30 @@
             flex: 0 0 auto;
             font-size: 0.76rem;
         }
+        /* Grønn kamp-plate: lys tekst (samme lesbarhet som trening) */
+        .calendar-match-detail-card .calendar-detail-title,
+        .calendar-match-detail-card .calendar-daily-title,
+        .calendar-match-detail-card .calendar-match-title {
+            color: #fffdf8;
+            text-shadow: 0 1px 0 rgba(2, 44, 22, 0.55);
+        }
+        .calendar-match-detail-card .calendar-daily-time,
+        .calendar-match-detail-card .calendar-match-time-result {
+            color: #fffdf8;
+        }
+        .calendar-match-detail-card .calendar-daily-meta-row,
+        .calendar-match-detail-card .calendar-match-meta-row,
+        .calendar-match-detail-card .calendar-detail-meta-row {
+            color: rgba(255, 253, 248, 0.78);
+        }
+        .calendar-match-detail-card .calendar-daily-meta-row i,
+        .calendar-match-detail-card .calendar-match-meta-row i,
+        .calendar-match-detail-card .calendar-detail-meta-row i {
+            color: rgba(255, 253, 248, 0.82);
+        }
+        .calendar-match-detail-card .calendar-detail-time-dot {
+            background: rgba(255, 253, 248, 0.45);
+        }
         .calendar-match-type-chip {
             background: transparent;
             border: 0;
@@ -23890,25 +24311,36 @@
         }
         @media (max-width: 640px) {
             .calendar-bottomline .calendar-detail-card {
-                padding: 0.8rem;
+                display: flex;
+                flex-direction: column;
+                gap: 0.55rem;
+                padding: 0.85rem 0.85rem 1rem;
             }
+            /* Actions under innhold — ingen kollisjon med tittel på smal skjerm */
             .calendar-bottomline .calendar-detail-card-actions {
+                align-self: flex-end;
                 gap: 0.35rem;
-                right: 0.65rem;
+                order: 2;
+                position: static;
+                right: auto;
+                top: auto;
+                transform: none;
             }
             .calendar-bottomline .calendar-detail-card-actions .bsk-btn-icon {
-                height: 2.25rem;
-                min-height: 2.25rem;
-                min-width: 2.25rem;
-                width: 2.25rem;
+                height: 2.15rem;
+                min-height: 2.15rem;
+                min-width: 2.15rem;
+                width: 2.15rem;
             }
             .calendar-daily-card-content,
             .calendar-match-card-content,
             .calendar-event-card-content {
                 align-items: center;
-                gap: 0.7rem;
+                gap: 0.55rem;
                 grid-template-columns: 52px minmax(0, 1fr);
-                padding-right: 8.25rem;
+                order: 1;
+                padding-right: 0;
+                width: 100%;
             }
             .calendar-match-card-content {
                 padding-top: 0;
@@ -23918,10 +24350,12 @@
             }
         }
         @media (max-width: 767px) {
-            .calendar-month-chevron.bsk-btn-icon {
-                height: 2.75rem;
-                min-width: 2.75rem;
-                width: 2.75rem;
+            .calendar-nav-row .calendar-year-trigger,
+            .calendar-nav-row .calendar-today-mini-btn,
+            .calendar-month-nav {
+                height: 2.15rem;
+                max-height: 2.15rem;
+                min-height: 2.15rem;
             }
             .calendar-detail-card-actions .bsk-btn-icon {
                 height: 2.35rem;
@@ -24046,13 +24480,14 @@
             line-height: 1.5;
         }
         @media (max-width: 640px) {
-            .calendar-scroll-grid {
-                gap: 0.32rem;
+            .calendar-scroll-grid,
+            .calendar-weekday-row {
+                gap: 0.42rem;
             }
             .calendar-day-cell {
-                border-radius: 0.82rem;
-                min-height: 3.15rem;
-                padding: 0.38rem 0.32rem 0.34rem;
+                border-radius: 0.7rem;
+                min-height: 3.4rem;
+                padding: 0.42rem 0.34rem 0.38rem;
             }
             .calendar-day-layout {
                 align-items: flex-start;
@@ -24074,8 +24509,8 @@
                 display: none;
             }
             .calendar-day-event-dot {
-                height: 0.38rem;
-                width: 0.38rem;
+                height: 0.45rem;
+                width: 0.45rem;
             }
             .calendar-day-empty-space {
                 display: none;
@@ -24087,50 +24522,48 @@
                 right: 0.35rem;
             }
             .calendar-heading-panel {
-                gap: 0.35rem 0.55rem;
-                padding: 0.35rem 0.85rem 0.4rem;
+                gap: 0.32rem;
+                padding: 0.85rem 0.75rem 0.4rem;
             }
-            .calendar-legend {
-                gap: 0.3rem 0.55rem;
-                opacity: 0.72;
+            .calendar-nav-row {
+                gap: 0.3rem 0.4rem;
+                grid-template-columns: auto minmax(0, 1fr) auto;
             }
-            .calendar-empty-state {
-                padding: 1rem 0.85rem !important;
+            .calendar-section-actions .calendar-add-btn span {
+                display: none;
             }
-            .calendar-empty-icon {
-                border-radius: 0.85rem;
-                height: 2.45rem;
-                margin-bottom: 0.55rem;
-                width: 2.45rem;
+            .calendar-section-actions .calendar-add-btn {
+                min-width: 2.15rem;
+                padding: 0;
+                width: 2.15rem;
+            }
+            .calendar-board-body {
+                gap: 0.35rem;
+                padding: 0.35rem 0.75rem 0.2rem;
+            }
+            .calendar-empty-state,
+            .calendar-bottomline .calendar-empty-state {
+                gap: 0.22rem;
+                padding: 0.85rem 0.85rem 1rem !important;
+                width: 100%;
+            }
+            .calendar-empty-icon,
+            .calendar-bottomline .calendar-empty-icon {
+                border-radius: 999px;
+                height: 48px;
+                margin: 0 0 0.1rem;
+                width: 48px;
             }
             .calendar-empty-state > .bsk-btn-primary {
                 margin-top: 0.7rem;
                 min-height: 2.45rem;
-            }
-            .calendar-bottomline .calendar-empty-state {
-                align-items: center;
-                display: flex;
-                flex-direction: row;
-                flex-wrap: wrap;
-                gap: 0.75rem;
-                justify-content: center;
-                padding: 0 !important;
-                width: 100%;
-            }
-            .calendar-bottomline .calendar-empty-icon {
-                background: transparent;
-                border: 0;
-                border-radius: 0;
-                height: auto;
-                margin: 0;
-                width: auto;
             }
             .match-detail-card-top,
             .match-detail-footer {
                 padding: 0.85rem 1rem;
             }
             .match-detail-card-top.calendar-section-top {
-                padding: 0.2rem 1rem 0.55rem;
+                padding: 0.18rem 0.85rem 0.5rem;
             }
             .match-detail-main {
                 gap: 0.65rem;
@@ -24933,6 +25366,22 @@
             min-height: 28px;
             padding: 0 0.65rem;
         }
+        /* Kalender «I dag»: chip-plate, ikke global pill (etter .bsk-btn-chip) */
+        .calendar-nav-row .calendar-today-mini-btn.bsk-btn-chip,
+        .calendar-today-mini-btn.bsk-btn-chip {
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
+            border: 1.5px solid rgba(255, 224, 138, 0.42);
+            border-radius: 0.7rem;
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
+            color: rgba(255, 253, 245, 0.92);
+            font-size: 0.58rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            min-height: 2.15rem;
+            padding: 0 0.55rem;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
+            text-transform: uppercase;
+        }
         @media (max-width: 767px) {
             .bsk-btn {
                 min-height: 44px;
@@ -24944,6 +25393,10 @@
             }
             .bsk-btn-chip {
                 min-height: 32px;
+            }
+            .calendar-nav-row .calendar-today-mini-btn.bsk-btn-chip,
+            .calendar-today-mini-btn.bsk-btn-chip {
+                min-height: 2.15rem;
             }
             .match-filter-btn.bsk-btn-chip,
             .roster-status-btn.bsk-btn-chip,

@@ -228,7 +228,8 @@ window.formatAttendancePresenceLabel = function(record, options = {}) {
     const suffix = typeof options.suffix === 'string' && options.suffix.trim()
         ? options.suffix.trim()
         : 'møtt opp';
-    if (squadSize > 0) return `${presentCount}/${squadSize} ${suffix}`;
+    const includeSquadSize = options.includeSquadSize !== false;
+    if (includeSquadSize && squadSize > 0) return `${presentCount}/${squadSize} ${suffix}`;
     return `${presentCount} ${suffix}`;
 };
 

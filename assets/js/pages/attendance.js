@@ -670,16 +670,37 @@ window.updateDailySchedule = function() {
         listContainer.innerHTML = `
             <div class="calendar-empty-state">
                 <div class="calendar-empty-icon" aria-hidden="true">
-                    <i class="fa-regular fa-calendar"></i>
+                    <i class="fa-solid fa-calendar-xmark"></i>
                 </div>
                 <p class="calendar-empty-title">Ingen aktiviteter</p>
+                <p class="calendar-empty-text">Ledig dag</p>
             </div>`;
         return;
     }
 
+    const getCalendarAttendanceSuffix = (record) => {
+        const dateStr = record?.date;
+        if (!dateStr) return 'påmeldt';
+        const day = parseCalendarDate(dateStr);
+        if (Number.isNaN(day.getTime())) return 'påmeldt';
+        const now = new Date();
+        const dayOnly = new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime();
+        const todayOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        if (dayOnly > todayOnly) return 'påmeldt';
+        if (dayOnly < todayOnly) return 'møtt opp';
+        const timeMatch = /^(\d{1,2}):(\d{2})/.exec(String(record?.time || '').trim());
+        if (!timeMatch) return 'påmeldt';
+        const start = new Date(day);
+        start.setHours(Number(timeMatch[1]), Number(timeMatch[2]), 0, 0);
+        return start.getTime() > now.getTime() ? 'påmeldt' : 'møtt opp';
+    };
+
     const renderDailyMatch = (m) => {
         const attendanceMeta = typeof window.formatAttendancePresenceLabel === 'function'
-            ? window.formatAttendancePresenceLabel(m, { suffix: 'påmeldt' })
+            ? window.formatAttendancePresenceLabel(m, {
+                suffix: getCalendarAttendanceSuffix(m),
+                includeSquadSize: false
+            })
             : '';
         const matchId = escapeAttendanceHtml(m.id);
         const opponent = m.opponent || 'Motstander ikke satt';
@@ -709,7 +730,7 @@ window.updateDailySchedule = function() {
                 </div>
                 <div class="calendar-daily-card-content calendar-match-card-content relative z-10">
                     <div class="calendar-daily-icon-slot calendar-match-icon-slot">
-                        ${opponentMarkHtml}
+                        <span class="calendar-match-mark">${opponentMarkHtml}</span>
                     </div>
                     <div class="calendar-daily-main calendar-match-main">
                         <div class="calendar-daily-title-block calendar-match-title-block">
@@ -734,7 +755,10 @@ window.updateDailySchedule = function() {
             ? { icon: 'fa-person-running', label: 'Trening', tone: 'is-training', box: 'bg-blue-50 border-blue-100 text-blue-600', badge: 'bg-blue-50 text-blue-700 border-blue-100', text: 'text-blue-700' }
             : { icon: 'fa-calendar-check', label: 'Annet', tone: 'is-other', box: 'bg-slate-50 border-slate-100 text-slate-500', badge: 'bg-slate-100 text-slate-600 border-slate-200', text: 'text-slate-600' };
         const attendanceMeta = typeof window.formatAttendancePresenceLabel === 'function'
-            ? window.formatAttendancePresenceLabel(e)
+            ? window.formatAttendancePresenceLabel(e, {
+                suffix: getCalendarAttendanceSuffix(e),
+                includeSquadSize: false
+            })
             : '';
         const displayTitle = e.title && String(e.title).trim() ? e.title : theme.label;
         const eventId = escapeAttendanceHtml(e.id);
@@ -756,7 +780,7 @@ window.updateDailySchedule = function() {
                     <div class="calendar-daily-main calendar-event-main">
                         <div class="calendar-daily-title-block calendar-event-title-block">
                             <div class="calendar-daily-title-line calendar-event-title-line">
-                                <h4 class="calendar-detail-title calendar-daily-title truncate">${escapeCalendarHtml(displayTitle)}</h4>
+                                <h4 class="calendar-detail-title calendar-daily-title">${escapeCalendarHtml(displayTitle)}</h4>
                                 <span class="calendar-detail-time-dot" aria-hidden="true"></span>
                                 <span class="calendar-daily-time calendar-event-time">${escapeCalendarHtml(e.time || 'TBA')}</span>
                             </div>
