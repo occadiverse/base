@@ -7405,10 +7405,21 @@
         .match-list-mobile-card .match-fixture-month-count,
         .match-list-column .match-fixture-year-count,
         .match-list-mobile-card .match-fixture-year-count {
-            /* Arver .match-list-count-badge — samme chip som Kamper-total */
-            display: inline-flex;
             align-items: center;
+            background: rgba(255, 224, 138, 0.14);
+            border: 1px solid rgba(255, 224, 138, 0.35);
+            border-radius: 999px;
+            color: #ffe08a;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.62rem;
+            font-weight: 900;
             justify-content: center;
+            letter-spacing: 0;
+            min-width: 1.35rem;
+            padding: 0.14rem 0.4rem;
+            text-shadow: none;
+            text-transform: none;
         }
         .match-list-column .match-fixture-month::after,
         .match-list-mobile-card .match-fixture-month::after {

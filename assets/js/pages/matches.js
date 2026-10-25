@@ -524,7 +524,7 @@ function buildMatchFixtureGroupsHtml(matches, options = {}) {
         <section class="match-fixture-group">
             <header class="match-fixture-month">
                 <span class="match-fixture-month-label">${escapeMatchHtml(group.monthLabel)}</span>
-                <span class="match-list-count-badge match-fixture-month-count" aria-label="${escapeMatchHtml(countLabel)}">${count}</span>
+                <span class="match-fixture-month-count" aria-label="${escapeMatchHtml(countLabel)}">${count}</span>
             </header>
             <div class="match-fixture-group-rows">
                 ${group.matches.map(match => buildMatchFixtureRowHtml(match, { isUpcoming })).join('')}
@@ -554,7 +554,7 @@ function buildPastYearArchiveHtml(yearGroup) {
                 data-hide-label="${hideLabel}"
             >
                 <span class="match-fixture-year-label">${year}</span>
-                <span class="match-list-count-badge match-fixture-year-count">${count}</span>
+                <span class="match-fixture-year-count">${count}</span>
                 <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
             </button>
             <div class="match-fixture-year-content">
