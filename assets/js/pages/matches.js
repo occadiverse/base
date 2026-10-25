@@ -517,14 +517,21 @@ function togglePastMatchYearGroup(actionEl) {
 
 function buildMatchFixtureGroupsHtml(matches, options = {}) {
     const { isUpcoming = true, includeYearInMonthLabel = true } = options;
-    return groupMatchesByMonth(matches, { includeYear: includeYearInMonthLabel }).map(group => `
+    return groupMatchesByMonth(matches, { includeYear: includeYearInMonthLabel }).map(group => {
+        const count = group.matches.length;
+        const countLabel = count === 1 ? '1 kamp' : `${count} kamper`;
+        return `
         <section class="match-fixture-group">
-            <header class="match-fixture-month">${escapeMatchHtml(group.monthLabel)}</header>
+            <header class="match-fixture-month">
+                <span class="match-fixture-month-label">${escapeMatchHtml(group.monthLabel)}</span>
+                <span class="match-fixture-month-count" aria-label="${escapeMatchHtml(countLabel)}">${count}</span>
+            </header>
             <div class="match-fixture-group-rows">
                 ${group.matches.map(match => buildMatchFixtureRowHtml(match, { isUpcoming })).join('')}
             </div>
         </section>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function buildPastYearArchiveHtml(yearGroup) {
@@ -866,7 +873,6 @@ function buildMatchFixtureRowHtml(match, options = {}) {
         ? (match.time || '--:--')
         : data.displayedResult;
     const sideLabel = isUpcoming ? 'Avspark' : '';
-
     return `
         <article class="match-fixture-row dashboard-click-card ${data.resultTone}" ${clickAttrs}>
             <div class="match-fixture-date" aria-hidden="true">
