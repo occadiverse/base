@@ -2566,6 +2566,15 @@ function checkMatchGamePlanDraftDirty(match) {
     return positionIds.some(posId => (savedRefs[posId] || '') !== (draftRefs[posId] || ''));
 }
 
+function syncMatchLineupPanelTeaser(match) {
+    if (!match) return;
+    const panel = document.querySelector('#kampdetaljer-info [data-match-panel="oppstilling"]');
+    const teaser = panel?.querySelector('.match-game-card-teaser');
+    if (teaser) {
+        teaser.textContent = getMatchLineupPanelTeaserText(match);
+    }
+}
+
 function syncMatchGamePlanLineupSaveState(match) {
     const builder = document.querySelector('.match-detail-lineup-builder');
     if (!builder || !match) return;
@@ -2595,6 +2604,8 @@ function syncMatchGamePlanLineupSaveState(match) {
             ? 'Ingen spillere å fjerne'
             : 'Fjern alle spillere fra banen';
     }
+
+    syncMatchLineupPanelTeaser(match);
 
     if (isDirty) {
         setMatchDetailFeedback('[data-lineup-save-state]', '', '');
@@ -10295,6 +10306,7 @@ window.completeMatchGamePlanLineup = async function(matchId) {
     renderMatchGamePlanDefCPage(match);
     renderMatchGamePlanRolesPage(match);
     renderMatchGamePlanBenchPage(match);
+    syncMatchLineupPanelTeaser(match);
     restorePortalMainScroll(savedScrollTop);
 
     const successMessage = selectedCount === 11
