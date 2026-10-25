@@ -1086,8 +1086,8 @@
         .hjem-page .dashboard-next-session-card .match-detail-footer-item {
             font-size: 0.85rem;
         }
-        .hjem-page .dashboard-next-session-card .match-detail-time {
-            font-size: clamp(1.45rem, 3.2vw, 1.95rem);
+        .hjem-page .dashboard-next-session-card .dashboard-session-hero-time {
+            font-size: clamp(1.85rem, 4vw, 2.35rem);
         }
         .hjem-page .dashboard-next-match-card::before {
             background: linear-gradient(
@@ -1232,34 +1232,42 @@
             .hjem-page .dashboard-next-session-card .match-detail-card-top {
                 padding: 0.55rem 0.85rem;
             }
-            .hjem-page .dashboard-next-session-card .match-detail-chip {
+            .hjem-page .dashboard-next-session-card .match-detail-type-chip {
                 font-size: 0.58rem;
                 height: 1.55rem;
                 min-height: 1.55rem;
                 padding: 0 0.5rem;
             }
+            .hjem-page .dashboard-next-session-card .dashboard-alert-chip.bsk-btn-danger {
+                height: 1.55rem;
+                max-height: 1.55rem;
+                max-width: 1.55rem;
+                min-height: 1.55rem;
+                min-width: 1.55rem;
+                width: 1.55rem;
+            }
             .hjem-page .dashboard-next-session-card .dashboard-session-main {
                 padding: 0.95rem 0.85rem 0.85rem !important;
             }
             .hjem-page .dashboard-next-session-card .dashboard-session-middle {
-                gap: 0.55rem !important;
+                column-gap: 0.4rem !important;
                 min-height: 0 !important;
             }
-            .hjem-page .dashboard-next-session-card .dashboard-session-stats-line {
-                gap: 0.28rem !important;
+            .hjem-page .dashboard-next-session-card .dashboard-session-hero-time {
+                font-size: clamp(1.7rem, 7vw, 2.2rem);
             }
-            .hjem-page .dashboard-next-session-card .match-detail-time {
-                font-size: clamp(1.35rem, 6vw, 1.75rem) !important;
+            .hjem-page .dashboard-next-session-card .dashboard-session-hero-label {
+                font-size: 0.58rem;
+            }
+            .hjem-page .dashboard-next-session-card .dashboard-session-attendance-count {
+                font-size: clamp(1.05rem, 4.5vw, 1.35rem);
             }
             .hjem-page .dashboard-next-session-card .dashboard-session-attendance-label,
             .hjem-page .dashboard-next-session-card .dashboard-session-unregistered-label {
-                font-size: 0.58rem;
+                font-size: 0.56rem;
             }
             .hjem-page .dashboard-next-session-card .dashboard-session-radar-inline {
-                font-size: 0.72rem !important;
-            }
-            .hjem-page .dashboard-next-session-card .dashboard-session-actions {
-                flex-basis: 7.5rem !important;
+                font-size: 0.64rem !important;
             }
             .hjem-page .dashboard-next-session-card .match-detail-footer {
                 gap: 0.65rem;
@@ -1338,16 +1346,8 @@
                 /* Match .match-detail-team stack on small screens (crest 3.4rem + gap + name) */
                 min-height: calc(3.4rem + 0.9rem + clamp(1.15rem, 3vw, 1.9rem)) !important;
             }
-            .dashboard-session-stats-line {
-                gap: 0.38rem !important;
-                margin-bottom: 0 !important;
-            }
             .dashboard-session-radar-inline {
-                font-size: 0.78rem !important;
-                white-space: normal !important;
-            }
-            .dashboard-session-actions {
-                flex-basis: 8.75rem !important;
+                font-size: 0.72rem !important;
             }
             .dashboard-hero-card {
                 padding: 1rem !important;
@@ -1585,8 +1585,12 @@
         .match-detail-card .dashboard-alert-chip.bsk-btn-danger i {
             color: inherit;
         }
-        /* Battle-kort: varsel = rund Clash-knapp (som edit), dyp rød + gullkant */
-        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .dashboard-alert-chip.bsk-btn-danger {
+        /* Battle + økt-kort: varsel/skade = rund Clash-knapp, dyp rød + gullkant */
+        :is(
+            .match-detail-page > .match-detail-card,
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
+            .hjem-page .dashboard-next-session-card
+        ) .dashboard-alert-chip.bsk-btn-danger {
             -webkit-appearance: none;
             appearance: none;
             background:
@@ -1611,16 +1615,32 @@
             transform: none;
             width: 1.7rem;
         }
-        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .dashboard-alert-chip.bsk-btn-danger span {
+        :is(
+            .match-detail-page > .match-detail-card,
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
+            .hjem-page .dashboard-next-session-card
+        ) .dashboard-alert-chip.bsk-btn-danger span {
             display: none;
         }
-        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .dashboard-alert-chip.bsk-btn-danger i {
+        :is(
+            .match-detail-page > .match-detail-card,
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
+            .hjem-page .dashboard-next-session-card
+        ) .dashboard-alert-chip.bsk-btn-danger i {
             color: #ffe08a;
             font-size: 0.72rem;
             line-height: 1;
         }
-        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .dashboard-alert-chip.bsk-btn-danger:hover:not(:disabled),
-        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .dashboard-alert-chip.bsk-btn-danger:focus-visible {
+        :is(
+            .match-detail-page > .match-detail-card,
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
+            .hjem-page .dashboard-next-session-card
+        ) .dashboard-alert-chip.bsk-btn-danger:hover:not(:disabled),
+        :is(
+            .match-detail-page > .match-detail-card,
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
+            .hjem-page .dashboard-next-session-card
+        ) .dashboard-alert-chip.bsk-btn-danger:focus-visible {
             background:
                 radial-gradient(circle at 30% 22%, rgba(255, 224, 138, 0.38), transparent 42%),
                 linear-gradient(180deg, #d46a58 0%, #b03830 48%, #7a201a 100%);
@@ -1633,8 +1653,16 @@
             outline: none;
             transform: none;
         }
-        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .dashboard-alert-chip.bsk-btn-danger:hover:not(:disabled) i,
-        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .dashboard-alert-chip.bsk-btn-danger:focus-visible i {
+        :is(
+            .match-detail-page > .match-detail-card,
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
+            .hjem-page .dashboard-next-session-card
+        ) .dashboard-alert-chip.bsk-btn-danger:hover:not(:disabled) i,
+        :is(
+            .match-detail-page > .match-detail-card,
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
+            .hjem-page .dashboard-next-session-card
+        ) .dashboard-alert-chip.bsk-btn-danger:focus-visible i {
             color: #fff6d6;
         }
         .match-detail-main {
@@ -3869,29 +3897,69 @@
             padding: 2.25rem 1.25rem 2rem;
         }
         .dashboard-session-middle {
-            align-items: stretch;
-            display: flex;
-            gap: 1rem;
-            justify-content: space-between;
+            align-items: center;
+            display: grid;
+            gap: 0.55rem;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
             /* Match .match-detail-team stack (crest + gap + .match-detail-team-name) */
             min-height: calc(4.25rem + 0.9rem + clamp(1.15rem, 3vw, 1.9rem));
+            width: 100%;
         }
-        .dashboard-session-focus-block {
+        .dashboard-session-side {
             align-items: center;
             display: flex;
-            flex: 1 1 auto;
             flex-direction: column;
+            gap: 0.2rem;
             justify-content: center;
             min-width: 0;
+        }
+        .dashboard-session-side.is-attendance {
             text-align: center;
         }
-        .dashboard-session-stats-line {
+        .dashboard-session-side.is-radar {
+            text-align: center;
+        }
+        .dashboard-session-side.is-empty {
+            visibility: hidden;
+        }
+        .dashboard-session-hero {
             align-items: center;
             display: flex;
+            flex: 0 0 auto;
             flex-direction: column;
-            gap: 0.45rem;
+            gap: 0.2rem;
             justify-content: center;
-            margin-bottom: 0;
+            text-align: center;
+        }
+        .dashboard-session-hero-time {
+            color: #fffdf5;
+            font-size: clamp(1.85rem, 5.5vw, 2.45rem);
+            font-weight: 950;
+            letter-spacing: 0.02em;
+            line-height: 1;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
+        }
+        .dashboard-session-hero-label {
+            color: rgba(255, 224, 138, 0.88);
+            font-size: 0.62rem;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.35);
+        }
+        .dashboard-session-attendance-count {
+            color: #fffdf5;
+            font-size: clamp(1.15rem, 3.2vw, 1.55rem);
+            font-weight: 950;
+            letter-spacing: 0.02em;
+            line-height: 1;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.35);
+        }
+        .dashboard-session-attendance-count.is-warning {
+            color: #fde68a;
+        }
+        .dashboard-session-attendance-count.is-critical {
+            color: #fecaca;
         }
         .match-detail-time.is-warning {
             color: #fde68a;
@@ -3912,10 +3980,11 @@
             text-transform: uppercase;
         }
         .dashboard-session-unregistered-label {
-            color: rgba(255, 255, 255, 0.72);
-            font-size: 0.78rem;
+            color: rgba(255, 248, 220, 0.72);
+            font-size: 0.58rem;
             font-weight: 800;
-            letter-spacing: 0.02em;
+            letter-spacing: 0.04em;
+            margin-top: 0.15rem;
         }
         .match-detail-squad-section .match-attendance-save-state {
             margin: 0.35rem 0 0.15rem;
@@ -3927,12 +3996,12 @@
             padding: 0 0.35rem;
         }
         .dashboard-session-radar-inline {
-            color: rgba(255, 255, 255, 0.88);
-            font-size: clamp(0.78rem, 1.65vw, 0.98rem);
+            color: rgba(255, 253, 245, 0.88);
+            font-size: clamp(0.68rem, 2.2vw, 0.88rem);
             font-weight: 900;
-            letter-spacing: 0.06em;
-            line-height: 1.2;
-            white-space: nowrap;
+            letter-spacing: 0.04em;
+            line-height: 1.25;
+            white-space: normal;
         }
         .dashboard-session-radar-sep {
             color: rgba(245, 197, 66, 0.55);
@@ -3940,10 +4009,12 @@
             margin: 0 0.15rem;
         }
         .dashboard-session-actions {
+            align-items: flex-end;
             display: flex;
-            flex: 0 0 8.75rem;
+            flex: 0 0 auto;
             flex-direction: column;
             gap: 0.5rem;
+            justify-content: center;
             margin: 0;
             min-width: 0;
         }
@@ -4101,7 +4172,11 @@
             opacity: 0.92;
             transform: none;
         }
-        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-type-chip {
+        :is(
+            .match-detail-page > .match-detail-card,
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
+            .hjem-page .dashboard-next-session-card
+        ) .match-detail-type-chip {
             align-items: center;
             background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
             border: 1.5px solid rgba(255, 224, 138, 0.42);
@@ -4124,7 +4199,11 @@
             text-transform: uppercase;
             width: auto;
         }
-        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero) .match-detail-type-chip i {
+        :is(
+            .match-detail-page > .match-detail-card,
+            .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
+            .hjem-page .dashboard-next-session-card
+        ) .match-detail-type-chip i {
             color: #ffe08a;
             font-size: 0.68rem;
             line-height: 1;
@@ -6938,6 +7017,65 @@
             body.is-kamper-list .portal-mobile-tools-item:hover,
             body.is-hjem-env .portal-mobile-tools-item:hover {
                 background: rgba(245, 197, 66, 0.16);
+            }
+            /* Bunmeny: alltid navy — innhold midtstilt i flaten over safe-area */
+            .portal-mobile-nav-shell {
+                align-items: center;
+                background:
+                    linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+                backdrop-filter: none;
+                border-color: rgba(255, 224, 138, 0.12);
+                border-top: 1px solid rgba(255, 224, 138, 0.16);
+                box-shadow:
+                    0 -1px 0 rgba(2, 6, 23, 0.3),
+                    0 -10px 22px rgba(2, 6, 23, 0.22);
+                color: rgba(255, 253, 245, 0.58);
+                padding: 0.4rem 0.28rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
+            }
+            .portal-mobile-nav-shell .mobile-nav-btn {
+                align-items: center;
+                color: rgba(255, 253, 245, 0.58);
+                font-size: 0.58rem;
+                font-weight: 850;
+                gap: 0.2rem;
+                height: 3.1rem;
+                justify-content: center;
+                letter-spacing: 0.01em;
+                line-height: 1.1;
+            }
+            .portal-mobile-nav-shell .mobile-nav-btn i {
+                font-size: 1.05rem;
+                line-height: 1;
+                margin-bottom: 0 !important;
+            }
+            .portal-mobile-nav-shell .mobile-nav-btn:hover {
+                color: #ffe08a;
+            }
+            /* Clash-gullplate bak aktiv tab — samme vertikale bånd som knappene */
+            .portal-mobile-nav-indicator {
+                background: linear-gradient(180deg, #ffe08a 0%, #f5c542 48%, #c4921a 100%);
+                border: 1.5px solid #fff6d6;
+                border-radius: 0.85rem;
+                bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px));
+                box-shadow:
+                    0 2px 0 #6b4a0c,
+                    inset 0 1px 0 rgba(255, 253, 245, 0.5);
+                height: 3.1rem;
+                left: 0.28rem;
+                top: auto;
+                width: calc((100% - 0.56rem) / var(--portal-mobile-nav-item-count));
+            }
+            /* Aktiv = mørk tekst på gullplata */
+            .mobile-nav-btn.active-nav {
+                background: transparent;
+                box-shadow: none;
+                color: #1a1204 !important;
+                text-shadow: 0 1px 0 rgba(255, 253, 245, 0.4);
+            }
+            .portal-mobile-nav-shell.portal-mobile-nav-swiping .mobile-nav-btn.active-nav,
+            .portal-mobile-nav-shell.portal-mobile-nav-settling .mobile-nav-btn.active-nav {
+                color: rgba(255, 253, 245, 0.58) !important;
+                text-shadow: none;
             }
             /* Liste-overskrift: sømløs inn i kortbakgrunn; gullinje beholdes under heading */
             body.is-kamper-list .match-list-mobile-chrome {
@@ -25156,6 +25294,20 @@
             box-shadow: inset 0 2px 0 #f5c542;
             border-radius: 0.9rem;
             color: #123f73 !important;
+        }
+        @media (max-width: 767px) {
+            /* Mobil bunmeny: aktiv sitter på Clash-gullplata */
+            .portal-mobile-nav-shell .mobile-nav-btn.active-nav {
+                background: transparent;
+                box-shadow: none;
+                color: #1a1204 !important;
+                text-shadow: 0 1px 0 rgba(255, 253, 245, 0.4);
+            }
+            .portal-mobile-nav-shell.portal-mobile-nav-swiping .mobile-nav-btn.active-nav,
+            .portal-mobile-nav-shell.portal-mobile-nav-settling .mobile-nav-btn.active-nav {
+                color: rgba(255, 253, 245, 0.58) !important;
+                text-shadow: none;
+            }
         }
         .player-node:not(.tactical-live-card) {
             height: 2.75rem;

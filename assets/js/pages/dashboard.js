@@ -290,10 +290,15 @@ window.updateHjemWidget = function() {
         const canOpenSession = isTraining || ne.type === 'Annet';
         const eventTypeLabel = isTraining ? 'Trening' : (ne.type || 'Aktivitet');
         const sessionStats = window.buildNextSessionAttendanceStats(ne);
+        /* Samme datostil som kamp-hero (uten ukedag). */
         const dateValue = new Date(ne.date);
         const dateFormatted = Number.isNaN(dateValue.getTime())
             ? 'Dato ikke satt'
-            : dateValue.toLocaleDateString('no-NO', { weekday: 'long', day: '2-digit', month: '2-digit', year: '2-digit' });
+            : dateValue.toLocaleDateString('no-NO', {
+                day: '2-digit',
+                month: '2-digit',
+                year: '2-digit'
+            });
         const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
         const timeLabel = ne.time || '--:--';
         const locationLabel = ne.location || 'Ikke oppgitt';
@@ -304,34 +309,45 @@ window.updateHjemWidget = function() {
         const radarParts = ['K', 'F', 'M', 'A'].map(letter => (
             `${sessionStats.positionCounts[letter]}${letter}`
         )).join('<span class="dashboard-session-radar-sep"> - </span>');
-        const sessionStatsHtml = hasSessionAttendance
+        const sessionArenaHtml = hasSessionAttendance
             ? `
-                            <div class="dashboard-session-stats-line">
-                                <span class="match-detail-time${fractionToneClass}">${sessionStats.møttOppAntall}<span class="dashboard-session-fraction-sep">/</span>${sessionStats.squadSize}</span>
-                                <span class="dashboard-session-attendance-label">påmeldt</span>
-                                <span class="dashboard-session-radar-inline">${radarParts}</span>
-                            </div>`
+                        <div class="dashboard-session-side is-attendance">
+                            <span class="dashboard-session-attendance-count${fractionToneClass}">${sessionStats.møttOppAntall}<span class="dashboard-session-fraction-sep">/</span>${sessionStats.squadSize}</span>
+                            <span class="dashboard-session-attendance-label">påmeldt</span>
+                        </div>
+                        <div class="dashboard-session-hero">
+                            <span class="dashboard-session-hero-time">${escapeDashboardHtml(timeLabel)}</span>
+                            <span class="dashboard-session-hero-label">${escapeDashboardHtml(eventTypeLabel)}</span>
+                        </div>
+                        <div class="dashboard-session-side is-radar">
+                            <span class="dashboard-session-radar-inline">${radarParts}</span>
+                        </div>`
             : `
-                            <div class="dashboard-session-stats-line">
-                                <span class="dashboard-session-unregistered-label">Oppmøte ikke registrert</span>
-                            </div>`;
+                        <div class="dashboard-session-side is-attendance is-empty" aria-hidden="true"></div>
+                        <div class="dashboard-session-hero">
+                            <span class="dashboard-session-hero-time">${escapeDashboardHtml(timeLabel)}</span>
+                            <span class="dashboard-session-hero-label">${escapeDashboardHtml(eventTypeLabel)}</span>
+                            <span class="dashboard-session-unregistered-label">Oppmøte ikke registrert</span>
+                        </div>
+                        <div class="dashboard-session-side is-radar is-empty" aria-hidden="true"></div>`;
 
         window._sessionInjuryPopupData = sessionStats.injuredReady;
 
-        let actionsHtml = '';
+        let injuryChipHtml = '';
         if (sessionStats.injuredReady.length > 0) {
             const injuredCount = sessionStats.injuredReady.length;
             const injuryLabel = injuredCount === 1
                 ? '1 skadet'
                 : `${injuredCount} skadet`;
-            actionsHtml = `
-                        <div class="dashboard-session-actions">
-                            <button type="button" data-dashboard-action="session-injury" class="bsk-btn bsk-btn-warning is-collapsible dashboard-session-action-btn" title="${escapeDashboardHtml(injuryLabel)}" aria-label="${escapeDashboardHtml(injuryLabel)}">
-                                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-                                <span class="bsk-btn-label">${escapeDashboardHtml(injuryLabel)}</span>
-                            </button>
-                        </div>
-            `;
+            injuryChipHtml = `
+                    <button type="button"
+                            data-dashboard-action="session-injury"
+                            class="bsk-btn bsk-btn-chip bsk-btn-danger dashboard-alert-chip"
+                            title="${escapeDashboardHtml(injuryLabel)}"
+                            aria-label="${escapeDashboardHtml(injuryLabel)}">
+                        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                        <span>${escapeDashboardHtml(injuryLabel)}</span>
+                    </button>`;
         } else {
             window._sessionInjuryPopupData = [];
         }
@@ -350,19 +366,19 @@ window.updateHjemWidget = function() {
                     <div class="match-detail-meta">
                         <i class="fa-regular fa-calendar-days"></i>
                         <span>${escapeDashboardHtml(dateLabel)}</span>
+                        ${injuryChipHtml}
                     </div>
-                    <div class="match-detail-chip">
-                        <i class="fa-solid ${isTraining ? 'fa-stopwatch' : 'fa-calendar-check'}"></i>
-                        <span>${escapeDashboardHtml(eventTypeLabel)}</span>
+                    <div class="match-detail-top-chips">
+                        <div class="match-detail-chip match-detail-type-chip" aria-label="${escapeDashboardHtml(eventTypeLabel)}">
+                            <i class="fa-solid ${isTraining ? 'fa-stopwatch' : 'fa-calendar-check'}" aria-hidden="true"></i>
+                            <span>${escapeDashboardHtml(eventTypeLabel)}</span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="dashboard-session-main relative z-10">
                     <div class="dashboard-session-middle">
-                        <div class="dashboard-session-focus-block min-w-0">
-                            ${sessionStatsHtml}
-                        </div>
-                        ${actionsHtml}
+                        ${sessionArenaHtml}
                     </div>
                 </div>
 
@@ -370,10 +386,6 @@ window.updateHjemWidget = function() {
                     <div class="match-detail-footer-item" title="${escapeDashboardHtml(locationLabel)}">
                         <i class="fa-solid fa-location-dot"></i>
                         <span>${escapeDashboardHtml(locationLabel)}</span>
-                    </div>
-                    <div class="match-detail-footer-item">
-                        <i class="fa-regular fa-clock"></i>
-                        <span>${escapeDashboardHtml(timeLabel)}</span>
                     </div>
                 </div>
             </article>

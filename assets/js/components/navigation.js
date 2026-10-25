@@ -1,7 +1,7 @@
 const NAV_ITEMS = [
     { id: 'hjem', label: 'Hjem', mobileLabel: 'Hjem', icon: 'fa-house' },
-    { id: 'kamper', label: 'Kamper', mobileLabel: 'Kamper', icon: 'fa-calendar-days' },
-    { id: 'oppmote', label: 'Kalender', mobileLabel: 'Kalender', icon: 'fa-calendar' },
+    { id: 'kamper', label: 'Kamper', mobileLabel: 'Kamper', icon: 'fa-futbol' },
+    { id: 'oppmote', label: 'Kalender', mobileLabel: 'Kalender', icon: 'fa-calendar-days' },
     { id: 'tropp', label: 'Spillertropp', mobileLabel: 'Tropp', icon: 'fa-users' },
     { id: 'statistikk', label: 'Statistikk', mobileLabel: 'Stats', icon: 'fa-chart-simple' },
     { id: 'taktikk', label: 'Live', mobileLabel: 'Live', icon: 'fa-broadcast-tower' }
@@ -106,11 +106,11 @@ function renderActionBar() {
 
 function renderMobileNav() {
     return `
-        <nav class="portal-mobile-nav-shell md:hidden fixed bottom-0 left-0 right-0 border-t flex justify-around items-start z-40 shadow-[0_-4px_24px_rgba(15,23,42,0.08)]">
+        <nav class="portal-mobile-nav-shell md:hidden fixed bottom-0 left-0 right-0 border-t flex justify-around items-center z-40 shadow-[0_-4px_24px_rgba(15,23,42,0.08)]">
             <span class="portal-mobile-nav-indicator" aria-hidden="true"></span>
             ${MOBILE_NAV_ITEMS.map((item, index) => `
-                <button onclick="switchTab('${item.id}')" class="mobile-nav-btn flex flex-col items-center justify-start flex-1 text-[11px] font-bold transition ${index === 0 ? 'active-nav' : ''}">
-                    <i class="fa-solid ${item.icon} text-xl mb-1.5"></i>
+                <button onclick="switchTab('${item.id}')" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 text-[11px] font-bold transition ${index === 0 ? 'active-nav' : ''}">
+                    <i class="fa-solid ${item.icon} text-xl" aria-hidden="true"></i>
                     <span>${item.mobileLabel}</span>
                 </button>
             `).join('')}
