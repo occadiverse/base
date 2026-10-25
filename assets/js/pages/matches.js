@@ -1454,13 +1454,11 @@ function getMatchSummaryPanelTeaserText(match) {
     return 'Se scorere og trekk';
 }
 
-function getMatchKamptroppPanelTeaserText(match) {
+function getMatchKamptroppStatusCounts(match) {
     const players = typeof getMatchDetailAttendingPlayers === 'function'
         ? getMatchDetailAttendingPlayers(match)
         : [];
-    if (!players.length) return 'Ingen spillere registrert';
-
-    const counts = { K: 0, F: 0, M: 0, A: 0 };
+    const counts = { K: 0, F: 0, M: 0, A: 0, total: players.length };
     players.forEach((player) => {
         const category = typeof getMatchDetailSquadPlayerCategory === 'function'
             ? getMatchDetailSquadPlayerCategory(match, player)
@@ -1471,7 +1469,26 @@ function getMatchKamptroppPanelTeaserText(match) {
             counts.M += 1;
         }
     });
-    return `${players.length} · K${counts.K} · F${counts.F} · M${counts.M} · A${counts.A}`;
+    return counts;
+}
+
+function getMatchKamptroppPanelTeaserText(match) {
+    const counts = getMatchKamptroppStatusCounts(match);
+    if (!counts.total) return 'Ingen spillere registrert';
+    return `${counts.total} · K${counts.K} · F${counts.F} · M${counts.M} · A${counts.A}`;
+}
+
+/** Open-panel total chip in topline (collapsed uses teaser instead). */
+function buildMatchKamptroppStatusTotalHtml(match) {
+    const counts = getMatchKamptroppStatusCounts(match);
+    const totalLabel = counts.total === 1 ? '1 spiller' : `${counts.total} spillere`;
+    return `
+        <span
+            class="match-kamptropp-status-total"
+            data-kamptropp-status-total
+            aria-label="${escapeMatchHtml(totalLabel)}"
+        >${counts.total}</span>
+    `;
 }
 
 function getMatchLineupPanelTeaserText(match) {
@@ -6129,9 +6146,13 @@ function compareMatchSquadLinePlayers(match, lineKey, left, right) {
 }
 
 function buildMatchDetailSquadGroupHtml(match, row) {
+    const count = Array.isArray(row.players) ? row.players.length : 0;
     return `
-        <section class="match-bench-group match-bench-group-${row.key}" aria-label="${escapeMatchHtml(row.label)}">
-            <div class="match-bench-group-title stats-kamp-summary-metric-heading">${escapeMatchHtml(row.label)}</div>
+        <section class="match-bench-group match-bench-group-${row.key}" aria-label="${escapeMatchHtml(row.label)} ${count}">
+            <div class="match-bench-group-title stats-kamp-summary-metric-heading">
+                <span class="match-bench-group-title-label">${escapeMatchHtml(row.label)}</span>
+                <span class="match-bench-group-title-count">${count}</span>
+            </div>
             <div class="match-bench-row">
                 ${row.players.map(player => buildMatchBenchPlayerHtml(match, player)).join('')}
             </div>
@@ -6195,6 +6216,17 @@ function renderMatchDetailSquadList(match) {
     const list = document.querySelector('.match-detail-squad-list');
     if (!list || !match) return;
     list.innerHTML = buildMatchDetailSquadListHtml(match);
+
+    const panel = document.querySelector('#kampdetaljer-info [data-match-panel="kamptropp"]');
+    const statusTotal = panel?.querySelector('[data-kamptropp-status-total]');
+    if (statusTotal) {
+        statusTotal.outerHTML = buildMatchKamptroppStatusTotalHtml(match);
+    }
+    const teaser = panel?.querySelector('.match-game-card-teaser');
+    if (teaser) {
+        teaser.textContent = getMatchKamptroppPanelTeaserText(match);
+    }
+
     applyMatchGamePlanSamspillZoneFocus(match);
 }
 
@@ -9771,6 +9803,7 @@ window.showMatchDetails = function(id) {
                             ${buildMatchGameCardTeaserHtml(getMatchKamptroppPanelTeaserText(match))}
                         </div>
                     </div>
+                    ${buildMatchKamptroppStatusTotalHtml(match)}
                 </div>
                 <div class="match-collapsible-content">
                     <p class="match-inline-status match-attendance-save-state" data-attendance-save-state aria-live="polite" hidden></p>
