@@ -2437,6 +2437,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 vb = Math.round(vb * 10) / 10;
             }
             if (va !== vb) return descending ? vb - va : va - vb;
+            // Lik trenings-%: flest oppmøter først (ved synkende sortering)
+            if (column === 'oppmotePct') {
+                const aa = Number(a?.oppmoteAttended) || 0;
+                const ab = Number(b?.oppmoteAttended) || 0;
+                if (aa !== ab) return descending ? ab - aa : aa - ab;
+            }
             const ka = Number(a?.kamper) || 0;
             const kb = Number(b?.kamper) || 0;
             if (ka !== kb) {
@@ -2479,11 +2485,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 relevantStats = relevantStats.filter(stat => window.playerQualifiesForStatsSort(stat, column));
             }
             const useActiveSort = column === currentStatSortCol;
+            const descending = !(useActiveSort && !currentStatSortDesc);
 
             relevantStats.sort((a, b) => (
-                useActiveSort && !currentStatSortDesc
-                    ? a[column] - b[column]
-                    : b[column] - a[column]
+                typeof window.comparePlayerStatsSort === 'function'
+                    ? window.comparePlayerStatsSort(a, b, column, { descending })
+                    : (descending ? b[column] - a[column] : a[column] - b[column])
             ));
 
             const index = relevantStats.findIndex(stat => stat.navn === playerName);
@@ -2499,9 +2506,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 return true;
             });
             relevantStats.sort((a, b) => (
-                currentStatSortDesc
-                    ? b[sortCol] - a[sortCol]
-                    : a[sortCol] - b[sortCol]
+                typeof window.comparePlayerStatsSort === 'function'
+                    ? window.comparePlayerStatsSort(a, b, sortCol, { descending: currentStatSortDesc !== false })
+                    : (currentStatSortDesc
+                        ? b[sortCol] - a[sortCol]
+                        : a[sortCol] - b[sortCol])
             ));
             return relevantStats[0] || null;
         };

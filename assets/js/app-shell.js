@@ -41,7 +41,7 @@ function syncPortalThemeColor(useNavy) {
 function syncKamperEnvClass(tabId = window.currentTab) {
     const mobile = window.innerWidth < 768;
     const narrow = window.innerWidth < 1024;
-    const inDetailEnv = Boolean(tabId === 'kampdetaljer' && mobile);
+    const inDetailEnv = Boolean((tabId === 'kampdetaljer' || tabId === 'oktside') && mobile);
     const inListEnv = Boolean(tabId === 'kamper' && narrow);
     const inKalenderEnv = Boolean(tabId === 'oppmote' && narrow);
     const inHjemEnv = Boolean(tabId === 'hjem' && mobile);
@@ -78,7 +78,13 @@ function setMobileNavSettling(isSettling) {
 
 function setMobileNavTab(tabId) {
     const tabIndex = getMobileTabIndex(tabId);
-    if (tabIndex === -1) return;
+    const mobileNav = document.querySelector('.portal-mobile-nav-shell');
+    if (tabIndex === -1) {
+        if (mobileNav) mobileNav.classList.add('is-nav-idle');
+        setMobileNavSettling(false);
+        return;
+    }
+    if (mobileNav) mobileNav.classList.remove('is-nav-idle');
     setMobileNavProgress(tabIndex, false);
     setMobileNavSettling(false);
 }
@@ -243,8 +249,10 @@ window.goBackToPreviousPortalPage = function(options = {}) {
 
     const stack = window.portalBackStack || [];
     const previous = stack.pop();
-    /* Hero LUKK: keep Hjem/statistikk/etc when stacked; missing/invalid → Kamper lista */
-    const fallbackTab = currentTab === 'kampdetaljer' ? 'kamper' : '';
+    /* Hero LUKK: keep Hjem/statistikk/etc when stacked; missing/invalid → parent list */
+    const fallbackTab = currentTab === 'kampdetaljer'
+        ? 'kamper'
+        : (currentTab === 'oktside' ? 'hjem' : '');
     const target = previous && previous !== currentTab ? previous : fallbackTab;
     if (!target) return false;
 

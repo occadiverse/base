@@ -1575,7 +1575,8 @@
         :is(
             .match-detail-page > .match-detail-card,
             .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
-            .hjem-page .dashboard-next-session-card
+            .hjem-page .dashboard-next-session-card,
+            .training-session-page .dashboard-next-session-card
         ) .dashboard-alert-chip.bsk-btn-danger {
             -webkit-appearance: none;
             appearance: none;
@@ -1604,14 +1605,16 @@
         :is(
             .match-detail-page > .match-detail-card,
             .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
-            .hjem-page .dashboard-next-session-card
+            .hjem-page .dashboard-next-session-card,
+            .training-session-page .dashboard-next-session-card
         ) .dashboard-alert-chip.bsk-btn-danger span {
             display: none;
         }
         :is(
             .match-detail-page > .match-detail-card,
             .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
-            .hjem-page .dashboard-next-session-card
+            .hjem-page .dashboard-next-session-card,
+            .training-session-page .dashboard-next-session-card
         ) .dashboard-alert-chip.bsk-btn-danger i {
             color: #ffe08a;
             font-size: 0.72rem;
@@ -1620,12 +1623,14 @@
         :is(
             .match-detail-page > .match-detail-card,
             .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
-            .hjem-page .dashboard-next-session-card
+            .hjem-page .dashboard-next-session-card,
+            .training-session-page .dashboard-next-session-card
         ) .dashboard-alert-chip.bsk-btn-danger:hover:not(:disabled),
         :is(
             .match-detail-page > .match-detail-card,
             .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
-            .hjem-page .dashboard-next-session-card
+            .hjem-page .dashboard-next-session-card,
+            .training-session-page .dashboard-next-session-card
         ) .dashboard-alert-chip.bsk-btn-danger:focus-visible {
             background:
                 radial-gradient(circle at 30% 22%, rgba(255, 224, 138, 0.38), transparent 42%),
@@ -1642,12 +1647,14 @@
         :is(
             .match-detail-page > .match-detail-card,
             .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
-            .hjem-page .dashboard-next-session-card
+            .hjem-page .dashboard-next-session-card,
+            .training-session-page .dashboard-next-session-card
         ) .dashboard-alert-chip.bsk-btn-danger:hover:not(:disabled) i,
         :is(
             .match-detail-page > .match-detail-card,
             .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
-            .hjem-page .dashboard-next-session-card
+            .hjem-page .dashboard-next-session-card,
+            .training-session-page .dashboard-next-session-card
         ) .dashboard-alert-chip.bsk-btn-danger:focus-visible i {
             color: #fff6d6;
         }
@@ -4185,7 +4192,8 @@
         :is(
             .match-detail-page > .match-detail-card,
             .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
-            .hjem-page .dashboard-next-session-card
+            .hjem-page .dashboard-next-session-card,
+            .training-session-page .dashboard-next-session-card
         ) .match-detail-type-chip {
             align-items: center;
             background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
@@ -4212,7 +4220,8 @@
         :is(
             .match-detail-page > .match-detail-card,
             .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero,
-            .hjem-page .dashboard-next-session-card
+            .hjem-page .dashboard-next-session-card,
+            .training-session-page .dashboard-next-session-card
         ) .match-detail-type-chip i {
             color: #ffe08a;
             font-size: 0.68rem;
@@ -4726,10 +4735,24 @@
                 overflow-x: hidden !important;
                 overflow-y: auto !important;
             }
-            body.is-kamper-env #view-kampdetaljer {
+            body.is-kamper-env #view-kampdetaljer,
+            body.is-kamper-env #view-oktside {
                 padding-bottom: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 0.75rem);
             }
-            body.is-kamper-env .match-detail-page {
+            body.is-kamper-env #view-oktside {
+                margin: 0;
+                max-width: none;
+                width: 100%;
+            }
+            body.is-kamper-env #view-oktside > .rounded-2xl,
+            body.is-kamper-env #oktside-content {
+                margin: 0;
+                max-width: none;
+                padding: 0;
+                width: 100%;
+            }
+            body.is-kamper-env .match-detail-page,
+            body.is-kamper-env .training-session-page {
                 display: flex;
                 flex-direction: column;
                 gap: 0.75rem;
@@ -4877,8 +4900,8 @@
                 padding-left: var(--focus-pad-x);
                 padding-right: var(--focus-pad-x);
             }
-            /* Sticky page LUKK — navy/gull som Clash-kortene */
-            body.is-kamper-env .match-detail-page > .match-hero-mobile-close-bar {
+            /* Sticky page LUKK — navy/gull som Clash-kortene (kamp + økt) */
+            body.is-kamper-env :is(.match-detail-page, .training-session-page) > .match-hero-mobile-close-bar {
                 --focus-close-bar-height: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
                 align-items: center;
                 background:
@@ -4901,7 +4924,7 @@
                 width: 100%;
                 z-index: 40;
             }
-            body.is-kamper-env .match-detail-page > .match-hero-mobile-close-bar::before {
+            body.is-kamper-env :is(.match-detail-page, .training-session-page) > .match-hero-mobile-close-bar::before {
                 background: linear-gradient(
                     90deg,
                     transparent 0%,
@@ -4920,7 +4943,7 @@
                 right: 0;
                 top: 0;
             }
-            body.is-kamper-env .match-detail-page > .match-hero-mobile-close-bar .match-hero-mobile-close-btn.blknapp {
+            body.is-kamper-env :is(.match-detail-page, .training-session-page) > .match-hero-mobile-close-bar .match-hero-mobile-close-btn.blknapp {
                 background: linear-gradient(180deg, #ffe08a 0%, #f5c542 48%, #c4921a 100%);
                 border-color: #fff6d6;
                 box-shadow: 0 3px 0 #6b4a0c;
@@ -4936,15 +4959,15 @@
                 text-shadow: 0 1px 0 rgba(255, 253, 245, 0.45);
                 width: auto;
             }
-            body.is-kamper-env .match-detail-page > .match-hero-mobile-close-bar .match-hero-mobile-close-btn.blknapp:hover {
+            body.is-kamper-env :is(.match-detail-page, .training-session-page) > .match-hero-mobile-close-bar .match-hero-mobile-close-btn.blknapp:hover {
                 background: linear-gradient(180deg, #fff0b0 0%, #f7d05a 48%, #d4a017 100%);
                 box-shadow: 0 3px 0 #7a5610;
             }
-            body.is-kamper-env .match-detail-page > .match-hero-mobile-close-bar .match-hero-mobile-close-btn.blknapp:active {
+            body.is-kamper-env :is(.match-detail-page, .training-session-page) > .match-hero-mobile-close-bar .match-hero-mobile-close-btn.blknapp:active {
                 box-shadow: 0 1px 0 #4a3408;
                 transform: translateY(2px);
             }
-            body.is-kamper-env .match-detail-page > .match-hero-mobile-close-bar .match-panel-close-bar-balance {
+            body.is-kamper-env :is(.match-detail-page, .training-session-page) > .match-hero-mobile-close-bar .match-panel-close-bar-balance {
                 flex: 0 0 auto;
                 height: clamp(2.25rem, 6.2vw, 2.55rem);
                 width: clamp(2.25rem, 6.2vw, 2.55rem);
@@ -7093,6 +7116,11 @@
                 left: 0.28rem;
                 top: auto;
                 width: calc((100% - 0.56rem) / var(--portal-mobile-nav-item-count));
+            }
+            /* Nested sider (øktside m.m.): ingen aktiv tab — skjul gullplata */
+            .portal-mobile-nav-shell.is-nav-idle .portal-mobile-nav-indicator {
+                opacity: 0;
+                pointer-events: none;
             }
             /* Aktiv = mørk tekst på gullplata */
             .mobile-nav-btn.active-nav {

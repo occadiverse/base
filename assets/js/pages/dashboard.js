@@ -312,7 +312,7 @@ window.updateHjemWidget = function() {
         const sessionArenaHtml = hasSessionAttendance
             ? `
                         <div class="dashboard-session-side is-attendance">
-                            <span class="dashboard-session-attendance-count${fractionToneClass}">${sessionStats.møttOppAntall}<span class="dashboard-session-fraction-sep">/</span>${sessionStats.squadSize}</span>
+                            <span class="dashboard-session-attendance-count${fractionToneClass}">${sessionStats.møttOppAntall}</span>
                             <span class="dashboard-session-attendance-label">påmeldt</span>
                         </div>
                         <div class="dashboard-session-hero">
