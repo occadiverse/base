@@ -6583,9 +6583,7 @@
             background: linear-gradient(180deg, rgba(40, 95, 150, 0.9) 0%, rgba(12, 36, 68, 0.98) 100%);
             border: 1.5px solid rgba(255, 224, 138, 0.78);
             border-radius: 0.7rem;
-            box-shadow:
-                0 2px 0 rgba(2, 6, 23, 0.5),
-                0 0 10px rgba(245, 197, 66, 0.18);
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.5);
             color: #fffdf5;
             display: inline-flex;
             flex-shrink: 0;
@@ -6610,9 +6608,7 @@
         .hjem-page .match-list-add-btn.bsk-btn-chip:hover {
             background: linear-gradient(180deg, rgba(52, 110, 168, 0.95) 0%, rgba(16, 44, 80, 1) 100%);
             border-color: rgba(255, 224, 138, 0.9);
-            box-shadow:
-                0 2px 0 rgba(2, 6, 23, 0.55),
-                0 0 12px rgba(245, 197, 66, 0.26);
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.55);
             color: #fffdf5;
             transform: none;
         }
@@ -6857,8 +6853,8 @@
                 right: -1.25rem;
             }
             .match-list-mobile-chrome {
-                /* Samme toppfarge som portal-header — sømløs */
-                background: #123f73;
+                /* Transparent så kort-gradienten går uavbrutt (ingen lys skjøt under toolbar) */
+                background: transparent;
                 border-bottom: 0;
                 flex: 0 0 auto;
                 position: relative;
@@ -6924,12 +6920,19 @@
             }
             body.is-kamper-list .match-list-mobile-main {
                 -webkit-overflow-scrolling: touch;
+                background: transparent;
+                border: 0;
+                box-shadow: none;
                 flex: 1 1 auto;
+                /* Overlapp chrome 1px — dreper hairline/skjøt øverst i scrollport */
+                margin-top: -1px;
                 min-height: 0;
+                outline: none;
                 overflow-x: hidden;
                 overflow-y: auto;
                 overscroll-behavior: contain;
                 padding-bottom: calc(1.35rem + env(safe-area-inset-bottom, 0px));
+                padding-top: calc(0.45rem + 1px);
                 scrollbar-gutter: auto;
                 scrollbar-width: none;
             }
@@ -6954,9 +6957,9 @@
                 overflow: hidden;
             }
             #view-kamper.portal-view-mobile-peek .match-list-mobile-chrome {
-                background: #123f73;
+                background: transparent;
                 border-bottom: 0 !important;
-                box-shadow: 0 1px 0 #123f73;
+                box-shadow: none;
                 flex: 0 0 auto;
             }
             #view-kamper.portal-view-mobile-peek .match-list-mobile-top {
@@ -7114,10 +7117,9 @@
             }
             /* Liste-overskrift: sømløs inn i kortbakgrunn; gullinje beholdes under heading */
             body.is-kamper-list .match-list-mobile-chrome {
-                background: #123f73;
+                background: transparent;
                 border-bottom: 0 !important;
-                /* samme seal som header — ingen mørk strek under knapperaden */
-                box-shadow: 0 1px 0 #123f73;
+                box-shadow: none;
             }
             body.is-kamper-list .match-list-mobile-top {
                 background: transparent;
@@ -7262,8 +7264,8 @@
             background: transparent;
             border-bottom: 0;
             display: grid;
-            gap: 0.4rem 0.5rem;
-            grid-template-columns: minmax(0, 1fr) auto auto;
+            gap: 0.4rem 0.55rem;
+            grid-template-columns: minmax(0, 1fr) auto;
             justify-content: stretch;
             margin: 0 auto;
             max-width: 100%;
@@ -7294,13 +7296,6 @@
         }
         .match-list-mobile-toolbar .match-filter-btn i {
             font-size: 0.7rem;
-        }
-        .match-list-toolbar-sep {
-            align-self: center;
-            background: rgba(255, 224, 138, 0.35);
-            flex: 0 0 auto;
-            height: 1.25rem;
-            width: 1px;
         }
         .match-list-mobile-toolbar .match-list-add-btn {
             align-self: center;
@@ -7417,11 +7412,7 @@
         }
         .match-list-column .match-fixture-month::after,
         .match-list-mobile-card .match-fixture-month::after {
-            background: linear-gradient(90deg, rgba(245, 197, 66, 0.45), rgba(255, 255, 255, 0.06));
-            display: block;
-            flex: 1 1 auto;
-            height: 1px;
-            min-width: 1.5rem;
+            display: none;
         }
         .match-fixture-group-rows {
             display: flex;
