@@ -7346,16 +7346,6 @@
             text-align: center;
             text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
         }
-        .match-list-mobile-card .match-detail-chip {
-            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
-            border: 1.5px solid rgba(255, 224, 138, 0.42);
-            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
-            color: #fffdf5;
-            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
-        }
-        .match-list-mobile-card .match-detail-chip i {
-            color: #ffe08a;
-        }
         .match-list-column-main {
             flex: 1 1 auto;
             padding: 1rem 1rem 1.65rem;
