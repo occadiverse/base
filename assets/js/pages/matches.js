@@ -1342,22 +1342,6 @@ function syncMatchDetailCardResult(match) {
     if (subEl) subEl.textContent = data.centerLabel;
 }
 
-function buildMatchPanelMobileCloseBarHtml(label = 'Lukk') {
-    return `
-        <div class="match-panel-mobile-close-bar">
-            <span class="match-panel-close-bar-balance" aria-hidden="true"></span>
-            <button
-                type="button"
-                class="blknapp match-panel-mobile-close-btn"
-                onclick="window.closeMatchPanelMobileFocus()"
-                aria-label="${escapeMatchHtml(label)}"
-                hidden
-            >LUKK</button>
-            <span class="match-panel-close-bar-balance" aria-hidden="true"></span>
-        </div>
-    `;
-}
-
 /** Mobile kampdetaljer hero: LUKK back to Kamper list (or previous portal page). */
 function buildMatchHeroMobileCloseBarHtml(label = 'Lukk') {
     return `
@@ -9691,14 +9675,11 @@ window.buildMatchSummaryPanelHtml = function(match, isOpen = false) {
                     ${summaryBody}
                 </div>
             </div>
-            ${buildMatchPanelMobileCloseBarHtml('Lukk oppsummering')}
         </section>
     `;
 };
 
 window.showMatchDetails = function(id) {
-    clearSpillerborsMobileFocus();
-    clearKamptroppMobileFocus();
     const stayOnDetails = window.currentTab === 'kampdetaljer';
     const savedScrollTop = stayOnDetails ? (getPortalMainScrollHost()?.scrollTop || 0) : null;
 
@@ -9798,17 +9779,6 @@ window.showMatchDetails = function(id) {
                         </div>
                     </div>
                 </div>
-                <div class="match-squad-mobile-close-bar">
-                    <span class="match-squad-close-bar-balance" aria-hidden="true"></span>
-                    <button
-                        type="button"
-                        class="blknapp match-squad-mobile-close-btn"
-                        onclick="window.closeKamptroppMobileFocus()"
-                        aria-label="Lukk kamptropp"
-                        hidden
-                    >LUKK</button>
-                    <span class="match-squad-close-bar-balance" aria-hidden="true"></span>
-                </div>
             </section>
             <section class="match-bench-panel match-collapsible-panel is-game-card is-game-card-work ${isLineupPanelOpen ? '' : 'is-collapsed'}" data-match-panel="oppstilling">
                 <div
@@ -9838,7 +9808,6 @@ window.showMatchDetails = function(id) {
                         ${buildMatchGamePlanStarter11Html(match, 'match-detail-lineup-pitch-wrap')}
                     </div>
                 </div>
-                ${buildMatchPanelMobileCloseBarHtml('Lukk lagoppstilling')}
             </section>
         </div>
     `;
@@ -9900,7 +9869,6 @@ window.showMatchDetails = function(id) {
                     ${gamePlanHtml}
                 </div>
             </div>
-            ${buildMatchPanelMobileCloseBarHtml('Lukk kampplan')}
         </section>
 
         <section class="match-stats-panel match-collapsible-panel is-game-card is-game-card-work ${isStatsOpen ? '' : 'is-collapsed'}" data-match-panel="spillerbors">
@@ -9969,14 +9937,6 @@ window.showMatchDetails = function(id) {
                 </div>
             </div>
             <div class="match-stats-mobile-close-bar">
-                <span class="match-stats-close-bar-balance" aria-hidden="true"></span>
-                <button
-                    type="button"
-                    class="blknapp match-stats-mobile-close-btn"
-                    onclick="window.closeSpillerborsMobileFocus()"
-                    aria-label="Lukk spillerbørs"
-                    hidden
-                >LUKK</button>
                 <button
                     type="button"
                     onclick="savePlayerMatchStats()"
@@ -10019,7 +9979,6 @@ window.showMatchDetails = function(id) {
                     <p class="match-inline-status match-coach-notes-save-state" data-notes-save-state aria-live="polite" hidden></p>
                 </div>
             </div>
-            ${buildMatchPanelMobileCloseBarHtml('Lukk trenernotater')}
         </section>
 
         <section class="match-subs-panel match-collapsible-panel is-game-card is-game-card-secondary ${isSubsPanelOpen ? '' : 'is-collapsed'}" data-match-panel="bytter">
@@ -10047,7 +10006,6 @@ window.showMatchDetails = function(id) {
                     ${buildMatchSubsPanelBodyHtml(match)}
                 </div>
             </div>
-            ${buildMatchPanelMobileCloseBarHtml('Lukk banetid')}
         </section>
 
         <section class="match-opponent-info-panel match-collapsible-panel is-game-card is-game-card-secondary ${isOpponentInfoOpen ? '' : 'is-collapsed'}" data-match-panel="motstanderinfo">
@@ -10076,7 +10034,6 @@ window.showMatchDetails = function(id) {
                     ${buildMatchOpponentInfoBodyHtml(match)}
                 </div>
             </div>
-            ${buildMatchPanelMobileCloseBarHtml('Lukk motstanderinfo')}
         </section>
         </div>
         ${buildMatchHeroMobileCloseBarHtml('Lukk kampdetaljer')}
@@ -13233,122 +13190,25 @@ window.onMatchPanelToplineClick = function(event) {
     window.toggleMatchPanel(panel);
 };
 
-function isMatchPanelMobileFocusViewport() {
+/** Mobile viewport check for accordion scroll-into-view. */
+function isMatchDetailsMobileViewport() {
     return typeof window.matchMedia === 'function'
         && window.matchMedia('(max-width: 767px)').matches;
 }
-const isSpillerborsMobileFocusViewport = isMatchPanelMobileFocusViewport;
 
-function getMatchPanelMobileCloseButtons(panel) {
-    if (!panel) return [];
-    return [
-        ...panel.querySelectorAll(
-            '.match-stats-mobile-close-btn, .match-squad-mobile-close-btn, .match-panel-mobile-close-btn'
-        )
-    ];
-}
+/** Pin Kamptropp to viewport top — same scrollIntoView path as the other accordion cards. */
+function scrollMatchDetailsPanelToViewportTop(panel) {
+    if (!panel || !isMatchDetailsMobileViewport()) return;
+    if (typeof panel.scrollIntoView !== 'function') return;
 
-function clearAllMatchPanelMobileFocus() {
-    document.body.classList.remove('is-match-panel-focus', 'is-spillerbors-focus', 'is-kamptropp-focus');
-    document.querySelectorAll('#kampdetaljer-info .match-collapsible-panel.is-mobile-focus').forEach(panel => {
-        panel.classList.remove('is-mobile-focus');
-        getMatchPanelMobileCloseButtons(panel).forEach(btn => {
-            btn.hidden = true;
+    // Double rAF: wait for accordion expand / sibling collapse to settle layout.
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            if (!panel.isConnected || panel.classList.contains('is-collapsed')) return;
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     });
 }
-window.clearAllMatchPanelMobileFocus = clearAllMatchPanelMobileFocus;
-
-function clearSpillerborsMobileFocus() {
-    clearAllMatchPanelMobileFocus();
-}
-window.clearSpillerborsMobileFocus = clearSpillerborsMobileFocus;
-
-function clearKamptroppMobileFocus() {
-    clearAllMatchPanelMobileFocus();
-}
-window.clearKamptroppMobileFocus = clearKamptroppMobileFocus;
-
-window.enterMatchPanelMobileFocus = function(panel) {
-    if (!panel || !isMatchPanelMobileFocusViewport()) return;
-    const panelId = getMatchDetailsPanelId(panel);
-    clearAllMatchPanelMobileFocus();
-
-    if (panel.classList.contains('is-collapsed')) {
-        setMatchDetailsPanelCollapsed(panel, false);
-        window.activeMatchDetailsOpenPanel = panelId;
-        if (isMatchDetailsPairPanelId(panelId)) {
-            window.matchDetailPairPanelState = window.matchDetailPairPanelState || { kamptropp: false, oppstilling: false };
-            window.matchDetailPairPanelState[panelId] = true;
-        }
-    }
-
-    document.body.classList.add('is-match-panel-focus');
-    if (panelId === 'spillerbors') document.body.classList.add('is-spillerbors-focus');
-    if (panelId === 'kamptropp') document.body.classList.add('is-kamptropp-focus');
-    panel.classList.add('is-mobile-focus');
-    getMatchPanelMobileCloseButtons(panel).forEach(btn => {
-        btn.hidden = false;
-    });
-    if (typeof window.syncMatchDetailHeroNavActive === 'function') {
-        window.syncMatchDetailHeroNavActive(panelId);
-    }
-};
-
-window.enterSpillerborsMobileFocus = function(panel) {
-    const statsPanel = panel?.classList?.contains('match-stats-panel')
-        ? panel
-        : document.querySelector('#kampdetaljer-info .match-stats-panel');
-    window.enterMatchPanelMobileFocus(statsPanel);
-};
-
-window.enterKamptroppMobileFocus = function(panel) {
-    const squadPanel = panel?.dataset?.matchPanel === 'kamptropp'
-        ? panel
-        : document.querySelector('#kampdetaljer-info [data-match-panel="kamptropp"]');
-    window.enterMatchPanelMobileFocus(squadPanel);
-};
-
-window.closeMatchPanelMobileFocus = function() {
-    const focused = document.querySelector('#kampdetaljer-info .match-collapsible-panel.is-mobile-focus');
-    const panelId = focused ? getMatchDetailsPanelId(focused) : '';
-    clearAllMatchPanelMobileFocus();
-    if (!focused || focused.classList.contains('is-collapsed')) {
-        if (typeof window.syncMatchDetailHeroNavActive === 'function') {
-            window.syncMatchDetailHeroNavActive('');
-        }
-        return;
-    }
-
-    setMatchDetailsPanelCollapsed(focused, true);
-    if (isMatchDetailsPairPanelId(panelId)) {
-        window.matchDetailPairPanelState = window.matchDetailPairPanelState || { kamptropp: false, oppstilling: false };
-        window.matchDetailPairPanelState[panelId] = false;
-        const siblingId = panelId === 'kamptropp' ? 'oppstilling' : 'kamptropp';
-        window.activeMatchDetailsOpenPanel = window.matchDetailPairPanelState[siblingId] === true
-            ? siblingId
-            : '';
-    } else {
-        window.activeMatchDetailsOpenPanel = syncMatchDetailPairPanelsAfterExclusiveClose();
-    }
-
-    if (typeof window.syncMatchDetailHeroNavActive === 'function') {
-        window.syncMatchDetailHeroNavActive(window.activeMatchDetailsOpenPanel || '');
-    }
-
-    const hero = document.querySelector('#kampdetaljer-info .match-detail-card');
-    if (hero && typeof hero.scrollIntoView === 'function') {
-        hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-};
-
-window.closeSpillerborsMobileFocus = function() {
-    window.closeMatchPanelMobileFocus();
-};
-
-window.closeKamptroppMobileFocus = function() {
-    window.closeMatchPanelMobileFocus();
-};
 
 window.toggleMatchPanel = function(btnOrPanel) {
     const panel = btnOrPanel?.classList?.contains('match-collapsible-panel')
@@ -13362,12 +13222,6 @@ window.toggleMatchPanel = function(btnOrPanel) {
     window.matchDetailPairPanelState = window.matchDetailPairPanelState || { kamptropp: false, oppstilling: false };
 
     if (shouldOpen) {
-        clearAllMatchPanelMobileFocus();
-    } else if (panel.classList.contains('is-mobile-focus')) {
-        clearAllMatchPanelMobileFocus();
-    }
-
-    if (shouldOpen) {
         document.querySelectorAll('#kampdetaljer-info .match-collapsible-panel').forEach(otherPanel => {
             if (otherPanel === panel) return;
             const otherId = getMatchDetailsPanelId(otherPanel);
@@ -13378,11 +13232,13 @@ window.toggleMatchPanel = function(btnOrPanel) {
         setMatchDetailsPanelCollapsed(panel, false);
         window.activeMatchDetailsOpenPanel = panelId;
         if (isPairPanel) window.matchDetailPairPanelState[panelId] = true;
-        /* Mobile = same in-page accordion as desktop (Clash focus only via explicit helpers). */
+        /* Mobile = same in-page accordion as desktop. */
         if (typeof window.syncMatchDetailHeroNavActive === 'function') {
             window.syncMatchDetailHeroNavActive(panelId);
         }
-        if (isMatchPanelMobileFocusViewport() && typeof panel.scrollIntoView === 'function') {
+        if (panelId === 'kamptropp') {
+            scrollMatchDetailsPanelToViewportTop(panel);
+        } else if (isMatchDetailsMobileViewport() && typeof panel.scrollIntoView === 'function') {
             requestAnimationFrame(() => {
                 panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
@@ -13494,7 +13350,9 @@ window.openMatchDetailsPanelFromSummary = function(cardId, matchId) {
         window.toggleMatchPanel(panel);
     } else {
         window.syncMatchDetailHeroNavActive(id);
-        if (typeof panel.scrollIntoView === 'function') {
+        if (id === 'kamptropp') {
+            scrollMatchDetailsPanelToViewportTop(panel);
+        } else if (typeof panel.scrollIntoView === 'function') {
             requestAnimationFrame(() => {
                 panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });

@@ -51,9 +51,6 @@ function syncKamperEnvClass(tabId = window.currentTab) {
     document.body.classList.toggle('is-hjem-env', inHjemEnv);
     document.documentElement.classList.toggle('is-hjem-env', inHjemEnv);
     syncPortalThemeColor(inDetailEnv || inListEnv || inHjemEnv);
-    if (!inDetailEnv) {
-        document.body.classList.remove('is-match-panel-focus', 'is-spillerbors-focus', 'is-kamptropp-focus');
-    }
 }
 window.syncKamperEnvClass = syncKamperEnvClass;
 
@@ -124,18 +121,6 @@ function switchTab(tabId, options = {}) {
     currentTab = tabId;
     window.currentTab = tabId;
     if (typeof window.closeMobileToolsMenu === 'function') window.closeMobileToolsMenu();
-    if (previousTab === 'kampdetaljer' && tabId !== 'kampdetaljer') {
-        if (typeof window.clearAllMatchPanelMobileFocus === 'function') {
-            window.clearAllMatchPanelMobileFocus();
-        } else {
-            if (typeof window.clearSpillerborsMobileFocus === 'function') {
-                window.clearSpillerborsMobileFocus();
-            }
-            if (typeof window.clearKamptroppMobileFocus === 'function') {
-                window.clearKamptroppMobileFocus();
-            }
-        }
-    }
     syncKamperEnvClass(tabId);
 
     ['hjem', 'kamper', 'oppmote', 'tropp', 'statistikk', 'admin', 'taktikk', 'kampdetaljer', 'spillerprofil', 'oktside'].forEach(id => {
@@ -253,14 +238,6 @@ window.goBackToPreviousPortalPage = function(options = {}) {
         }
     }
 
-    /* Lista ← Hero ← Panel */
-    if (currentTab === 'kampdetaljer' && document.body.classList.contains('is-match-panel-focus')) {
-        if (typeof window.closeMatchPanelMobileFocus === 'function') {
-            window.closeMatchPanelMobileFocus();
-            return true;
-        }
-    }
-
     const stack = window.portalBackStack || [];
     const previous = stack.pop();
     /* Hero LUKK: keep Hjem/statistikk/etc when stacked; missing/invalid → Kamper lista */
@@ -315,9 +292,6 @@ function setupMobileSwipeNavigation() {
 
     const shouldIgnoreSwipe = (target) => {
         if (!target || !target.closest) return false;
-        if (document.body.classList.contains('is-kamper-env') && document.body.classList.contains('is-match-panel-focus')) {
-            return true;
-        }
         return Boolean(target.closest(
             'input, textarea, select, table, .overflow-x-auto, .stats-sort-scroller, .stats-player-sort-dock, .portal-segmented, .portal-mobile-nav-shell, .portal-mobile-tools, .modal-base, [role="dialog"], [data-no-swipe]'
         ));
