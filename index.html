@@ -17,7 +17,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20261025-month-gold">
+    <link rel="stylesheet" href="assets/css/base.css?v=20261025-kalender-watermark">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -104,13 +104,15 @@
 
                 <section class="match-detail-card match-list-mobile-card">
                     <div class="dashboard-next-match-watermark match-list-column-watermark match-list-mobile-watermark">
-                        <i class="fa-solid fa-calendar-days"></i>
+                        <i class="fa-solid fa-futbol"></i>
                     </div>
 
                     <div class="match-list-mobile-chrome relative z-10">
                         <div class="match-detail-card-top match-list-mobile-top">
                             <div class="match-bench-heading match-list-mobile-heading">
-                                <span class="match-game-card-icon match-list-mark" aria-hidden="true"></span>
+                                <span class="match-game-card-icon match-list-mark" aria-hidden="true">
+                                    <i class="fa-solid fa-futbol"></i>
+                                </span>
                                 <div class="match-bench-heading-copy">
                                     <h3>Kamper</h3>
                                 </div>
@@ -167,65 +169,80 @@
                         <i class="fa-solid fa-calendar-days"></i>
                     </div>
 
-                    <div class="calendar-heading-panel match-detail-card-top calendar-board-top relative z-10">
-                        <div class="calendar-year-block min-w-0">
-                            <div class="calendar-year-menu" data-calendar-year-menu>
-                                <button
-                                    type="button"
-                                    id="calendar-year"
-                                    class="calendar-heading-year calendar-year-trigger"
-                                    data-calendar-year-toggle
-                                    aria-haspopup="listbox"
-                                    aria-expanded="false"
-                                    aria-label="Velg år, valgt 2026"
-                                    title="Velg år"
-                                >
-                                    <span data-calendar-year-label>2026</span>
-                                    <i class="fa-solid fa-chevron-down calendar-year-trigger-chevron" aria-hidden="true"></i>
-                                </button>
-                                <div class="calendar-year-dropdown" role="listbox" aria-label="År" hidden data-calendar-year-panel></div>
+                    <div class="calendar-mobile-chrome relative z-10">
+                        <div class="match-detail-card-top calendar-section-top">
+                            <div class="match-bench-heading calendar-section-heading">
+                                <span class="match-game-card-icon calendar-section-mark" aria-hidden="true">
+                                    <i class="fa-solid fa-calendar-days"></i>
+                                </span>
+                                <div class="match-bench-heading-copy">
+                                    <h3>Kalender</h3>
+                                </div>
                             </div>
-                            <button type="button" onclick="window.goToToday()" class="bsk-btn bsk-btn-chip calendar-today-mini-btn">I dag</button>
                         </div>
 
-                        <div class="calendar-month-nav" aria-label="Velg måned">
-                            <button type="button" onclick="window.navigateCalendar(-1)" class="bsk-btn bsk-btn-icon bsk-btn-secondary team-report-detail-scroll-btn calendar-month-chevron" title="Forrige måned">
-                                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-                            </button>
-                            <h2 id="calendar-month-year" class="calendar-heading-title">Mai</h2>
-                            <button type="button" onclick="window.navigateCalendar(1)" class="bsk-btn bsk-btn-icon bsk-btn-secondary team-report-detail-scroll-btn calendar-month-chevron" title="Neste måned">
-                                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                            </button>
-                        </div>
+                        <div class="calendar-heading-panel calendar-board-top">
+                            <div class="calendar-year-block min-w-0">
+                                <div class="calendar-year-menu" data-calendar-year-menu>
+                                    <button
+                                        type="button"
+                                        id="calendar-year"
+                                        class="calendar-heading-year calendar-year-trigger"
+                                        data-calendar-year-toggle
+                                        aria-haspopup="listbox"
+                                        aria-expanded="false"
+                                        aria-label="Velg år, valgt 2026"
+                                        title="Velg år"
+                                    >
+                                        <span data-calendar-year-label>2026</span>
+                                        <i class="fa-solid fa-chevron-down calendar-year-trigger-chevron" aria-hidden="true"></i>
+                                    </button>
+                                    <div class="calendar-year-dropdown" role="listbox" aria-label="År" hidden data-calendar-year-panel></div>
+                                </div>
+                                <button type="button" onclick="window.goToToday()" class="bsk-btn bsk-btn-chip calendar-today-mini-btn">I dag</button>
+                            </div>
 
-                        <div class="flex justify-end">
-                            <button type="button" onclick="window.openActivityModal('Trening')" class="bsk-btn bsk-btn-primary is-collapsible inline-flex" title="Ny aktivitet" aria-label="Ny aktivitet">
-                                <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
-                                <span class="bsk-btn-label">Ny aktivitet</span>
-                            </button>
-                        </div>
+                            <div class="calendar-month-nav" aria-label="Velg måned">
+                                <button type="button" onclick="window.navigateCalendar(-1)" class="bsk-btn bsk-btn-icon bsk-btn-secondary team-report-detail-scroll-btn calendar-month-chevron" title="Forrige måned">
+                                    <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                                </button>
+                                <h2 id="calendar-month-year" class="calendar-heading-title">Mai</h2>
+                                <button type="button" onclick="window.navigateCalendar(1)" class="bsk-btn bsk-btn-icon bsk-btn-secondary team-report-detail-scroll-btn calendar-month-chevron" title="Neste måned">
+                                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                                </button>
+                            </div>
 
-                        <div class="calendar-legend col-span-3 flex flex-wrap gap-3 text-[10px] font-bold uppercase justify-center">
-                            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>Kamp</span></div>
-                            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span><span>Trening</span></div>
-                            <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-400"></span><span>Annet</span></div>
+                            <div class="calendar-heading-actions">
+                                <button type="button" onclick="window.openActivityModal('Trening')" class="bsk-btn bsk-btn-chip match-list-add-btn calendar-add-btn" title="Ny aktivitet" aria-label="Ny aktivitet">
+                                    <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+                                    <span>Ny</span>
+                                </button>
+                            </div>
+
+                            <div class="calendar-legend" aria-label="Forklaring">
+                                <span class="calendar-legend-item"><span class="calendar-day-event-dot is-match" aria-hidden="true"></span>Kamp</span>
+                                <span class="calendar-legend-item"><span class="calendar-day-event-dot is-training" aria-hidden="true"></span>Trening</span>
+                                <span class="calendar-legend-item"><span class="calendar-day-event-dot is-other" aria-hidden="true"></span>Annet</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="calendar-body calendar-board-body relative z-10">
-                        <div class="calendar-weekday-row grid grid-cols-7 gap-1.5 text-center text-[10px] font-black uppercase tracking-wider">
-                            <div>Man</div><div>Tir</div><div>Ons</div><div>Tor</div><div>Fre</div><div>Lør</div><div>Søn</div>
+                    <div class="calendar-mobile-main relative z-10">
+                        <div class="calendar-body calendar-board-body">
+                            <div class="calendar-weekday-row" aria-hidden="true">
+                                <span>Man</span><span>Tir</span><span>Ons</span><span>Tor</span><span>Fre</span><span>Lør</span><span>Søn</span>
+                            </div>
+
+                            <div id="calendar-days-grid" class="calendar-scroll-grid">
+                            </div>
                         </div>
 
-                        <div id="calendar-days-grid" class="calendar-scroll-grid grid grid-cols-7 gap-1.5">
-                        </div>
+                        <footer class="match-detail-footer calendar-bottomline">
+                            <h3 id="selected-calendar-date">Velg en dato</h3>
+                            <div id="daily-events-list" class="calendar-daily-list">
+                            </div>
+                        </footer>
                     </div>
-
-                    <footer class="match-detail-footer calendar-bottomline relative z-10">
-                        <h3 id="selected-calendar-date" class="sr-only">Velg en dato</h3>
-                        <div id="daily-events-list" class="calendar-daily-list">
-                        </div>
-                    </footer>
                 </section>
             </div>
 
@@ -1536,7 +1553,7 @@
 
     <script src="assets/js/state.js?v=20260908-local-hydrate-v1"></script>
     <script src="assets/js/components/modals.js?v=20261024-alert-quiet"></script>
-    <script src="assets/js/app-shell.js?v=20261025-focus-cleanup-2"></script>
+    <script src="assets/js/app-shell.js?v=20261025-calendar-shell"></script>
     <script src="assets/js/domain/player-refs.js?v=20261023-kamptropp-empty-v1"></script>
     <script src="assets/js/domain/scoring.js?v=20261019-sub-minutes-onoff-v1"></script>
     <script src="assets/js/domain/samspill.js?v=20261020-samspill-perf-v2"></script>
@@ -1544,7 +1561,7 @@
     <script src="assets/js/domain/club-logos.js?v=20261024-crest-eager"></script>
     <script src="assets/js/pages/players.js?v=20261022-utregistrert-v1"></script>
     <script src="assets/js/pages/matches.js?v=20261025-month-gold"></script>
-    <script src="assets/js/pages/attendance.js?v=20261022-utregistrert-v1"></script>
+    <script src="assets/js/pages/attendance.js?v=20261025-calendar-polish"></script>
     <script src="assets/js/pages/statistics.js?v=20261023-treningsdata-fix"></script>
     <script src="assets/js/pages/tactics.js?v=20261022-utregistrert-v1"></script>
     <script src="assets/js/pages/dashboard.js?v=20261025-session-arena"></script>

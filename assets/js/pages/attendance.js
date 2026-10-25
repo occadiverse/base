@@ -589,18 +589,23 @@ window.renderCalendar = function() {
             const events = (window.activeEvents || []).filter(e => e.date === dateStr);
             const items = [
                 ...matches.map(m => ({
-                    color: 'bg-emerald-500',
+                    type: 'match',
                     label: m.opponent || 'Kamp'
                 })),
                 ...events.map(e => ({
-                    color: e.type === 'Trening' ? 'bg-blue-500' : 'bg-slate-400',
+                    type: e.type === 'Trening' ? 'training' : 'other',
                     label: e.title || e.type || 'Aktivitet'
                 }))
             ];
 
             const cell = document.createElement('button');
             cell.type = 'button';
-            cell.className = `calendar-day-cell group border rounded-2xl p-1.5 md:p-2 min-h-[64px] md:min-h-[82px] flex flex-col cursor-pointer transition active:scale-95 bg-white hover:bg-sky-50/70 text-slate-800 shadow-sm ${isSelected ? 'is-selected border-bsk-blue/30' : 'border-slate-200'} ${isToday && !isSelected ? 'is-today' : ''} ${isOutsideActiveMonth ? 'is-outside-month' : ''}`;
+            cell.className = [
+                'calendar-day-cell',
+                isSelected ? 'is-selected' : '',
+                isToday ? 'is-today' : '',
+                isOutsideActiveMonth ? 'is-outside-month' : ''
+            ].filter(Boolean).join(' ');
             cell.dataset.calendarDate = dateStr;
             if (dayOffset === 0) cell.dataset.calendarWeekStart = formatCalendarDate(weekStart);
             cell.setAttribute('aria-label', dayDate.toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
@@ -608,21 +613,21 @@ window.renderCalendar = function() {
             cell.onclick = () => window.selectCalendarDate(dateStr);
 
             const visibleItems = items.slice(0, 2).map(item => `
-                <span class="calendar-day-event flex items-center gap-1 min-w-0 font-black ${isSelected ? 'text-white' : 'text-slate-600'}">
-                    <span class="calendar-day-event-dot rounded-full ${item.color} shrink-0"></span>
-                    <span class="calendar-day-event-label truncate">${escapeCalendarHtml(item.label)}</span>
+                <span class="calendar-day-event">
+                    <span class="calendar-day-event-dot is-${item.type}" aria-hidden="true"></span>
+                    <span class="calendar-day-event-label">${escapeCalendarHtml(item.label)}</span>
                 </span>
             `).join('');
 
             const moreHtml = items.length > 2
-                ? `<span class="calendar-day-more text-[9px] font-black ${isSelected ? 'text-bsk-blue' : 'text-slate-400'}">+${items.length - 2}</span>`
+                ? `<span class="calendar-day-more">+${items.length - 2}</span>`
                 : '';
 
             cell.innerHTML = `
                 <div class="calendar-day-layout">
-                    <span class="calendar-day-number text-xs md:text-sm font-black ${isSelected ? 'text-bsk-blue' : 'text-slate-700'}">${day}</span>
+                    <span class="calendar-day-number">${day}</span>
                     <div class="calendar-day-events">
-                        ${visibleItems || `<span class="calendar-day-empty-space"></span>`}
+                        ${visibleItems || `<span class="calendar-day-empty-space" aria-hidden="true"></span>`}
                         ${moreHtml}
                     </div>
                 </div>
@@ -663,15 +668,11 @@ window.updateDailySchedule = function() {
 
     if (dayMatches.length === 0 && dayEvents.length === 0) {
         listContainer.innerHTML = `
-            <div class="calendar-empty-state rounded-2xl py-8 px-4 text-center">
-                <div class="calendar-empty-icon">
+            <div class="calendar-empty-state">
+                <div class="calendar-empty-icon" aria-hidden="true">
                     <i class="fa-regular fa-calendar"></i>
                 </div>
                 <p class="calendar-empty-title">Ingen aktiviteter</p>
-                <button type="button" data-attendance-action="add-activity" data-activity-type="Trening" class="bsk-btn bsk-btn-primary is-collapsible" title="Legg til" aria-label="Legg til">
-                    <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
-                    <span class="bsk-btn-label">Legg til</span>
-                </button>
             </div>`;
         return;
     }

@@ -1410,20 +1410,6 @@
         .calendar-day-cell {
             position: relative;
         }
-        .calendar-day-cell.is-selected {
-            border-color: rgba(18, 63, 115, 0.28) !important;
-            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-        }
-        .calendar-day-cell.is-selected::after {
-            background: #f5c542;
-            border-radius: 999px;
-            bottom: 0.35rem;
-            content: "";
-            height: 2px;
-            left: 0.75rem;
-            position: absolute;
-            right: 0.75rem;
-        }
         .match-detail-card {
             background: linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
             border: 1px solid rgba(245, 197, 66, 0.18);
@@ -6578,7 +6564,8 @@
         .match-list-page .match-list-add-btn.bsk-btn-chip,
         .match-list-page .match-list-add-btn.match-filter-btn,
         .hjem-page .match-list-add-btn,
-        .hjem-page .match-list-add-btn.bsk-btn-chip {
+        .hjem-page .match-list-add-btn.bsk-btn-chip,
+        .calendar-page .calendar-add-btn.match-list-add-btn {
             align-items: center;
             background: linear-gradient(180deg, rgba(40, 95, 150, 0.9) 0%, rgba(12, 36, 68, 0.98) 100%);
             border: 1.5px solid rgba(255, 224, 138, 0.78);
@@ -6596,7 +6583,8 @@
             white-space: nowrap;
         }
         .match-list-page .match-list-add-btn i,
-        .hjem-page .match-list-add-btn i {
+        .hjem-page .match-list-add-btn i,
+        .calendar-page .calendar-add-btn i {
             color: #ffe08a;
             font-size: 0.82rem;
             text-shadow: inherit;
@@ -6605,7 +6593,8 @@
         .match-list-page .match-list-add-btn.bsk-btn-chip:hover,
         .match-list-page .match-list-add-btn.match-filter-btn:hover,
         .hjem-page .match-list-add-btn:hover,
-        .hjem-page .match-list-add-btn.bsk-btn-chip:hover {
+        .hjem-page .match-list-add-btn.bsk-btn-chip:hover,
+        .calendar-page .calendar-add-btn:hover {
             background: linear-gradient(180deg, rgba(52, 110, 168, 0.95) 0%, rgba(16, 44, 80, 1) 100%);
             border-color: rgba(255, 224, 138, 0.9);
             box-shadow: 0 2px 0 rgba(2, 6, 23, 0.55);
@@ -6615,12 +6604,14 @@
         .match-list-page .match-list-add-btn:active,
         .match-list-page .match-list-add-btn.bsk-btn-chip:active,
         .hjem-page .match-list-add-btn:active,
-        .hjem-page .match-list-add-btn.bsk-btn-chip:active {
+        .hjem-page .match-list-add-btn.bsk-btn-chip:active,
+        .calendar-page .calendar-add-btn:active {
             box-shadow: 0 1px 0 rgba(2, 6, 23, 0.55);
             transform: translateY(1px);
         }
         .match-list-page .match-list-add-btn:focus-visible,
-        .hjem-page .match-list-add-btn:focus-visible {
+        .hjem-page .match-list-add-btn:focus-visible,
+        .calendar-page .calendar-add-btn:focus-visible {
             box-shadow:
                 0 0 0 3px rgba(94, 176, 255, 0.4),
                 0 2px 0 rgba(2, 6, 23, 0.5);
@@ -6965,8 +6956,8 @@
             #view-kamper.portal-view-mobile-peek .match-list-mobile-top {
                 background: transparent;
                 border-bottom: 0;
-                padding-bottom: 0.45rem;
-                padding-top: 0.55rem;
+                padding-bottom: 0.55rem;
+                padding-top: 0.2rem;
             }
             #view-kamper.portal-view-mobile-peek .match-list-mobile-toolbar {
                 background: transparent;
@@ -7124,16 +7115,248 @@
             body.is-kamper-list .match-list-mobile-top {
                 background: transparent;
                 border-bottom: 0;
-                padding-bottom: 0.45rem;
-                padding-top: 0.55rem;
+                padding-bottom: 0.55rem;
+                padding-top: 0.2rem;
             }
             body.is-kamper-list .match-list-mobile-toolbar {
                 background: transparent;
                 border-bottom: 0 !important;
                 box-shadow: none;
             }
+
+            /* —— Kalender: samme navy-skall som Kamper-liste —— */
+            body.is-kalender-env .portal-main-shell {
+                box-sizing: border-box;
+                height: 100dvh;
+                margin-bottom: 0 !important;
+                max-height: 100dvh;
+                overflow: hidden !important;
+                padding-bottom: calc(var(--portal-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+                scrollbar-gutter: auto;
+                scrollbar-width: none;
+            }
+            body.is-kalender-env .portal-main-shell::-webkit-scrollbar {
+                display: none;
+                height: 0;
+                width: 0;
+            }
+            body.is-kalender-env #main-view.portal-main-view {
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                height: auto;
+                max-height: none;
+                min-height: 0;
+                overflow: hidden;
+                padding: 0;
+                padding-bottom: 0;
+                /* Flat top gjennom chrome (header+overskrift+måned), deretter navy */
+                background: linear-gradient(180deg, #123f73 0%, #123f73 38%, #0b2b4c 100%);
+            }
+            body.is-kalender-env #view-oppmote {
+                background: transparent;
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                max-width: none;
+                min-height: 0;
+                overflow: hidden;
+                width: 100%;
+            }
+            body.is-kalender-env .calendar-page {
+                max-width: none;
+            }
+            body.is-kalender-env .calendar-shell-panel {
+                background: transparent;
+                border: 0;
+                border-radius: 0;
+                box-shadow: none;
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                margin: 0;
+                min-height: 0;
+                overflow: hidden;
+                width: 100%;
+            }
+            body.is-kalender-env .calendar-mobile-chrome {
+                background: transparent;
+                border-bottom: 0;
+                box-shadow: none;
+                flex: 0 0 auto;
+                position: relative;
+                z-index: 25;
+            }
+            /* Ingen frostet kort-stripe / radial-highlight i heading-sonen */
+            body.is-kalender-env .calendar-section-top,
+            body.is-kalender-env .match-detail-card-top.calendar-section-top {
+                background: transparent !important;
+                border: 0 !important;
+                border-bottom: 0 !important;
+                box-shadow: none;
+            }
+            body.is-kalender-env .calendar-shell-panel::before {
+                content: none;
+            }
+            /* Samme bakgrunnsmerke oppe til høyre som Kamper-lista */
+            body.is-kalender-env .calendar-board-watermark {
+                display: block;
+                opacity: 0.08;
+                pointer-events: none;
+                right: -1.25rem;
+                top: -2.4rem;
+                z-index: 0;
+            }
+            body.is-kalender-env .calendar-section-top::after {
+                box-shadow: 0 0 6px rgba(245, 197, 66, 0.22);
+            }
+            body.is-kalender-env .calendar-mobile-main {
+                -webkit-overflow-scrolling: touch;
+                background: transparent;
+                border: 0;
+                box-shadow: none;
+                flex: 1 1 auto;
+                margin-top: -1px;
+                min-height: 0;
+                outline: none;
+                overflow-x: hidden;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                padding-bottom: calc(1.1rem + env(safe-area-inset-bottom, 0px));
+                padding-top: 1px;
+                scrollbar-gutter: auto;
+                scrollbar-width: none;
+            }
+            body.is-kalender-env .calendar-mobile-main::-webkit-scrollbar {
+                display: none;
+                height: 0;
+                width: 0;
+            }
+            html.is-kalender-env,
+            html.is-kalender-env body,
+            body.is-kalender-env {
+                background: #0b2b4c !important;
+                color-scheme: dark;
+            }
+            body.is-kalender-env .portal-mobile-header {
+                background: #123f73;
+                backdrop-filter: none;
+                border: 0 !important;
+                border-bottom: 0 !important;
+                box-shadow: 0 1px 0 #123f73 !important;
+                outline: none;
+            }
+            body.is-kalender-env #portal-mobile-header {
+                border: 0;
+                box-shadow: none;
+            }
+            body.is-kalender-env .portal-mobile-brand-chip {
+                background:
+                    radial-gradient(circle at 88% 8%, rgba(255, 224, 138, 0.28), transparent 40%),
+                    linear-gradient(160deg, #1a4a7a 0%, #0d3058 55%, #081f3c 100%);
+                border: 1.5px solid rgba(255, 224, 138, 0.55);
+                box-shadow:
+                    0 2px 0 rgba(2, 6, 23, 0.45),
+                    inset 0 1px 0 rgba(255, 253, 245, 0.22);
+            }
+            body.is-kalender-env .portal-mobile-brand-mark .portal-brand-shield {
+                filter: drop-shadow(0 2px 4px rgba(2, 6, 23, 0.55));
+            }
+            body.is-kalender-env .portal-mobile-admin-btn {
+                background: linear-gradient(180deg, rgba(30, 80, 136, 0.85) 0%, rgba(8, 28, 56, 0.95) 100%);
+                border: 1.5px solid rgba(255, 224, 138, 0.5);
+                border-radius: 999px;
+                box-shadow:
+                    0 2px 0 rgba(2, 6, 23, 0.4),
+                    inset 0 1px 0 rgba(255, 253, 245, 0.12);
+                color: #ffe08a;
+            }
+            body.is-kalender-env .portal-mobile-admin-btn:hover,
+            body.is-kalender-env .portal-mobile-admin-btn.is-active {
+                background: linear-gradient(180deg, rgba(40, 100, 160, 0.9) 0%, rgba(12, 40, 72, 0.98) 100%);
+                border-color: rgba(255, 224, 138, 0.75);
+                color: #fff6d6;
+            }
+            body.is-kalender-env .portal-mobile-tools-menu {
+                background: linear-gradient(180deg, #1a3f6a 0%, #0f2744 100%);
+                border: 1.5px solid rgba(255, 224, 138, 0.35);
+                box-shadow: 0 16px 36px rgba(2, 6, 23, 0.45);
+            }
+            body.is-kalender-env .portal-mobile-tools-item {
+                color: #fffdf5;
+            }
+            body.is-kalender-env .portal-mobile-tools-item i {
+                color: #ffe08a;
+            }
+            body.is-kalender-env .portal-mobile-tools-item:hover {
+                background: rgba(245, 197, 66, 0.16);
+            }
+            /* Peek: settled Kalender-chrome så Kamper↔Kalender ikke hopper */
+            #view-oppmote.portal-view-mobile-peek {
+                display: flex;
+                flex-direction: column;
+                max-width: none;
+                min-height: 0;
+                width: 100%;
+            }
+            #view-oppmote.portal-view-mobile-peek .calendar-shell-panel {
+                background: linear-gradient(180deg, #123f73 0%, #123f73 38%, #0b2b4c 100%);
+                border: 0;
+                border-radius: 0;
+                box-shadow: none;
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                margin: 0;
+                min-height: 0;
+                overflow: hidden;
+                width: 100%;
+            }
+            #view-oppmote.portal-view-mobile-peek .calendar-mobile-chrome {
+                background: transparent;
+                border-bottom: 0 !important;
+                box-shadow: none;
+                flex: 0 0 auto;
+            }
+            #view-oppmote.portal-view-mobile-peek .calendar-mobile-main {
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow: hidden;
+            }
         }
         @media (min-width: 768px) and (max-width: 1023px) {
+            body.is-kalender-env #main-view {
+                background: linear-gradient(180deg, #123f73 0%, #123f73 38%, #0b2b4c 100%);
+                display: flex;
+                flex-direction: column;
+                min-height: calc(
+                    100dvh
+                    - 3.5rem
+                    - env(safe-area-inset-top, 0px)
+                );
+                padding: 0;
+            }
+            body.is-kalender-env #view-oppmote {
+                background: transparent;
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                max-width: none;
+                min-height: 100%;
+                width: 100%;
+            }
+            body.is-kalender-env .calendar-shell-panel {
+                background: transparent;
+                border: 0;
+                border-radius: 0;
+                box-shadow: none;
+                flex: 1 1 auto;
+                margin: 0;
+                min-height: 100%;
+                overflow-x: clip;
+                overflow-y: visible;
+                width: 100%;
+            }
             .match-list-mobile-top {
                 padding-left: 1.15rem;
                 padding-right: 1.15rem;
@@ -7192,10 +7415,11 @@
             flex: 0 0 auto;
             flex-shrink: 0;
         }
-        /* Kamper-liste heading = samme Clash-typografi/merke som Oppsummering */
+        /* Kamper-liste heading = samme Clash som Kampplan (merke/typografi/gullinje) */
         .match-list-mobile-card .match-list-mobile-top {
             position: relative;
             padding-bottom: 0.55rem;
+            padding-top: 0.2rem;
         }
         .match-list-mobile-card .match-list-mobile-top::after {
             background: linear-gradient(
@@ -7210,16 +7434,18 @@
             box-shadow: 0 0 10px rgba(245, 197, 66, 0.35);
             content: "";
             height: 2.5px;
-            left: 0.35rem;
+            left: 0;
             pointer-events: none;
             position: absolute;
-            right: 0.35rem;
+            right: 0;
             z-index: 1;
         }
         .match-list-mobile-card .match-list-mobile-heading {
             align-items: center;
+            display: flex;
             gap: 0.55rem;
             min-height: 2.65rem;
+            padding: 0;
             padding-left: 0.05rem;
             position: relative;
             z-index: 2;
@@ -7241,22 +7467,31 @@
             z-index: 2;
         }
         .match-list-mobile-card .match-list-mark {
-            background:
-                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28' fill='none'%3E%3Crect x='4' y='6.5' width='20' height='17.5' rx='2.4' fill='%23f5c542' stroke='%23fffdf5' stroke-width='1.5'/%3E%3Cpath d='M4 11.2h20' stroke='%237a5608' stroke-width='1.6' stroke-linecap='round'/%3E%3Crect x='7.2' y='3.6' width='2.2' height='5' rx='1.1' fill='%23ffe08a' stroke='%23fffdf5' stroke-width='1.1'/%3E%3Crect x='18.6' y='3.6' width='2.2' height='5' rx='1.1' fill='%23ffe08a' stroke='%23fffdf5' stroke-width='1.1'/%3E%3Crect x='7.4' y='14.2' width='3.2' height='3.2' rx='0.7' fill='%23fff6d6'/%3E%3Crect x='12.4' y='14.2' width='3.2' height='3.2' rx='0.7' fill='%23fff6d6'/%3E%3Crect x='17.4' y='14.2' width='3.2' height='3.2' rx='0.7' fill='%23fff6d6'/%3E%3Crect x='7.4' y='19' width='3.2' height='3.2' rx='0.7' fill='%23ffe08a'/%3E%3Crect x='12.4' y='19' width='3.2' height='3.2' rx='0.7' fill='%23ffe08a'/%3E%3C/svg%3E")
-                    center / contain no-repeat;
-            display: inline-block;
+            align-items: center;
+            color: #f5c542;
+            display: inline-flex;
             filter:
                 drop-shadow(0 1px 0 rgba(255, 253, 245, 0.85))
                 drop-shadow(0 3px 0 #6b4a0c)
                 drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
             flex: 0 0 auto;
-            height: 2.85rem;
-            margin: -0.15rem 0 -0.4rem;
+            height: 3.25rem;
+            justify-content: center;
+            margin: -0.25rem 0 -0.5rem;
             position: relative;
-            transform: rotate(-8deg);
+            transform: rotate(-10deg);
             transform-origin: 50% 55%;
-            width: 2.85rem;
+            width: 3.25rem;
             z-index: 3;
+        }
+        .match-list-mobile-card .match-list-mark i {
+            font-size: 2.35rem;
+            line-height: 1;
+            text-shadow:
+                -1px 0 0 #fffdf5,
+                1px 0 0 #fffdf5,
+                0 -1px 0 #fffdf5,
+                0 1px 0 #fffdf5;
         }
         /* Kamper mobil B: Clash-chips 2.15rem (som Kampplan/Kamptropp) */
         .match-list-mobile-toolbar {
@@ -22663,11 +22898,11 @@
             white-space: nowrap;
         }
         .calendar-page {
-            color: #0f172a;
+            color: #fffdf5;
         }
         .calendar-shell-panel {
             background:
-                radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.08), transparent 34%),
+                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.12), transparent 34%),
                 linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
             border: 1px solid rgba(245, 197, 66, 0.18);
             border-radius: 1.25rem;
@@ -22680,8 +22915,8 @@
         }
         .calendar-shell-panel::before {
             background:
-                radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.08), transparent 28%),
-                radial-gradient(circle at 92% 18%, rgba(255, 255, 255, 0.16), transparent 24%);
+                radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.06), transparent 28%),
+                radial-gradient(circle at 92% 18%, rgba(255, 255, 255, 0.1), transparent 24%);
             content: "";
             inset: 0;
             pointer-events: none;
@@ -22689,43 +22924,167 @@
         }
         .calendar-board-watermark {
             bottom: auto;
-            opacity: 0.045;
-            right: -2.8rem;
-            top: -3.5rem;
+            color: #ffffff;
+            opacity: 0.08;
+            pointer-events: none;
+            right: -3.25rem;
+            top: -2.4rem;
+            z-index: 0;
         }
         .calendar-board-watermark i {
             font-size: clamp(10rem, 22vw, 16rem);
         }
+        .calendar-mobile-chrome {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            position: relative;
+            z-index: 2;
+        }
+        /* Kalender-seksjon = samme Clash som Kamper/Kampplan */
+        .calendar-section-top {
+            align-items: center;
+            background: transparent;
+            border-bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            min-height: 0;
+            padding: 0.2rem 1rem 0.55rem;
+            position: relative;
+        }
+        .calendar-section-top::after {
+            background: linear-gradient(
+                90deg,
+                transparent,
+                #ffe08a 20%,
+                #f5c542 50%,
+                #ffe08a 80%,
+                transparent
+            );
+            bottom: 0;
+            box-shadow: 0 0 10px rgba(245, 197, 66, 0.35);
+            content: "";
+            height: 2.5px;
+            left: 0;
+            pointer-events: none;
+            position: absolute;
+            right: 0;
+            z-index: 1;
+        }
+        .calendar-section-heading {
+            align-items: center;
+            display: flex;
+            gap: 0.55rem;
+            min-height: 2.65rem;
+            padding: 0;
+            padding-left: 0.05rem;
+            position: relative;
+            z-index: 2;
+        }
+        .calendar-section-heading h3 {
+            color: #ffe9a8;
+            font-size: clamp(1.32rem, 3.7vw, 1.58rem);
+            font-weight: 950;
+            letter-spacing: 0.08em;
+            line-height: 1;
+            margin: 0;
+            position: relative;
+            text-shadow:
+                0 1px 0 rgba(255, 253, 245, 0.28),
+                0 2px 0 rgba(10, 26, 48, 0.55),
+                0 3px 0 rgba(122, 86, 8, 0.35),
+                0 0 18px rgba(255, 214, 102, 0.28);
+            text-transform: uppercase;
+            z-index: 2;
+        }
+        /* Spesifisitet over .match-bench-heading span (ellers blir ikonet hvitt) */
+        .calendar-section-heading .calendar-section-mark,
+        .match-bench-heading .calendar-section-mark {
+            align-items: center;
+            color: #f5c542;
+            display: inline-flex;
+            filter:
+                drop-shadow(0 1px 0 rgba(255, 253, 245, 0.85))
+                drop-shadow(0 3px 0 #6b4a0c)
+                drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
+            flex: 0 0 auto;
+            height: 3.25rem;
+            justify-content: center;
+            margin: -0.25rem 0 -0.5rem;
+            position: relative;
+            transform: rotate(-10deg);
+            transform-origin: 50% 55%;
+            width: 3.25rem;
+            z-index: 3;
+        }
+        .calendar-section-heading .calendar-section-mark i,
+        .match-bench-heading .calendar-section-mark i {
+            color: #f5c542;
+            font-size: 2.35rem;
+            line-height: 1;
+            text-shadow:
+                -1px 0 0 #fffdf5,
+                1px 0 0 #fffdf5,
+                0 -1px 0 #fffdf5,
+                0 1px 0 #fffdf5;
+        }
         .calendar-heading-panel {
-            background: rgba(255, 255, 255, 0.07);
-            border-bottom: 1px solid rgba(245, 197, 66, 0.14);
+            background: transparent;
+            border-bottom: 0;
             display: grid;
-            gap: 0.75rem;
+            gap: 0.4rem 0.75rem;
             grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-            padding: 0.85rem 1rem;
+            padding: 0.4rem 0.85rem 0.45rem;
             position: relative;
             z-index: 1;
         }
         .calendar-board-top {
-            min-height: var(--portal-topline-min-height);
+            min-height: 0;
+        }
+        .calendar-mobile-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            min-width: 0;
+            position: relative;
+            z-index: 1;
         }
         .calendar-heading-title {
-            color: #ffffff;
-            font-size: clamp(1.15rem, 3.5vw, 1.55rem);
+            color: #ffe9a8;
+            font-size: clamp(1.02rem, 2.8vw, 1.22rem);
             font-weight: 950;
-            letter-spacing: -0.03em;
+            letter-spacing: 0.07em;
             line-height: 1;
-            min-width: 7.5rem;
+            min-width: 6.5rem;
             text-align: center;
+            text-shadow:
+                0 1px 0 rgba(255, 253, 245, 0.18),
+                0 1px 0 rgba(10, 26, 48, 0.4),
+                0 0 10px rgba(255, 214, 102, 0.16);
+            text-transform: uppercase;
             white-space: nowrap;
         }
         .calendar-heading-year {
-            color: rgba(255, 255, 255, 0.72);
+            color: rgba(255, 253, 245, 0.55);
             display: inline-flex;
-            font-size: 0.95rem;
+            font-size: 0.82rem;
             font-weight: 950;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.1em;
             line-height: 1;
+        }
+        .calendar-heading-actions {
+            align-items: center;
+            display: flex;
+            justify-content: flex-end;
+            min-width: 0;
+        }
+        .calendar-heading-actions .calendar-add-btn {
+            font-size: 0.62rem;
+            height: 2.15rem;
+            max-height: 2.15rem;
+            min-height: 2.15rem;
+            min-width: 0;
+            padding: 0 0.7rem;
         }
         .calendar-heading-panel:has(.calendar-year-menu.is-open) {
             z-index: 40;
@@ -22886,13 +23245,28 @@
             transform: none;
         }
         .calendar-legend {
-            color: rgba(255, 255, 255, 0.72);
-            row-gap: 0.45rem;
+            align-items: center;
+            color: rgba(255, 253, 245, 0.34);
+            display: flex;
+            flex-wrap: wrap;
+            font-size: 0.54rem;
+            font-weight: 900;
+            gap: 0.35rem 0.65rem;
+            grid-column: 1 / -1;
+            justify-content: center;
+            letter-spacing: 0.08em;
+            opacity: 0.88;
+            text-transform: uppercase;
         }
-        .calendar-heading-panel .flex.justify-end > .bsk-btn-primary {
-            justify-self: end;
-            max-width: 100%;
-            width: max-content;
+        .calendar-legend-item {
+            align-items: center;
+            display: inline-flex;
+            gap: 0.35rem;
+        }
+        .calendar-legend .calendar-day-event-dot {
+            flex: 0 0 auto;
+            height: 0.42rem;
+            width: 0.42rem;
         }
         .calendar-empty-state > .bsk-btn-primary {
             margin-top: 1rem;
@@ -22908,36 +23282,59 @@
         .calendar-board-body {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
-            padding: 1rem;
+            gap: 0.7rem;
+            padding: 0.75rem 0.85rem 0.35rem;
         }
         .calendar-weekday-row {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(245, 197, 66, 0.14);
-            border-bottom-color: rgba(245, 197, 66, 0.32);
-            border-radius: 0.95rem;
-            box-shadow: 0 8px 18px rgba(2, 6, 23, 0.1);
-            color: rgba(255, 255, 255, 0.68);
-            padding: 0.55rem 0.35rem;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 224, 138, 0.16);
+            border-radius: 0.75rem;
+            color: rgba(255, 253, 245, 0.42);
+            display: grid;
+            font-size: 0.58rem;
+            font-weight: 950;
+            gap: 0.32rem;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            letter-spacing: 0.08em;
+            padding: 0.42rem 0.28rem;
+            text-align: center;
+            text-transform: uppercase;
         }
         .calendar-day-empty {
-            background: rgba(255, 255, 255, 0.44);
-            border: 1px dashed rgba(18, 63, 115, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px dashed rgba(255, 224, 138, 0.12);
         }
         .calendar-scroll-grid {
+            display: grid;
+            gap: 0.4rem;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
             overflow: visible;
         }
         .calendar-day-cell {
             appearance: none;
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.1) !important;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
             box-shadow: 0 8px 20px rgba(2, 6, 23, 0.12);
             color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
             font: inherit;
+            min-height: 64px;
             overflow: hidden;
+            padding: 0.55rem 0.5rem 0.45rem;
             position: relative;
             text-align: left;
+            transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, transform 120ms ease;
             width: 100%;
+        }
+        @media (min-width: 768px) {
+            .calendar-day-cell {
+                min-height: 82px;
+                padding: 0.65rem 0.55rem 0.5rem;
+            }
         }
         .calendar-day-layout {
             display: grid;
@@ -22946,14 +23343,12 @@
             min-height: 100%;
             width: 100%;
         }
-        .calendar-day-cell > div:first-child > span,
         .calendar-day-number {
             align-self: start;
+            color: #fffdf5;
             font-size: 1.02rem;
+            font-weight: 950;
             line-height: 1;
-        }
-        .calendar-day-number {
-            color: #ffffff !important;
         }
         .calendar-day-events {
             display: flex;
@@ -22964,14 +23359,16 @@
         }
         .calendar-day-event {
             align-items: center;
-            color: rgba(255, 255, 255, 0.68) !important;
+            color: rgba(255, 253, 245, 0.68);
             display: flex;
-            font-size: 13px;
+            font-size: 0.72rem;
+            font-weight: 900;
+            gap: 0.28rem;
             line-height: 1.08;
             min-width: 0;
         }
         .calendar-day-event-label {
-            color: rgba(255, 255, 255, 0.68) !important;
+            color: inherit;
             display: block;
             min-width: 0;
             overflow: hidden;
@@ -22979,7 +23376,9 @@
             white-space: nowrap;
         }
         .calendar-day-more {
-            color: #f5c542 !important;
+            color: #ffe08a;
+            font-size: 0.58rem;
+            font-weight: 950;
             line-height: 1;
         }
         .calendar-day-empty-space {
@@ -22987,55 +23386,80 @@
             min-height: 0.75rem;
         }
         .calendar-day-event-dot {
+            background: #94a3b8;
+            border-radius: 999px;
+            flex: 0 0 auto;
             height: 0.48rem;
             width: 0.48rem;
         }
+        .calendar-day-event-dot.is-match {
+            background: #34d399;
+        }
+        .calendar-day-event-dot.is-training {
+            background: #60a5fa;
+        }
+        .calendar-day-event-dot.is-other {
+            background: #94a3b8;
+        }
         .calendar-day-cell.is-outside-month {
-            opacity: 0.58;
+            opacity: 0.45;
         }
         .calendar-day-cell:hover {
-            background: rgba(255, 255, 255, 0.13) !important;
-            border-color: rgba(245, 197, 66, 0.56) !important;
+            background: rgba(255, 255, 255, 0.13);
+            border-color: rgba(245, 197, 66, 0.45);
         }
+        .calendar-day-cell:active {
+            transform: scale(0.97);
+        }
+        /* I dag = gullring; valgt = fylt flate + understrek */
         .calendar-day-cell.is-today {
-            border-color: rgba(245, 197, 66, 0.5) !important;
-            box-shadow: 0 0 0 2px rgba(245, 197, 66, 0.14), 0 10px 22px rgba(2, 6, 23, 0.16);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 224, 138, 0.88);
+            box-shadow: 0 0 0 1.5px rgba(245, 197, 66, 0.4);
         }
         .calendar-day-cell.is-selected {
-            background: rgba(245, 197, 66, 0.16) !important;
-            border-color: rgba(245, 197, 66, 0.7) !important;
-            box-shadow: 0 12px 28px rgba(11, 43, 76, 0.26);
+            background: rgba(245, 197, 66, 0.18);
+            border-color: rgba(245, 197, 66, 0.78);
+            box-shadow: 0 10px 24px rgba(2, 6, 23, 0.22);
         }
-        .calendar-day-cell.is-selected span {
-            color: #ffffff !important;
+        /* Valgt + i dag: behold fyll/understrek, beholde subtil i-dag-ring */
+        .calendar-day-cell.is-today.is-selected {
+            background: rgba(245, 197, 66, 0.18);
+            border-color: rgba(255, 224, 138, 0.95);
+            box-shadow:
+                0 0 0 1.5px rgba(245, 197, 66, 0.45),
+                0 10px 24px rgba(2, 6, 23, 0.22);
+        }
+        .calendar-day-cell.is-selected .calendar-day-number {
+            color: #ffe9a8;
         }
         .calendar-day-cell.is-selected::after {
             background: #f5c542;
             border-radius: 999px;
-            bottom: 0.35rem;
+            bottom: 0.32rem;
             content: "";
-            height: 3px;
-            left: 0.75rem;
+            height: 2.5px;
+            left: 0.55rem;
             position: absolute;
-            right: 0.75rem;
+            right: 0.55rem;
         }
         .calendar-daily-panel {
             border-top: 1px solid rgba(18, 63, 115, 0.12);
         }
         .calendar-bottomline {
             align-items: stretch;
-            background: rgba(255, 255, 255, 0.06);
+            background: transparent;
             border: 0;
             border-radius: 0;
-            border-top: 1px solid rgba(245, 197, 66, 0.18);
+            border-top: 0;
             box-shadow: none;
             color: rgba(255, 255, 255, 0.68);
             display: flex;
             flex-direction: column;
-            gap: 0.85rem;
+            gap: 0.65rem;
             justify-content: flex-start;
             margin-top: 0;
-            padding: 1rem;
+            padding: 0.55rem 0.85rem 1rem;
         }
         .calendar-bottomline-heading {
             align-items: center;
@@ -23045,12 +23469,13 @@
             justify-content: space-between;
             min-width: 0;
         }
-        .calendar-bottomline-heading h3 {
-            color: #ffffff;
-            font-size: 0.95rem;
-            font-weight: 950;
-            letter-spacing: -0.02em;
-            line-height: 1.2;
+        .calendar-bottomline-heading h3,
+        .calendar-bottomline > #selected-calendar-date {
+            color: rgba(255, 253, 245, 0.58);
+            font-size: 0.72rem;
+            font-weight: 850;
+            letter-spacing: 0.04em;
+            line-height: 1.25;
             margin: 0;
             text-transform: capitalize;
         }
@@ -23097,23 +23522,23 @@
             color: rgba(255, 255, 255, 0.62);
         }
         .calendar-empty-state {
-            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%) !important;
-            border: 1px solid rgba(18, 63, 115, 0.12) !important;
-            border-bottom: 3px solid rgba(245, 197, 66, 0.8) !important;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
-            color: #0f172a;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 224, 138, 0.18) !important;
+            border-bottom: 0 !important;
+            border-radius: 0.85rem;
+            box-shadow: none;
+            color: #fffdf5;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+            justify-content: center;
             overflow: hidden;
-            padding: 1.35rem !important;
+            padding: 0.85rem 1rem !important;
             position: relative;
         }
         .calendar-empty-state::before {
-            background:
-                radial-gradient(circle at 10% 0%, rgba(245, 197, 66, 0.14), transparent 30%),
-                radial-gradient(circle at 92% 12%, rgba(18, 63, 115, 0.08), transparent 24%);
-            content: "";
-            inset: 0;
-            pointer-events: none;
-            position: absolute;
+            content: none;
         }
         .calendar-empty-state > * {
             position: relative;
@@ -23121,39 +23546,41 @@
         }
         .calendar-empty-icon {
             align-items: center;
-            background: #f5c542;
-            border: 1px solid rgba(214, 168, 32, 0.55);
-            border-radius: 1rem;
-            color: #0b2b4c;
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            color: #ffe08a;
             display: flex;
-            height: 3rem;
+            height: auto;
             justify-content: center;
-            margin: 0 auto 0.75rem;
-            width: 3rem;
+            margin: 0;
+            width: auto;
         }
         .calendar-empty-icon i {
-            font-size: 1.25rem;
+            font-size: 1.05rem;
         }
         .calendar-empty-title {
-            color: #0b2b4c;
-            font-size: 0.9rem;
-            font-weight: 950;
+            color: rgba(255, 253, 245, 0.78);
+            font-size: 0.82rem;
+            font-weight: 900;
+            margin: 0;
         }
         .calendar-empty-text {
-            color: #64748b;
-            font-size: 0.75rem;
+            color: rgba(255, 253, 245, 0.5);
+            font-size: 0.72rem;
             line-height: 1.45;
             margin-top: 0.25rem;
         }
         .calendar-detail-card {
-            background: linear-gradient(135deg, #123f73 0%, #0b2b4c 76%, #082039 100%);
-            border: 1px solid rgba(245, 197, 66, 0.28);
-            border-bottom: 3px solid #f5c542;
-            border-radius: 1rem;
-            box-shadow: 0 14px 30px rgba(11, 43, 76, 0.2);
+            background:
+                linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.92) 100%);
+            border: 1.5px solid rgba(255, 224, 138, 0.42);
+            border-bottom: 1.5px solid rgba(255, 224, 138, 0.42);
+            border-radius: 0.85rem;
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
             color: #ffffff;
             overflow: hidden;
-            padding: 1rem;
+            padding: 0.85rem 0.9rem;
             position: relative;
         }
         .calendar-detail-card-actions {
@@ -23296,7 +23723,7 @@
             display: grid;
             gap: 0.8rem;
             grid-template-columns: 52px minmax(0, 1fr);
-            padding-right: 6.25rem;
+            padding-right: 9rem;
         }
         .calendar-daily-icon-slot,
         .calendar-match-icon-slot,
@@ -23466,8 +23893,8 @@
                 padding: 0.8rem;
             }
             .calendar-bottomline .calendar-detail-card-actions {
-                gap: 0.4rem;
-                right: 0.75rem;
+                gap: 0.35rem;
+                right: 0.65rem;
             }
             .calendar-bottomline .calendar-detail-card-actions .bsk-btn-icon {
                 height: 2.25rem;
@@ -23481,7 +23908,7 @@
                 align-items: center;
                 gap: 0.7rem;
                 grid-template-columns: 52px minmax(0, 1fr);
-                padding-right: 5.3rem;
+                padding-right: 8.25rem;
             }
             .calendar-match-card-content {
                 padding-top: 0;
@@ -23491,22 +23918,16 @@
             }
         }
         @media (max-width: 767px) {
-            .calendar-day-event {
-                overflow: hidden;
-            }
-            .calendar-day-event-label {
-                display: none !important;
-            }
             .calendar-month-chevron.bsk-btn-icon {
                 height: 2.75rem;
                 min-width: 2.75rem;
                 width: 2.75rem;
             }
             .calendar-detail-card-actions .bsk-btn-icon {
-                height: 2.75rem;
-                min-height: 2.75rem;
-                min-width: 2.75rem;
-                width: 2.75rem;
+                height: 2.35rem;
+                min-height: 2.35rem;
+                min-width: 2.35rem;
+                width: 2.35rem;
             }
         }
         .bsk-modal-card {
@@ -23630,31 +24051,48 @@
             }
             .calendar-day-cell {
                 border-radius: 0.82rem;
-                min-height: 3.2rem !important;
-                padding: 0.45rem !important;
+                min-height: 3.15rem;
+                padding: 0.38rem 0.32rem 0.34rem;
             }
             .calendar-day-layout {
-                gap: 0.26rem;
-                grid-template-columns: 1.05rem minmax(0, 1fr);
+                align-items: flex-start;
+                display: flex;
+                flex-direction: column;
+                gap: 0.28rem;
+                justify-content: space-between;
             }
-            .calendar-day-cell > div:first-child > span,
             .calendar-day-number {
-                font-size: 0.82rem;
+                font-size: 0.84rem;
             }
             .calendar-day-events {
-                gap: 0.16rem;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 0.18rem;
                 padding-top: 0;
-            }
-            .calendar-day-event {
-                font-size: 0.58rem;
-                line-height: 1.05;
             }
             .calendar-day-event-label {
                 display: none;
             }
             .calendar-day-event-dot {
-                height: 0.4rem;
-                width: 0.4rem;
+                height: 0.38rem;
+                width: 0.38rem;
+            }
+            .calendar-day-empty-space {
+                display: none;
+            }
+            .calendar-day-cell.is-selected::after {
+                bottom: 0.22rem;
+                height: 2px;
+                left: 0.35rem;
+                right: 0.35rem;
+            }
+            .calendar-heading-panel {
+                gap: 0.35rem 0.55rem;
+                padding: 0.35rem 0.85rem 0.4rem;
+            }
+            .calendar-legend {
+                gap: 0.3rem 0.55rem;
+                opacity: 0.72;
             }
             .calendar-empty-state {
                 padding: 1rem 0.85rem !important;
@@ -23690,6 +24128,9 @@
             .match-detail-card-top,
             .match-detail-footer {
                 padding: 0.85rem 1rem;
+            }
+            .match-detail-card-top.calendar-section-top {
+                padding: 0.2rem 1rem 0.55rem;
             }
             .match-detail-main {
                 gap: 0.65rem;

@@ -36,21 +36,24 @@ function syncPortalThemeColor(useNavy) {
     meta.setAttribute('content', useNavy ? PORTAL_THEME_COLOR_KAMPER : PORTAL_THEME_COLOR_DEFAULT);
 }
 
-/** Mobile navy shells: Kamper list / Hjem keep chrome; detail hides portal header/nav.
+/** Mobile navy shells: Kamper list / Kalender / Hjem keep chrome; detail hides portal header/nav.
  *  Class-only (no :has on visible views) so swipe peek cannot leak shell styles. */
 function syncKamperEnvClass(tabId = window.currentTab) {
     const mobile = window.innerWidth < 768;
     const narrow = window.innerWidth < 1024;
     const inDetailEnv = Boolean(tabId === 'kampdetaljer' && mobile);
     const inListEnv = Boolean(tabId === 'kamper' && narrow);
+    const inKalenderEnv = Boolean(tabId === 'oppmote' && narrow);
     const inHjemEnv = Boolean(tabId === 'hjem' && mobile);
     document.body.classList.toggle('is-kamper-env', inDetailEnv);
     document.documentElement.classList.toggle('is-kamper-env', inDetailEnv);
     document.body.classList.toggle('is-kamper-list', inListEnv);
     document.documentElement.classList.toggle('is-kamper-list', inListEnv);
+    document.body.classList.toggle('is-kalender-env', inKalenderEnv);
+    document.documentElement.classList.toggle('is-kalender-env', inKalenderEnv);
     document.body.classList.toggle('is-hjem-env', inHjemEnv);
     document.documentElement.classList.toggle('is-hjem-env', inHjemEnv);
-    syncPortalThemeColor(inDetailEnv || inListEnv || inHjemEnv);
+    syncPortalThemeColor(inDetailEnv || inListEnv || inKalenderEnv || inHjemEnv);
 }
 window.syncKamperEnvClass = syncKamperEnvClass;
 
