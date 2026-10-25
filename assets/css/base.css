@@ -7387,18 +7387,19 @@
             flex: 1 1 auto;
             height: 1px;
         }
-        /* Kamper: månedsseksjon som Tropp (label + count + linje), desktop + mobil */
+        /* Kamper: månedsheading + antall-badge (samme chip som topline), desktop = mobil */
         .match-list-column .match-fixture-month,
         .match-list-mobile-card .match-fixture-month {
-            background: linear-gradient(90deg, rgba(245, 197, 66, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%);
-            border-bottom: 1px solid rgba(255, 224, 138, 0.32);
+            background: linear-gradient(90deg, rgba(245, 197, 66, 0.14) 0%, rgba(245, 197, 66, 0.03) 70%, transparent 100%);
+            border: 0;
+            border-radius: 0.5rem;
             color: #ffe9a8;
-            font-size: 0.68rem;
+            font-size: 0.6rem;
             font-weight: 950;
             gap: 0.55rem;
-            letter-spacing: 0.1em;
-            margin: 0 0 0.15rem;
-            padding: 0.32rem 0.45rem 0.38rem;
+            letter-spacing: 0.12em;
+            margin: 0;
+            padding: 0.22rem 0.65rem 0.26rem;
             text-shadow: 0 1px 0 #0a1a30;
         }
         .match-list-column .match-fixture-month-label,
@@ -7406,26 +7407,17 @@
             flex: 0 0 auto;
         }
         .match-list-column .match-fixture-month-count,
-        .match-list-mobile-card .match-fixture-month-count {
-            align-items: center;
-            background: rgba(255, 224, 138, 0.14);
-            border: 1px solid rgba(255, 224, 138, 0.35);
-            border-radius: 999px;
-            color: #ffe08a;
+        .match-list-mobile-card .match-fixture-month-count,
+        .match-list-column .match-fixture-year-count,
+        .match-list-mobile-card .match-fixture-year-count {
+            /* Arver .match-list-count-badge — samme chip som Kamper-total */
             display: inline-flex;
-            flex: 0 0 auto;
-            font-size: 0.62rem;
-            font-weight: 900;
+            align-items: center;
             justify-content: center;
-            letter-spacing: 0;
-            min-width: 1.45rem;
-            padding: 0.18rem 0.45rem;
-            text-shadow: none;
-            text-transform: none;
         }
         .match-list-column .match-fixture-month::after,
         .match-list-mobile-card .match-fixture-month::after {
-            background: linear-gradient(90deg, rgba(245, 197, 66, 0.55), rgba(255, 255, 255, 0.08));
+            background: linear-gradient(90deg, rgba(245, 197, 66, 0.45), rgba(255, 255, 255, 0.06));
             display: block;
             flex: 1 1 auto;
             height: 1px;
@@ -7460,29 +7452,15 @@
         }
         .match-list-column .match-fixture-year-toggle,
         .match-list-mobile-card .match-fixture-year-toggle {
-            background: linear-gradient(90deg, rgba(245, 197, 66, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%);
-            border-bottom: 1px solid rgba(255, 224, 138, 0.28);
-            padding: 0.32rem 0.4rem 0.38rem;
+            background: linear-gradient(90deg, rgba(245, 197, 66, 0.12) 0%, rgba(245, 197, 66, 0.03) 70%, transparent 100%);
+            border: 0;
+            border-radius: 0.5rem;
+            padding: 0.26rem 0.65rem 0.3rem;
         }
         .match-list-column .match-fixture-year-label,
         .match-list-mobile-card .match-fixture-year-label {
             color: #ffe9a8;
             text-shadow: 0 1px 0 #0a1a30;
-        }
-        .match-fixture-year-count {
-            align-items: center;
-            background: rgba(255, 224, 138, 0.14);
-            border: 1px solid rgba(255, 224, 138, 0.35);
-            border-radius: 999px;
-            color: #ffe9a8;
-            display: inline-flex;
-            font-size: 0.62rem;
-            font-weight: 900;
-            justify-content: center;
-            letter-spacing: 0;
-            min-width: 1.45rem;
-            padding: 0.18rem 0.45rem;
-            text-transform: none;
         }
         .match-fixture-year-toggle i {
             color: #ffe08a;
@@ -7661,19 +7639,6 @@
         }
         .match-list-mobile-card .match-fixture-year-content {
             gap: 0.7rem;
-        }
-        .match-list-mobile-card .match-fixture-month {
-            border-bottom-color: rgba(255, 224, 138, 0.18);
-            border-radius: 0.5rem;
-            font-size: 0.6rem;
-            letter-spacing: 0.12em;
-            margin: 0;
-            padding: 0.22rem 0.65rem 0.26rem;
-        }
-        .match-list-mobile-card .match-fixture-year-toggle {
-            border-bottom-color: rgba(255, 224, 138, 0.16);
-            border-radius: 0.5rem;
-            padding: 0.26rem 0.65rem 0.3rem;
         }
         .match-list-mobile-card .match-fixture-row {
             border-radius: 0.85rem;
