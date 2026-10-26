@@ -2815,9 +2815,29 @@ function getMatchGamePlanOffCAssignments(match) {
     return match && typeof match.offcAssignments === 'object' && match.offcAssignments ? match.offcAssignments : {};
 }
 
+function getMatchGamePlanAssignmentStorageKey(planId) {
+    return matchGamePlanAssignmentKeys[planId] || '';
+}
+
+function sanitizeMatchGamePlanSetPieceAssignments(raw, planId) {
+    const source = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+    const allowed = new Set(getMatchGamePlanSetPieceSlotIds(planId).map(String));
+    const cleaned = {};
+    Object.entries(source).forEach(([slot, value]) => {
+        const slotId = String(slot || '').trim();
+        if (!slotId || !allowed.has(slotId)) return;
+        const nextValue = value == null ? '' : String(value).trim();
+        if (!nextValue) return;
+        cleaned[slotId] = nextValue;
+    });
+    return cleaned;
+}
+
 function getMatchGamePlanSetPieceAssignments(match, planId) {
-    const key = matchGamePlanAssignmentKeys[planId] || matchGamePlanAssignmentKeys.offc;
-    return match && typeof match[key] === 'object' && match[key] ? match[key] : {};
+    const key = getMatchGamePlanAssignmentStorageKey(planId);
+    if (!key || !match) return {};
+    // Always return a sanitized clone so OffC/DefC/Roller never share maps or foreign slots.
+    return sanitizeMatchGamePlanSetPieceAssignments(match[key], planId);
 }
 
 function getMatchGamePlanBenchAssignments(match) {
@@ -7845,7 +7865,8 @@ window.setMatchGamePlanSetPieceActiveSlot = function(planId, slot) {
         const isActive = String(row.dataset.setpieceSlot || '') === slotId;
         row.classList.toggle('is-active', isActive);
         if (isActive) {
-            row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            // Keep scroll inside this page — avoid shifting the horizontal kampplan pager.
+            row.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
         }
     });
 };
@@ -8655,15 +8676,18 @@ function buildMatchGamePlanNotesHtml(match) {
 }
 
 function renderMatchGamePlanSetPiecePage(match, planId) {
-    const page = document.querySelector(`[data-game-plan-page="${planId}"]`);
-    if (!page) return;
+    const resolvedPlanId = String(planId || '').trim();
+    if (!matchGamePlanAssignmentKeys[resolvedPlanId]) return;
 
-    if (planId === 'defc') {
+    const page = document.querySelector(`[data-game-plan-page="${resolvedPlanId}"]`);
+    if (!page || page.dataset.gamePlanPage !== resolvedPlanId) return;
+
+    if (resolvedPlanId === 'defc') {
         page.innerHTML = buildMatchGamePlanDefCHtml(match);
         return;
     }
 
-    if (planId === 'roller') {
+    if (resolvedPlanId === 'roller') {
         page.innerHTML = buildMatchGamePlanRolesHtml(match);
         return;
     }
@@ -8671,6 +8695,14 @@ function renderMatchGamePlanSetPiecePage(match, planId) {
     page.innerHTML = buildMatchGamePlanOffCHtml(match);
 }
 window.renderMatchGamePlanSetPiecePage = renderMatchGamePlanSetPiecePage;
+
+window.refreshMatchGamePlanSetPieceTab = function(planId) {
+    const resolvedPlanId = String(planId || '').trim();
+    if (!matchGamePlanAssignmentKeys[resolvedPlanId]) return;
+    const match = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
+    if (!match) return;
+    renderMatchGamePlanSetPiecePage(match, resolvedPlanId);
+};
 
 function renderMatchGamePlanOffCPage(match) {
     renderMatchGamePlanSetPiecePage(match, 'offc');
@@ -10916,38 +10948,46 @@ window.updateMatchGamePlanSetPiecePlayer = async function(matchId, planId, slot,
     const match = (window.activeMatches || []).find(item => item.id === matchId);
     if (!match) return;
 
-    const key = matchGamePlanAssignmentKeys[planId] || matchGamePlanAssignmentKeys.offc;
-    const slotId = String(slot || '');
+    const resolvedPlanId = String(planId || '').trim();
+    const key = getMatchGamePlanAssignmentStorageKey(resolvedPlanId);
+    if (!key) return;
+
+    const slotId = String(slot || '').trim();
+    const allowedSlots = new Set(getMatchGamePlanSetPieceSlotIds(resolvedPlanId).map(String));
+    if (!slotId || !allowedSlots.has(slotId)) return;
+
     const nextRef = playerRef || '';
-    const nextAssignments = { ...getMatchGamePlanSetPieceAssignments(match, planId) };
+    const nextAssignments = getMatchGamePlanSetPieceAssignments(match, resolvedPlanId);
     let movedFromSlot = '';
     // OffC/DefC: one player per plan. Roller: same player can hold several roles.
-    const allowMultipleSlots = planId === 'roller';
+    const allowMultipleSlots = resolvedPlanId === 'roller';
 
     if (nextRef && !allowMultipleSlots) {
         Object.entries(nextAssignments).forEach(([otherSlot, value]) => {
             if (String(otherSlot) === slotId) return;
             if (!matchGamePlanPlayerValuesMatch(value, nextRef)) return;
             movedFromSlot = String(otherSlot);
-            nextAssignments[otherSlot] = '';
+            delete nextAssignments[otherSlot];
         });
     }
-    nextAssignments[slotId] = nextRef;
+    if (nextRef) nextAssignments[slotId] = nextRef;
+    else delete nextAssignments[slotId];
 
     window.pendingMatchDetailsOpenPanel = 'kampplan';
     window.activeMatchDetailsOpenPanel = 'kampplan';
-    window.activeMatchGamePlanTab = planId;
-    match[key] = nextAssignments;
+    window.activeMatchGamePlanTab = resolvedPlanId;
+    // Write only this plan's sanitized map — never touch the other set-piece maps.
+    match[key] = sanitizeMatchGamePlanSetPieceAssignments(nextAssignments, resolvedPlanId);
 
     try {
         if (typeof window.saveMatchToDatabase === 'function') {
             await window.saveMatchToDatabase(match);
         }
         syncMatchKampplanPanelTeaser(match);
-        const slotLabel = getMatchGamePlanSetPieceSlotLabel(planId, slotId);
-        const planLabel = getMatchGamePlanSetPiecePlanLabel(planId);
+        const slotLabel = getMatchGamePlanSetPieceSlotLabel(resolvedPlanId, slotId);
+        const planLabel = getMatchGamePlanSetPiecePlanLabel(resolvedPlanId);
         const movedLabel = movedFromSlot
-            ? getMatchGamePlanSetPieceSlotLabel(planId, movedFromSlot)
+            ? getMatchGamePlanSetPieceSlotLabel(resolvedPlanId, movedFromSlot)
             : '';
         const message = !nextRef
             ? `${planLabel} ${slotLabel} fjernet`
@@ -13826,6 +13866,11 @@ window.goToMatchGamePlanTab = function(tabId, behavior = 'smooth') {
 
     contentScroller.dataset.activeGamePlanTab = tabId;
     window.activeMatchGamePlanTab = tabId;
+
+    // Always rebuild set-piece tabs from the latest match so OffC/DefC/Roller stay isolated.
+    if (matchGamePlanAssignmentKeys[tabId] && typeof window.refreshMatchGamePlanSetPieceTab === 'function') {
+        window.refreshMatchGamePlanSetPieceTab(tabId);
+    }
 
     if (window.innerWidth >= 768) {
         window.syncMatchGamePlanScroller();

@@ -225,12 +225,11 @@
                     ) {
                         window.resetMatchGamePlanDraft(activeMatch);
                     }
-                    // Refresh all setpiece pages so inactive tabs don't keep stale empty pickers.
-                    ['offc', 'defc', 'roller'].forEach((tabId) => {
-                        if (document.querySelector(`[data-game-plan-page="${tabId}"]`)) {
-                            window.renderMatchGamePlanSetPiecePage(activeMatch, tabId);
-                        }
-                    });
+                    // Only rebuild the visible set-piece tab. Other tabs refresh on navigate
+                    // so OffC updates cannot rewrite Roller/DefC DOM by mistake.
+                    if (typeof window.renderMatchGamePlanSetPiecePage === 'function') {
+                        window.renderMatchGamePlanSetPiecePage(activeMatch, resolvedGamePlanTab);
+                    }
                     if (typeof window.syncMatchKampplanPanelTeaser === 'function') {
                         window.syncMatchKampplanPanelTeaser(activeMatch);
                     }
