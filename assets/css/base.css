@@ -29256,11 +29256,11 @@
                 width: auto;
             }
 
-            /* Print-only nudge: DefC 4–6 sit 3px lower than the shared on-screen coords. */
+            /* Print-only nudge: DefC 4–6 sit lower than the shared on-screen coords. */
             .match-print-pitch-setpiece .match-print-pitch-marker[data-print-plan="defc"][data-print-slot="4"],
             .match-print-pitch-setpiece .match-print-pitch-marker[data-print-plan="defc"][data-print-slot="5"],
             .match-print-pitch-setpiece .match-print-pitch-marker[data-print-plan="defc"][data-print-slot="6"] {
-                transform: translate(-50%, calc(-50% + 3px));
+                transform: translate(-50%, calc(-50% + 6px));
             }
 
             .match-print-pitch-setpiece .match-print-pitch-marker.is-filled {
