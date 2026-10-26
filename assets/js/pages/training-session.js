@@ -10,6 +10,51 @@ function escapeTrainingHtml(value) {
         }[char]));
 }
 
+function buildTrainingGameCardTeaserHtml(text) {
+    const label = String(text || '').trim();
+    if (!label) return '';
+    return `<p class="match-game-card-teaser">${escapeTrainingHtml(label)}</p>`;
+}
+
+function buildTrainingPanelToplineHtml({
+    title,
+    iconClass,
+    teaser = '',
+    isOpen = false,
+    toggleAction,
+    showLabel,
+    hideLabel,
+    headingExtraHtml = '',
+    trailingHtml = ''
+}) {
+    return `
+        <div
+            class="match-bench-action-row match-bench-topline match-game-plan-topline"
+            data-training-action="${escapeTrainingHtml(toggleAction)}"
+            onclick="window.onTrainingPanelToplineClick(event)"
+            role="button"
+            tabindex="0"
+            aria-expanded="${isOpen ? 'true' : 'false'}"
+            aria-label="${isOpen ? escapeTrainingHtml(hideLabel) : escapeTrainingHtml(showLabel)}"
+            data-show-label="${escapeTrainingHtml(showLabel)}"
+            data-hide-label="${escapeTrainingHtml(hideLabel)}"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.onTrainingPanelToplineClick(event);}"
+        >
+            <div class="match-bench-heading">
+                <span class="match-game-card-icon match-game-plan-mark" aria-hidden="true">
+                    <i class="fa-solid ${escapeTrainingHtml(iconClass)}"></i>
+                </span>
+                <div class="match-bench-heading-copy">
+                    <h3>${escapeTrainingHtml(title)}</h3>
+                    ${buildTrainingGameCardTeaserHtml(teaser)}
+                </div>
+                ${headingExtraHtml}
+            </div>
+            ${trailingHtml}
+        </div>
+    `;
+}
+
 window._trainingSessionGroupCounts = window._trainingSessionGroupCounts || {};
 window._trainingSessionGroups = window._trainingSessionGroups || {};
 
@@ -946,16 +991,19 @@ function buildTrainingDataPanelHtml(trainingEvent) {
         ? `${escapeTrainingHtml(headingParts.text)} - <span class="training-data-section-category">${escapeTrainingHtml(categoryLabel)}</span>`
         : escapeTrainingHtml(headingParts.text);
 
+    const teaser = categoryLabel || headingParts.text || 'Anbefaling';
+
     return `
-        <section class="training-session-data-panel match-game-plan-panel match-collapsible-panel ${isOpen ? '' : 'is-collapsed'}">
-            <div class="match-bench-action-row match-bench-topline">
-                <div class="match-bench-heading">
-                    <h3>Treningsinfo</h3>
-                </div>
-                <button type="button" class="match-panel-toggle-btn" data-training-action="toggle-treningsdata" aria-expanded="${isOpen ? 'true' : 'false'}" aria-label="${isOpen ? 'Skjul treningsinfo' : 'Vis treningsinfo'}" data-show-label="Vis treningsinfo" data-hide-label="Skjul treningsinfo">
-                    <i class="fa-solid fa-chevron-up"></i>
-                </button>
-            </div>
+        <section class="training-session-data-panel match-game-plan-panel match-collapsible-panel is-game-card is-game-card-work ${isOpen ? '' : 'is-collapsed'}">
+            ${buildTrainingPanelToplineHtml({
+                title: 'Treningsinfo',
+                iconClass: 'fa-clipboard-list',
+                teaser,
+                isOpen,
+                toggleAction: 'toggle-treningsdata',
+                showLabel: 'Vis treningsinfo',
+                hideLabel: 'Skjul treningsinfo'
+            })}
             <div class="match-collapsible-content">
                 <div class="training-session-data-body">
                     <section class="training-data-section">
@@ -1401,16 +1449,19 @@ function buildTrainingExercisePanelHtml(trainingEvent) {
     const hint = values.suggestionHint
         || 'Velg kategori, hent en lagret øvelse, eller skriv en ny som treffer hovedfokuset i Treningsinfo.';
 
+    const teaser = values.title || 'Ingen øvelse valgt';
+
     return `
-        <section class="training-session-exercise-panel training-session-data-panel match-game-plan-panel match-collapsible-panel ${isOpen ? '' : 'is-collapsed'}">
-            <div class="match-bench-action-row match-bench-topline">
-                <div class="match-bench-heading">
-                    <h3>Øvelse</h3>
-                </div>
-                <button type="button" class="match-panel-toggle-btn" data-training-action="toggle-ovelse" aria-expanded="${isOpen ? 'true' : 'false'}" aria-label="${isOpen ? 'Skjul øvelse' : 'Vis øvelse'}" data-show-label="Vis øvelse" data-hide-label="Skjul øvelse">
-                    <i class="fa-solid fa-chevron-up"></i>
-                </button>
-            </div>
+        <section class="training-session-exercise-panel training-session-data-panel match-game-plan-panel match-collapsible-panel is-game-card is-game-card-work ${isOpen ? '' : 'is-collapsed'}">
+            ${buildTrainingPanelToplineHtml({
+                title: 'Øvelse',
+                iconClass: 'fa-futbol',
+                teaser,
+                isOpen,
+                toggleAction: 'toggle-ovelse',
+                showLabel: 'Vis øvelse',
+                hideLabel: 'Skjul øvelse'
+            })}
             <div class="match-collapsible-content">
                 <form class="training-session-exercise-body" data-training-exercise-form>
                     <p class="training-session-exercise-hint">${escapeTrainingHtml(hint)}</p>
@@ -1471,16 +1522,16 @@ function buildTrainingAttendanceSeasonPanelHtml(trainingEvent) {
     const seasonYear = getCurrentSeasonDateRange().year;
 
     return `
-        <section class="training-session-season-attendance-panel training-session-data-panel match-game-plan-panel match-collapsible-panel ${isOpen ? '' : 'is-collapsed'}">
-            <div class="match-bench-action-row match-bench-topline">
-                <div class="match-bench-heading">
-                    <h3>Treningsoppmøte</h3>
-                    <span class="match-detail-section-badge" aria-label="Sesong ${seasonYear}">${seasonYear}</span>
-                </div>
-                <button type="button" class="match-panel-toggle-btn" data-training-action="toggle-treningsoppmote" aria-expanded="${isOpen ? 'true' : 'false'}" aria-label="${isOpen ? 'Skjul treningsoppmøte' : 'Vis treningsoppmøte'}" data-show-label="Vis treningsoppmøte" data-hide-label="Skjul treningsoppmøte">
-                    <i class="fa-solid fa-chevron-up"></i>
-                </button>
-            </div>
+        <section class="training-session-season-attendance-panel training-session-data-panel match-game-plan-panel match-collapsible-panel is-game-card is-game-card-secondary ${isOpen ? '' : 'is-collapsed'}">
+            ${buildTrainingPanelToplineHtml({
+                title: 'Treningsoppmøte',
+                iconClass: 'fa-chart-simple',
+                teaser: `Sesong ${seasonYear}`,
+                isOpen,
+                toggleAction: 'toggle-treningsoppmote',
+                showLabel: 'Vis treningsoppmøte',
+                hideLabel: 'Skjul treningsoppmøte'
+            })}
             <div class="match-collapsible-content">
                 <div class="training-session-data-body">
                     ${buildTrainingDataAttendanceHtml(teamName)}
@@ -1490,20 +1541,122 @@ function buildTrainingAttendanceSeasonPanelHtml(trainingEvent) {
     `;
 }
 
-function toggleTrainingSessionCollapsiblePanel(panel, toggleBtn, stateKey) {
-    if (!panel || !toggleBtn) return;
+const TRAINING_PANEL_STATE_KEYS = {
+    attendance: '_trainingSessionAttendanceOpen',
+    groups: '_trainingSessionGroupsOpen',
+    treningsdata: '_trainingSessionDataOpen',
+    ovelse: '_trainingSessionExerciseOpen',
+    treningsoppmote: '_trainingSessionSeasonAttendanceOpen'
+};
 
-    const shouldOpen = panel.classList.contains('is-collapsed');
-    panel.classList.toggle('is-collapsed', !shouldOpen);
-    window[stateKey] = shouldOpen;
-    toggleBtn.setAttribute('aria-expanded', String(shouldOpen));
-    toggleBtn.setAttribute(
+function getTrainingPanelId(panel) {
+    if (!panel) return '';
+    if (panel.classList.contains('training-session-attendance-panel')) return 'attendance';
+    if (panel.classList.contains('training-session-groups-panel')) return 'groups';
+    if (panel.classList.contains('training-session-exercise-panel')) return 'ovelse';
+    if (panel.classList.contains('training-session-season-attendance-panel')) return 'treningsoppmote';
+    if (panel.classList.contains('training-session-data-panel')) return 'treningsdata';
+    return '';
+}
+
+function setTrainingSessionGroupsInfoOpen(open) {
+    window._trainingSessionGroupsInfoOpen = Boolean(open);
+    const info = document.getElementById('training-session-groups-info');
+    const btn = document.querySelector('#oktside-content .training-session-groups-info-btn');
+    if (info) {
+        info.classList.toggle('is-hidden', !open);
+        info.hidden = !open;
+    }
+    if (btn) {
+        btn.classList.toggle('is-active', Boolean(open));
+        btn.setAttribute('aria-expanded', String(Boolean(open)));
+    }
+}
+
+function setTrainingSessionPanelCollapsed(panel, collapsed) {
+    if (!panel) return;
+    panel.classList.toggle('is-collapsed', collapsed);
+    const panelId = getTrainingPanelId(panel);
+    const stateKey = TRAINING_PANEL_STATE_KEYS[panelId];
+    if (stateKey) window[stateKey] = !collapsed;
+
+    const control = panel.querySelector('.match-bench-topline[aria-expanded]');
+    if (!control) return;
+    control.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    control.setAttribute(
         'aria-label',
-        shouldOpen
-            ? (toggleBtn.dataset.hideLabel || 'Skjul seksjon')
-            : (toggleBtn.dataset.showLabel || 'Vis seksjon')
+        collapsed
+            ? (control.dataset.showLabel || 'Vis seksjon')
+            : (control.dataset.hideLabel || 'Skjul seksjon')
     );
 }
+
+function isTrainingSessionMobileViewport() {
+    return typeof window.matchMedia === 'function'
+        && window.matchMedia('(max-width: 767px)').matches;
+}
+
+function scrollTrainingSessionPanelIntoView(panel) {
+    if (!panel || !isTrainingSessionMobileViewport()) return;
+    if (typeof panel.scrollIntoView !== 'function') return;
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            if (!panel.isConnected || panel.classList.contains('is-collapsed')) return;
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+}
+
+function resetTrainingSessionPanelState() {
+    Object.values(TRAINING_PANEL_STATE_KEYS).forEach((key) => {
+        window[key] = false;
+    });
+    window._trainingSessionGroupsInfoOpen = false;
+    window.activeTrainingOpenPanel = '';
+}
+
+function applyTrainingSessionDefaultOpenState() {
+    const anyOpen = Object.values(TRAINING_PANEL_STATE_KEYS).some((key) => window[key] === true);
+    if (anyOpen) return;
+    window._trainingSessionAttendanceOpen = true;
+    window.activeTrainingOpenPanel = 'attendance';
+}
+
+function toggleTrainingSessionCollapsiblePanel(panel) {
+    if (!panel) return;
+
+    const shouldOpen = panel.classList.contains('is-collapsed');
+    const panelId = getTrainingPanelId(panel);
+
+    if (shouldOpen) {
+        document.querySelectorAll('#oktside-content .match-collapsible-panel').forEach((otherPanel) => {
+            if (otherPanel === panel) return;
+            setTrainingSessionPanelCollapsed(otherPanel, true);
+        });
+        setTrainingSessionPanelCollapsed(panel, false);
+        window.activeTrainingOpenPanel = panelId;
+        if (panelId !== 'groups') setTrainingSessionGroupsInfoOpen(false);
+        scrollTrainingSessionPanelIntoView(panel);
+        return;
+    }
+
+    setTrainingSessionPanelCollapsed(panel, true);
+    window.activeTrainingOpenPanel = '';
+    if (panelId === 'groups') setTrainingSessionGroupsInfoOpen(false);
+}
+
+window.onTrainingPanelToplineClick = function(event) {
+    const topline = event.currentTarget;
+    if (!topline) return;
+
+    const interactive = event.target.closest('a, button, input, select, textarea, label');
+    if (interactive) return;
+
+    const panel = topline.closest('.match-collapsible-panel');
+    if (!panel) return;
+    toggleTrainingSessionCollapsiblePanel(panel);
+};
 
 function bindTrainingSessionEvents() {
     const container = document.getElementById('oktside-content');
@@ -1512,41 +1665,11 @@ function bindTrainingSessionEvents() {
     container.dataset.trainingEventsBound = 'true';
 
     container.addEventListener('click', (event) => {
-        const topline = event.target.closest('.match-bench-topline');
-        if (topline && container.contains(topline)) {
-            const interactive = event.target.closest('a, button, input, select, textarea, label');
-            if (!interactive || interactive.classList.contains('match-panel-toggle-btn')) {
-                const toggle = interactive?.classList.contains('match-panel-toggle-btn')
-                    ? interactive
-                    : topline.querySelector('.match-panel-toggle-btn[data-training-action^="toggle-"]');
-                const panel = toggle?.closest('.match-collapsible-panel');
-                const action = toggle?.dataset.trainingAction;
-
-                if (panel && action === 'toggle-attendance') {
-                    toggleTrainingSessionCollapsiblePanel(panel, toggle, '_trainingSessionAttendanceOpen');
-                    return;
-                }
-                if (panel && action === 'toggle-groups') {
-                    toggleTrainingSessionCollapsiblePanel(panel, toggle, '_trainingSessionGroupsOpen');
-                    return;
-                }
-                if (panel && action === 'toggle-treningsdata') {
-                    toggleTrainingSessionCollapsiblePanel(panel, toggle, '_trainingSessionDataOpen');
-                    return;
-                }
-                if (panel && action === 'toggle-ovelse') {
-                    toggleTrainingSessionCollapsiblePanel(panel, toggle, '_trainingSessionExerciseOpen');
-                    return;
-                }
-                if (panel && action === 'toggle-treningsoppmote') {
-                    toggleTrainingSessionCollapsiblePanel(panel, toggle, '_trainingSessionSeasonAttendanceOpen');
-                    return;
-                }
-            }
-        }
-
         const actionEl = event.target.closest('[data-training-action]');
         if (!actionEl) return;
+
+        /* Topline toggle uses inline onclick — skip here to avoid double-toggle. */
+        if (actionEl.classList.contains('match-bench-topline')) return;
 
         const action = actionEl.dataset.trainingAction;
         const eventId = window._activeTrainingSessionId;
@@ -1560,6 +1683,7 @@ function bindTrainingSessionEvents() {
         }
 
         if (action === 'attendance') {
+            event.stopPropagation();
             if (eventId) window.openAttendanceModal(eventId);
             return;
         }
@@ -1568,36 +1692,6 @@ function bindTrainingSessionEvents() {
             if (typeof window.showSessionInjuryModal === 'function') {
                 window.showSessionInjuryModal();
             }
-            return;
-        }
-
-        if (action === 'toggle-attendance') {
-            const panel = actionEl.closest('.match-collapsible-panel');
-            toggleTrainingSessionCollapsiblePanel(panel, actionEl, '_trainingSessionAttendanceOpen');
-            return;
-        }
-
-        if (action === 'toggle-groups') {
-            const panel = actionEl.closest('.match-collapsible-panel');
-            toggleTrainingSessionCollapsiblePanel(panel, actionEl, '_trainingSessionGroupsOpen');
-            return;
-        }
-
-        if (action === 'toggle-treningsdata') {
-            const panel = actionEl.closest('.match-collapsible-panel');
-            toggleTrainingSessionCollapsiblePanel(panel, actionEl, '_trainingSessionDataOpen');
-            return;
-        }
-
-        if (action === 'toggle-ovelse') {
-            const panel = actionEl.closest('.match-collapsible-panel');
-            toggleTrainingSessionCollapsiblePanel(panel, actionEl, '_trainingSessionExerciseOpen');
-            return;
-        }
-
-        if (action === 'toggle-treningsoppmote') {
-            const panel = actionEl.closest('.match-collapsible-panel');
-            toggleTrainingSessionCollapsiblePanel(panel, actionEl, '_trainingSessionSeasonAttendanceOpen');
             return;
         }
 
@@ -1616,9 +1710,8 @@ function bindTrainingSessionEvents() {
         }
 
         if (action === 'toggle-groups-info') {
-            window._trainingSessionGroupsInfoOpen = !window._trainingSessionGroupsInfoOpen;
-            const eventId = window._activeTrainingSessionId;
-            if (eventId) window.renderTrainingSession(eventId);
+            event.stopPropagation();
+            setTrainingSessionGroupsInfoOpen(!window._trainingSessionGroupsInfoOpen);
             return;
         }
 
@@ -1706,10 +1799,15 @@ window.openTrainingSession = function(eventId) {
     const activityEvent = getTrainingEvent(eventId);
     if (!activityEvent || !isActivitySessionType(activityEvent.type)) return;
 
+    const previousId = window._activeTrainingSessionId;
     window._activeTrainingSessionId = eventId;
+    if (previousId !== eventId) {
+        resetTrainingSessionPanelState();
+    }
     if (activityEvent.type === 'Trening' && !window._trainingSessionGroupCounts[eventId]) {
         window._trainingSessionGroupCounts[eventId] = 1;
     }
+    applyTrainingSessionDefaultOpenState();
 
     const backTarget = window.currentTab && window.currentTab !== 'oktside'
         ? window.currentTab
@@ -1803,16 +1901,20 @@ window.renderTrainingSession = function(eventId) {
 
     const isGroupsOpen = window._trainingSessionGroupsOpen === true;
     const isGroupsInfoOpen = window._trainingSessionGroupsInfoOpen === true;
+    const groupCount = Number(window._trainingSessionGroupCounts?.[trainingEvent.id]) || 1;
+    const groupsTeaser = groupCount === 1 ? '1 gruppe' : `${groupCount} grupper`;
     const groupsPanelHtml = isTraining
         ? `
-            <section class="training-session-groups-panel match-game-plan-panel match-collapsible-panel ${isGroupsOpen ? '' : 'is-collapsed'}">
-                <div class="match-bench-action-row match-bench-topline">
-                    <div class="match-bench-heading">
-                        <h3>Grupper</h3>
-                    </div>
-                    <button type="button" class="match-panel-toggle-btn" data-training-action="toggle-groups" aria-expanded="${isGroupsOpen ? 'true' : 'false'}" aria-label="${isGroupsOpen ? 'Skjul grupper' : 'Vis grupper'}" data-show-label="Vis grupper" data-hide-label="Skjul grupper">
-                        <i class="fa-solid fa-chevron-up"></i>
-                    </button>
+            <section class="training-session-groups-panel match-game-plan-panel match-collapsible-panel is-game-card is-game-card-work ${isGroupsOpen ? '' : 'is-collapsed'}">
+                ${buildTrainingPanelToplineHtml({
+                    title: 'Grupper',
+                    iconClass: 'fa-people-group',
+                    teaser: groupsTeaser,
+                    isOpen: isGroupsOpen,
+                    toggleAction: 'toggle-groups',
+                    showLabel: 'Vis grupper',
+                    hideLabel: 'Skjul grupper',
+                    trailingHtml: `
                     <button
                         type="button"
                         class="training-session-groups-info-btn${isGroupsInfoOpen ? ' is-active' : ''}"
@@ -1823,8 +1925,8 @@ window.renderTrainingSession = function(eventId) {
                         aria-label="Slik fordeles gruppene"
                     >
                         <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                    </button>
-                </div>
+                    </button>`
+                })}
                 <div
                     id="training-session-groups-info"
                     class="training-session-groups-info${isGroupsInfoOpen ? '' : ' is-hidden'}"
@@ -1857,12 +1959,6 @@ window.renderTrainingSession = function(eventId) {
         window._trainingSessionAttendanceOpen = true;
     }
     const isAttendanceOpen = window._trainingSessionAttendanceOpen === true;
-    const attendanceBadgeLabel = presenceStats.isRegistered && presenceStats.squadSize > 0
-        ? `${presenceStats.presentCount}/${presenceStats.squadSize}`
-        : String(presenceStats.isRegistered ? presenceStats.presentCount : (presenceStats.squadSize || 0));
-    const attendanceBadgeAria = presenceStats.isRegistered
-        ? `${presenceStats.presentCount} av ${presenceStats.squadSize || presenceStats.presentCount} spillere påmeldt`
-        : `${presenceStats.squadSize || 0} spillere i troppen`;
 
     const desktopTitle = document.getElementById('current-tab-title');
     if (desktopTitle && window.currentTab === 'oktside') {
@@ -1911,20 +2007,23 @@ window.renderTrainingSession = function(eventId) {
                 </div>
             </article>
 
-            <section class="training-session-attendance-panel match-game-plan-panel match-collapsible-panel ${isAttendanceOpen ? '' : 'is-collapsed'}">
-                <div class="match-bench-action-row match-bench-topline">
-                    <div class="match-bench-heading">
-                        <h3>Oppmøte</h3>
-                        <span class="match-detail-section-badge" aria-label="${escapeTrainingHtml(attendanceBadgeAria)}">${escapeTrainingHtml(attendanceBadgeLabel)}</span>
-                    </div>
-                    <button type="button" class="match-panel-toggle-btn" data-training-action="toggle-attendance" aria-expanded="${isAttendanceOpen ? 'true' : 'false'}" aria-label="${isAttendanceOpen ? 'Skjul oppmøte' : 'Vis oppmøte'}" data-show-label="Vis oppmøte" data-hide-label="Skjul oppmøte">
-                        <i class="fa-solid fa-chevron-up"></i>
-                    </button>
+            <section class="training-session-attendance-panel match-game-plan-panel match-collapsible-panel is-game-card is-game-card-work ${isAttendanceOpen ? '' : 'is-collapsed'}">
+                ${buildTrainingPanelToplineHtml({
+                    title: 'Oppmøte',
+                    iconClass: 'fa-user-check',
+                    teaser: presenceStats.isRegistered
+                        ? `${presenceStats.presentCount} påmeldt`
+                        : 'Ikke registrert',
+                    isOpen: isAttendanceOpen,
+                    toggleAction: 'toggle-attendance',
+                    showLabel: 'Vis oppmøte',
+                    hideLabel: 'Skjul oppmøte',
+                    trailingHtml: `
                     <button type="button" class="training-session-attendance-add-btn" data-training-action="attendance" title="Oppdater" aria-label="Oppdater oppmøte">
                         <i class="fa-solid fa-plus" aria-hidden="true"></i>
                         <span>Oppdater</span>
-                    </button>
-                </div>
+                    </button>`
+                })}
                 <div class="match-collapsible-content">
                     <p class="match-inline-status training-session-attendance-save-state" data-training-attendance-save-state aria-live="polite" hidden></p>
                     <div class="training-session-attendance-body">
