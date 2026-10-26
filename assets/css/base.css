@@ -17438,6 +17438,20 @@
             transform: translate(-50%, -50%) scale(1.14);
             z-index: 6;
         }
+        /* Screen-only: DefC 4–6 sit 20px lower than shared/print coords. */
+        .match-game-plan-setpiece-pitch .match-game-plan-diagram-node[data-setpiece-plan="defc"][data-setpiece-node="4"],
+        .match-game-plan-setpiece-pitch .match-game-plan-diagram-node[data-setpiece-plan="defc"][data-setpiece-node="5"],
+        .match-game-plan-setpiece-pitch .match-game-plan-diagram-node[data-setpiece-plan="defc"][data-setpiece-node="6"] {
+            transform: translate(-50%, calc(-50% + 20px));
+        }
+        .match-game-plan-setpiece-pitch .match-game-plan-diagram-node[data-setpiece-plan="defc"][data-setpiece-node="4"].is-active,
+        .match-game-plan-setpiece-pitch .match-game-plan-diagram-node[data-setpiece-plan="defc"][data-setpiece-node="4"].is-highlight,
+        .match-game-plan-setpiece-pitch .match-game-plan-diagram-node[data-setpiece-plan="defc"][data-setpiece-node="5"].is-active,
+        .match-game-plan-setpiece-pitch .match-game-plan-diagram-node[data-setpiece-plan="defc"][data-setpiece-node="5"].is-highlight,
+        .match-game-plan-setpiece-pitch .match-game-plan-diagram-node[data-setpiece-plan="defc"][data-setpiece-node="6"].is-active,
+        .match-game-plan-setpiece-pitch .match-game-plan-diagram-node[data-setpiece-plan="defc"][data-setpiece-node="6"].is-highlight {
+            transform: translate(-50%, calc(-50% + 20px)) scale(1.14);
+        }
         .match-game-plan-offc-select-field.is-pick-trigger.is-active {
             border-color: rgba(255, 224, 138, 0.95);
             box-shadow:
