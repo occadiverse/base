@@ -2187,9 +2187,10 @@ const matchGamePlanDefCPositions = {
     1: { top: 'calc(10% - 2px)', left: '61%', tone: 'red' },
     2: { top: 'calc(10% - 2px)', left: '50%', tone: 'red' },
     3: { top: 'calc(10% - 2px)', left: '39%', tone: 'red' },
-    4: { top: 'calc(20% + 8px)', left: '61%', tone: 'red' },
-    5: { top: 'calc(20% + 8px)', left: '50%', tone: 'red' },
-    6: { top: 'calc(20% + 8px)', left: '39%', tone: 'red' },
+    // Slightly higher so print name chips sit closer under 1–3 / the 5 m line
+    4: { top: 'calc(15% + 2px)', left: '61%', tone: 'red' },
+    5: { top: 'calc(15% + 2px)', left: '50%', tone: 'red' },
+    6: { top: 'calc(15% + 2px)', left: '39%', tone: 'red' },
     7: { top: 'calc(34% + 10px)', left: '50%', tone: 'yellow' },
     8: { top: 'calc(46% + 20px)', left: '24%', tone: 'yellow' },
     9: { top: 'calc(64% + 60px)', left: '18%', tone: 'green' },
