@@ -9082,25 +9082,48 @@ function getMatchPrintJersey(player) {
     return jersey ? String(jersey) : '—';
 }
 
-function buildMatchPrintPitchHtml(planId) {
+function buildMatchPrintPitchHtml(match, planId) {
     const isDefC = planId === 'defc';
     const positions = isDefC ? matchGamePlanDefCPositions : matchGamePlanOffCPositions;
+    const assignments = getMatchGamePlanSetPieceAssignments(match, planId);
+    const starterPlayers = getMatchGamePlanSetPieceStarterPlayers(match);
     const label = isDefC ? 'Defensiv corner' : 'Offensiv corner';
-    const markersHtml = Object.entries(positions).map(([value, coords]) => `
-        <span
-            class="match-print-pitch-marker"
-            style="top: ${coords.top}; left: ${coords.left};"
-            aria-hidden="true"
-        >${escapeMatchHtml(value)}</span>
-    `).join('');
+    const markersHtml = Object.entries(positions).map(([value, coords]) => {
+        const stored = String(assignments[value] || '').trim();
+        const player = resolveMatchGamePlanAssignedPlayer(match, stored, starterPlayers);
+        const shortName = player ? getMatchGamePlanPlayerShortName(player) : '';
+        const initials = player ? getMatchGamePlanPlayerInitials(player) : '';
+        return `
+            <span
+                class="match-print-pitch-marker ${stored ? 'is-filled' : 'is-empty'}"
+                style="top: ${coords.top}; left: ${coords.left};"
+                aria-hidden="true"
+            >
+                <span class="match-print-pitch-marker-num">${escapeMatchHtml(value)}</span>
+                ${stored ? `
+                    <span class="match-print-pitch-marker-player">
+                        ${escapeMatchHtml(shortName || initials || '—')}
+                    </span>
+                ` : ''}
+            </span>
+        `;
+    }).join('');
+    const ballHtml = isDefC
+        ? '<span class="match-print-pitch-ball" style="top: 6%; left: 94%;" aria-hidden="true"></span>'
+        : '';
 
+    // Same attacking half-pitch geometry as on-screen OffC/DefC (goal at top, halfway at bottom).
     return `
-        <div class="match-print-pitch" aria-label="${escapeMatchHtml(label)} bane">
+        <div class="match-print-pitch match-print-pitch-setpiece" aria-label="${escapeMatchHtml(label)} bane">
             <div class="match-print-pitch-field">
                 <span class="match-print-pitch-halfway" aria-hidden="true"></span>
                 <span class="match-print-pitch-center-circle" aria-hidden="true"></span>
-                <span class="match-print-pitch-box" aria-hidden="true"></span>
-                <span class="match-print-pitch-ball" style="top: 3%; left: 95%;" aria-hidden="true"></span>
+                <span class="match-print-pitch-box match-print-pitch-box-16" aria-hidden="true" title="16 m"></span>
+                <span class="match-print-pitch-box-5m" aria-hidden="true" title="5 m"></span>
+                <span class="match-print-pitch-arc" aria-hidden="true" title="16 m-bue"></span>
+                <span class="match-print-pitch-spot" aria-hidden="true" title="Straffemerke"></span>
+                <span class="match-print-pitch-goal" aria-hidden="true"></span>
+                ${ballHtml}
                 ${markersHtml}
             </div>
         </div>
@@ -9135,7 +9158,7 @@ function buildMatchPrintSetPieceBlockHtml(match, planId) {
     return `
         <section class="match-print-setpiece-block">
             <h2>${escapeMatchHtml(title)} <span class="match-print-formation">(${escapeMatchHtml(countLabel)})</span></h2>
-            ${buildMatchPrintPitchHtml(planId)}
+            ${buildMatchPrintPitchHtml(match, planId)}
             ${buildMatchPrintSetPieceListHtml(match, planId)}
         </section>
     `;

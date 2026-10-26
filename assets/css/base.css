@@ -29086,6 +29086,13 @@
                 width: 100%;
             }
 
+            /* Match on-screen OffC/DefC attacking half-pitch (4:3, goal at top). */
+            .match-print-pitch-setpiece .match-print-pitch-field {
+                aspect-ratio: 4 / 3;
+                max-width: 16.5rem;
+                overflow: hidden;
+            }
+
             .match-print-pitch-halfway {
                 border: 0;
                 border-top: 1.5pt solid #000000;
@@ -29102,6 +29109,12 @@
                 z-index: 1;
             }
 
+            .match-print-pitch-setpiece .match-print-pitch-halfway {
+                bottom: 0;
+                top: auto;
+                transform: none;
+            }
+
             .match-print-pitch-center-circle {
                 aspect-ratio: 1 / 1;
                 border: 1pt solid #000000;
@@ -29116,6 +29129,13 @@
                 z-index: 1;
             }
 
+            .match-print-pitch-setpiece .match-print-pitch-center-circle {
+                bottom: 0;
+                top: auto;
+                transform: translate(-50%, 50%);
+                width: 26.9%;
+            }
+
             .match-print-pitch-box {
                 border: 0.75pt solid #000000;
                 border-top: 0;
@@ -29126,6 +29146,85 @@
                 position: absolute;
                 top: 0;
                 width: 56%;
+            }
+
+            .match-print-pitch-setpiece .match-print-pitch-box-16 {
+                height: 38%;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 76%;
+            }
+
+            .match-print-pitch-box-5m {
+                border: 0.75pt solid #000000;
+                border-top: 0;
+                box-sizing: border-box;
+                display: none;
+                height: 15%;
+                left: 50%;
+                position: absolute;
+                top: 0;
+                transform: translateX(-50%);
+                width: 42%;
+                z-index: 1;
+            }
+
+            .match-print-pitch-setpiece .match-print-pitch-box-5m {
+                display: block;
+            }
+
+            .match-print-pitch-arc {
+                border: 0.75pt solid #000000;
+                border-radius: 0 0 999px 999px;
+                border-top: 0;
+                box-sizing: border-box;
+                display: none;
+                height: 14%;
+                left: 50%;
+                position: absolute;
+                top: 38%;
+                transform: translateX(-50%);
+                width: 28%;
+                z-index: 1;
+            }
+
+            .match-print-pitch-setpiece .match-print-pitch-arc {
+                display: block;
+            }
+
+            .match-print-pitch-spot {
+                background: #000000;
+                border-radius: 50%;
+                display: none;
+                height: 0.28rem;
+                left: 50%;
+                position: absolute;
+                top: 26%;
+                transform: translate(-50%, -50%);
+                width: 0.28rem;
+                z-index: 1;
+            }
+
+            .match-print-pitch-setpiece .match-print-pitch-spot {
+                display: block;
+            }
+
+            .match-print-pitch-goal {
+                border: 0.75pt solid #000000;
+                border-top: 0;
+                box-sizing: border-box;
+                display: none;
+                height: 3.2%;
+                left: 50%;
+                position: absolute;
+                top: 0;
+                transform: translateX(-50%);
+                width: 24%;
+                z-index: 1;
+            }
+
+            .match-print-pitch-setpiece .match-print-pitch-goal {
+                display: block;
             }
 
             .match-print-pitch-marker {
@@ -29144,6 +29243,41 @@
                 transform: translate(-50%, -50%);
                 width: 1.05rem;
                 z-index: 2;
+            }
+
+            .match-print-pitch-setpiece .match-print-pitch-marker {
+                border-radius: 0.28rem;
+                flex-direction: column;
+                gap: 0.05rem;
+                height: auto;
+                min-height: 1.05rem;
+                min-width: 1.05rem;
+                padding: 0.12rem 0.16rem;
+                width: auto;
+            }
+
+            .match-print-pitch-setpiece .match-print-pitch-marker.is-filled {
+                background: #0f172a;
+                border-color: #0f172a;
+                color: #ffffff;
+                max-width: 2.6rem;
+            }
+
+            .match-print-pitch-marker-num {
+                font-size: 7pt;
+                font-weight: 800;
+                line-height: 1;
+            }
+
+            .match-print-pitch-marker-player {
+                font-size: 5.5pt;
+                font-weight: 700;
+                line-height: 1.05;
+                max-width: 2.4rem;
+                overflow: hidden;
+                text-align: center;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
             .match-print-pitch-ball {
