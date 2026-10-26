@@ -8027,6 +8027,27 @@ function buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers, planId = 
     `;
 }
 
+function buildMatchGamePlanBenchSaveButtonHtml(match) {
+    const hasUnsavedBenchChanges = window.dirtyMatchGamePlanBenchMatchIds?.has(match.id) || false;
+    const saveLabel = hasUnsavedBenchChanges ? 'Ulagret' : 'Lagret';
+    const saveTitle = hasUnsavedBenchChanges
+        ? 'Ulagrede endringer i bytter — trykk for å lagre'
+        : 'Bytter lagret';
+    return `
+        <button
+            type="button"
+            class="training-session-attendance-add-btn match-game-plan-bench-save-btn ${hasUnsavedBenchChanges ? 'is-dirty' : ''}"
+            data-bench-save-match-id="${escapeMatchHtml(match.id)}"
+            onclick="event.preventDefault(); event.stopPropagation(); window.saveMatchGamePlanBenchPlan('${escapeMatchJsString(match.id)}')"
+            title="${escapeMatchHtml(saveTitle)}"
+            aria-label="${escapeMatchHtml(saveTitle)}"
+        >
+            <i class="fa-solid ${hasUnsavedBenchChanges ? 'fa-floppy-disk' : 'fa-check'}" aria-hidden="true"></i>
+            <span class="match-game-plan-bench-save-label">${escapeMatchHtml(saveLabel)}</span>
+        </button>
+    `;
+}
+
 function buildMatchGamePlanSetPiecePitchHeadingHtml(planId) {
     const heading = planId === 'offc'
         ? 'Offensiv corner'
@@ -8090,11 +8111,7 @@ function buildMatchGamePlanBenchPlanHtml(match) {
 
     if (!benchPlayers.length) {
         return `
-            <div class="match-game-plan-bench-panel" aria-label="Planlagte innbytter">
-                <h3 class="match-game-plan-setpiece-heading">
-                    <i class="fa-solid fa-right-left" aria-hidden="true"></i>
-                    <span>Bytter</span>
-                </h3>
+            <div class="match-game-plan-bench-panel" aria-label="Planlagt innbytte">
                 <div class="match-game-plan-bench-empty">
                     <i class="fa-solid fa-users-slash" aria-hidden="true"></i>
                     <span>Ingen innbyttere å planlegge – alle møtt opp er i 11eren.</span>
@@ -8112,7 +8129,9 @@ function buildMatchGamePlanBenchPlanHtml(match) {
                 playerKey,
                 assignment,
                 minuteValue: Number(assignment.minute) || 999,
-                isComplete: Boolean(assignment.minute && assignment.position)
+                isComplete: Boolean(assignment.minute && assignment.position),
+                isPartial: Boolean((assignment.minute || assignment.position)
+                    && !(assignment.minute && assignment.position))
             };
         })
         .sort((a, b) => {
@@ -8124,48 +8143,36 @@ function buildMatchGamePlanBenchPlanHtml(match) {
             const jerseyB = Number(b.player.drakt || b.player.draktnummer) || 999;
             return jerseyA - jerseyB || a.player.navn.localeCompare(b.player.navn);
         });
-    const hasUnsavedBenchChanges = window.dirtyMatchGamePlanBenchMatchIds?.has(match.id) || false;
-
     return `
-        <div class="match-game-plan-bench-panel" aria-label="Planlagte innbytter">
-            <div class="match-game-plan-bench-heading">
-                <h3 class="match-game-plan-setpiece-heading">
-                    <i class="fa-solid fa-right-left" aria-hidden="true"></i>
-                    <span>Bytter</span>
-                    <button
-                        type="button"
-                        class="training-session-attendance-add-btn match-game-plan-bench-save-btn ${hasUnsavedBenchChanges ? 'is-dirty' : ''}"
-                        data-bench-save-match-id="${escapeMatchHtml(match.id)}"
-                        onclick="event.preventDefault(); event.stopPropagation(); window.saveMatchGamePlanBenchPlan('${escapeMatchJsString(match.id)}')"
-                        title="${hasUnsavedBenchChanges ? 'Ulagrede endringer i bytter' : 'Lagre bytter'}"
-                        aria-label="${hasUnsavedBenchChanges ? 'Lagre ulagrede endringer' : 'Lagre bytter'}"
-                    >
-                        <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
-                        <span class="match-game-plan-bench-save-label">${hasUnsavedBenchChanges ? 'Lagre' : 'Lagre'}</span>
-                    </button>
-                </h3>
-            </div>
+        <div class="match-game-plan-bench-panel" aria-label="Planlagt innbytte">
             <div class="match-game-plan-bench-list">
-                ${benchItems.map(({ player, playerKey, assignment, isComplete }) => {
-                    const jersey = player.drakt || player.draktnummer || '-';
+                ${benchItems.map(({ player, playerKey, assignment, isComplete, isPartial }) => {
                     const jerseySort = Number(player.drakt || player.draktnummer) || 999;
                     const isPlanned = Boolean(assignment.minute || assignment.position);
+                    const rowClass = [
+                        'match-game-plan-offc-select-field',
+                        'has-role-avatar',
+                        'match-game-plan-bench-row',
+                        isComplete ? 'is-complete' : '',
+                        isPartial ? 'is-partial' : '',
+                        isPlanned ? 'is-planned' : ''
+                    ].filter(Boolean).join(' ');
                     return `
                         <div
-                            class="match-game-plan-offc-select-field has-role-avatar match-game-plan-bench-row ${isComplete ? 'is-complete' : ''}"
+                            class="${rowClass}"
                             data-bench-player-ref="${escapeMatchHtml(playerKey)}"
                             data-bench-minute="${escapeMatchHtml(assignment.minute || '')}"
                             data-bench-position="${escapeMatchHtml(assignment.position || '')}"
                             data-bench-jersey-sort="${jerseySort}"
                             data-bench-name-sort="${escapeMatchHtml(player.navn)}"
                         >
-                            <span class="match-game-plan-offc-select-number">${escapeMatchHtml(jersey)}</span>
                             ${buildMatchGamePlanRoleSlotAvatarHtml(player)}
                             <span class="match-game-plan-bench-name">${escapeMatchHtml(getMatchGamePlanPlayerShortName(player))}</span>
                             <span class="match-game-plan-bench-select-wrap">
                                 <select
                                     class="match-game-plan-offc-select match-game-plan-bench-select ${assignment.minute ? '' : 'is-empty'}"
-                                    aria-label="Planlagt innbytte for ${escapeMatchHtml(player.navn)}"
+                                    aria-label="Planlagt innbyttetid for ${escapeMatchHtml(player.navn)}"
+                                    title="Når spilleren er tenkt inn"
                                     onchange="this.classList.toggle('is-empty', !this.value); window.updateMatchGamePlanBenchMinute('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(playerKey)}', this.value)"
                                 >
                                     <option value="">TID</option>
@@ -8176,6 +8183,7 @@ function buildMatchGamePlanBenchPlanHtml(match) {
                                 <select
                                     class="match-game-plan-offc-select match-game-plan-bench-select ${assignment.position ? '' : 'is-empty'}"
                                     aria-label="Planlagt posisjon for ${escapeMatchHtml(player.navn)}"
+                                    title="Planlagt posisjon ved innbytte"
                                     onchange="this.classList.toggle('is-empty', !this.value); window.updateMatchGamePlanBenchPosition('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(playerKey)}', this.value)"
                                 >
                                     <option value="">POS</option>
@@ -8186,8 +8194,8 @@ function buildMatchGamePlanBenchPlanHtml(match) {
                                 type="button"
                                 class="bsk-btn bsk-btn-icon bsk-btn-ghost match-game-plan-bench-clear-btn"
                                 onclick="window.clearMatchGamePlanBenchAssignment('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(playerKey)}')"
-                                title="Nullstill bytte for ${escapeMatchHtml(player.navn)}"
-                                aria-label="Nullstill bytte for ${escapeMatchHtml(player.navn)}"
+                                title="Nullstill planlagt innbytte for ${escapeMatchHtml(player.navn)}"
+                                aria-label="Nullstill planlagt innbytte for ${escapeMatchHtml(player.navn)}"
                                 ${isPlanned ? '' : 'disabled'}
                             >
                                 <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
@@ -8251,10 +8259,15 @@ function updateMatchGamePlanBenchSaveState(matchId) {
     saveButton.classList.remove('is-saving', 'is-saved');
     const icon = saveButton.querySelector('i');
     const label = saveButton.querySelector('.match-game-plan-bench-save-label') || saveButton.querySelector('span');
-    if (icon) icon.className = 'fa-solid fa-floppy-disk';
-    if (label) label.textContent = 'Lagre';
-    saveButton.title = isDirty ? 'Ulagrede endringer i bytter' : 'Lagre bytter';
-    saveButton.setAttribute('aria-label', isDirty ? 'Lagre ulagrede endringer' : 'Lagre bytter');
+    if (icon) icon.className = isDirty ? 'fa-solid fa-floppy-disk' : 'fa-solid fa-check';
+    if (label) label.textContent = isDirty ? 'Ulagret' : 'Lagret';
+    saveButton.title = isDirty
+        ? 'Ulagrede endringer i bytter — trykk for å lagre'
+        : 'Bytter lagret';
+    saveButton.setAttribute(
+        'aria-label',
+        isDirty ? 'Ulagrede endringer i bytter — trykk for å lagre' : 'Bytter lagret'
+    );
 }
 
 function showMatchGamePlanBenchSavedConfirmation(matchId) {
@@ -8285,7 +8298,8 @@ function showMatchGamePlanBenchSavedConfirmation(matchId) {
 }
 
 window.syncMatchGamePlanBenchPanel = function(match) {
-    const panel = document.querySelector('[data-game-plan-page="bench"] .match-game-plan-bench-panel');
+    const page = document.querySelector('[data-game-plan-page="bench"]');
+    const panel = page?.querySelector('.match-game-plan-bench-panel');
     const list = panel?.querySelector('.match-game-plan-bench-list');
     if (!panel || !list || !match) return;
 
@@ -8306,10 +8320,13 @@ window.syncMatchGamePlanBenchPanel = function(match) {
         if (!row) return;
 
         const isPlanned = Boolean(assignment.minute || assignment.position);
+        const isPartial = Boolean(isPlanned && !isComplete);
         const clearButton = row.querySelector('.match-game-plan-bench-clear-btn');
         row.dataset.benchMinute = assignment.minute || '';
         row.dataset.benchPosition = assignment.position || '';
         row.classList.toggle('is-complete', isComplete);
+        row.classList.toggle('is-partial', isPartial);
+        row.classList.toggle('is-planned', isPlanned);
 
         if (clearButton) {
             clearButton.disabled = !isPlanned;
@@ -8474,11 +8491,19 @@ function buildMatchGamePlanRolesPitchSummaryHtml(match) {
 }
 
 function buildMatchGamePlanBenchHtml(match) {
-    return buildMatchGamePlanPitchHtml({
-        ariaLabel: 'Bytter bane',
-        extraClass: 'match-game-plan-bench-wrap',
-        childrenHtml: buildMatchGamePlanBenchPlanHtml(match)
-    });
+    // List-only: pitch chips duplicated the same plan and added noise.
+    return `
+        <div class="match-game-plan-bench-layout">
+            <div class="match-game-plan-bench-toolbar">
+                <h3 class="match-game-plan-bench-toolbar-heading match-bench-group-title stats-kamp-summary-metric-heading">
+                    <span class="match-bench-group-title-label">Planlagt inn</span>
+                    <span class="match-game-plan-bench-toolbar-rule" aria-hidden="true"></span>
+                    ${buildMatchGamePlanBenchSaveButtonHtml(match)}
+                </h3>
+            </div>
+            ${buildMatchGamePlanBenchPlanHtml(match)}
+        </div>
+    `;
 }
 
 function getMatchGamePlanNotesText(match) {
@@ -9057,7 +9082,10 @@ function ensureMatchGamePlanPitchPages(root = document) {
             page.innerHTML = buildMatchGamePlanRolesHtml(match);
             return;
         }
-        if (tabId === 'bench' && (!hasPitch || !hasBenchPanel)) {
+        if (tabId === 'bench' && (
+            !hasBenchPanel
+            || !page.querySelector('.match-game-plan-bench-layout')
+        )) {
             const match = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
             if (!match) return;
             page.innerHTML = buildMatchGamePlanBenchHtml(match);
@@ -11214,6 +11242,7 @@ window.saveMatchGamePlanBenchPlan = async function(matchId) {
         await window.saveMatchToDatabase(match);
         window.dirtyMatchGamePlanBenchMatchIds = window.dirtyMatchGamePlanBenchMatchIds || new Set();
         window.dirtyMatchGamePlanBenchMatchIds.delete(matchId);
+        syncMatchKampplanPanelTeaser(match);
         showMatchGamePlanBenchSavedConfirmation(matchId);
     } catch (error) {
         console.error('Kunne ikke lagre bytter', error);
