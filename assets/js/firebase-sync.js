@@ -218,7 +218,19 @@
             ) {
                 window.activeMatchGamePlanTab = resolvedGamePlanTab;
                 requestAnimationFrame(() => {
-                    window.renderMatchGamePlanSetPiecePage(activeMatch, resolvedGamePlanTab);
+                    // Re-seed draft from saved lineup unless this device has local edits.
+                    if (
+                        !window.isMatchGamePlanDraftDirty?.(activeMatch)
+                        && typeof window.resetMatchGamePlanDraft === 'function'
+                    ) {
+                        window.resetMatchGamePlanDraft(activeMatch);
+                    }
+                    // Refresh all setpiece pages so inactive tabs don't keep stale empty pickers.
+                    ['offc', 'defc', 'roller'].forEach((tabId) => {
+                        if (document.querySelector(`[data-game-plan-page="${tabId}"]`)) {
+                            window.renderMatchGamePlanSetPiecePage(activeMatch, tabId);
+                        }
+                    });
                     if (typeof window.syncMatchKampplanPanelTeaser === 'function') {
                         window.syncMatchKampplanPanelTeaser(activeMatch);
                     }

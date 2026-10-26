@@ -2606,17 +2606,25 @@ function getMatchGamePlanDraft(match) {
     window.matchGamePlanDrafts = window.matchGamePlanDrafts || {};
     if (!match?.id) return {
         lineup: cloneMatchGamePlanLineup(getMatchGamePlanLineup(match)),
-        formation: getMatchGamePlanFormation(match)
+        formation: getMatchGamePlanFormation(match),
+        touched: false
     };
 
     if (!window.matchGamePlanDrafts[match.id]) {
         window.matchGamePlanDrafts[match.id] = {
             lineup: cloneMatchGamePlanLineup(getMatchGamePlanLineup(match)),
-            formation: getMatchGamePlanFormation(match)
+            formation: getMatchGamePlanFormation(match),
+            touched: false
         };
     }
 
     return window.matchGamePlanDrafts[match.id];
+}
+
+function markMatchGamePlanDraftTouched(match) {
+    if (!match?.id) return;
+    const draft = getMatchGamePlanDraft(match);
+    draft.touched = true;
 }
 
 function pruneMatchGamePlanDraftLineupForFormation(draft, formationId) {
@@ -2632,9 +2640,11 @@ function resetMatchGamePlanDraft(match) {
     window.matchGamePlanDrafts = window.matchGamePlanDrafts || {};
     window.matchGamePlanDrafts[match.id] = {
         lineup: cloneMatchGamePlanLineup(getMatchGamePlanLineup(match)),
-        formation: getMatchGamePlanFormation(match)
+        formation: getMatchGamePlanFormation(match),
+        touched: false
     };
 }
+window.resetMatchGamePlanDraft = resetMatchGamePlanDraft;
 
 function getMatchGamePlanFormationPositions(formationId) {
     const formation = matchGamePlanFormations[formationId];
@@ -2778,7 +2788,9 @@ window.isMatchGamePlanDraftDirty = function(matchOrId) {
     const match = typeof matchOrId === 'string'
         ? (window.activeMatches || []).find(item => item.id === matchOrId)
         : matchOrId;
-    return checkMatchGamePlanDraftDirty(match);
+    // Sync guard: only block remote refresh when this device has local lineup edits.
+    // Diff-vs-saved alone is a false positive after opening an empty draft before lineup syncs.
+    return Boolean(match?.id && window.matchGamePlanDrafts?.[match.id]?.touched);
 };
 
 function getMatchGamePlanDraftLineup(match) {
@@ -5647,6 +5659,7 @@ window.applyMatchGamePlanLineSuggest = function(matchId) {
     });
 
     draft.lineup = nextLineup;
+    markMatchGamePlanDraftTouched(match);
     clearMatchGamePlanLineSuggest(match);
     refreshMatchGamePlanLineupAfterChange(match, [...affected]);
     syncMatchGamePlanLineupSaveState(match);
@@ -7861,9 +7874,37 @@ function getMatchGamePlanStarterPlayerValue(player) {
     return player?.id || player?.navn || '';
 }
 
+function matchGamePlanPlayerValuesMatch(left, right) {
+    if (!left || !right) return false;
+    if (String(left) === String(right)) return true;
+    const leftPlayer = typeof window.findPlayerByRef === 'function' ? window.findPlayerByRef(left) : null;
+    const rightPlayer = typeof window.findPlayerByRef === 'function' ? window.findPlayerByRef(right) : null;
+    if (leftPlayer && rightPlayer) return matchGamePlanSamePlayer(leftPlayer, rightPlayer);
+    if (leftPlayer && typeof window.playerRefMatches === 'function') {
+        return window.playerRefMatches(right, leftPlayer);
+    }
+    if (rightPlayer && typeof window.playerRefMatches === 'function') {
+        return window.playerRefMatches(left, rightPlayer);
+    }
+    return false;
+}
+
 function findMatchGamePlanStarterPlayerByValue(starterPlayers, value) {
     if (!value) return null;
-    return starterPlayers.find(({ player }) => getMatchGamePlanStarterPlayerValue(player) === value)?.player || null;
+    const exact = starterPlayers.find(({ player }) => getMatchGamePlanStarterPlayerValue(player) === value)?.player;
+    if (exact) return exact;
+    return starterPlayers.find(({ player }) => (
+        typeof window.playerRefMatches === 'function' && window.playerRefMatches(value, player)
+    ))?.player || null;
+}
+
+function resolveMatchGamePlanAssignedPlayer(match, storedValue, starterPlayers = null) {
+    const value = String(storedValue || '').trim();
+    if (!value) return null;
+    const starters = starterPlayers || getMatchGamePlanSetPieceStarterPlayers(match);
+    const fromStarters = findMatchGamePlanStarterPlayerByValue(starters, value);
+    if (fromStarters) return fromStarters;
+    return resolveMatchPrintPlayer(match, value);
 }
 
 function buildMatchGamePlanRoleSlotAvatarHtml(player) {
@@ -7884,11 +7925,22 @@ function buildMatchGamePlanRoleSlotAvatarHtml(player) {
 }
 
 function getMatchGamePlanSetPieceStarterPlayers(match) {
-    const lineup = getMatchGamePlanDraftLineup(match);
-    const formationId = getMatchGamePlanDraftFormation(match);
-    return getMatchGamePlanFormationPositionIds(formationId)
+    let formationId = getMatchGamePlanDraftFormation(match);
+    let lineup = getMatchGamePlanDraftLineup(match);
+    let starters = getMatchGamePlanFormationPositionIds(formationId)
         .map(posId => ({ posId, player: lineup[posId] }))
         .filter(item => item.player);
+
+    // Untouched empty draft can lag behind a synced saved lineup on another device.
+    if (!starters.length && !window.matchGamePlanDrafts?.[match?.id]?.touched) {
+        formationId = getMatchGamePlanFormation(match);
+        lineup = getMatchGamePlanLineup(match);
+        starters = getMatchGamePlanFormationPositionIds(formationId)
+            .map(posId => ({ posId, player: lineup[posId] }))
+            .filter(item => item.player);
+    }
+
+    return starters;
 }
 
 function getMatchGamePlanSetPiecePlanLabel(planId) {
@@ -7905,29 +7957,30 @@ function getMatchGamePlanSetPieceAssignedSlot(match, planId, playerValue, except
     if (!playerValue) return '';
     const assignments = getMatchGamePlanSetPieceAssignments(match, planId);
     const entry = Object.entries(assignments).find(([slot, value]) => (
-        value === playerValue && slot !== exceptSlot
+        slot !== exceptSlot && matchGamePlanPlayerValuesMatch(value, playerValue)
     ));
     return entry?.[0] || '';
 }
 
 function buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers, planId = 'offc') {
     const assignments = getMatchGamePlanSetPieceAssignments(match, planId);
-    const storedSelectedValue = assignments[slot] || '';
-    const selectedValue = starterPlayers.some(({ player }) => getMatchGamePlanStarterPlayerValue(player) === storedSelectedValue)
-        ? storedSelectedValue
-        : '';
-    const selectedPlayer = findMatchGamePlanStarterPlayerByValue(starterPlayers, selectedValue);
+    const storedSelectedValue = String(assignments[slot] || '').trim();
+    const selectedPlayer = resolveMatchGamePlanAssignedPlayer(match, storedSelectedValue, starterPlayers);
     const planLabel = getMatchGamePlanSetPiecePlanLabel(planId);
     const slotLabel = getMatchGamePlanSetPieceSlotLabel(planId, slot);
     const displayName = selectedPlayer
         ? getMatchGamePlanPlayerShortName(selectedPlayer)
-        : 'Velg spiller';
+        : (storedSelectedValue
+            ? (typeof window.getPlayerNameFromRef === 'function'
+                ? window.getPlayerNameFromRef(storedSelectedValue)
+                : storedSelectedValue)
+            : 'Velg spiller');
     const title = planId === 'roller' ? `${slot}: ${slotLabel}` : `${planLabel} ${slot}`;
     const fieldClass = [
         'match-game-plan-offc-select-field',
         'has-role-avatar',
         'is-pick-trigger',
-        selectedValue ? 'is-filled' : 'is-empty'
+        storedSelectedValue ? 'is-filled' : 'is-empty'
     ].join(' ');
 
     return `
@@ -7942,7 +7995,7 @@ function buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers, planId = 
         >
             <span class="match-game-plan-offc-select-number">${escapeMatchHtml(slotLabel)}</span>
             ${buildMatchGamePlanRoleSlotAvatarHtml(selectedPlayer)}
-            <span class="match-game-plan-offc-pick-label ${selectedValue ? '' : 'is-empty'}">${escapeMatchHtml(displayName)}</span>
+            <span class="match-game-plan-offc-pick-label ${storedSelectedValue ? '' : 'is-empty'}">${escapeMatchHtml(displayName)}</span>
         </button>
     `;
 }
@@ -8287,13 +8340,17 @@ function buildMatchGamePlanSetPieceNodesHtml(match, planId) {
     const assignments = getMatchGamePlanSetPieceAssignments(match, planId);
 
     return Object.entries(positions).map(([value, coords]) => {
-        const selectedValue = assignments[value] || '';
-        const selectedPlayer = findMatchGamePlanStarterPlayerByValue(starterPlayers, selectedValue);
+        const selectedValue = String(assignments[value] || '').trim();
+        const selectedPlayer = resolveMatchGamePlanAssignedPlayer(match, selectedValue, starterPlayers);
         return buildMatchGamePlanDiagramNodeHtml(value, coords, planLabel, {
             matchId: match.id,
             planId,
-            filled: Boolean(selectedPlayer),
-            playerName: selectedPlayer ? getMatchGamePlanPlayerShortName(selectedPlayer) : '',
+            filled: Boolean(selectedValue),
+            playerName: selectedPlayer
+                ? getMatchGamePlanPlayerShortName(selectedPlayer)
+                : (selectedValue && typeof window.getPlayerNameFromRef === 'function'
+                    ? window.getPlayerNameFromRef(selectedValue)
+                    : ''),
             initials: selectedPlayer ? getMatchGamePlanPlayerInitials(selectedPlayer) : '',
             photoUrl: selectedPlayer ? getMatchGamePlanPlayerPhotoUrl(selectedPlayer) : ''
         });
@@ -10503,6 +10560,7 @@ window.chooseMatchGamePlanPlayer = async function(matchId, posId, playerId = '')
     const draft = getMatchGamePlanDraft(match);
     const previousLineup = getMatchGamePlanDraftLineup(match);
     draft.lineup = assignMatchGamePlanDraftLineupPlayer(previousLineup, posId, selectedPlayer);
+    markMatchGamePlanDraftTouched(match);
     clearMatchGamePlanLineSuggest(match);
 
     const affectedPosIds = new Set([
@@ -10528,6 +10586,7 @@ window.setMatchGamePlanFormation = async function(matchId, formationId) {
 
     const draft = getMatchGamePlanDraft(match);
     draft.formation = formationId;
+    markMatchGamePlanDraftTouched(match);
     pruneMatchGamePlanDraftLineupForFormation(draft, formationId);
     renderMatchGamePlanStarter11Page(match);
     renderMatchGamePlanOffCPage(match);
@@ -10584,6 +10643,7 @@ window.clearMatchGamePlanLineup = function(matchId) {
             emptyLineup[posId] = null;
         });
         draft.lineup = emptyLineup;
+        markMatchGamePlanDraftTouched(match);
 
         renderMatchGamePlanStarter11Page(match);
         renderMatchGamePlanOffCPage(match);
@@ -10702,7 +10762,7 @@ window.updateMatchGamePlanSetPiecePlayer = async function(matchId, planId, slot,
     if (nextRef) {
         Object.entries(nextAssignments).forEach(([otherSlot, value]) => {
             if (String(otherSlot) === slotId) return;
-            if (String(value || '') !== nextRef) return;
+            if (!matchGamePlanPlayerValuesMatch(value, nextRef)) return;
             movedFromSlot = String(otherSlot);
             nextAssignments[otherSlot] = '';
         });
@@ -10808,11 +10868,11 @@ window.openMatchGamePlanSetPiecePlayerSelect = function(matchId, planId, slot) {
 
     const starterPlayers = getMatchGamePlanSetPieceStarterPlayers(match);
     const assignments = getMatchGamePlanSetPieceAssignments(match, planId);
-    const selectedValue = assignments[slot] || '';
-    const selectedPlayer = findMatchGamePlanStarterPlayerByValue(starterPlayers, selectedValue);
+    const selectedValue = String(assignments[slot] || '').trim();
+    const selectedPlayer = resolveMatchGamePlanAssignedPlayer(match, selectedValue, starterPlayers);
     const planLabel = getMatchGamePlanSetPiecePlanLabel(planId);
     const slotLabel = getMatchGamePlanSetPieceSlotLabel(planId, slot);
-    const actionSubtitle = selectedPlayer ? 'Bytt spiller' : 'Velg spiller';
+    const actionSubtitle = selectedPlayer || selectedValue ? 'Bytt spiller' : 'Velg spiller';
 
     if (title) {
         title.innerHTML = `
@@ -10988,6 +11048,7 @@ window.moveMatchGamePlanPlayerPosition = async function(matchId, fromPosId, toPo
     lineup[toPosId] = movingPlayer;
     lineup[fromPosId] = targetPlayer || null;
     draft.lineup = lineup;
+    markMatchGamePlanDraftTouched(match);
 
     refreshMatchGamePlanLineupAfterChange(match, [fromPosId, toPosId]);
     closeMatchGamePlanPlayerSelectModal();
