@@ -19129,6 +19129,11 @@
             border-left: 3px solid #f87171;
             opacity: 0.78;
         }
+        .match-game-plan-select-modal .match-game-plan-player-option.is-assigned {
+            background: rgba(245, 197, 66, 0.1);
+            border-color: rgba(245, 197, 66, 0.28);
+            border-left: 3px solid #f5c542;
+        }
         .match-game-plan-select-modal .match-game-plan-player-option:hover {
             background: rgba(245, 197, 66, 0.1);
             border-color: rgba(245, 197, 66, 0.35);
@@ -19143,6 +19148,10 @@
         .match-game-plan-select-modal .match-game-plan-player-option.is-busy:hover {
             background: rgba(248, 113, 113, 0.14);
             border-color: rgba(248, 113, 113, 0.35);
+        }
+        .match-game-plan-select-modal .match-game-plan-player-option.is-assigned:hover {
+            background: rgba(245, 197, 66, 0.16);
+            border-color: rgba(245, 197, 66, 0.42);
         }
         .match-game-plan-select-modal .match-game-plan-player-copy strong {
             color: #ffffff;
@@ -19184,6 +19193,15 @@
             background: rgba(248, 113, 113, 0.18);
             border-color: rgba(248, 113, 113, 0.42);
             color: #fecaca;
+        }
+        .match-game-plan-select-modal .match-game-plan-player-tag.is-assigned {
+            background: rgba(245, 197, 66, 0.16);
+            border-color: rgba(245, 197, 66, 0.38);
+            color: #ffe08a;
+            max-width: 7.5rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .match-game-plan-select-modal .match-game-plan-player-empty {
             background: rgba(8, 28, 56, 0.35);

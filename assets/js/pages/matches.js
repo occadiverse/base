@@ -7953,13 +7953,18 @@ function getMatchGamePlanSetPieceSlotLabel(planId, slot) {
     return planId === 'roller' ? getMatchGamePlanRoleLabel(slot) : String(slot || '');
 }
 
-function getMatchGamePlanSetPieceAssignedSlot(match, planId, playerValue, exceptSlot = '') {
-    if (!playerValue) return '';
+function getMatchGamePlanSetPieceAssignedSlots(match, planId, playerValue, exceptSlot = '') {
+    if (!playerValue) return [];
     const assignments = getMatchGamePlanSetPieceAssignments(match, planId);
-    const entry = Object.entries(assignments).find(([slot, value]) => (
-        slot !== exceptSlot && matchGamePlanPlayerValuesMatch(value, playerValue)
-    ));
-    return entry?.[0] || '';
+    return Object.entries(assignments)
+        .filter(([slot, value]) => (
+            slot !== exceptSlot && matchGamePlanPlayerValuesMatch(value, playerValue)
+        ))
+        .map(([slot]) => slot);
+}
+
+function getMatchGamePlanSetPieceAssignedSlot(match, planId, playerValue, exceptSlot = '') {
+    return getMatchGamePlanSetPieceAssignedSlots(match, planId, playerValue, exceptSlot)[0] || '';
 }
 
 function buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers, planId = 'offc') {
@@ -10812,8 +10817,10 @@ window.updateMatchGamePlanSetPiecePlayer = async function(matchId, planId, slot,
     const nextRef = playerRef || '';
     const nextAssignments = { ...getMatchGamePlanSetPieceAssignments(match, planId) };
     let movedFromSlot = '';
+    // OffC/DefC: one player per plan. Roller: same player can hold several roles.
+    const allowMultipleSlots = planId === 'roller';
 
-    if (nextRef) {
+    if (nextRef && !allowMultipleSlots) {
         Object.entries(nextAssignments).forEach(([otherSlot, value]) => {
             if (String(otherSlot) === slotId) return;
             if (!matchGamePlanPlayerValuesMatch(value, nextRef)) return;
@@ -10852,24 +10859,34 @@ window.updateMatchGamePlanSetPiecePlayer = async function(matchId, planId, slot,
 
 function buildMatchGamePlanSetPiecePlayerOptionHtml(match, planId, slot, player) {
     const playerValue = getMatchGamePlanStarterPlayerValue(player);
-    const assignedSlot = getMatchGamePlanSetPieceAssignedSlot(match, planId, playerValue, slot);
-    const assignedLabel = assignedSlot
-        ? getMatchGamePlanSetPieceSlotLabel(planId, assignedSlot)
-        : '';
-    const isBusy = Boolean(assignedSlot);
+    const assignedSlots = getMatchGamePlanSetPieceAssignedSlots(match, planId, playerValue, slot);
+    const assignedLabels = assignedSlots.map((assignedSlot) => (
+        getMatchGamePlanSetPieceSlotLabel(planId, assignedSlot)
+    ));
+    const allowMultipleSlots = planId === 'roller';
+    const isBusy = !allowMultipleSlots && assignedSlots.length > 0;
+    const hasOtherRoles = allowMultipleSlots && assignedSlots.length > 0;
+    const posMeta = player.posId ? getMatchGamePlanPositionLabel(player.posId) : 'Ledig';
     const meta = isBusy
-        ? `Flytt fra ${assignedLabel}`
-        : (player.posId ? getMatchGamePlanPositionLabel(player.posId) : 'Ledig');
+        ? `Flytt fra ${assignedLabels[0]}`
+        : (hasOtherRoles
+            ? `Har også: ${assignedLabels.join(', ')}`
+            : posMeta);
     const trailingHtml = isBusy
-        ? `<span class="match-game-plan-player-tag is-busy">${escapeMatchHtml(assignedLabel)}</span>`
-        : '<span class="match-game-plan-player-tag is-free">Ledig</span>';
+        ? `<span class="match-game-plan-player-tag is-busy">${escapeMatchHtml(assignedLabels[0])}</span>`
+        : (hasOtherRoles
+            ? `<span class="match-game-plan-player-tag is-assigned">${escapeMatchHtml(assignedLabels.join(' · '))}</span>`
+            : '<span class="match-game-plan-player-tag is-free">Ledig</span>');
+    const title = isBusy
+        ? `Flytt fra ${assignedLabels[0]}`
+        : (hasOtherRoles ? `Kan ha flere roller (${assignedLabels.join(', ')})` : 'Ledig');
 
     return `
         <button
             type="button"
-            class="match-game-plan-player-option ${isBusy ? 'is-busy' : 'is-free'}"
+            class="match-game-plan-player-option ${isBusy ? 'is-busy' : (hasOtherRoles ? 'is-assigned' : 'is-free')}"
             onclick="window.chooseMatchGamePlanSetPiecePlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(planId)}', '${escapeMatchJsString(slot)}', '${escapeMatchJsString(playerValue)}')"
-            ${isBusy ? ` title="Flytt fra ${escapeMatchHtml(assignedLabel)}"` : ' title="Ledig"'}
+            title="${escapeMatchHtml(title)}"
         >
             ${buildMatchGamePlanPlayerOptionAvatarHtml(player)}
             <span class="match-game-plan-player-copy">
