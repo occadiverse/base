@@ -10222,8 +10222,8 @@ window.showMatchDetails = function(id) {
                 </div>
             </div>
             <div class="match-collapsible-content">
-                <p class="match-inline-status match-kampplan-feedback" data-kampplan-feedback aria-live="polite" hidden></p>
                 <div class="match-game-plan-body">
+                    <p class="match-inline-status match-kampplan-feedback" data-kampplan-feedback aria-live="polite" hidden></p>
                     ${gamePlanHtml}
                 </div>
             </div>

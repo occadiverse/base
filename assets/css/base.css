@@ -16308,6 +16308,7 @@
             display: flex;
             flex-direction: column;
             min-height: 4rem;
+            position: relative;
         }
         .match-game-plan-tabs-wrap {
             background: transparent;
@@ -16673,12 +16674,30 @@
         .match-game-plan-setpiece-layout .match-game-plan-offc-controls {
             bottom: auto;
             left: auto;
+            margin-inline: auto;
             max-height: none;
+            max-width: min(100%, 26rem);
             overflow: visible;
             position: static;
             top: auto;
             transform: none;
-            width: 100%;
+            width: min(100%, 26rem);
+        }
+        @media (min-width: 768px) {
+            .match-game-plan-setpiece-layout .match-game-plan-offc-controls {
+                gap: 0.4rem 0.5rem;
+                max-width: min(100%, 24rem);
+                width: min(100%, 24rem);
+            }
+            .match-game-plan-setpiece-layout .match-game-plan-offc-select-field.has-role-avatar {
+                min-height: 2.55rem;
+            }
+        }
+        @media (min-width: 1100px) {
+            .match-game-plan-setpiece-layout .match-game-plan-offc-controls {
+                max-width: min(100%, 26rem);
+                width: min(100%, 26rem);
+            }
         }
         .match-game-plan-node {
             align-items: center;
@@ -23369,7 +23388,55 @@
             min-width: 0;
         }
         .match-kampplan-feedback {
-            margin: 0 0 0.65rem;
+            left: 50%;
+            margin: 0;
+            max-width: min(88%, 17rem);
+            pointer-events: none;
+            position: absolute;
+            text-align: center;
+            top: min(38%, 11rem);
+            transform: translate(-50%, -50%);
+            z-index: 30;
+        }
+        .match-kampplan-feedback:not([hidden]) {
+            align-items: center;
+            animation: match-kampplan-feedback-in 220ms ease-out;
+            border-radius: 0.75rem;
+            box-shadow:
+                0 0 0 1px rgba(10, 26, 48, 0.55),
+                0 14px 28px rgba(2, 6, 23, 0.35);
+            display: inline-flex;
+            font-size: 0.78rem;
+            font-weight: 950;
+            justify-content: center;
+            letter-spacing: 0.04em;
+            padding: 0.62rem 0.95rem;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.35);
+        }
+        .match-kampplan-feedback.is-success {
+            background: rgba(22, 101, 52, 0.94);
+            border: 1px solid rgba(134, 239, 172, 0.65);
+            color: #ecfdf5;
+        }
+        .match-kampplan-feedback.is-error {
+            background: rgba(127, 29, 29, 0.94);
+            border: 1px solid rgba(252, 165, 165, 0.65);
+            color: #fef2f2;
+        }
+        .match-kampplan-feedback.is-pending {
+            background: rgba(10, 26, 48, 0.94);
+            border: 1px solid rgba(255, 224, 138, 0.55);
+            color: #ffe08a;
+        }
+        @keyframes match-kampplan-feedback-in {
+            from {
+                opacity: 0;
+                transform: translate(-50%, calc(-50% + 8px)) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
         }
         .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-footer {
             min-height: 1.55rem;
