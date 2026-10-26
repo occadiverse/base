@@ -8005,11 +8005,14 @@ function buildMatchGamePlanSetPiecePitchHeadingHtml(planId) {
         ? 'Offensiv corner'
         : planId === 'defc'
             ? 'Defensiv corner'
-            : '';
+            : planId === 'roller'
+                ? 'Roller'
+                : '';
     if (!heading) return '';
+    const icon = planId === 'roller' ? 'fa-user-tag' : 'fa-flag-checkered';
     return `
         <h3 class="match-game-plan-setpiece-heading is-on-pitch">
-            <i class="fa-solid fa-flag-checkered" aria-hidden="true"></i>
+            <i class="fa-solid ${icon}" aria-hidden="true"></i>
             <span>${escapeMatchHtml(heading)}</span>
         </h3>
     `;
@@ -8387,13 +8390,60 @@ function buildMatchGamePlanDefCHtml(match) {
 }
 
 function buildMatchGamePlanRolesHtml(match) {
-    return buildMatchGamePlanPitchHtml({
-        ariaLabel: 'Roller bane',
-        childrenHtml: buildMatchGamePlanOffCControlsHtml(match, 'roller', {
-            slots: matchGamePlanRoleSlots,
-            className: 'match-game-plan-role-controls'
+    // Keep pickers outside the pitch (same as OffC/DefC). Overlaying 8 role rows
+    // inside overflow:hidden clipped Kaptein and other top slots while the badge still counted them.
+    return `
+        <div class="match-game-plan-setpiece-layout match-game-plan-roles-layout">
+            ${buildMatchGamePlanPitchHtml({
+                ariaLabel: 'Roller bane',
+                extraClass: 'match-game-plan-setpiece-pitch match-game-plan-roles-pitch',
+                childrenHtml: buildMatchGamePlanRolesPitchSummaryHtml(match)
+                    + buildMatchGamePlanSetPiecePitchHeadingHtml('roller')
+            })}
+            ${buildMatchGamePlanOffCControlsHtml(match, 'roller', {
+                slots: matchGamePlanRoleSlots,
+                className: 'match-game-plan-role-controls',
+                hideHeading: true
+            })}
+        </div>
+    `;
+}
+
+function buildMatchGamePlanRolesPitchSummaryHtml(match) {
+    const assignments = getMatchGamePlanSetPieceAssignments(match, 'roller');
+    const starterPlayers = getMatchGamePlanSetPieceStarterPlayers(match);
+    const filled = matchGamePlanRoleSlots
+        .map((slot) => {
+            const stored = String(assignments[slot] || '').trim();
+            if (!stored) return null;
+            const player = resolveMatchGamePlanAssignedPlayer(match, stored, starterPlayers);
+            const name = player
+                ? getMatchGamePlanPlayerShortName(player)
+                : (typeof window.getPlayerNameFromRef === 'function'
+                    ? window.getPlayerNameFromRef(stored)
+                    : stored);
+            return `
+                <span class="match-game-plan-roles-chip">
+                    <strong>${escapeMatchHtml(getMatchGamePlanRoleLabel(slot))}</strong>
+                    <span>${escapeMatchHtml(name || '—')}</span>
+                </span>
+            `;
         })
-    });
+        .filter(Boolean);
+
+    if (!filled.length) {
+        return `
+            <div class="match-game-plan-roles-empty" aria-hidden="true">
+                <span>Velg roller under</span>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="match-game-plan-roles-summary" aria-hidden="true">
+            ${filled.join('')}
+        </div>
+    `;
 }
 
 function buildMatchGamePlanBenchHtml(match) {
@@ -8948,7 +8998,11 @@ function ensureMatchGamePlanPitchPages(root = document) {
                 : buildMatchGamePlanOffCHtml(match);
             return;
         }
-        if (tabId === 'roller' && (!hasPitch || !hasSetPieceControls)) {
+        if (tabId === 'roller' && (
+            !hasPitch
+            || !hasSetPieceControls
+            || !page.querySelector('.match-game-plan-setpiece-layout')
+        )) {
             const match = (window.activeMatches || []).find(item => item.id === window.activeDetailsId);
             if (!match) return;
             page.innerHTML = buildMatchGamePlanRolesHtml(match);
