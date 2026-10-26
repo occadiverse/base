@@ -2321,6 +2321,24 @@
             color: #fffdf5;
             transform: none;
         }
+        .match-detail-lineup-builder .match-game-plan-lineup-clear-btn.is-armed:not(:disabled) {
+            background:
+                radial-gradient(circle at 30% 22%, rgba(255, 224, 138, 0.28), transparent 42%),
+                linear-gradient(180deg, #c45a4a 0%, #9b2f28 48%, #6b1a16 100%);
+            border-color: rgba(255, 224, 138, 0.55);
+            box-shadow:
+                0 0 0 1px rgba(196, 146, 20, 0.4),
+                0 2px 0 #6b4a0c;
+            color: #ffe08a;
+        }
+        .match-detail-lineup-builder .match-game-plan-lineup-clear-btn.is-armed:hover:not(:disabled) {
+            background:
+                radial-gradient(circle at 30% 22%, rgba(255, 224, 138, 0.38), transparent 42%),
+                linear-gradient(180deg, #d46a58 0%, #b03830 48%, #7a201a 100%);
+            border-color: rgba(255, 224, 138, 0.75);
+            color: #fff6d6;
+            transform: none;
+        }
         .match-detail-lineup-builder .match-game-plan-lineup-clear-btn:disabled {
             cursor: not-allowed;
             opacity: 0.38;

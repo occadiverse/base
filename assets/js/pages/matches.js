@@ -2596,13 +2596,15 @@ function syncMatchGamePlanLineupSaveState(match) {
     }
 
     if (clearBtn) {
+        const isArmed = playerCount > 0 && window._lineupClearArmedMatchId === match.id;
         clearBtn.disabled = playerCount === 0;
+        clearBtn.classList.toggle('is-armed', isArmed);
         clearBtn.setAttribute('aria-label', playerCount === 0
             ? 'Nullstill lagoppstilling (ingen spillere på banen)'
-            : 'Nullstill lagoppstilling');
+            : (isArmed ? 'Bekreft: tøm banen' : 'Nullstill lagoppstilling'));
         clearBtn.title = playerCount === 0
             ? 'Ingen spillere å fjerne'
-            : 'Fjern alle spillere fra banen';
+            : (isArmed ? 'Trykk igjen for å bekrefte at banen tømmes' : 'Trykk to ganger for å tømme banen');
     }
 
     syncMatchLineupPanelTeaser(match);
@@ -6592,13 +6594,18 @@ function syncMatchGamePlanLineupViewSegmentUi(match) {
 
 function buildMatchGamePlanLineupClearBtnHtml(match) {
     const playerCount = getMatchGamePlanDraftLineupPlayerCount(match);
+    const isArmed = playerCount > 0 && window._lineupClearArmedMatchId === match.id;
 
     return `
         <button
             type="button"
-            class="match-game-plan-lineup-clear-btn"
-            aria-label="${playerCount === 0 ? 'Nullstill lagoppstilling (ingen spillere på banen)' : 'Nullstill lagoppstilling'}"
-            title="${playerCount === 0 ? 'Ingen spillere å fjerne' : 'Fjern alle spillere fra banen'}"
+            class="match-game-plan-lineup-clear-btn${isArmed ? ' is-armed' : ''}"
+            aria-label="${playerCount === 0
+                ? 'Nullstill lagoppstilling (ingen spillere på banen)'
+                : (isArmed ? 'Bekreft: tøm banen' : 'Nullstill lagoppstilling')}"
+            title="${playerCount === 0
+                ? 'Ingen spillere å fjerne'
+                : (isArmed ? 'Trykk igjen for å bekrefte at banen tømmes' : 'Trykk to ganger for å tømme banen')}"
             ${playerCount === 0 ? 'disabled' : ''}
             onclick="window.clearMatchGamePlanLineup('${escapeMatchJsString(match.id)}')"
         >
@@ -10233,7 +10240,40 @@ window.clearMatchGamePlanLineup = function(matchId) {
     if (!match) return;
 
     const playerCount = getMatchGamePlanDraftLineupPlayerCount(match);
-    if (!playerCount) return;
+    if (!playerCount) {
+        window._lineupClearArmedMatchId = null;
+        if (window._lineupClearArmTimer) {
+            clearTimeout(window._lineupClearArmTimer);
+            window._lineupClearArmTimer = null;
+        }
+        return;
+    }
+
+    const disarmClear = () => {
+        window._lineupClearArmedMatchId = null;
+        if (window._lineupClearArmTimer) {
+            clearTimeout(window._lineupClearArmTimer);
+            window._lineupClearArmTimer = null;
+        }
+        syncMatchGamePlanLineupSaveState(match);
+    };
+
+    /* Første trykk armerer — unngår utilsiktet tømming ved siden av Lagre. */
+    if (window._lineupClearArmedMatchId !== matchId) {
+        window._lineupClearArmedMatchId = matchId;
+        if (window._lineupClearArmTimer) clearTimeout(window._lineupClearArmTimer);
+        window._lineupClearArmTimer = setTimeout(disarmClear, 3500);
+        syncMatchGamePlanLineupSaveState(match);
+        setMatchDetailFeedback(
+            '[data-lineup-save-state]',
+            'Trykk nullstill igjen for å tømme banen.',
+            'pending',
+            3500
+        );
+        return;
+    }
+
+    disarmClear();
 
     const runClear = () => {
         const draft = getMatchGamePlanDraft(match);
@@ -10258,9 +10298,10 @@ window.clearMatchGamePlanLineup = function(matchId) {
 
     if (typeof window.customConfirm === 'function') {
         window.customConfirm(
-            'Nullstill lagoppstilling',
+            'Tøm banen?',
             `Fjerne alle ${playerCount} spillere fra banen? Endringen lagres ikke før du trykker Lagre.`,
-            runClear
+            runClear,
+            { danger: true, confirmLabel: 'Ja, tøm banen' }
         );
         return;
     }
