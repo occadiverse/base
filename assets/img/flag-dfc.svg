@@ -9,9 +9,9 @@
         dominant-baseline="central"
         fill="#000"
         font-family="Arial Black, Arial, Helvetica, sans-serif"
-        font-size="28"
+        font-size="34"
         font-weight="900"
-      >DC</text>
+      >D</text>
     </mask>
   </defs>
   <path d="M8 4v58" stroke="#000" stroke-width="4" stroke-linecap="round"/>

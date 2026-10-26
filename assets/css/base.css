@@ -1760,8 +1760,9 @@
         .match-detail-squad-players {
             min-width: 0;
         }
-        /* Kamptropp åpen: total-chip i topline (som Kamper antall) — skjult når lukket */
-        .match-detail-page .match-bench-panel[data-match-panel="kamptropp"] .match-kamptropp-status-total {
+        /* Åpen panel: total-chip i topline (Kamptropp / Kampplan) — skjult når lukket */
+        .match-detail-page .match-bench-panel[data-match-panel="kamptropp"] .match-kamptropp-status-total,
+        .match-detail-page .match-game-plan-panel[data-match-panel="kampplan"] .match-kamptropp-status-total {
             align-items: center;
             background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
             border: 1.5px solid rgba(255, 224, 138, 0.42);
@@ -1781,7 +1782,8 @@
             pointer-events: none;
             text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
         }
-        .match-detail-page .match-bench-panel[data-match-panel="kamptropp"]:not(.is-collapsed) .match-kamptropp-status-total {
+        .match-detail-page .match-bench-panel[data-match-panel="kamptropp"]:not(.is-collapsed) .match-kamptropp-status-total,
+        .match-detail-page .match-game-plan-panel[data-match-panel="kampplan"]:not(.is-collapsed) .match-kamptropp-status-total {
             display: inline-flex;
         }
         .match-detail-squad-overlay-toolbar {
@@ -16317,14 +16319,15 @@
             width: min(100%, 34rem);
         }
         .match-game-plan-tabs {
-            display: grid;
-            gap: 0.35rem;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 0.4rem;
+            justify-content: center;
             margin: 0;
             max-width: 100%;
             overflow: visible;
             padding: 0;
-            width: 100%;
+            width: auto;
         }
         /* Clash navy/gull — samme språk som Kamptropp-overlay */
         .match-game-plan-tab {
@@ -16338,6 +16341,7 @@
             color: rgba(255, 253, 245, 0.92);
             cursor: pointer;
             display: inline-flex;
+            flex: 0 0 auto;
             font-family: inherit;
             font-size: 0.62rem;
             font-weight: 900;
@@ -16346,25 +16350,79 @@
             letter-spacing: 0.02em;
             max-height: 2.15rem;
             min-height: 2.15rem;
-            min-width: 0;
-            padding: 0 0.28rem;
+            min-width: 2.15rem;
+            padding: 0;
             text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
             text-transform: none;
             transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, color 140ms ease;
             white-space: nowrap;
-            width: 100%;
+            width: 2.15rem;
         }
         .match-game-plan-tab.has-icon {
-            padding: 0.15rem;
+            padding: 0;
+            position: relative;
         }
         .match-game-plan-tab-icon {
             display: block;
             filter: invert(1);
             flex: 0 0 auto;
-            height: 1.35rem;
+            height: 1.2rem;
             object-fit: contain;
             pointer-events: none;
-            width: 1.35rem;
+            width: 1.2rem;
+        }
+        .match-game-plan-tab-fa {
+            color: rgba(255, 253, 245, 0.94);
+            flex: 0 0 auto;
+            font-size: 0.88rem;
+            line-height: 1;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
+        }
+        .match-game-plan-tab-badge {
+            align-items: center;
+            background: linear-gradient(180deg, #ffe066 0%, #e69d10 62%, #a85800 100%);
+            border: 1px solid #fff099;
+            border-radius: 999px;
+            box-shadow: 0 1px 0 #5c2e00;
+            color: #fffdf5;
+            display: inline-flex;
+            font-size: 0.52rem;
+            font-weight: 950;
+            height: 0.95rem;
+            justify-content: center;
+            letter-spacing: 0;
+            line-height: 1;
+            min-width: 0.95rem;
+            padding: 0 0.22rem;
+            pointer-events: none;
+            position: absolute;
+            right: -0.28rem;
+            text-shadow: 0 1px 0 #5c2e00;
+            top: -0.28rem;
+            z-index: 2;
+        }
+        .match-game-plan-tab-badge.is-complete {
+            background: linear-gradient(180deg, #3d9a62 0%, #1e7a45 48%, #0f4f2c 100%);
+            border-color: rgba(255, 248, 220, 0.72);
+            box-shadow: 0 1px 0 #0f4f2c;
+            text-shadow: 0 1px 0 #0a3a20;
+        }
+        .match-game-plan-tab.is-active .match-game-plan-tab-badge {
+            box-shadow: 0 1px 0 rgba(92, 46, 0, 0.85);
+        }
+        .match-game-plan-tab.is-active .match-game-plan-tab-icon {
+            filter: brightness(0) invert(1);
+        }
+        .match-game-plan-tab.is-active .match-game-plan-tab-fa {
+            color: #fffdf5;
+            text-shadow: 0 1px 0 #5c2e00;
+        }
+        .match-game-plan-print-tab {
+            margin-left: 0.15rem;
+        }
+        .match-game-plan-print-tab:hover:not(.is-active),
+        .match-game-plan-print-tab:focus-visible {
+            border-color: rgba(255, 224, 138, 0.85);
         }
         .match-game-plan-tab:hover:not(.is-active) {
             background: linear-gradient(180deg, rgba(40, 95, 150, 0.85) 0%, rgba(12, 36, 68, 0.95) 100%);
@@ -17148,22 +17206,72 @@
         }
         .match-game-plan-diagram-node {
             align-items: center;
+            appearance: none;
             aspect-ratio: 1 / 1;
             border: 2px solid rgba(255, 255, 255, 0.9);
             border-radius: 50%;
             box-shadow: 0 9px 18px rgba(2, 6, 23, 0.24);
             color: #111827;
+            cursor: pointer;
             display: inline-flex;
+            font: inherit;
             font-size: 1rem;
             font-weight: 950;
             height: 1.95rem;
             justify-content: center;
             line-height: 1;
-            overflow: hidden;
+            overflow: visible;
+            padding: 0;
             position: absolute;
             transform: translate(-50%, -50%);
+            transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
             width: 1.95rem;
             z-index: 3;
+        }
+        button.match-game-plan-diagram-node:focus-visible {
+            outline: 2px solid rgba(245, 197, 66, 0.95);
+            outline-offset: 2px;
+        }
+        .match-game-plan-diagram-node-value,
+        .match-game-plan-diagram-node-initials {
+            align-items: center;
+            display: inline-flex;
+            height: 100%;
+            justify-content: center;
+            width: 100%;
+        }
+        .match-game-plan-diagram-node-initials {
+            background: rgba(15, 36, 64, 0.92);
+            border-radius: 50%;
+            color: #f5c542;
+            font-size: 0.62rem;
+            letter-spacing: -0.02em;
+        }
+        .match-game-plan-diagram-node-photo {
+            border-radius: 50%;
+            display: block;
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
+        }
+        .match-game-plan-diagram-node-slot {
+            align-items: center;
+            background: rgba(10, 26, 48, 0.92);
+            border: 1px solid rgba(245, 197, 66, 0.85);
+            border-radius: 999px;
+            bottom: -0.18rem;
+            color: #f8fafc;
+            display: inline-flex;
+            font-size: 0.52rem;
+            font-weight: 950;
+            height: 0.92rem;
+            justify-content: center;
+            line-height: 1;
+            min-width: 0.92rem;
+            padding: 0 0.12rem;
+            position: absolute;
+            right: -0.22rem;
+            z-index: 2;
         }
         .match-game-plan-diagram-node.is-neutral {
             background: rgba(226, 232, 240, 0.86);
@@ -17179,6 +17287,34 @@
         }
         .match-game-plan-diagram-node.is-red {
             background: rgba(254, 202, 202, 0.92);
+        }
+        .match-game-plan-diagram-node.is-filled {
+            background: rgba(15, 36, 64, 0.92);
+            border-color: #f5c542;
+            box-shadow:
+                0 0 0 1.5px rgba(196, 146, 20, 0.55),
+                0 9px 18px rgba(2, 6, 23, 0.28);
+            color: #f5c542;
+        }
+        .match-game-plan-diagram-node.has-photo {
+            background: #0a1a30;
+        }
+        .match-game-plan-diagram-node.is-active,
+        .match-game-plan-diagram-node.is-highlight {
+            border-color: #ffe08a;
+            box-shadow:
+                0 0 0 3px rgba(245, 197, 66, 0.95),
+                0 10px 20px rgba(2, 6, 23, 0.35);
+            transform: translate(-50%, -50%) scale(1.22);
+            z-index: 6;
+        }
+        .match-game-plan-offc-select-field.is-pick-trigger.is-active {
+            border-color: rgba(255, 224, 138, 0.95);
+            box-shadow:
+                0 0 0 2px rgba(245, 197, 66, 0.55),
+                0 0 0 1px rgba(10, 26, 48, 0.75),
+                0 10px 20px rgba(2, 6, 23, 0.32),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
         .match-game-plan-ball-marker {
             align-items: center;
@@ -17497,37 +17633,98 @@
             color: #123f73;
         }
         .match-game-plan-notes-panel {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1rem;
+            background: transparent;
+            border: 0;
+            border-radius: 0;
             display: grid;
-            gap: 0.75rem;
-            padding: 0.85rem 0.9rem 1rem;
+            gap: 0.85rem;
+            padding: 0.35rem 0.15rem 0.2rem;
         }
         .match-game-plan-notes-fields {
             display: grid;
-            gap: 0.75rem;
+            gap: 1.35rem;
+            padding: 0.55rem 0.05rem 0.15rem;
         }
         .match-game-plan-notes-meta {
             display: grid;
-            gap: 0.65rem;
+            gap: 1.15rem 0.75rem;
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
-        .match-game-plan-notes-panel .portal-label {
-            color: rgba(245, 197, 66, 0.88);
+        .match-game-plan-notes-field-frame {
+            margin-top: 0.35rem;
+            overflow: visible;
+            position: relative;
+        }
+        .match-game-plan-notes-frame-emblem {
+            align-items: center;
+            border: 1.5px solid rgba(255, 248, 220, 0.72);
+            border-radius: 0.4rem;
+            color: #fffdf5;
+            display: inline-flex;
+            font-size: 0.58rem;
+            font-weight: 950;
+            justify-content: center;
+            left: 0.75rem;
+            letter-spacing: 0.1em;
+            line-height: 1;
+            padding: 0.28rem 0.55rem;
+            pointer-events: none;
+            position: absolute;
+            text-shadow:
+                0 1px 0 rgba(2, 6, 23, 0.45),
+                0 0 8px rgba(245, 197, 66, 0.18);
+            text-transform: uppercase;
+            top: 0;
+            transform: translateY(-55%);
+            white-space: nowrap;
+            z-index: 3;
+        }
+        .match-game-plan-notes-field-frame[data-notes-emblem="template"] .match-game-plan-notes-frame-emblem,
+        .match-game-plan-notes-field-frame[data-notes-emblem="title"] .match-game-plan-notes-frame-emblem {
+            background:
+                radial-gradient(circle at 28% 22%, rgba(255, 224, 138, 0.35), transparent 42%),
+                linear-gradient(180deg, #3d9a62 0%, #1e7a45 48%, #0f4f2c 100%);
+            box-shadow:
+                0 0 0 1px rgba(196, 146, 20, 0.55),
+                0 2px 0 #6b4a0c,
+                0 4px 10px rgba(2, 6, 23, 0.28),
+                inset 0 1px 0 rgba(255, 248, 220, 0.35);
+        }
+        .match-game-plan-notes-field-frame[data-notes-emblem="notes"] .match-game-plan-notes-frame-emblem {
+            background:
+                radial-gradient(circle at 28% 22%, rgba(255, 224, 138, 0.32), transparent 42%),
+                linear-gradient(180deg, #2f6fb0 0%, #1a4f88 48%, #0d2f58 100%);
+            box-shadow:
+                0 0 0 1px rgba(196, 146, 20, 0.55),
+                0 2px 0 #6b4a0c,
+                0 4px 10px rgba(2, 6, 23, 0.28),
+                inset 0 1px 0 rgba(255, 248, 220, 0.32);
         }
         .match-game-plan-notes-panel .portal-field {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.14);
-            color: #ffffff;
+            background: rgba(4, 14, 28, 0.55);
+            border-color: rgba(245, 197, 66, 0.28);
+            box-shadow:
+                inset 0 3px 8px rgba(0, 0, 0, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                inset 0 0 0 1px rgba(245, 197, 66, 0.08);
+            color: #fffdf5;
+        }
+        .match-game-plan-notes-field-frame[data-notes-emblem="template"] .portal-field,
+        .match-game-plan-notes-field-frame[data-notes-emblem="title"] .portal-field {
+            border-color: rgba(61, 154, 98, 0.45);
+        }
+        .match-game-plan-notes-field-frame[data-notes-emblem="notes"] .portal-field {
+            border-color: rgba(74, 144, 210, 0.5);
         }
         .match-game-plan-notes-panel .portal-field::placeholder {
             color: rgba(255, 255, 255, 0.38);
         }
         .match-game-plan-notes-panel .portal-field:focus {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(245, 197, 66, 0.42);
-            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.16);
+            background: rgba(8, 24, 48, 0.72);
+            border-color: rgba(245, 197, 66, 0.62);
+            box-shadow:
+                inset 0 3px 8px rgba(0, 0, 0, 0.22),
+                0 0 0 3px rgba(245, 197, 66, 0.16);
         }
         .match-game-plan-notes-panel select.portal-field {
             cursor: pointer;
@@ -17583,6 +17780,75 @@
             min-height: 2.25rem;
             overflow: hidden;
             position: relative;
+        }
+        button.match-game-plan-offc-select-field {
+            appearance: none;
+            color: inherit;
+            cursor: pointer;
+            font: inherit;
+            text-align: left;
+            width: 100%;
+        }
+        button.match-game-plan-offc-select-field:focus-visible {
+            outline: 2px solid rgba(245, 197, 66, 0.85);
+            outline-offset: 2px;
+        }
+        .match-game-plan-offc-select-field.is-pick-trigger {
+            background:
+                radial-gradient(ellipse 90% 80% at 12% 0%, rgba(255, 214, 102, 0.18), transparent 55%),
+                linear-gradient(168deg, #1a4570 0%, #12386a 48%, #0a2448 100%);
+            border: 1.5px solid rgba(245, 197, 66, 0.58);
+            box-shadow:
+                0 0 0 1px rgba(10, 26, 48, 0.7),
+                0 8px 16px rgba(2, 6, 23, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.16),
+                inset 0 -8px 14px rgba(0, 0, 0, 0.22);
+            color: #fffdf5;
+            transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+        }
+        .match-game-plan-offc-select-field.is-pick-trigger.is-empty {
+            background:
+                radial-gradient(ellipse 90% 80% at 12% 0%, rgba(255, 214, 102, 0.08), transparent 55%),
+                linear-gradient(168deg, #163a5e 0%, #0f2d4e 52%, #081c36 100%);
+            border-color: rgba(245, 197, 66, 0.32);
+            box-shadow:
+                0 0 0 1px rgba(10, 26, 48, 0.55),
+                0 6px 12px rgba(2, 6, 23, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+        .match-game-plan-offc-select-field.is-pick-trigger:hover {
+            border-color: rgba(255, 224, 138, 0.85);
+            box-shadow:
+                0 0 0 1px rgba(10, 26, 48, 0.75),
+                0 10px 20px rgba(2, 6, 23, 0.32),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                0 0 14px rgba(245, 197, 66, 0.18);
+            transform: translateY(-1px);
+        }
+        .match-game-plan-offc-select-field.is-pick-trigger:active {
+            transform: translateY(1px);
+        }
+        .match-game-plan-offc-select-field.is-pick-trigger .match-game-plan-role-avatar.is-empty {
+            background: rgba(255, 248, 220, 0.08);
+            color: rgba(255, 248, 220, 0.45);
+        }
+        .match-game-plan-offc-pick-label {
+            color: #fffdf5;
+            font-size: 0.8rem;
+            font-weight: 900;
+            letter-spacing: -0.01em;
+            min-width: 0;
+            overflow: hidden;
+            padding: 0.62rem 1.35rem 0.62rem 0.32rem;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .match-game-plan-offc-pick-label.is-empty {
+            color: rgba(255, 248, 220, 0.48);
+            font-weight: 800;
+        }
+        .match-game-plan-role-controls .match-game-plan-offc-select-field.is-pick-trigger .match-game-plan-offc-pick-label {
+            padding: 0.62rem 1.45rem 0.62rem 0.28rem;
         }
         .match-game-plan-offc-select-field::after {
             border-left: 4px solid transparent;
@@ -24840,15 +25106,23 @@
             }
             .match-game-plan-tab {
                 font-size: 0.54rem;
+                height: 2rem;
                 letter-spacing: 0.02em;
-                padding: 0 0.2rem;
+                max-height: 2rem;
+                min-height: 2rem;
+                min-width: 2rem;
+                padding: 0;
+                width: 2rem;
             }
             .match-game-plan-tab.has-icon {
-                padding: 0.12rem;
+                padding: 0;
+            }
+            .match-game-plan-tab-fa {
+                font-size: 0.82rem;
             }
             .match-game-plan-tab-icon {
-                height: 1.25rem;
-                width: 1.25rem;
+                height: 1.1rem;
+                width: 1.1rem;
             }
             .match-game-plan-content-scroll {
                 margin-inline: -0.15rem;
@@ -24872,24 +25146,45 @@
                 height: 1.62rem;
                 width: 1.62rem;
             }
+            .match-game-plan-diagram-node-initials {
+                font-size: 0.52rem;
+            }
+            .match-game-plan-diagram-node-slot {
+                bottom: -0.16rem;
+                font-size: 0.48rem;
+                height: 0.82rem;
+                min-width: 0.82rem;
+                right: -0.2rem;
+            }
             .match-game-plan-ball-marker {
                 font-size: 0.85rem;
                 height: 1.58rem;
                 width: 1.58rem;
             }
             .match-game-plan-offc-controls {
-                gap: 0.32rem 0.42rem;
-                max-height: calc(50% - 0.65rem);
-                top: calc(50% + 0.35rem);
+                gap: 0.26rem 0.32rem;
+                max-height: calc(54% - 0.35rem);
+                top: calc(48% + 0.2rem);
                 width: calc(100% - 0.7rem);
             }
             .match-game-plan-setpiece-heading {
-                border-radius: 0.75rem;
-                font-size: 0.72rem;
-                gap: 0.35rem;
+                border-radius: 0.7rem;
+                font-size: 0.66rem;
+                gap: 0.3rem;
                 letter-spacing: 0.05em;
-                min-height: 2.55rem;
-                padding: 0.48rem 0.7rem;
+                min-height: 2.2rem;
+                padding: 0.38rem 0.6rem;
+            }
+            .match-game-plan-offc-select-field.has-role-avatar {
+                min-height: 2.35rem;
+            }
+            .match-game-plan-offc-select-field.has-role-avatar .match-game-plan-role-avatar {
+                height: 1.7rem;
+                width: 1.7rem;
+            }
+            .match-game-plan-offc-select-field.has-role-avatar .match-game-plan-offc-pick-label {
+                font-size: 0.72rem;
+                padding: 0.42rem 1.1rem 0.42rem 0.2rem;
             }
             .match-game-plan-setpiece-heading i {
                 font-size: 0.72rem;
@@ -24909,7 +25204,8 @@
                 width: 100%;
                 max-width: 100%;
             }
-            .match-game-plan-role-controls .match-game-plan-offc-select-field.has-role-avatar .match-game-plan-offc-select {
+            .match-game-plan-role-controls .match-game-plan-offc-select-field.has-role-avatar .match-game-plan-offc-select,
+            .match-game-plan-role-controls .match-game-plan-offc-select-field.has-role-avatar .match-game-plan-offc-pick-label {
                 font-size: 0.76rem;
                 padding: 0.55rem 1.3rem 0.55rem 0.22rem;
             }
@@ -24928,18 +25224,19 @@
                 font-size: 0.68rem;
             }
             .match-game-plan-offc-select-field.has-role-avatar {
-                border-radius: 0.8rem;
-                column-gap: 0.26rem;
-                grid-template-columns: 1.65rem 1.9rem minmax(0, 1fr);
-                min-height: 2.65rem;
+                border-radius: 0.75rem;
+                column-gap: 0.22rem;
+                grid-template-columns: 1.5rem 1.7rem minmax(0, 1fr);
+                min-height: 2.35rem;
             }
-            .match-game-plan-offc-select-field.has-role-avatar .match-game-plan-offc-select {
-                font-size: 0.76rem;
-                padding: 0.55rem 1.2rem 0.55rem 0.24rem;
+            .match-game-plan-offc-select-field.has-role-avatar .match-game-plan-offc-select,
+            .match-game-plan-offc-select-field.has-role-avatar .match-game-plan-offc-pick-label {
+                font-size: 0.72rem;
+                padding: 0.42rem 1.1rem 0.42rem 0.2rem;
             }
             .match-game-plan-offc-select-field.has-role-avatar .match-game-plan-role-avatar {
-                height: 1.9rem;
-                width: 1.9rem;
+                height: 1.7rem;
+                width: 1.7rem;
             }
             .match-game-plan-role-controls .match-game-plan-offc-select-field.has-role-avatar .match-game-plan-role-avatar {
                 height: 1.9rem;
@@ -26531,14 +26828,6 @@
         }
         .match-game-plan-diagram-node.is-dimmed {
             opacity: 0.38;
-        }
-        .match-game-plan-diagram-node.is-highlight {
-            box-shadow:
-                0 0 0 3px rgba(245, 197, 66, 0.95),
-                0 10px 20px rgba(2, 6, 23, 0.35);
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1.28);
-            z-index: 6;
         }
         .tactical-live-sub-side .tactical-bench-inherit {
             justify-content: center;
@@ -28200,6 +28489,13 @@
             .match-print-setpiece-list li,
             .match-print-roles-list li {
                 grid-template-columns: 5.5rem 1fr;
+            }
+
+            .match-print-setpiece-list li.is-empty .match-print-name,
+            .match-print-roles-list li.is-empty .match-print-name {
+                color: #64748b;
+                font-style: italic;
+                font-weight: 400;
             }
 
             .match-print-bench-list li {

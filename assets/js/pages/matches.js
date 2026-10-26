@@ -1505,11 +1505,123 @@ function getMatchLineupPanelTeaserText(match) {
     return `${placed}/${slotCount} plassert · ${formation}`;
 }
 
+function getMatchGamePlanSetPieceSlotIds(planId) {
+    if (planId === 'roller') return matchGamePlanRoleSlots.slice();
+    const positions = planId === 'defc' ? matchGamePlanDefCPositions : matchGamePlanOffCPositions;
+    return Object.keys(positions);
+}
+
+function countMatchGamePlanFilledSlots(match, planId) {
+    const slots = getMatchGamePlanSetPieceSlotIds(planId);
+    const assignments = typeof getMatchGamePlanSetPieceAssignments === 'function'
+        ? getMatchGamePlanSetPieceAssignments(match, planId)
+        : {};
+    const filled = slots.filter(slot => String(assignments?.[slot] || '').trim()).length;
+    return { filled, total: slots.length };
+}
+
+function countMatchGamePlanBenchFilled(match) {
+    const benchPlayers = typeof getMatchGamePlanBenchPlayers === 'function'
+        ? getMatchGamePlanBenchPlayers(match)
+        : [];
+    const filled = benchPlayers.filter(player => {
+        const key = typeof getMatchGamePlanStarterPlayerValue === 'function'
+            ? getMatchGamePlanStarterPlayerValue(player)
+            : '';
+        const assignment = typeof getMatchGamePlanBenchAssignment === 'function'
+            ? getMatchGamePlanBenchAssignment(match, key)
+            : {};
+        return Boolean(assignment?.minute && assignment?.position);
+    }).length;
+    return { filled, total: benchPlayers.length };
+}
+
 function getMatchKampplanPanelTeaserText(match) {
     const notes = typeof getMatchGamePlanNotesText === 'function'
         ? String(getMatchGamePlanNotesText(match) || '').trim()
         : '';
-    return notes ? 'Notater lagret' : 'Ingen notater';
+    const offc = countMatchGamePlanFilledSlots(match, 'offc');
+    const defc = countMatchGamePlanFilledSlots(match, 'defc');
+    const roller = countMatchGamePlanFilledSlots(match, 'roller');
+    const bytter = countMatchGamePlanBenchFilled(match);
+    const hasNotes = Boolean(notes);
+    const hasAssignments = offc.filled > 0
+        || defc.filled > 0
+        || roller.filled > 0
+        || bytter.filled > 0;
+
+    if (!hasNotes && !hasAssignments) return 'Ingen plan satt';
+
+    const parts = [
+        `OC ${offc.filled}/${offc.total}`,
+        `DC ${defc.filled}/${defc.total}`,
+        `Roller ${roller.filled}/${roller.total}`
+    ];
+    if (bytter.total > 0) parts.push(`Bytter ${bytter.filled}/${bytter.total}`);
+    if (hasNotes) parts.push('Notater');
+    return parts.join(' · ');
+}
+
+function getMatchGamePlanTabBadgeMeta(match, tabId) {
+    if (tabId === 'kampplan') {
+        const notes = typeof getMatchGamePlanNotesText === 'function'
+            ? String(getMatchGamePlanNotesText(match) || '').trim()
+            : '';
+        return notes ? { text: '✓', complete: true, label: 'Notater lagret' } : null;
+    }
+
+    if (tabId !== 'offc' && tabId !== 'defc' && tabId !== 'roller') return null;
+
+    const { filled, total } = countMatchGamePlanFilledSlots(match, tabId);
+    if (!filled) return null;
+    if (filled >= total) {
+        return { text: '✓', complete: true, label: `${filled} av ${total} satt` };
+    }
+    return { text: String(filled), complete: false, label: `${filled} av ${total} satt` };
+}
+
+function buildMatchGamePlanTabBadgeHtml(match, tab) {
+    const meta = getMatchGamePlanTabBadgeMeta(match, tab.id);
+    if (!meta) return '';
+    return `<span class="match-game-plan-tab-badge ${meta.complete ? 'is-complete' : ''}" title="${escapeMatchHtml(meta.label)}" aria-hidden="true">${escapeMatchHtml(meta.text)}</span>`;
+}
+
+function syncMatchGamePlanTabBadges(match) {
+    if (!match) return;
+    document.querySelectorAll('.match-game-plan-tab[data-game-plan-tab]').forEach(btn => {
+        const tabId = btn.dataset.gamePlanTab;
+        const tab = matchGamePlanTabs.find(item => item.id === tabId);
+        if (!tab) return;
+
+        const meta = getMatchGamePlanTabBadgeMeta(match, tabId);
+        let badge = btn.querySelector('.match-game-plan-tab-badge');
+        if (!meta) {
+            badge?.remove();
+            btn.setAttribute('aria-label', tab.label);
+            return;
+        }
+
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'match-game-plan-tab-badge';
+            badge.setAttribute('aria-hidden', 'true');
+            btn.appendChild(badge);
+        }
+        badge.textContent = meta.text;
+        badge.classList.toggle('is-complete', meta.complete);
+        badge.title = meta.label;
+        btn.setAttribute('aria-label', `${tab.label}, ${meta.label}`);
+    });
+}
+
+function syncMatchKampplanPanelTeaser(match) {
+    const panel = document.querySelector('.match-game-plan-panel');
+    if (!panel || !match) return;
+
+    const teaser = panel.querySelector('.match-game-card-teaser');
+    if (teaser) teaser.textContent = getMatchKampplanPanelTeaserText(match);
+
+    syncMatchGamePlanTabBadges(match);
 }
 
 function getMatchCoachNotesPanelTeaserText(match) {
@@ -1921,12 +2033,22 @@ window.buildMatchDetailCardHtml = buildMatchDetailCardHtml;
 window.bindMatchListEvents = bindMatchListEvents;
 
 const matchGamePlanTabs = [
-    { id: 'offc', label: 'OffC', icon: 'flag-ofc' },
-    { id: 'defc', label: 'DefC', icon: 'flag-dfc' },
-    { id: 'roller', label: 'Roller' },
-    { id: 'bench', label: 'Bytter' },
-    { id: 'kampplan', label: 'Kampplan' }
+    { id: 'offc', label: 'Offensiv corner', iconSrc: 'flag-ofc' },
+    { id: 'defc', label: 'Defensiv corner', iconSrc: 'flag-dfc' },
+    { id: 'roller', label: 'Roller', iconFa: 'fa-solid fa-user-tag' },
+    { id: 'bench', label: 'Bytter', iconFa: 'fa-solid fa-right-left' },
+    { id: 'kampplan', label: 'Notater', iconFa: 'fa-solid fa-clipboard-list' }
 ];
+
+function buildMatchGamePlanTabIconHtml(tab, match = null) {
+    const iconHtml = tab.iconSrc
+        ? `<img class="match-game-plan-tab-icon" src="assets/img/${escapeMatchHtml(tab.iconSrc)}.svg?v=oc-dc-od-1" alt="" aria-hidden="true">`
+        : (tab.iconFa
+            ? `<i class="${escapeMatchHtml(tab.iconFa)} match-game-plan-tab-fa" aria-hidden="true"></i>`
+            : escapeMatchHtml(tab.label));
+    const badgeHtml = match ? buildMatchGamePlanTabBadgeHtml(match, tab) : '';
+    return `${iconHtml}${badgeHtml}`;
+}
 
 const matchGamePlanStarterPositions = {
     GK: { top: '94%', left: '50%' },
@@ -2340,6 +2462,9 @@ function closeMatchGamePlanPlayerSelectModal() {
     modal.classList.remove('match-game-plan-select-modal', 'is-player-insight');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
+    if (typeof window.clearMatchGamePlanSetPieceActiveSlot === 'function') {
+        window.clearMatchGamePlanSetPieceActiveSlot(window.activeMatchGamePlanTab || '');
+    }
 }
 
 function getMatchGamePlanFitTagMeta(score) {
@@ -7628,15 +7753,94 @@ function buildMatchGamePlanStarter11Html(match, extraClass = '') {
     });
 }
 
-function buildMatchGamePlanDiagramNodeHtml(value, coords, planLabel = 'OffC') {
+function buildMatchGamePlanDiagramNodeContentHtml(value, options = {}) {
+    const filled = Boolean(options.filled);
+    const photoUrl = String(options.photoUrl || '').trim();
+    const initials = String(options.initials || '').trim();
+
+    if (!filled) {
+        return `<span class="match-game-plan-diagram-node-value">${escapeMatchHtml(value)}</span>`;
+    }
+
+    const faceHtml = photoUrl
+        ? `<img class="match-game-plan-diagram-node-photo" src="${escapeMatchHtml(photoUrl)}" alt="" loading="lazy" decoding="async">`
+        : `<span class="match-game-plan-diagram-node-initials">${escapeMatchHtml(initials || String(value))}</span>`;
+
     return `
-        <span
-            class="match-game-plan-diagram-node is-${escapeMatchHtml(coords.tone || 'neutral')}"
-            style="top: ${coords.top}; left: ${coords.left};"
-            aria-label="${escapeMatchHtml(planLabel)} ${escapeMatchHtml(value)}"
-        >${escapeMatchHtml(value)}</span>
+        ${faceHtml}
+        <span class="match-game-plan-diagram-node-slot" aria-hidden="true">${escapeMatchHtml(value)}</span>
     `;
 }
+
+function buildMatchGamePlanDiagramNodeHtml(value, coords, planLabel = 'OffC', options = {}) {
+    const tone = coords?.tone || 'neutral';
+    const filled = Boolean(options.filled);
+    const active = Boolean(options.active);
+    const playerName = String(options.playerName || '').trim();
+    const planId = options.planId || (planLabel === 'DefC' ? 'defc' : 'offc');
+    const matchId = options.matchId || '';
+    const className = [
+        'match-game-plan-diagram-node',
+        `is-${tone}`,
+        filled ? 'is-filled' : 'is-empty',
+        active ? 'is-active' : '',
+        filled && options.photoUrl ? 'has-photo' : ''
+    ].filter(Boolean).join(' ');
+    const ariaLabel = playerName
+        ? `${planLabel} ${value}: ${playerName}`
+        : `Velg spiller for ${planLabel} ${value}`;
+    const title = playerName || `${planLabel} ${value}`;
+    const contentHtml = buildMatchGamePlanDiagramNodeContentHtml(value, options);
+
+    if (!matchId) {
+        return `
+            <span
+                class="${className}"
+                style="top: ${coords.top}; left: ${coords.left};"
+                aria-label="${escapeMatchHtml(planLabel)} ${escapeMatchHtml(value)}"
+            >${contentHtml}</span>
+        `;
+    }
+
+    return `
+        <button
+            type="button"
+            class="${className}"
+            style="top: ${coords.top}; left: ${coords.left};"
+            data-setpiece-node="${escapeMatchHtml(value)}"
+            data-setpiece-plan="${escapeMatchHtml(planId)}"
+            aria-label="${escapeMatchHtml(ariaLabel)}"
+            title="${escapeMatchHtml(title)}"
+            onclick="event.preventDefault(); event.stopPropagation(); window.openMatchGamePlanSetPiecePlayerSelect('${escapeMatchJsString(matchId)}', '${escapeMatchJsString(planId)}', '${escapeMatchJsString(value)}')"
+        >${contentHtml}</button>
+    `;
+}
+
+window.setMatchGamePlanSetPieceActiveSlot = function(planId, slot) {
+    const page = document.querySelector(`[data-game-plan-page="${planId}"]`);
+    if (!page) return;
+
+    const slotId = String(slot || '');
+    page.querySelectorAll('[data-setpiece-node]').forEach(node => {
+        node.classList.toggle('is-active', String(node.dataset.setpieceNode || '') === slotId);
+    });
+    page.querySelectorAll('[data-setpiece-slot]').forEach(row => {
+        const isActive = String(row.dataset.setpieceSlot || '') === slotId;
+        row.classList.toggle('is-active', isActive);
+        if (isActive) {
+            row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+    });
+};
+
+window.clearMatchGamePlanSetPieceActiveSlot = function(planId = '') {
+    const root = planId
+        ? document.querySelector(`[data-game-plan-page="${planId}"]`)
+        : document.querySelector('.match-game-plan-panel');
+    if (!root) return;
+    root.querySelectorAll('[data-setpiece-node].is-active, [data-setpiece-slot].is-active')
+        .forEach(el => el.classList.remove('is-active'));
+};
 
 function buildMatchGamePlanBallMarkerHtml(coords, planLabel = 'DefC') {
     return `
@@ -7676,6 +7880,33 @@ function buildMatchGamePlanRoleSlotAvatarHtml(player) {
     `;
 }
 
+function getMatchGamePlanSetPieceStarterPlayers(match) {
+    const lineup = getMatchGamePlanDraftLineup(match);
+    const formationId = getMatchGamePlanDraftFormation(match);
+    return getMatchGamePlanFormationPositionIds(formationId)
+        .map(posId => ({ posId, player: lineup[posId] }))
+        .filter(item => item.player);
+}
+
+function getMatchGamePlanSetPiecePlanLabel(planId) {
+    if (planId === 'defc') return 'DefC';
+    if (planId === 'roller') return 'Roller';
+    return 'OffC';
+}
+
+function getMatchGamePlanSetPieceSlotLabel(planId, slot) {
+    return planId === 'roller' ? getMatchGamePlanRoleLabel(slot) : String(slot || '');
+}
+
+function getMatchGamePlanSetPieceAssignedSlot(match, planId, playerValue, exceptSlot = '') {
+    if (!playerValue) return '';
+    const assignments = getMatchGamePlanSetPieceAssignments(match, planId);
+    const entry = Object.entries(assignments).find(([slot, value]) => (
+        value === playerValue && slot !== exceptSlot
+    ));
+    return entry?.[0] || '';
+}
+
 function buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers, planId = 'offc') {
     const assignments = getMatchGamePlanSetPieceAssignments(match, planId);
     const storedSelectedValue = assignments[slot] || '';
@@ -7683,38 +7914,40 @@ function buildMatchGamePlanOffCSelectHtml(match, slot, starterPlayers, planId = 
         ? storedSelectedValue
         : '';
     const selectedPlayer = findMatchGamePlanStarterPlayerByValue(starterPlayers, selectedValue);
-    const planLabel = planId === 'defc' ? 'DefC' : (planId === 'roller' ? 'Roller' : 'OffC');
-    const slotLabel = planId === 'roller' ? getMatchGamePlanRoleLabel(slot) : slot;
+    const planLabel = getMatchGamePlanSetPiecePlanLabel(planId);
+    const slotLabel = getMatchGamePlanSetPieceSlotLabel(planId, slot);
+    const displayName = selectedPlayer
+        ? getMatchGamePlanPlayerShortName(selectedPlayer)
+        : 'Velg spiller';
+    const title = planId === 'roller' ? `${slot}: ${slotLabel}` : `${planLabel} ${slot}`;
+    const fieldClass = [
+        'match-game-plan-offc-select-field',
+        'has-role-avatar',
+        'is-pick-trigger',
+        selectedValue ? 'is-filled' : 'is-empty'
+    ].join(' ');
 
     return `
-        <label class="match-game-plan-offc-select-field has-role-avatar">
+        <button
+            type="button"
+            class="${fieldClass}"
+            data-setpiece-slot="${escapeMatchHtml(slot)}"
+            data-setpiece-plan="${escapeMatchHtml(planId)}"
+            aria-label="Velg spiller for ${escapeMatchHtml(planLabel)} ${escapeMatchHtml(slotLabel)}"
+            title="${escapeMatchHtml(title)}"
+            onclick="window.openMatchGamePlanSetPiecePlayerSelect('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(planId)}', '${escapeMatchJsString(slot)}')"
+        >
             <span class="match-game-plan-offc-select-number">${escapeMatchHtml(slotLabel)}</span>
             ${buildMatchGamePlanRoleSlotAvatarHtml(selectedPlayer)}
-            <select
-                class="match-game-plan-offc-select ${selectedValue ? '' : 'is-empty'}"
-                aria-label="Velg spiller for ${escapeMatchHtml(planLabel)} ${escapeMatchHtml(slot)}"
-                title="${escapeMatchHtml(planId === 'roller' ? `${slot}: ${slotLabel}` : `${planLabel} ${slot}`)}"
-                onchange="this.classList.toggle('is-empty', !this.value); window.syncMatchGamePlanRoleSelectAvatar(this); window.updateMatchGamePlanSetPiecePlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(planId)}', '${escapeMatchJsString(slot)}', this.value)"
-            >
-                <option value="">Velg spiller</option>
-                ${starterPlayers.map(({ player }) => {
-                    const value = getMatchGamePlanStarterPlayerValue(player);
-                    const label = getMatchGamePlanPlayerShortName(player);
-                    return `<option value="${escapeMatchHtml(value)}" ${selectedValue === value ? 'selected' : ''}>${escapeMatchHtml(label)}</option>`;
-                }).join('')}
-            </select>
-        </label>
+            <span class="match-game-plan-offc-pick-label ${selectedValue ? '' : 'is-empty'}">${escapeMatchHtml(displayName)}</span>
+        </button>
     `;
 }
 
 function buildMatchGamePlanOffCControlsHtml(match, planId = 'offc', options = {}) {
-    const lineup = getMatchGamePlanDraftLineup(match);
-    const formationId = getMatchGamePlanDraftFormation(match);
-    const starterPlayers = getMatchGamePlanFormationPositionIds(formationId)
-        .map(posId => ({ posId, player: lineup[posId] }))
-        .filter(item => item.player);
+    const starterPlayers = getMatchGamePlanSetPieceStarterPlayers(match);
     const slots = options.slots || ['1', '6', '2', '7', '3', '8', '4', '9', '5', '10'];
-    const planLabel = planId === 'defc' ? 'DefC' : (planId === 'roller' ? 'Roller' : 'OffC');
+    const planLabel = getMatchGamePlanSetPiecePlanLabel(planId);
     const extraClass = options.className ? ` ${options.className}` : '';
     const heading = planId === 'offc'
         ? 'Offensiv corner'
@@ -7723,7 +7956,7 @@ function buildMatchGamePlanOffCControlsHtml(match, planId = 'offc', options = {}
             : planId === 'roller'
                 ? 'Roller'
                 : '';
-    const headingIcon = planId === 'roller' ? 'fa-users' : 'fa-flag-checkered';
+    const headingIcon = planId === 'roller' ? 'fa-user-tag' : 'fa-flag-checkered';
 
     return `
         <div class="match-game-plan-offc-controls${extraClass}" aria-label="${escapeMatchHtml(planLabel)} spillervalg">
@@ -8023,21 +8256,40 @@ function buildMatchGamePlanPitchHtml({ ariaLabel, childrenHtml = '', extraClass 
     `;
 }
 
+function buildMatchGamePlanSetPieceNodesHtml(match, planId) {
+    const positions = planId === 'defc' ? matchGamePlanDefCPositions : matchGamePlanOffCPositions;
+    const planLabel = getMatchGamePlanSetPiecePlanLabel(planId);
+    const starterPlayers = getMatchGamePlanSetPieceStarterPlayers(match);
+    const assignments = getMatchGamePlanSetPieceAssignments(match, planId);
+
+    return Object.entries(positions).map(([value, coords]) => {
+        const selectedValue = assignments[value] || '';
+        const selectedPlayer = findMatchGamePlanStarterPlayerByValue(starterPlayers, selectedValue);
+        return buildMatchGamePlanDiagramNodeHtml(value, coords, planLabel, {
+            matchId: match.id,
+            planId,
+            filled: Boolean(selectedPlayer),
+            playerName: selectedPlayer ? getMatchGamePlanPlayerShortName(selectedPlayer) : '',
+            initials: selectedPlayer ? getMatchGamePlanPlayerInitials(selectedPlayer) : '',
+            photoUrl: selectedPlayer ? getMatchGamePlanPlayerPhotoUrl(selectedPlayer) : ''
+        });
+    }).join('');
+}
+
 function buildMatchGamePlanOffCHtml(match) {
     return buildMatchGamePlanPitchHtml({
         ariaLabel: 'OffC bane',
-        childrenHtml: Object.entries(matchGamePlanOffCPositions).map(([value, coords]) => `
-            ${buildMatchGamePlanDiagramNodeHtml(value, coords, 'OffC')}
-        `).join('') + buildMatchGamePlanOffCControlsHtml(match, 'offc')
+        childrenHtml: buildMatchGamePlanSetPieceNodesHtml(match, 'offc')
+            + buildMatchGamePlanOffCControlsHtml(match, 'offc')
     });
 }
 
 function buildMatchGamePlanDefCHtml(match) {
     return buildMatchGamePlanPitchHtml({
         ariaLabel: 'DefC bane',
-        childrenHtml: Object.entries(matchGamePlanDefCPositions).map(([value, coords]) => `
-            ${buildMatchGamePlanDiagramNodeHtml(value, coords, 'DefC')}
-        `).join('') + buildMatchGamePlanBallMarkerHtml({ top: '3%', left: '95%' }, 'DefC') + buildMatchGamePlanOffCControlsHtml(match, 'defc')
+        childrenHtml: buildMatchGamePlanSetPieceNodesHtml(match, 'defc')
+            + buildMatchGamePlanBallMarkerHtml({ top: '3%', left: '95%' }, 'DefC')
+            + buildMatchGamePlanOffCControlsHtml(match, 'defc')
     });
 }
 
@@ -8167,26 +8419,23 @@ function buildMatchGamePlanNotesHtml(match) {
 
     return `
         <div class="match-game-plan-notes-panel" aria-label="Kampplan notater">
-            <h3 class="match-game-plan-setpiece-heading">
-                <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
-                <span>Kampplan</span>
-            </h3>
             <div class="match-game-plan-notes-fields" data-match-kampplan-notes-form="${matchId}">
                 <div class="match-game-plan-notes-meta">
-                    <div>
-                        <label class="portal-label" for="match-kampplan-template-${matchId}">Hent mal</label>
+                    <div class="match-game-plan-notes-field-frame" data-notes-emblem="template">
+                        <span class="match-game-plan-notes-frame-emblem" aria-hidden="true">Hent mal</span>
                         <select
                             id="match-kampplan-template-${matchId}"
                             class="portal-field"
                             data-match-kampplan-template
                             data-no-swipe
+                            aria-label="Hent mal"
                             onchange="window.applyMatchGamePlanTemplate('${matchIdJs}', this.value)"
                         >
                             ${buildMatchGamePlanTemplateOptionsHtml(selectedTemplateId)}
                         </select>
                     </div>
-                    <div>
-                        <label class="portal-label" for="match-kampplan-template-title-${matchId}">Malnavn</label>
+                    <div class="match-game-plan-notes-field-frame" data-notes-emblem="title">
+                        <span class="match-game-plan-notes-frame-emblem" aria-hidden="true">Malnavn</span>
                         <input
                             id="match-kampplan-template-title-${matchId}"
                             type="text"
@@ -8196,11 +8445,12 @@ function buildMatchGamePlanNotesHtml(match) {
                             placeholder="F.eks. Hjemme standard"
                             value="${selectedTitle}"
                             data-no-swipe
+                            aria-label="Malnavn"
                         >
                     </div>
                 </div>
-                <div>
-                    <label class="portal-label" for="match-kampplan-notes-${matchId}">Notater</label>
+                <div class="match-game-plan-notes-field-frame" data-notes-emblem="notes">
+                    <span class="match-game-plan-notes-frame-emblem" aria-hidden="true">Notater</span>
                     <textarea
                         id="match-kampplan-notes-${matchId}"
                         rows="10"
@@ -8209,6 +8459,7 @@ function buildMatchGamePlanNotesHtml(match) {
                         onblur="window.saveMatchGamePlanNotes('${matchIdJs}', this)"
                         class="portal-field portal-textarea-sm match-game-plan-notes-field"
                         data-no-swipe
+                        aria-label="Notater"
                     >${notesText}</textarea>
                 </div>
                 <div class="match-game-plan-notes-actions">
@@ -8694,16 +8945,17 @@ function buildMatchPrintPitchHtml(planId) {
 
 function buildMatchPrintSetPieceListHtml(match, planId) {
     const assignments = getMatchGamePlanSetPieceAssignments(match, planId);
-    const slots = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+    const slots = getMatchGamePlanSetPieceSlotIds(planId);
 
     return `
         <ul class="match-print-list match-print-setpiece-list">
             ${slots.map(slot => {
                 const player = resolveMatchPrintPlayer(match, assignments[slot] || '');
+                const label = getMatchPrintPlayerLabel(player);
                 return `
-                    <li>
+                    <li class="${player ? 'is-filled' : 'is-empty'}">
                         <span class="match-print-slot">${escapeMatchHtml(slot)}</span>
-                        <span class="match-print-name">${escapeMatchHtml(getMatchPrintPlayerLabel(player))}</span>
+                        <span class="match-print-name">${escapeMatchHtml(label)}</span>
                     </li>
                 `;
             }).join('')}
@@ -8713,10 +8965,12 @@ function buildMatchPrintSetPieceListHtml(match, planId) {
 
 function buildMatchPrintSetPieceBlockHtml(match, planId) {
     const title = planId === 'defc' ? 'Defensiv corner' : 'Offensiv corner';
+    const counts = countMatchGamePlanFilledSlots(match, planId);
+    const countLabel = `${counts.filled}/${counts.total}`;
 
     return `
         <section class="match-print-setpiece-block">
-            <h2>${escapeMatchHtml(title)}</h2>
+            <h2>${escapeMatchHtml(title)} <span class="match-print-formation">(${escapeMatchHtml(countLabel)})</span></h2>
             ${buildMatchPrintPitchHtml(planId)}
             ${buildMatchPrintSetPieceListHtml(match, planId)}
         </section>
@@ -8751,15 +9005,17 @@ function buildMatchPrintLineupHtml(match) {
 
 function buildMatchPrintRolesHtml(match) {
     const assignments = getMatchGamePlanSetPieceAssignments(match, 'roller');
+    const counts = countMatchGamePlanFilledSlots(match, 'roller');
+    const countLabel = `${counts.filled}/${counts.total}`;
 
     return `
         <section class="match-print-section match-print-roles-section">
-            <h2>Roller</h2>
+            <h2>Roller <span class="match-print-formation">(${escapeMatchHtml(countLabel)})</span></h2>
             <ul class="match-print-list match-print-roles-list">
                 ${matchGamePlanRoleSlots.map(slot => {
                     const player = resolveMatchPrintPlayer(match, assignments[slot] || '');
                     return `
-                        <li>
+                        <li class="${player ? 'is-filled' : 'is-empty'}">
                             <span class="match-print-slot">${escapeMatchHtml(getMatchGamePlanRoleLabel(slot))}</span>
                             <span class="match-print-name">${escapeMatchHtml(getMatchPrintPlayerLabel(player))}</span>
                         </li>
@@ -9004,10 +9260,10 @@ function buildMatchPrintKampplanNotesHtml(match) {
 
     return `
         <section class="match-print-section match-print-kampplan-section">
-            <h2>Kampplan${subtitle}</h2>
+            <h2>Notater${subtitle}</h2>
             ${notesText
                 ? `<div class="match-print-kampplan-notes">${escapeMatchHtml(notesText)}</div>`
-                : `<p class="match-print-empty">Ingen kampplan skrevet.</p>`
+                : `<p class="match-print-empty">Ingen notater skrevet.</p>`
             }
         </section>
     `;
@@ -9094,21 +9350,35 @@ function buildMatchGamePlanHtml(match) {
     return `
         <div class="match-game-plan-tabs-wrap" data-no-swipe>
             <div class="match-game-plan-tabs" id="match-game-plan-tabs" role="tablist" aria-label="Kampplan meny" data-no-swipe>
-                ${matchGamePlanTabs.map((tab, index) => `
+                ${matchGamePlanTabs.map((tab, index) => {
+                    const badgeMeta = getMatchGamePlanTabBadgeMeta(match, tab.id);
+                    const ariaLabel = badgeMeta
+                        ? `${tab.label}, ${badgeMeta.label}`
+                        : tab.label;
+                    return `
                     <button
                         type="button"
-                        class="match-game-plan-tab ${tab.icon ? 'has-icon' : ''} ${index === 0 ? 'is-active' : ''}"
+                        class="match-game-plan-tab has-icon ${index === 0 ? 'is-active' : ''}"
                         role="tab"
                         aria-selected="${index === 0 ? 'true' : 'false'}"
                         title="${escapeMatchHtml(tab.label)}"
-                        aria-label="${escapeMatchHtml(tab.label)}"
+                        aria-label="${escapeMatchHtml(ariaLabel)}"
                         onclick="window.goToMatchGamePlanTab('${tab.id}')"
                         data-game-plan-tab="${tab.id}"
                         data-no-swipe
-                    >${tab.icon
-                        ? `<img class="match-game-plan-tab-icon" src="assets/img/${escapeMatchHtml(tab.icon)}.svg?v=oc-dc-2" alt="" aria-hidden="true">`
-                        : escapeMatchHtml(tab.label)}</button>
-                `).join('')}
+                    >${buildMatchGamePlanTabIconHtml(tab, match)}</button>
+                `;
+                }).join('')}
+                <button
+                    type="button"
+                    class="match-game-plan-tab has-icon match-game-plan-print-tab"
+                    title="Skriv ut lagoppstilling og kampplan"
+                    aria-label="Skriv ut lagoppstilling og kampplan"
+                    onclick="event.preventDefault(); event.stopPropagation(); window.printMatchSheet()"
+                    data-no-swipe
+                >
+                    <i class="fa-solid fa-print match-game-plan-tab-fa" aria-hidden="true"></i>
+                </button>
             </div>
         </div>
 
@@ -9372,6 +9642,7 @@ window.saveMatchGamePlanNotes = async function(matchId, sourceElement) {
         if (typeof window.saveMatchToDatabase === 'function') {
             await window.saveMatchToDatabase(match);
         }
+        syncMatchKampplanPanelTeaser(match);
         setMatchDetailFeedback('[data-kampplan-feedback]', 'Kampplan lagret', 'success', 2500);
     } catch (error) {
         console.error('Kunne ikke lagre kampplan', error);
@@ -9424,6 +9695,7 @@ window.applyMatchGamePlanTemplate = async function(matchId, templateId) {
         if (typeof window.saveMatchToDatabase === 'function') {
             await window.saveMatchToDatabase(match);
         }
+        syncMatchKampplanPanelTeaser(match);
         setMatchDetailFeedback('[data-kampplan-feedback]', `Hentet mal: ${template.title}`, 'success', 2500);
     } catch (error) {
         console.error('Kunne ikke hente kampplan-mal', error);
@@ -9904,21 +10176,13 @@ window.showMatchDetails = function(id) {
             >
                 <div class="match-bench-heading">
                     <span class="match-game-card-icon match-game-plan-mark" aria-hidden="true">
-                        <i class="fa-solid fa-futbol"></i>
+                        <i class="fa-solid fa-clipboard-list"></i>
                     </span>
                     <div class="match-bench-heading-copy">
                         <h3>Kampplan</h3>
                         ${buildMatchGameCardTeaserHtml(getMatchKampplanPanelTeaserText(match))}
                     </div>
                 </div>
-                <button type="button"
-                        class="training-session-attendance-add-btn match-print-sheet-btn"
-                        onclick="window.printMatchSheet()"
-                        title="Skriv ut lagoppstilling og kampplan"
-                        aria-label="Skriv ut lagoppstilling og kampplan">
-                    <i class="fa-solid fa-print" aria-hidden="true"></i>
-                    <span>Skriv ut</span>
-                </button>
             </div>
             <div class="match-collapsible-content">
                 <p class="match-inline-status match-kampplan-feedback" data-kampplan-feedback aria-live="polite" hidden></p>
@@ -10395,6 +10659,7 @@ window.updateMatchGamePlanSetPiecePlayer = async function(matchId, planId, slot,
     const key = matchGamePlanAssignmentKeys[planId] || matchGamePlanAssignmentKeys.offc;
     window.pendingMatchDetailsOpenPanel = 'kampplan';
     window.activeMatchDetailsOpenPanel = 'kampplan';
+    window.activeMatchGamePlanTab = planId;
     match[key] = {
         ...getMatchGamePlanSetPieceAssignments(match, planId),
         [slot]: playerRef || ''
@@ -10404,10 +10669,137 @@ window.updateMatchGamePlanSetPiecePlayer = async function(matchId, planId, slot,
         if (typeof window.saveMatchToDatabase === 'function') {
             await window.saveMatchToDatabase(match);
         }
+        syncMatchKampplanPanelTeaser(match);
+        const slotLabel = getMatchGamePlanSetPieceSlotLabel(planId, slot);
+        const planLabel = getMatchGamePlanSetPiecePlanLabel(planId);
+        setMatchDetailFeedback(
+            '[data-kampplan-feedback]',
+            playerRef ? `${planLabel} ${slotLabel} lagret` : `${planLabel} ${slotLabel} fjernet`,
+            'success',
+            2200
+        );
     } catch (error) {
         console.error(error);
         setMatchDetailFeedback('[data-kampplan-feedback]', error.message || 'Kunne ikke lagre', 'error', 6000);
     }
+};
+
+function buildMatchGamePlanSetPiecePlayerOptionHtml(match, planId, slot, player) {
+    const playerValue = getMatchGamePlanStarterPlayerValue(player);
+    const assignedSlot = getMatchGamePlanSetPieceAssignedSlot(match, planId, playerValue, slot);
+    const assignedLabel = assignedSlot
+        ? getMatchGamePlanSetPieceSlotLabel(planId, assignedSlot)
+        : '';
+    const meta = assignedSlot
+        ? `Brukt på ${assignedLabel}`
+        : (player.posId ? getMatchGamePlanPositionLabel(player.posId) : '');
+    const trailingHtml = assignedSlot
+        ? `<span class="match-game-plan-player-tag is-pitch">${escapeMatchHtml(assignedLabel)}</span>`
+        : '<span class="match-game-plan-player-tag is-primary">Ledig</span>';
+
+    return `
+        <button
+            type="button"
+            class="match-game-plan-player-option"
+            onclick="window.chooseMatchGamePlanSetPiecePlayer('${escapeMatchJsString(match.id)}', '${escapeMatchJsString(planId)}', '${escapeMatchJsString(slot)}', '${escapeMatchJsString(playerValue)}')"
+            ${assignedSlot ? ` title="Også satt som ${escapeMatchHtml(assignedLabel)}"` : ''}
+        >
+            <span class="match-game-plan-player-status-dot ${assignedSlot ? 'is-on-pitch' : 'is-off-pitch'}" title="${assignedSlot ? 'Opptatt' : 'Ledig'}"></span>
+            ${buildMatchGamePlanPlayerOptionAvatarHtml(player)}
+            <span class="match-game-plan-player-copy">
+                <strong>${escapeMatchHtml(getMatchGamePlanPlayerShortName(player))}</strong>
+                ${meta ? `<span class="match-game-plan-player-meta">${escapeMatchHtml(meta)}</span>` : ''}
+            </span>
+            ${trailingHtml}
+        </button>
+    `;
+}
+
+function buildMatchGamePlanSetPiecePlayerOptionsHtml(match, planId, slot, starterPlayers) {
+    if (!starterPlayers.length) {
+        return `
+            <div class="match-game-plan-player-empty">
+                Sett 11eren først for å velge spillere her.
+            </div>
+        `;
+    }
+
+    return `
+        <div class="match-game-plan-player-section">
+            <div class="match-game-plan-player-section-list match-game-plan-pos-pick-table-wrap match-game-plan-select-section-panel">
+                <p class="match-game-plan-player-section-title">
+                    11eren
+                    <span class="match-game-plan-player-section-count">${starterPlayers.length}</span>
+                </p>
+                ${starterPlayers.map(({ posId, player }) =>
+                    buildMatchGamePlanSetPiecePlayerOptionHtml(match, planId, slot, { ...player, posId })
+                ).join('')}
+            </div>
+        </div>
+    `;
+}
+
+window.chooseMatchGamePlanSetPiecePlayer = async function(matchId, planId, slot, playerRef = '') {
+    closeMatchGamePlanPlayerSelectModal();
+    window.activeMatchGamePlanTab = planId;
+    await window.updateMatchGamePlanSetPiecePlayer(matchId, planId, slot, playerRef);
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    if (match) renderMatchGamePlanSetPiecePage(match, planId);
+};
+
+window.openMatchGamePlanSetPiecePlayerSelect = function(matchId, planId, slot) {
+    const match = (window.activeMatches || []).find(item => item.id === matchId);
+    const modal = document.getElementById('tacticalPlayerModal');
+    const list = document.getElementById('tactical-player-list');
+    const label = document.getElementById('tactical-pos-label');
+    const title = modal?.querySelector('h3');
+    if (!match || !modal || !list) return;
+
+    window.activeMatchGamePlanTab = planId;
+    window.setMatchGamePlanSetPieceActiveSlot(planId, slot);
+
+    const starterPlayers = getMatchGamePlanSetPieceStarterPlayers(match);
+    const assignments = getMatchGamePlanSetPieceAssignments(match, planId);
+    const selectedValue = assignments[slot] || '';
+    const selectedPlayer = findMatchGamePlanStarterPlayerByValue(starterPlayers, selectedValue);
+    const planLabel = getMatchGamePlanSetPiecePlanLabel(planId);
+    const slotLabel = getMatchGamePlanSetPieceSlotLabel(planId, slot);
+    const actionSubtitle = selectedPlayer ? 'Bytt spiller' : 'Velg spiller';
+
+    if (title) {
+        title.innerHTML = `
+            ${buildMatchGamePlanHeadingAvatarHtml(selectedPlayer, slotLabel)}
+            <span class="match-game-plan-heading-copy">
+                <span class="match-game-plan-heading-title">${escapeMatchHtml(selectedPlayer ? selectedPlayer.navn : 'Ledig')}</span>
+                <span class="match-game-plan-heading-subtitle">${escapeMatchHtml(actionSubtitle)} · ${escapeMatchHtml(planLabel)} ${escapeMatchHtml(slotLabel)}</span>
+            </span>
+        `;
+    }
+    if (label) label.innerText = '';
+    removeMatchGamePlanClearPlayerButton(modal);
+    modal.classList.remove('is-player-insight');
+
+    list.innerHTML = buildMatchGamePlanSetPiecePlayerOptionsHtml(match, planId, slot, starterPlayers);
+
+    if (selectedPlayer) {
+        removeMatchGamePlanClearPlayerButton(modal);
+        const actions = modal.querySelector('.match-game-plan-select-header-actions');
+        if (actions) {
+            const clearButton = document.createElement('button');
+            clearButton.type = 'button';
+            clearButton.className = 'bsk-btn bsk-btn-icon bsk-btn-danger';
+            clearButton.dataset.matchGamePlanClearPlayer = 'true';
+            clearButton.title = `Fjern spiller fra ${planLabel} ${slotLabel}`;
+            clearButton.setAttribute('aria-label', `Fjern spiller fra ${planLabel} ${slotLabel}`);
+            clearButton.onclick = () => window.chooseMatchGamePlanSetPiecePlayer(matchId, planId, slot, '');
+            clearButton.innerHTML = '<i class="fa-solid fa-user-minus" aria-hidden="true"></i>';
+            const closeButton = actions.querySelector('[data-close-player-select]');
+            if (closeButton) actions.insertBefore(clearButton, closeButton);
+            else actions.appendChild(clearButton);
+        }
+    }
+
+    showMatchGamePlanPlayerSelectModal(modal);
 };
 
 window.updateMatchGamePlanBenchMinute = async function(matchId, playerRef, minute = '') {
@@ -13124,7 +13516,7 @@ window.syncMatchGamePlanScroller = function() {
     wrap.classList.toggle('can-scroll-right', activeIndex < matchGamePlanTabs.length - 1 || (!isDesktop && maxScroll > 6 && contentScroller.scrollLeft < maxScroll - 6));
 
     const previousActiveTabId = tabsScroller.dataset.activeGamePlanTab || '';
-    tabsScroller.querySelectorAll('.match-game-plan-tab').forEach(btn => {
+    tabsScroller.querySelectorAll('.match-game-plan-tab[data-game-plan-tab]').forEach(btn => {
         const isActive = btn.dataset.gamePlanTab === activeTab.id;
         btn.classList.toggle('is-active', isActive);
         btn.setAttribute('aria-selected', String(isActive));
@@ -13136,7 +13528,7 @@ window.syncMatchGamePlanScroller = function() {
     contentScroller.dataset.activeGamePlanTab = activeTab.id;
     window.activeMatchGamePlanTab = activeTab.id;
 
-    const activeButton = tabsScroller.querySelector('.match-game-plan-tab.is-active');
+    const activeButton = tabsScroller.querySelector('.match-game-plan-tab[data-game-plan-tab].is-active');
     if (activeButton && previousActiveTabId !== activeTab.id) {
         const target = activeButton.offsetLeft - (tabsScroller.clientWidth / 2) + (activeButton.offsetWidth / 2);
         tabsScroller.scrollTo({ left: Math.max(0, target), behavior: isDesktop ? 'auto' : 'smooth' });
