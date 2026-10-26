@@ -192,9 +192,11 @@
 
             const activeGamePlanTab = document.querySelector('[data-game-plan-tab].is-active')?.dataset?.gamePlanTab || '';
             const activeGamePlanPage = document.querySelector('[data-game-plan-page].is-active')?.dataset?.gamePlanPage || '';
-            const isBenchGamePlanVisible = window.activeMatchGamePlanTab === 'bench'
-                || activeGamePlanTab === 'bench'
-                || activeGamePlanPage === 'bench';
+            const resolvedGamePlanTab = window.activeMatchGamePlanTab
+                || activeGamePlanTab
+                || activeGamePlanPage
+                || '';
+            const isBenchGamePlanVisible = resolvedGamePlanTab === 'bench';
 
             if (
                 isBenchGamePlanVisible
@@ -203,6 +205,24 @@
             ) {
                 window.activeMatchGamePlanTab = 'bench';
                 requestAnimationFrame(() => window.syncMatchGamePlanBenchPanel(activeMatch));
+                return;
+            }
+
+            const isSetpieceGamePlanVisible = resolvedGamePlanTab === 'offc'
+                || resolvedGamePlanTab === 'defc'
+                || resolvedGamePlanTab === 'roller';
+            if (
+                isSetpieceGamePlanVisible
+                && typeof window.renderMatchGamePlanSetPiecePage === 'function'
+                && document.querySelector(`[data-game-plan-page="${resolvedGamePlanTab}"]`)
+            ) {
+                window.activeMatchGamePlanTab = resolvedGamePlanTab;
+                requestAnimationFrame(() => {
+                    window.renderMatchGamePlanSetPiecePage(activeMatch, resolvedGamePlanTab);
+                    if (typeof window.syncMatchKampplanPanelTeaser === 'function') {
+                        window.syncMatchKampplanPanelTeaser(activeMatch);
+                    }
+                });
                 return;
             }
 
