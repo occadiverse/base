@@ -8623,6 +8623,17 @@ function buildMatchGamePlanNotesHtml(match) {
                     </button>
                     <button
                         type="button"
+                        class="training-session-attendance-add-btn match-game-plan-notes-action-btn"
+                        data-match-kampplan-clear-notes
+                        onclick="window.clearMatchGamePlanNotes('${matchIdJs}')"
+                        title="Tøm notater og malvalg"
+                        aria-label="Tøm notater"
+                    >
+                        <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                        <span>Tøm</span>
+                    </button>
+                    <button
+                        type="button"
                         class="training-session-attendance-add-btn match-game-plan-notes-action-btn is-danger ${selectedTemplateId ? '' : 'is-hidden'}"
                         data-match-kampplan-delete-template
                         onclick="window.deleteMatchGamePlanTemplatePrompt('${matchIdJs}')"
@@ -9801,6 +9812,73 @@ window.saveMatchGamePlanNotes = async function(matchId, sourceElement) {
         console.error('Kunne ikke lagre kampplan', error);
         setMatchDetailFeedback('[data-kampplan-feedback]', error.message || 'Kunne ikke lagre kampplan', 'error', 6000);
     }
+};
+
+window.clearMatchGamePlanNotes = function(matchId) {
+    const match = (window.activeMatches || []).find(m => m.id === matchId);
+    if (!match) return;
+
+    const root = document.querySelector(`[data-match-kampplan-notes-form="${matchId}"]`);
+    const notesInput = root?.querySelector('[data-match-kampplan-notes]');
+    const titleInput = root?.querySelector('[data-match-kampplan-template-title]');
+    const templateSelect = root?.querySelector('[data-match-kampplan-template]');
+    const deleteBtn = root?.querySelector('[data-match-kampplan-delete-template]');
+
+    const hasContent = Boolean(
+        String(notesInput?.value || getMatchGamePlanNotesText(match) || '').trim()
+        || String(titleInput?.value || '').trim()
+        || String(templateSelect?.value || match.kampplanTemplateId || '').trim()
+    );
+
+    if (!hasContent) {
+        setMatchDetailFeedback('[data-kampplan-feedback]', 'Feltene er allerede tomme', 'pending', 2500);
+        return;
+    }
+
+    const doClear = async () => {
+        window.pendingMatchDetailsOpenPanel = 'kampplan';
+        window.activeMatchDetailsOpenPanel = 'kampplan';
+        window.activeMatchGamePlanTab = 'kampplan';
+
+        if (notesInput) notesInput.value = '';
+        if (titleInput) titleInput.value = '';
+        if (templateSelect) {
+            templateSelect.value = '';
+            refreshMatchGamePlanNotesTemplateSelect(matchId, '');
+        }
+        if (deleteBtn) {
+            deleteBtn.hidden = true;
+            deleteBtn.classList.add('is-hidden');
+        }
+
+        match.kampplanNotes = '';
+        match.kampplanTemplateId = '';
+        if (match.notes && typeof match.notes === 'object') {
+            match.notes = { ...match.notes, kampplan: '' };
+        }
+
+        try {
+            if (typeof window.saveMatchToDatabase === 'function') {
+                await window.saveMatchToDatabase(match);
+            }
+            syncMatchKampplanPanelTeaser(match);
+            setMatchDetailFeedback('[data-kampplan-feedback]', 'Notater tømt', 'success', 2500);
+        } catch (error) {
+            console.error('Kunne ikke tømme kampplan-notater', error);
+            setMatchDetailFeedback('[data-kampplan-feedback]', error.message || 'Kunne ikke tømme notater', 'error', 6000);
+        }
+    };
+
+    if (typeof window.customConfirm === 'function') {
+        window.customConfirm(
+            'Tøm notater?',
+            'Vil du blanke ut notatfeltet og malvalg for denne kampen? Lagrede maler slettes ikke.',
+            doClear
+        );
+        return;
+    }
+
+    doClear();
 };
 
 window.applyMatchGamePlanTemplate = async function(matchId, templateId) {
