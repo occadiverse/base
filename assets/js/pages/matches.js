@@ -9097,6 +9097,8 @@ function buildMatchPrintPitchHtml(match, planId) {
         return `
             <span
                 class="match-print-pitch-marker ${stored ? 'is-filled' : 'is-empty'}"
+                data-print-slot="${escapeMatchHtml(value)}"
+                data-print-plan="${escapeMatchHtml(planId)}"
                 style="top: ${coords.top}; left: ${coords.left};"
                 aria-hidden="true"
             >
