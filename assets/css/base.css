@@ -16669,7 +16669,8 @@
         }
         .match-game-plan-setpiece-layout .match-game-plan-setpiece-pitch {
             margin-inline: auto;
-            width: 100%;
+            max-width: min(100%, 26rem);
+            width: min(100%, 26rem);
         }
         .match-game-plan-setpiece-layout .match-game-plan-offc-controls {
             bottom: auto;
@@ -16686,17 +16687,9 @@
         @media (min-width: 768px) {
             .match-game-plan-setpiece-layout .match-game-plan-offc-controls {
                 gap: 0.4rem 0.5rem;
-                max-width: min(100%, 24rem);
-                width: min(100%, 24rem);
             }
             .match-game-plan-setpiece-layout .match-game-plan-offc-select-field.has-role-avatar {
                 min-height: 2.55rem;
-            }
-        }
-        @media (min-width: 1100px) {
-            .match-game-plan-setpiece-layout .match-game-plan-offc-controls {
-                max-width: min(100%, 26rem);
-                width: min(100%, 26rem);
             }
         }
         .match-game-plan-node {
@@ -25413,8 +25406,9 @@
             }
             .match-game-plan-setpiece-layout .match-game-plan-offc-controls {
                 max-height: none;
+                max-width: min(100%, 26rem);
                 top: auto;
-                width: 100%;
+                width: min(100%, 26rem);
             }
             .match-game-plan-setpiece-heading {
                 border-radius: 0.5rem;
