@@ -10536,6 +10536,7 @@ window.showMatchDetails = function(id) {
                     <div class="match-stats-squad-toolbar match-subs-view-toolbar" data-stats-squad-toolbar data-no-swipe>
                         <div class="match-subs-section-heading match-subs-playing-time-heading match-subs-view-heading">
                             <span data-stats-squad-heading><span data-stats-squad-label>Alle</span><span data-filter-count-active>0</span></span>
+                            <span class="match-stats-squad-snitt" data-stats-squad-snitt hidden></span>
                         </div>
                         <div class="match-subs-view-tabs" role="tablist" aria-label="Filtrer tropp">
                             <button
@@ -14437,6 +14438,48 @@ function layoutMatchStatsListColumns(list = document.getElementById('kampdetalje
     list.classList.add('is-two-col');
 }
 
+function getMatchStatsSquadFilterSnittBors(list, filter = matchStatsSquadFilter) {
+    if (!list) return null;
+    const activeFilter = ['ALL', 'START', 'BENCH'].includes(filter) ? filter : 'ALL';
+    const ratings = [];
+
+    list.querySelectorAll('.match-stats-player-row.is-accordion').forEach((row) => {
+        const group = String(row.dataset.startGroup || 'U');
+        const inFilter = activeFilter === 'ALL'
+            || (activeFilter === 'START' && group === 'S')
+            || (activeFilter === 'BENCH' && group === 'B');
+        if (!inFilter) return;
+        if (row.classList.contains('is-bench-only')) return;
+
+        const rating = Math.max(0, Math.floor(Number(row.querySelector('.player-rating-select')?.value) || 0));
+        if (rating > 0) ratings.push(rating);
+    });
+
+    if (!ratings.length) return null;
+    return Math.round((ratings.reduce((sum, value) => sum + value, 0) / ratings.length) * 10) / 10;
+}
+
+function updateMatchStatsSquadSnittHeading(list = document.getElementById('kampdetaljer-spillerbors')) {
+    const panel = document.querySelector('#kampdetaljer-info .match-stats-panel');
+    const snittEl = panel?.querySelector('[data-stats-squad-snitt]');
+    if (!snittEl) return;
+
+    const snitt = getMatchStatsSquadFilterSnittBors(list, matchStatsSquadFilter);
+    if (snitt == null) {
+        snittEl.hidden = true;
+        snittEl.textContent = '';
+        snittEl.removeAttribute('title');
+        snittEl.removeAttribute('aria-label');
+        return;
+    }
+
+    const label = snitt.toFixed(1);
+    snittEl.hidden = false;
+    snittEl.innerHTML = `<i class="fa-solid fa-star" aria-hidden="true"></i><span>${escapeMatchHtml(label)}</span>`;
+    snittEl.title = `Snittbørs ${label}`;
+    snittEl.setAttribute('aria-label', `Snittbørs ${label}`);
+}
+
 function applyMatchStatsSquadFilter(list = document.getElementById('kampdetaljer-spillerbors')) {
     const panel = document.querySelector('#kampdetaljer-info .match-stats-panel');
     const toolbar = panel?.querySelector('[data-stats-squad-toolbar]') || null;
@@ -14484,6 +14527,7 @@ function applyMatchStatsSquadFilter(list = document.getElementById('kampdetaljer
         if (headingEl) {
             headingEl.innerHTML = `<span data-stats-squad-label>${escapeMatchHtml(headingLabel)}</span><span data-filter-count-active>${headingCount}</span>`;
         }
+        updateMatchStatsSquadSnittHeading(list);
     }
 }
 
@@ -14582,6 +14626,8 @@ function syncMatchStatsPlayerSummary(row) {
 
     const borsEl = summary.querySelector('[data-summary-bors-value]');
     if (borsEl) borsEl.textContent = rating > 0 ? String(rating) : '–';
+
+    updateMatchStatsSquadSnittHeading();
 }
 
 function buildMatchStatsPlayerSummaryHtml(playerObj, match, state = {}) {

@@ -21088,6 +21088,41 @@
             font-variant-numeric: tabular-nums;
             letter-spacing: 0;
         }
+        .match-detail-page .match-stats-panel.is-game-card .match-subs-view-heading {
+            gap: 0.55rem;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-squad-snitt {
+            align-items: center;
+            background: rgba(245, 197, 66, 0.14);
+            border: 1px solid rgba(245, 197, 66, 0.42);
+            border-radius: 999px;
+            color: #ffe08a;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.78rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 900;
+            gap: 0.28rem;
+            letter-spacing: 0.02em;
+            line-height: 1;
+            margin-left: 0.1rem;
+            padding: 0.22rem 0.55rem 0.22rem 0.42rem;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-squad-snitt[hidden] {
+            display: none;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-squad-snitt i {
+            color: #f5c542;
+            font-size: 0.62rem;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-squad-snitt span {
+            color: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+            letter-spacing: inherit;
+            text-shadow: inherit;
+        }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row:hover,
         .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row:focus-within {
             background:
