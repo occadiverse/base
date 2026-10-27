@@ -11807,26 +11807,26 @@ function buildMatchSubsLogSubBoardHtml(outRef, inRef, minute, {
         ? `<select id="match-subs-log-edit-in-pos" class="match-subs-log-board-pos" aria-label="Inn-posisjon">${getMatchSubsLogPositionOptionsHtml(inPos)}</select>`
         : '';
     return `
-        <div class="match-subs-log-board${editablePositions ? ' has-positions' : ''}" aria-label="${escapeMatchHtml(outName)} ut, ${escapeMatchHtml(inName)} inn, ${escapeMatchHtml(minuteLabel)}">
-            <div class="match-subs-log-board-player is-out">
-                ${buildMatchSubsLogPlayerCardHtml(outRef)}
-            </div>
-            <span class="match-subs-log-board-marker is-out" title="Ut" aria-hidden="true">
-                <i class="fa-solid fa-caret-up"></i>
-            </span>
-            ${minuteHtml}
-            <span class="match-subs-log-board-marker is-in" title="Inn" aria-hidden="true">
-                <i class="fa-solid fa-caret-down"></i>
-            </span>
+        <div class="match-subs-log-board${editablePositions ? ' has-positions' : ''}" aria-label="${escapeMatchHtml(inName)} inn, ${escapeMatchHtml(outName)} ut, ${escapeMatchHtml(minuteLabel)}">
             <div class="match-subs-log-board-player is-in">
                 ${buildMatchSubsLogPlayerCardHtml(inRef)}
             </div>
+            <span class="match-subs-log-board-marker is-in" title="Inn" aria-hidden="true">
+                <i class="fa-solid fa-caret-down"></i>
+            </span>
+            ${minuteHtml}
+            <span class="match-subs-log-board-marker is-out" title="Ut" aria-hidden="true">
+                <i class="fa-solid fa-caret-up"></i>
+            </span>
+            <div class="match-subs-log-board-player is-out">
+                ${buildMatchSubsLogPlayerCardHtml(outRef)}
+            </div>
             ${editablePositions ? `
-                <div class="match-subs-log-board-pos-slot is-out">${outPosHtml}</div>
-                <span class="match-subs-log-board-pos-gap" aria-hidden="true"></span>
-                <span class="match-subs-log-board-pos-gap" aria-hidden="true"></span>
-                <span class="match-subs-log-board-pos-gap" aria-hidden="true"></span>
                 <div class="match-subs-log-board-pos-slot is-in">${inPosHtml}</div>
+                <span class="match-subs-log-board-pos-gap" aria-hidden="true"></span>
+                <span class="match-subs-log-board-pos-gap" aria-hidden="true"></span>
+                <span class="match-subs-log-board-pos-gap" aria-hidden="true"></span>
+                <div class="match-subs-log-board-pos-slot is-out">${outPosHtml}</div>
             ` : ''}
         </div>
     `;

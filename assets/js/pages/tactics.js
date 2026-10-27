@@ -1774,6 +1774,8 @@
             const pendingSwapPos = window.tacticalPendingSwapPos || null;
             const swapMode = !pickingOut && (eventActive || Boolean(pendingSwapPos));
 
+            syncLivePitchChrome();
+
             if (pitch) {
                 pitch.classList.toggle('is-lineup-readonly', !editable && !liveMatch);
                 pitch.classList.toggle('is-live-board', liveMatch);
@@ -1979,6 +1981,29 @@
             });
             syncTacticalSamspillToggleUi();
         };
+
+        function syncLivePitchChrome() {
+            const live = window.isTacticalLiveMatchMode();
+            const mode = live ? 'live' : 'sandbox';
+            if (window._tacticalPitchChromeMode !== mode) {
+                window.tacticalSamspillLinesVisible = !live;
+                window._tacticalPitchChromeMode = mode;
+            }
+
+            const overlay = document.getElementById('tactical-stats-overlay');
+            const slot = document.getElementById('tactical-live-stats-slot');
+            const pitch = document.getElementById('full-pitch-container');
+            if (overlay && slot && pitch) {
+                if (live) {
+                    if (overlay.parentElement !== slot) slot.appendChild(overlay);
+                    slot.hidden = false;
+                } else {
+                    if (overlay.parentElement !== pitch) pitch.insertBefore(overlay, pitch.firstChild);
+                    slot.hidden = true;
+                }
+            }
+            syncTacticalSamspillToggleUi();
+        }
 
         function syncTacticalSamspillToggleUi() {
             const btn = document.getElementById('tactical-samspill-toggle');
@@ -2314,6 +2339,8 @@
             setLivePlayingTimeStatus('');
 
             if (!matchId) {
+                window.tacticalSamspillLinesVisible = true;
+                window._tacticalPitchChromeMode = 'sandbox';
                 clearTacticalMatchLiveUi();
                 window.liveLineup = {};
                 window.liveRoles = {};
@@ -2334,6 +2361,8 @@
             if (!match) return;
 
             window.tacticalLineupIsEditing = false;
+            window.tacticalSamspillLinesVisible = false;
+            window._tacticalPitchChromeMode = 'live';
 
             hydrateLiveSubstitutionsFromMatch(match);
             setLivePlayingTimeStatus('');
@@ -3108,9 +3137,9 @@
                 }
 
                 const injuryInfo = typeof window.getPlayerInjuryInfo === 'function' ? window.getPlayerInjuryInfo(p) : { isInjured: false };
-                if (injuryInfo.isInjured) {
-                    benchSuspBadge += `<span class="tactical-bench-status-badge ${injuryInfo.type === 'langvarig' ? 'is-injury-long' : 'is-injury-short'}" title="${escapeTacticalHtml(injuryInfo.label)}">${escapeTacticalHtml(injuryInfo.shortLabel)}</span>`;
-                }
+                const injuryBadge = injuryInfo.isInjured
+                    ? `<span class="tactical-bench-status-badge ${injuryInfo.type === 'langvarig' ? 'is-injury-long' : 'is-injury-short'}" title="${escapeTacticalHtml(injuryInfo.label)}">${escapeTacticalHtml(injuryInfo.shortLabel)}</span>`
+                    : '';
 
                 const isPending = Boolean(window.tacticalLiveEvent?.inPlayer && (
                     window.tacticalLiveEvent.inPlayer.id === p.id
@@ -3188,7 +3217,6 @@
 
                 const statusBits = [
                     benchSuspBadge ? `<div class="tactical-bench-status-row">${benchSuspBadge}</div>` : '',
-                    liveLocked ? '<span class="tactical-bench-pending">Live låst</span>' : '',
                     !liveLocked && isPending ? `<span class="tactical-bench-pending">${escapeTacticalHtml(pendingHint)}</span>` : ''
                 ].filter(Boolean).join('');
 
@@ -3197,6 +3225,7 @@
                             <div class="tactical-bench-side is-in">
                                 ${avatarHtml(photoUrl, p.navn || '')}
                                 <span class="tactical-bench-player-name ${pSusp.isSuspended ? 'is-suspended' : ''}">${escapeTacticalHtml(inLastName)}</span>
+                                ${injuryBadge}
                             </div>
                             <div class="tactical-bench-swap-mid">
                                 <div class="tactical-bench-swap-meta">
@@ -3216,6 +3245,7 @@
                                 <div class="tactical-bench-side is-in">
                                     ${avatarHtml(photoUrl, p.navn || '')}
                                     <span class="tactical-bench-player-name ${pSusp.isSuspended ? 'is-suspended' : ''}">${escapeTacticalHtml(inLastName)}</span>
+                                    ${injuryBadge}
                                 </div>
                                 <div class="tactical-bench-swap-mid">
                                     ${outTimeHtml}
@@ -3227,6 +3257,7 @@
                                 <div class="tactical-bench-side is-in">
                                     ${avatarHtml(photoUrl, p.navn || '')}
                                     <span class="tactical-bench-player-name ${pSusp.isSuspended ? 'is-suspended' : ''}">${escapeTacticalHtml(inLastName)}</span>
+                                    ${injuryBadge}
                                     ${statusBits}
                                 </div>
                            </div>`;
@@ -3234,19 +3265,21 @@
                 const div = document.createElement('div');
                 div.className = `tactical-bench-player ${borderClass}${isPending ? ' is-pending-sub' : ''}${assignment ? ' has-plan' : ''}${appliedOutSub ? ' was-subbed-out' : ''}${liveLocked ? ' is-live-locked' : ''}`;
                 div.dataset.benchPlayerRef = playerRef;
-                div.innerHTML = `
-                    ${mainHtml}
-                    <div class="tactical-bench-buttons">
+                const actionHtml = liveLocked
+                    ? `<div class="tactical-bench-buttons"><span class="tactical-bench-locked"><i class="fa-solid fa-lock" aria-hidden="true"></i><span>Låst</span></span></div>`
+                    : `<div class="tactical-bench-buttons">
                         ${planHtml}
                         <button
                             type="button"
                             class="bsk-btn bsk-btn-secondary tactical-bench-btn${isPending ? ' is-active' : ''}"
                             data-bench-action="free"
                             aria-pressed="${isPending ? 'true' : 'false'}"
-                            title="${liveLocked ? 'Live er låst' : (isPending ? 'Avbryt bytte' : 'Bytt inn – velg hvem som går ut')}"
-                            ${liveLocked ? 'disabled' : ''}
+                            title="${isPending ? 'Avbryt bytte' : 'Bytt inn – velg hvem som går ut'}"
                         >${isPending ? 'Avbryt' : 'Fritt'}</button>
-                    </div>
+                    </div>`;
+                div.innerHTML = `
+                    ${mainHtml}
+                    ${actionHtml}
                 `;
 
                 const confirmSuspended = () => {
@@ -3328,10 +3361,15 @@
             const roleSlots = window.isTacticalLiveMatchMode()
                 ? getRolesForPlayer(playerObj)
                 : [];
-
-            const roleBadges = roleSlots.map(slot => (
-                `<span class="tactical-live-card-role" title="${escapeTacticalHtml(getTacticalLiveRoleLabel(slot))}">${escapeTacticalHtml(TACTICAL_LIVE_ROLE_BADGE[slot] || slot)}</span>`
-            )).join('');
+            const roleRank = { K: 0, K2: 1, S: 2, S2: 3, F: 4, F2: 5, Cv: 6, Ch: 7 };
+            const orderedRoles = [...roleSlots].sort((a, b) => (roleRank[a] ?? 99) - (roleRank[b] ?? 99));
+            const roleTitle = orderedRoles.map(slot => getTacticalLiveRoleLabel(slot)).join(', ');
+            const roleBadges = orderedRoles.length
+                ? `<span class="tactical-live-card-roles" title="${escapeTacticalHtml(roleTitle)}">${orderedRoles.map(slot => {
+                    const label = TACTICAL_LIVE_ROLE_BADGE[slot] || slot;
+                    return `<span class="tactical-live-card-role">${escapeTacticalHtml(label)}</span>`;
+                }).join('')}</span>`
+                : '';
 
             node.innerHTML = `
                 <span class="tactical-live-card-visual" aria-hidden="true">
@@ -3342,7 +3380,7 @@
                                 : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
                             <span class="tactical-live-card-pos">${escapeTacticalHtml(posBadge)}</span>
                         </span>
-                        ${roleBadges ? `<span class="tactical-live-card-roles">${roleBadges}</span>` : ''}
+                        ${roleBadges}
                     </span>
                     <strong>${escapeTacticalHtml(lastName)}</strong>
                 </span>
