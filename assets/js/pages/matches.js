@@ -8496,7 +8496,7 @@ function buildMatchGamePlanBenchHtml(match) {
         <div class="match-game-plan-bench-layout">
             <div class="match-game-plan-bench-toolbar">
                 <h3 class="match-game-plan-bench-toolbar-heading match-bench-group-title stats-kamp-summary-metric-heading">
-                    <span class="match-bench-group-title-label">Planlagt inn</span>
+                    <span class="match-bench-group-title-label">Planlagte bytter</span>
                     <span class="match-game-plan-bench-toolbar-rule" aria-hidden="true"></span>
                     ${buildMatchGamePlanBenchSaveButtonHtml(match)}
                 </h3>
