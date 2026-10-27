@@ -12647,6 +12647,13 @@ function renderMatchSubsLogSubEditorBody(match, entry, { titleText = 'Rediger by
     const outPos = entry.posId || '';
     const inPos = entry.inPosId || entry.posId || '';
     const fillSteps = getMatchSubsLogFillChainSteps(entry);
+    const handoverHtml = typeof window.buildTacticalLiveHandoverHtml === 'function'
+        ? window.buildTacticalLiveHandoverHtml({
+            roles: entry.outRoles,
+            offc: entry.outOffc,
+            defc: entry.outDefc
+        })
+        : '';
     body.innerHTML = `
         <div class="match-subs-log-edit-lead">
             ${buildMatchSubsLogSubBoardHtml(entry.outId, entry.inId, minute, {
@@ -12656,6 +12663,7 @@ function renderMatchSubsLogSubEditorBody(match, entry, { titleText = 'Rediger by
                 inPos
             })}
         </div>
+        ${handoverHtml ? `<div class="match-subs-log-handover">${handoverHtml}</div>` : ''}
         <div id="match-subs-log-fill-wrap" class="match-subs-log-fill-wrap" hidden>
             <div id="match-subs-log-fill-chain" class="match-subs-log-fill-chain" aria-label="Rokering"></div>
         </div>

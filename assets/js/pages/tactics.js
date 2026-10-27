@@ -777,17 +777,10 @@
 
         function buildResponsibilityChipsHtml(preview) {
             const chips = [];
-            (preview?.roles || []).forEach((slot) => {
-                chips.push({
-                    label: TACTICAL_LIVE_ROLE_BADGE[slot] || slot,
-                    title: getTacticalLiveRoleLabel(slot),
-                    tone: 'role'
-                });
-            });
             (preview?.offc || []).forEach((slot) => {
                 chips.push({
-                    label: `O${slot}`,
-                    title: `Vis OffC ${slot} på hjørnebane`,
+                    label: `OC ${slot}`,
+                    title: `OffC ${slot}. Trykk for å vise plasseringen.`,
                     tone: 'offc',
                     planId: 'offc',
                     slot: String(slot)
@@ -795,31 +788,43 @@
             });
             (preview?.defc || []).forEach((slot) => {
                 chips.push({
-                    label: `D${slot}`,
-                    title: `Vis DefC ${slot} på hjørnebane`,
+                    label: `DC ${slot}`,
+                    title: `DefC ${slot}. Trykk for å vise plasseringen.`,
                     tone: 'defc',
                     planId: 'defc',
                     slot: String(slot)
                 });
             });
+            (preview?.roles || []).forEach((slot) => {
+                chips.push({
+                    label: TACTICAL_LIVE_ROLE_BADGE[slot] || slot,
+                    title: getTacticalLiveRoleLabel(slot),
+                    tone: 'role'
+                });
+            });
             if (!chips.length) return '';
             return `
-                <div class="tactical-bench-duty-chips">
-                    ${chips.map((chip) => {
-                        if (chip.planId) {
-                            return `<button
-                                type="button"
-                                class="tactical-bench-duty-chip is-${escapeTacticalHtml(chip.tone)}"
-                                data-live-setpiece="${escapeTacticalHtml(chip.planId)}"
-                                data-live-slot="${escapeTacticalHtml(chip.slot)}"
-                                title="${escapeTacticalHtml(chip.title)}"
-                            >${escapeTacticalHtml(chip.label)}</button>`;
-                        }
-                        return `<span class="tactical-bench-duty-chip is-${escapeTacticalHtml(chip.tone)}" title="${escapeTacticalHtml(chip.title)}">${escapeTacticalHtml(chip.label)}</span>`;
-                    }).join('')}
+                <div class="tactical-bench-handover">
+                    <span class="tactical-bench-handover-label">Overtar</span>
+                    <div class="tactical-bench-duty-chips">
+                        ${chips.map((chip) => {
+                            if (chip.planId) {
+                                return `<button
+                                    type="button"
+                                    class="tactical-bench-duty-chip is-${escapeTacticalHtml(chip.tone)}"
+                                    data-live-setpiece="${escapeTacticalHtml(chip.planId)}"
+                                    data-live-slot="${escapeTacticalHtml(chip.slot)}"
+                                    title="${escapeTacticalHtml(chip.title)}"
+                                    aria-label="${escapeTacticalHtml(chip.title)}"
+                                >${escapeTacticalHtml(chip.label)}</button>`;
+                            }
+                            return `<span class="tactical-bench-duty-chip is-${escapeTacticalHtml(chip.tone)}" title="${escapeTacticalHtml(chip.title)}">${escapeTacticalHtml(chip.label)}</span>`;
+                        }).join('')}
+                    </div>
                 </div>
             `;
         }
+        window.buildTacticalLiveHandoverHtml = buildResponsibilityChipsHtml;
 
         function resolveLiveSubMinute(explicitMinute) {
             const raw = explicitMinute === undefined || explicitMinute === null
@@ -3495,13 +3500,17 @@
             if (bodyEl) bodyEl.innerHTML = '';
         };
 
-        document.getElementById('view-taktikk')?.addEventListener('click', (event) => {
+        function openLiveSetPieceFromChip(event) {
             const btn = event.target.closest('[data-live-setpiece]');
-            if (!btn || !document.getElementById('view-taktikk')?.contains(btn)) return;
+            if (!btn) return;
+            const host = btn.closest('#view-taktikk, #matchSubsLogEditModal');
+            if (!host) return;
             event.preventDefault();
             event.stopPropagation();
             window.openLiveSetPiecePreview(btn.dataset.liveSetpiece, btn.dataset.liveSlot);
-        });
+        }
+        document.getElementById('view-taktikk')?.addEventListener('click', openLiveSetPieceFromChip);
+        document.getElementById('matchSubsLogEditModal')?.addEventListener('click', openLiveSetPieceFromChip);
 
         window.autoFillTeam = function() {
             if (!window.isTacticalLineupEditable()) return;
