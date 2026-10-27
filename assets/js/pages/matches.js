@@ -9147,13 +9147,9 @@ function buildMatchPrintPitchHtml(match, planId) {
     const isDefC = planId === 'defc';
     const positions = isDefC ? matchGamePlanDefCPositions : matchGamePlanOffCPositions;
     const assignments = getMatchGamePlanSetPieceAssignments(match, planId);
-    const starterPlayers = getMatchGamePlanSetPieceStarterPlayers(match);
     const label = isDefC ? 'Defensiv corner' : 'Offensiv corner';
     const markersHtml = Object.entries(positions).map(([value, coords]) => {
         const stored = String(assignments[value] || '').trim();
-        const player = resolveMatchGamePlanAssignedPlayer(match, stored, starterPlayers);
-        const shortName = player ? getMatchGamePlanPlayerShortName(player) : '';
-        const initials = player ? getMatchGamePlanPlayerInitials(player) : '';
         return `
             <span
                 class="match-print-pitch-marker ${stored ? 'is-filled' : 'is-empty'}"
@@ -9163,11 +9159,6 @@ function buildMatchPrintPitchHtml(match, planId) {
                 aria-hidden="true"
             >
                 <span class="match-print-pitch-marker-num">${escapeMatchHtml(value)}</span>
-                ${stored ? `
-                    <span class="match-print-pitch-marker-player">
-                        ${escapeMatchHtml(shortName || initials || '—')}
-                    </span>
-                ` : ''}
             </span>
         `;
     }).join('');

@@ -29513,13 +29513,6 @@
 
             .match-print-pitch-setpiece .match-print-pitch-marker {
                 border-radius: 0.28rem;
-                flex-direction: column;
-                gap: 0.05rem;
-                height: auto;
-                min-height: 1.05rem;
-                min-width: 1.05rem;
-                padding: 0.12rem 0.16rem;
-                width: auto;
             }
 
             /* Print-only nudge: DefC 4–6 sit lower than the shared on-screen coords. */
@@ -29533,24 +29526,12 @@
                 background: #0f172a;
                 border-color: #0f172a;
                 color: #ffffff;
-                max-width: 2.6rem;
             }
 
             .match-print-pitch-marker-num {
                 font-size: 7pt;
                 font-weight: 800;
                 line-height: 1;
-            }
-
-            .match-print-pitch-marker-player {
-                font-size: 5.5pt;
-                font-weight: 700;
-                line-height: 1.05;
-                max-width: 2.4rem;
-                overflow: hidden;
-                text-align: center;
-                text-overflow: ellipsis;
-                white-space: nowrap;
             }
 
             .match-print-pitch-ball {
