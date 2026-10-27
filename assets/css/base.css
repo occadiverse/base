@@ -21088,7 +21088,7 @@
             font-variant-numeric: tabular-nums;
             letter-spacing: 0;
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-subs-view-heading {
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-squad-toolbar .match-subs-view-heading {
             gap: 0.55rem;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-squad-snitt {
@@ -21105,7 +21105,7 @@
             gap: 0.28rem;
             letter-spacing: 0.02em;
             line-height: 1;
-            margin-left: 0.1rem;
+            margin-left: 0.45rem;
             padding: 0.22rem 0.55rem 0.22rem 0.42rem;
             text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
         }
@@ -22174,6 +22174,9 @@
                 0 0 14px rgba(255, 224, 138, 0.35);
             text-transform: none;
             width: 100%;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-squad-toolbar .match-subs-playing-time-heading {
+            gap: 0.55rem;
         }
         /*
          * blknapp — blå liten knapp
