@@ -29575,10 +29575,13 @@
                 transform: translate(-50%, calc(-50% + 6px));
             }
 
-            .match-print-pitch-setpiece .match-print-pitch-marker.is-filled {
+            body.is-printing-match-sheet #match-print-sheet .match-print-pitch-marker.is-filled,
+            body.is-printing-match-sheet #match-print-sheet .match-print-pitch-marker.is-filled .match-print-pitch-marker-num {
                 background: #0f172a;
                 border-color: #0f172a;
                 color: #ffffff;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
 
             .match-print-pitch-marker-num {
