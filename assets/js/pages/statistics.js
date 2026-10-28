@@ -1875,12 +1875,22 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))];
             const teamKampCountByTeam = new Map();
+            const seasonAttendanceByTeam = new Map();
             allEvents.forEach(e => {
-                if (e.type !== 'Kamp' || !e.team) return;
-                if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(e)) return;
+                const team = e.team || e.matchGroup;
+                if (!team) return;
+                if (e.type !== 'Kamp' && e.type !== 'Trening') return;
                 if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return;
                 if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(e, yearFilter)) return;
-                teamKampCountByTeam.set(e.team, (teamKampCountByTeam.get(e.team) || 0) + 1);
+                if (e.type === 'Kamp' && !(typeof window.isTreningskamp === 'function' && window.isTreningskamp(e))) {
+                    teamKampCountByTeam.set(team, (teamKampCountByTeam.get(team) || 0) + 1);
+                }
+                const registered = typeof window.hasRegisteredAttendance === 'function'
+                    ? window.hasRegisteredAttendance(e.attendance)
+                    : Boolean(e.attendance);
+                if (!registered) return;
+                if (!seasonAttendanceByTeam.has(team)) seasonAttendanceByTeam.set(team, []);
+                seasonAttendanceByTeam.get(team).push(e);
             });
 
             const statsData = (window.activePlayers || [])
@@ -1900,8 +1910,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
                     let trainingAttended = 0;
                     let trainingPossible = 0;
-                    let matchOppmoteAttended = 0;
-                    let matchOppmotePossible = 0;
+                    const seasonActivities = seasonAttendanceByTeam.get(p.spillerLag) || [];
+                    let oppmoteSamletAttended = 0;
+                    seasonActivities.forEach(e => {
+                        if (window.isPlayerAttending(e.attendance, p)) oppmoteSamletAttended += 1;
+                    });
+                    const oppmoteSamletPossible = seasonActivities.length;
                     (window.activeEvents || []).forEach(e => {
                         if (e.type !== 'Trening') return;
                         if ((e.team || e.matchGroup) !== p.spillerLag) return;
@@ -1917,15 +1931,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
                     teamEvents.forEach(e => {
                         const attending = window.isPlayerAttending(e.attendance, p);
-                        if (e.type === 'Kamp') {
-                            const registered = typeof window.hasRegisteredAttendance === 'function'
-                                ? window.hasRegisteredAttendance(e.attendance)
-                                : Boolean(e.attendance);
-                            if (registered) {
-                                matchOppmotePossible += 1;
-                                if (attending) matchOppmoteAttended += 1;
-                            }
-                        }
                         const competitiveMatch = e.type === 'Kamp'
                             && !(typeof window.isTreningskamp === 'function' && window.isTreningskamp(e));
                         if (attending) {
@@ -1975,8 +1980,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const rodeSerie = cardCounts.serie.rode;
                     const guleCup = cardCounts.cup.gule;
                     const rodeCup = cardCounts.cup.rode;
-                    const oppmoteSamletAttended = trainingAttended + matchOppmoteAttended;
-                    const oppmoteSamletPossible = trainingPossible + matchOppmotePossible;
                     const oppmoteSamletPct = oppmoteSamletPossible > 0
                         ? Math.round((oppmoteSamletAttended / oppmoteSamletPossible) * 100)
                         : 0;
@@ -4830,7 +4833,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 const attended = Number(stat.oppmoteSamletAttended) || 0;
                                 return `${pct}% ${attended}/${possible}`;
                             },
-                            explain: 'Høyest samlet oppmøte på treningsøkter, serie, cup og treningskamp. Bare økter og kamper med registrert oppmøte teller. Vises som prosent og møtt/mulige.'
+                            explain: 'Høyest samlet oppmøte for hele sesongen, på trening, kamp og treningskamp. Hele året teller, også før en spiller kom inn og etter at han gikk ut. Bare økter og kamper med registrert oppmøte teller. Vises som prosent og møtt/mulige.'
                         }
                     ]
                 },
