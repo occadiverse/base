@@ -1844,8 +1844,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return;
                 if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(e, yearFilter)) return;
                 if (e.type === 'Kamp' && !(typeof window.isTreningskamp === 'function' && window.isTreningskamp(e))) {
-                    teamKampCountByTeam.set(team, (teamKampCountByTeam.get(team) || 0) + 1);
+                    if (typeof window.matchHasPlayedResult !== 'function' || window.matchHasPlayedResult(e)) {
+                        teamKampCountByTeam.set(team, (teamKampCountByTeam.get(team) || 0) + 1);
+                    }
                 }
+                if (e.type === 'Kamp' && typeof window.matchHasPlayedResult === 'function' && !window.matchHasPlayedResult(e)) return;
                 const registered = typeof window.hasRegisteredAttendance === 'function'
                     ? window.hasRegisteredAttendance(e.attendance)
                     : Boolean(e.attendance);
@@ -1893,7 +1896,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     teamEvents.forEach(e => {
                         const attending = window.isPlayerAttending(e.attendance, p);
                         const competitiveMatch = e.type === 'Kamp'
-                            && !(typeof window.isTreningskamp === 'function' && window.isTreningskamp(e));
+                            && !(typeof window.isTreningskamp === 'function' && window.isTreningskamp(e))
+                            && (typeof window.matchHasPlayedResult !== 'function' || window.matchHasPlayedResult(e));
                         if (attending) {
                             attended++;
                             if (competitiveMatch) {
@@ -4781,7 +4785,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             column: 'attendedMatches',
                             icon: 'fa-users',
                             valueFn: (stat) => window.formatTroppAttendanceDisplay(stat),
-                            explain: 'Flest kamper i troppen på kampdagen, uavhengig av minutter. Ved likt antall rangeres den med flest kamper på banen høyest.'
+                            explain: 'Flest spilte kamper i troppen på kampdagen, uavhengig av minutter. En kamp teller først når resultatet er registrert. Ved likt antall rangeres den med flest kamper på banen høyest.'
                         },
                         {
                             id: 'oppmote',

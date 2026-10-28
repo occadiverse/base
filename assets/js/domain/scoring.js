@@ -376,6 +376,12 @@ window.isHistoricalActivity = function(item) {
     return itemDate <= today;
 };
 
+window.matchHasPlayedResult = function(match) {
+    const result = String(match?.result || '').trim();
+    if (!result || result === 'Ikke spilt') return false;
+    return result.includes('-');
+};
+
 window.getPlayerKampbidragSnitt = function(playerOrRef, teamName) {
     const player = typeof playerOrRef === 'object' && playerOrRef !== null
         ? playerOrRef
