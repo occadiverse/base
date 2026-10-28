@@ -1508,52 +1508,13 @@ window.getPlayerFormComponents = function(playerName, options = {}) {
     const weightedAverage = totalWeight > 0 ? weightedPoints / totalWeight : 0;
     performanceScore = typeof window.scaleFormKampScore === 'function'
         ? window.scaleFormKampScore(weightedAverage)
-        : Math.max(0, Math.min(70, ((weightedAverage - 5) / 35) * 70));
+        : Math.max(0, Math.min(80, ((weightedAverage - 12) / 20) * 80));
 
-    let totalYellowCards = 0;
-
-    (window.activeMatches || []).forEach(m => {
-        if (!isHistorical(m) || m.matchGroup !== spillerLag || m.matchType !== 'Serie') return;
-        if (isExcludedMatch(m) || !isOnOrBeforeAsOf(m)) return;
-        if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(m, yearFilter)) return;
-        if (window.playerRefListIncludes(m.guleKort, playerObj)) totalYellowCards++;
-    });
-
-    const recentSerieMatches = (window.activeMatches || [])
-        .filter(m => (
-            isHistorical(m) &&
-            m.matchGroup === spillerLag &&
-            m.matchType === 'Serie' &&
-            m.attendance &&
-            window.isPlayerAttending(m.attendance, playerObj) &&
-            !isExcludedMatch(m) &&
-            isOnOrBeforeAsOf(m) &&
-            (typeof window.isPlayerOnPitch !== 'function' || window.isPlayerOnPitch(m, playerObj)) &&
-            (typeof window.activityBelongsToStatsYear !== 'function' || window.activityBelongsToStatsYear(m, yearFilter))
-        ))
-        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
-        .slice(0, 5);
-
-    const recentRedCardWeights = [10, 8, 6, 4, 2];
-    const recentRedCardPenalty = recentSerieMatches.reduce((total, m, index) => {
-        return total + (window.playerRefListIncludes(m.rodeKort, playerObj)
-            ? recentRedCardWeights[index]
-            : 0);
-    }, 0);
-
-    let karantener = 0;
-    if (totalYellowCards >= 4) {
-        karantener = 1 + Math.floor((totalYellowCards - 4) / 2);
-    }
-
-    const disciplinePenalty = karantener > 1 ? (karantener - 1) * 5 : 0;
-    const disciplineScore = Math.max(0, 10 - disciplinePenalty);
     const kamp = Math.round(performanceScore);
     const oppm = Math.round(availabilityScore);
-    const dis = Math.round(disciplineScore);
-    const total = Math.max(0, Math.min(100, kamp + oppm + dis - recentRedCardPenalty));
+    const total = Math.max(0, Math.min(100, kamp + oppm));
 
-    const result = { total, kamp, oppm, dis, recentRedCardPenalty, hasFormData: true };
+    const result = { total, kamp, oppm, dis: 0, recentRedCardPenalty: 0, hasFormData: true };
     if (cache) cache.set(cacheKey, result);
     return result;
 };
@@ -5724,7 +5685,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 items: [
                     '<strong>Form</strong> er siste 5 kamper. Skala 0–100.',
                     'Nyeste kamp teller mest: ved 5 kamper vektes de 5–4–3–2–1. En fersk kamp trekker Form mer enn en eldre i det vinduet.',
-                    'Kampdel inntil 70 % (15 + børs + minutter + seier +2 / uavgjort +1 / tap 0), treningsoppmøte 20 % og disiplin 10 %.',
+                    'Kampdel inntil 80 (15 + børs + minutter + seier +2 / uavgjort +1 / tap 0) og oppmøte 20. Kort teller ikke i Form.',
                     'Krever minst 50 % av lagets kamper for å ligge øverst. Uten minst én kamp blir Form 0.'
                 ]
             }

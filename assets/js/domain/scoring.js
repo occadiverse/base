@@ -544,9 +544,9 @@ window.calculatePlayerFormMatchPoints = function(m, playerRef, returnDetails = f
     return total;
 };
 
-/** Form-kamp 0–70: rundt 12 snitt ≈ 0, rundt 32 snitt ≈ 70. */
+/** Form-kamp 0–80: rundt 12 snitt ≈ 0, rundt 32 snitt ≈ 80. */
 window.scaleFormKampScore = function(average) {
     const avg = Number(average);
     if (!Number.isFinite(avg)) return 0;
-    return Math.max(0, Math.min(70, ((avg - 12) / 20) * 70));
+    return Math.max(0, Math.min(80, ((avg - 12) / 20) * 80));
 };
