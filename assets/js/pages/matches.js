@@ -4360,7 +4360,7 @@ function getMatchGamePlanLineStatsSlotPlayerScore(player, posId, match, seasonSt
     const kampSharePct = Number(seasonStatResolved?.kampSharePct) || 0;
     const qualifies = typeof window.playerMeetsKampShareThreshold === 'function'
         ? window.playerMeetsKampShareThreshold({ kampSharePct })
-        : kampSharePct >= 30;
+        : kampSharePct >= 50;
     // 1 kamp → 1/3 posisjonsvekt, 2 → 2/3, 3+ → full.
     const sampleFactor = matches <= 0
         ? 0
@@ -4945,7 +4945,7 @@ function getMatchGamePlanDefensiveMidSlotScore(player, parts) {
 }
 
 function compareMatchGamePlanLineStatsSlotCandidates(left, right) {
-    // GK: nye keepere kan ha lav kampandel — ikke la 30 %-terskelen overstyre.
+    // GK: nye keepere kan ha lav kampandel — ikke la 50 %-terskelen overstyre.
     const relaxQualifies = left?.meta?.relaxQualifiesTier || right?.meta?.relaxQualifiesTier;
     if (!relaxQualifies && Boolean(left?.meta?.qualifies) !== Boolean(right?.meta?.qualifies)) {
         return left?.meta?.qualifies ? -1 : 1;

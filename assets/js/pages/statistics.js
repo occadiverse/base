@@ -2397,7 +2397,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.playerMeetsKampShareThreshold = function(stat) {
-            return (Number(stat?.kampSharePct) || 0) >= 30;
+            return (Number(stat?.kampSharePct) || 0) >= 50;
         };
 
         window.statsSortUsesKampShareThreshold = function(column) {
@@ -4708,7 +4708,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 const shown = Number.isFinite(score) && score > 0 ? score.toFixed(1) : '—';
                                 return `${shown} · ${Number(stat.kamper) || 0} kamper`;
                             },
-                            explain: 'Høyest Total Score (beste sesong): kampbidrag 50 %, spillerbørs 25 %, treningsoppmøte 15 % og disiplin 10 %. Krever minst 30 % av lagets kamper. Ved lik score rangeres den med flest kamper høyest.'
+                            explain: 'Høyest Total Score (beste sesong): kampbidrag 50 %, spillerbørs 25 %, treningsoppmøte 15 % og disiplin 10 %. Krever minst 50 % av lagets kamper. Ved lik score rangeres den med flest kamper høyest.'
                         },
                         {
                             id: 'bors',
@@ -4720,7 +4720,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 const shown = Number.isFinite(avg) && avg > 0 ? avg.toFixed(1) : '—';
                                 return `${shown} · ${Number(stat.kamper) || 0} kamper`;
                             },
-                            explain: 'Høyest snittkarakter på Spillerbørs gjennom sesongen. Krever minst 30 % av lagets kamper. Ved likt snitt rangeres den med flest kamper høyest.'
+                            explain: 'Høyest snittkarakter på Spillerbørs gjennom sesongen. Krever minst 50 % av lagets kamper. Ved likt snitt rangeres den med flest kamper høyest.'
                         },
                         {
                             id: 'mal',
@@ -4745,7 +4745,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             valueFn: (stat) => typeof window.formatExpectedMalpoengDisplay === 'function'
                                 ? window.formatExpectedMalpoengDisplay(stat)
                                 : `${Number(stat.expectedMalpoeng).toFixed(1)} · ${Number(stat.kamper) || 0} kamper`,
-                            explain: 'Mål + assist per kamp på banen. Krever minst 30 % av lagets kamper.'
+                            explain: 'Mål + assist per kamp på banen. Krever minst 50 % av lagets kamper.'
                         },
                         {
                             id: 'bb',
@@ -4761,7 +4761,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             column: 'totalScore',
                             icon: 'fa-seedling',
                             maxAge: 19,
-                            explain: 'Høyest Total Score blant spillere som er 19 år eller yngre i valgt sesong. Krever minst 30 % av lagets kamper.'
+                            explain: 'Høyest Total Score blant spillere som er 19 år eller yngre i valgt sesong. Krever minst 50 % av lagets kamper.'
                         }
                     ]
                 },
@@ -4801,7 +4801,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             column: 'kampbonus',
                             icon: 'fa-mitten',
                             group: 'keeper',
-                            explain: 'Høyest snitt kampbidrag blant keepere. Krever minst 30 % av lagets kamper.'
+                            explain: 'Høyest snitt kampbidrag blant keepere. Krever minst 50 % av lagets kamper.'
                         },
                         {
                             id: 'forsvar',
@@ -4809,7 +4809,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             column: 'kampbonus',
                             icon: 'fa-shield-halved',
                             group: 'forsvar',
-                            explain: 'Høyest snitt kampbidrag blant stoppere og bekker. Krever minst 30 % av lagets kamper.'
+                            explain: 'Høyest snitt kampbidrag blant stoppere og bekker. Krever minst 50 % av lagets kamper.'
                         },
                         {
                             id: 'midtbane',
@@ -4817,7 +4817,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             column: 'kampbonus',
                             icon: 'fa-diagram-project',
                             group: 'midtbane',
-                            explain: 'Høyest snitt kampbidrag blant defensiv/offensiv midtbane og playmaker. Krever minst 30 % av lagets kamper.'
+                            explain: 'Høyest snitt kampbidrag blant defensiv/offensiv midtbane og playmaker. Krever minst 50 % av lagets kamper.'
                         },
                         {
                             id: 'angrep',
@@ -4825,7 +4825,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             column: 'kampbonus',
                             icon: 'fa-bullseye',
                             group: 'angrep',
-                            explain: 'Høyest snitt kampbidrag blant kanter og spisser. Krever minst 30 % av lagets kamper.'
+                            explain: 'Høyest snitt kampbidrag blant kanter og spisser. Krever minst 50 % av lagets kamper.'
                         }
                     ]
                 },
@@ -4843,7 +4843,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             qualifyAs: 'totalScore',
                             tiebreakKamper: 'more',
                             valueFn: (stat) => `${Number(stat.gule) || 0} gule · ${Number(stat.kamper) || 0} kamper`,
-                            explain: 'Færrest gule kort blant spillere med minst 30 % av lagets kamper. Ved likt vinner den med flest kamper.'
+                            explain: 'Færrest gule kort blant spillere med minst 50 % av lagets kamper. Ved likt vinner den med flest kamper.'
                         },
                         {
                             id: 'gule',
@@ -5410,7 +5410,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 belowHtml = `
                     <li class="training-data-rank-separator${sepOverflow ? ' is-overflow' : ''}" role="presentation">
                         <span class="training-data-rank-separator-line" aria-hidden="true"></span>
-                        <span class="training-data-rank-separator-label">Under 30 % kamper</span>
+                        <span class="training-data-rank-separator-label">Under 50 % kamper</span>
                         <span class="training-data-rank-separator-line" aria-hidden="true"></span>
                     </li>
                     ${belowThreshold.map((stat, index) => {
@@ -5660,7 +5660,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 buttonLabel: 'Slik regnes sesong',
                 items: [
                     '<strong>Sesong</strong> rangeres etter Total Score: kampbidrag 50 %, spillerbørs 25 %, treningsoppmøte 15 % og disiplin 10 %.',
-                    'Krever minst 30 % av lagets kamper for å ligge øverst.'
+                    'Krever minst 50 % av lagets kamper for å ligge øverst.'
                 ]
             },
             kampbonus: {
@@ -5669,7 +5669,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 items: [
                     '<strong>Kampbidrag</strong> er snitt kamppoeng i kampene spilleren har vært med på.',
                     'Per kamp: 15 + resultat + børs + minutter. Børs 5 er par. 61+ min gir +2. Seier +5, uavgjort +2, tap −2, rent null +3, ±1 per mål.',
-                    'Krever minst 30 % av lagets kamper for å ligge øverst. Benk uten minutter får bare de 15 grunnpoengene.'
+                    'Krever minst 50 % av lagets kamper for å ligge øverst. Benk uten minutter får bare de 15 grunnpoengene.'
                 ]
             },
             kjemi: {
@@ -5679,7 +5679,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     '<strong>Form</strong> er siste 5 kamper. Skala 0–100.',
                     'Nyeste kamp teller mest: ved 5 kamper vektes de 5–4–3–2–1. En fersk kamp trekker Form mer enn en eldre i det vinduet.',
                     'Kampdel inntil 70 % (15 + børs + minutter + seier +2 / uavgjort +1 / tap 0), treningsoppmøte 20 % og disiplin 10 %.',
-                    'Krever minst 30 % av lagets kamper for å ligge øverst. Uten minst én kamp blir Form 0.'
+                    'Krever minst 50 % av lagets kamper for å ligge øverst. Uten minst én kamp blir Form 0.'
                 ]
             }
         };

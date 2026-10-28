@@ -1243,7 +1243,7 @@ window.renderPlayerProfilePage = function(playerId) {
                     ...getPlayerProfileStatChipVisual('assist')
                 })}
                 ${buildPlayerProfileStatChipHtml('Expected målpoeng', expectedMalpoeng, {
-                    title: 'Mål + assist per kamp på banen (vist som snitt / kamper). Hovedlisten krever minst 30 % kamper.',
+                    title: 'Mål + assist per kamp på banen (vist som snitt / kamper). Hovedlisten krever minst 50 % kamper.',
                     rank: rankOf('expectedMalpoeng'),
                     ...getPlayerProfileStatChipVisual('expectedMalpoeng')
                 })}
