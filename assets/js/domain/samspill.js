@@ -313,6 +313,7 @@
 
         const matches = (window.activeMatches || []).filter((match) => {
             if (excludeMatchId && match?.id === excludeMatchId) return false;
+            if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(match)) return false;
             if (filterLag && match.matchGroup !== filterLag) return false;
             if (historicalOnly && typeof window.isHistoricalActivity === 'function'
                 && !window.isHistoricalActivity(match)) return false;

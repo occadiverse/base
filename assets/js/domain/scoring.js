@@ -1,3 +1,7 @@
+window.isTreningskamp = function(match) {
+    return match?.matchType === 'Treningskamp';
+};
+
 window.getDerivedStatsCache = function(name) {
     const matches = window.activeMatches;
     const events = window.activeEvents;
@@ -390,6 +394,7 @@ window.getPlayerKampbidragSnitt = function(playerOrRef, teamName) {
 
     (window.activeMatches || []).forEach(m => {
         if (m.matchGroup !== lag) return;
+        if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(m)) return;
         if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return;
         if (!window.isPlayerAttending(m.attendance, player)) return;
 
