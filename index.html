@@ -17,7 +17,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20261027-print-numbers">
+    <link rel="stylesheet" href="assets/css/base.css?v=20261028-live-btn-style">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -385,19 +385,18 @@
                         </div>
 
                         <div class="match-detail-card-top tactical-live-top relative z-10">
-                            <div class="match-detail-meta match-list-column-title">
-                                <i class="fa-solid fa-broadcast-tower"></i>
-                                <span>Live</span>
-                            </div>
-                            <div class="match-detail-top-chips">
-                                <div class="match-detail-chip">
-                                    <i class="fa-solid fa-futbol"></i>
-                                    <span>Kampbord</span>
+                            <div class="match-bench-heading">
+                                <span class="match-game-card-icon match-lineup-mark tactical-live-mark" aria-hidden="true">
+                                    <i class="fa-solid fa-broadcast-tower"></i>
+                                </span>
+                                <div class="match-bench-heading-copy">
+                                    <h3>Live</h3>
                                 </div>
                             </div>
                         </div>
 
                         <div class="tactical-live-toolbar relative z-40">
+                            <div class="tactical-live-toolbar-row">
                             <label class="match-list-lag-filter tactical-match-select-wrap" for="tacticalMatchSelect">
                                 <i class="fa-solid fa-futbol" aria-hidden="true"></i>
                                 <select
@@ -419,7 +418,8 @@
                             >
                                 Sandkasse
                             </button>
-                            <div class="tactical-live-phases flex flex-wrap items-center justify-center gap-2">
+                            </div>
+                            <div class="tactical-live-phases">
                                 <button onclick="setTacticalPhase('fase1')" id="btn-fase1" class="bsk-btn bsk-btn-chip phase-btn portal-btn portal-btn-icon portal-btn-primary">
                                 F1
                                 </button>
@@ -428,6 +428,17 @@
                                 </button>
                                 <button onclick="setTacticalPhase('fase3')" id="btn-fase3" class="bsk-btn bsk-btn-chip phase-btn portal-btn portal-btn-icon portal-btn-secondary">
                                 F3
+                                </button>
+                                <button
+                                    type="button"
+                                    id="tactical-samspill-toggle"
+                                    class="tactical-live-samspill-btn"
+                                    onclick="window.toggleTacticalSamspillLines()"
+                                    aria-pressed="false"
+                                    title="Samspill"
+                                    aria-label="Samspill"
+                                >
+                                    <i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
                                 </button>
                                 <div id="tactical-sandbox-tools" class="contents">
                                     <div class="w-px h-6 bg-white/20 mx-1 rounded"></div>
@@ -459,30 +470,7 @@
 
                         <div class="tactical-live-main relative z-10">
                             <div class="tactical-live-pitch-column">
-                                <div id="tactical-live-stats-slot" class="tactical-live-stats-slot" hidden></div>
                                 <div class="tactical-pitch relative w-full aspect-[2/3] rounded-2xl shadow-lg border overflow-hidden" id="full-pitch-container">
-
-                                    <div id="tactical-stats-overlay" class="tactical-stats-overlay absolute top-4 left-0 w-full flex justify-center gap-4 z-30 pointer-events-none px-2">
-                                        <div class="tactical-stats-chip">
-                                            <span class="tactical-stats-chip-label">Kampbidrag</span>
-                                            <span id="stat-total-bonus" class="tactical-stats-chip-value">0/0</span>
-                                        </div>
-                                        <div class="tactical-stats-chip">
-                                            <span class="tactical-stats-chip-label">Form</span>
-                                            <span id="stat-avg-chem" class="tactical-stats-chip-value">0/0</span>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            id="tactical-samspill-toggle"
-                                            class="tactical-stats-chip tactical-samspill-toggle is-active"
-                                            onclick="window.toggleTacticalSamspillLines()"
-                                            aria-pressed="true"
-                                            title="Vis eller skjul samspill-linjer"
-                                        >
-                                            <span class="tactical-stats-chip-label">Samspill</span>
-                                            <span class="tactical-stats-chip-value" id="tactical-samspill-toggle-value">På</span>
-                                        </button>
-                                    </div>
 
                                     <div class="absolute top-1/2 w-full h-[2px] bg-white/45 -translate-y-1/2"></div>
                                     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[35%] aspect-square rounded-full border-2 border-white/45"></div>
@@ -1563,7 +1551,7 @@
     <script src="assets/js/pages/matches.js?v=20261027-live-dialog"></script>
     <script src="assets/js/pages/attendance.js?v=20261025-kalender-live"></script>
     <script src="assets/js/pages/statistics.js?v=20261025-oppmote-tiebreak"></script>
-    <script src="assets/js/pages/tactics.js?v=20261027-live-bench-quiet"></script>
+    <script src="assets/js/pages/tactics.js?v=20261028-live-samspill-off"></script>
     <script src="assets/js/pages/dashboard.js?v=20261025-session-count"></script>
     <script src="assets/js/pages/training-session.js?v=20261026-group-line"></script>
     <script type="module" src="assets/js/firebase-sync.js?v=20261026-plan-isolate"></script>

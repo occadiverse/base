@@ -26828,28 +26828,46 @@
         .tactical-live-card {
             --tactical-live-card-width: clamp(2rem, min(13.5cqi, 9.5cqh), 3.85rem);
             --tactical-live-card-radius: clamp(0.42rem, 2.4cqi, 0.58rem);
-            background: transparent;
-            border: 0;
-            box-shadow: none;
+            background: #fffdf5;
+            border: 1.5px solid rgba(245, 197, 66, 0.42);
+            border-radius: var(--tactical-live-card-radius);
+            box-shadow:
+                0 0 0 1px rgba(10, 26, 48, 0.55),
+                0 8px 18px rgba(2, 6, 23, 0.28);
+            box-sizing: border-box;
             height: calc(var(--tactical-live-card-width) * 1.42);
-            overflow: visible;
+            overflow: hidden;
             padding: 0;
             width: var(--tactical-live-card-width);
             z-index: 12;
         }
+        .tactical-live-card.is-filled {
+            border-color: #f5c542;
+            box-shadow:
+                0 0 0 1.5px #0a1a30,
+                0 3px 0 rgba(7, 20, 40, 0.65),
+                0 10px 20px rgba(2, 6, 23, 0.3),
+                0 0 0 2px rgba(245, 197, 66, 0.22);
+        }
+        .tactical-live-card.is-empty {
+            border-color: rgba(255, 224, 138, 0.38);
+            box-shadow:
+                0 0 0 1px rgba(10, 26, 48, 0.45),
+                0 6px 14px rgba(2, 6, 23, 0.22);
+        }
         .tactical-live-card-visual {
-            border-radius: var(--tactical-live-card-radius);
+            border-radius: inherit;
             display: flex;
             flex-direction: column;
             height: 100%;
-            overflow: visible;
+            overflow: hidden;
             width: 100%;
         }
         .tactical-live-card-photo-area,
         .tactical-live-card-empty {
             flex: 1 1 0;
             min-height: 0;
-            overflow: visible;
+            overflow: hidden;
             position: relative;
             width: 100%;
         }
@@ -26857,13 +26875,18 @@
         .tactical-live-card-empty {
             align-items: center;
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.96));
-            border: 1px solid rgba(18, 63, 115, 0.14);
+            border: 0;
             border-radius: var(--tactical-live-card-radius) var(--tactical-live-card-radius) 0.12rem 0.12rem;
+            container-name: tactical-live-card-photo;
+            container-type: size;
             display: flex;
             height: 100%;
             justify-content: center;
             overflow: hidden;
             width: 100%;
+        }
+        .tactical-live-card.is-empty .tactical-live-card-empty {
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.55) 0%, rgba(8, 28, 56, 0.78) 100%);
         }
         .tactical-live-card-photo img {
             height: 100%;
@@ -26877,18 +26900,20 @@
             font-size: clamp(0.7rem, 4cqi, 1.05rem);
         }
         .tactical-live-card-empty-add {
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid rgba(18, 63, 115, 0.12);
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.85) 0%, rgba(8, 28, 56, 0.95) 100%);
+            border: 1.5px solid rgba(255, 224, 138, 0.55);
             border-radius: 999px;
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
             height: 34%;
             max-height: 1.2rem;
             max-width: 1.2rem;
             position: relative;
             width: 34%;
+            z-index: 1;
         }
         .tactical-live-card-empty-add::before,
         .tactical-live-card-empty-add::after {
-            background: rgba(18, 63, 115, 0.55);
+            background: rgba(255, 224, 138, 0.9);
             content: '';
             left: 50%;
             position: absolute;
@@ -26904,35 +26929,49 @@
             width: 1px;
         }
         .tactical-live-card-pos {
-            background: rgba(18, 63, 115, 0.92);
-            border-radius: 999px;
-            color: #fff;
-            font-size: clamp(0.42rem, 2.2cqi, 0.58rem);
-            font-weight: 900;
-            left: 0.18rem;
-            letter-spacing: 0.02em;
-            line-height: 1;
-            padding: 0.14rem 0.28rem;
-            position: absolute;
-            top: 0.18rem;
-            z-index: 2;
-        }
-        .tactical-live-card-roles {
-            align-items: center;
-            background: rgba(18, 63, 115, 0.82);
+            background: #fffdf5;
+            border: 0;
+            border-top-left-radius: 100%;
             bottom: 0;
-            display: flex;
-            flex-wrap: nowrap;
-            gap: 0.16rem;
-            justify-content: center;
-            left: 0;
-            padding: 0.04rem 0.06rem;
+            box-shadow: inset 1px 1px 0 rgba(245, 197, 66, 0.35);
+            height: clamp(0.95rem, 36cqw, 1.35rem);
+            left: auto;
             pointer-events: none;
             position: absolute;
             right: 0;
+            top: auto;
+            width: clamp(0.95rem, 36cqw, 1.35rem);
+            z-index: 3;
+        }
+        .tactical-live-card-pos-label {
+            color: #0a1a30;
+            font-size: clamp(0.4rem, 15cqw, 0.56rem);
+            font-weight: 950;
+            left: 57%;
+            letter-spacing: 0.01em;
+            line-height: 1;
+            position: absolute;
+            top: 57%;
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
+        }
+        .tactical-live-card-roles {
+            align-items: center;
+            background: rgba(10, 26, 48, 0.78);
+            box-shadow: inset 0 -1px 0 rgba(245, 197, 66, 0.55);
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 0.14rem;
+            justify-content: center;
+            left: 0;
+            padding: 0.06rem 0.12rem 0.07rem;
+            pointer-events: none;
+            position: absolute;
+            right: 0;
+            top: 0;
             z-index: 2;
         }
-        .tactical-live-card-role {
+        .tactical-live-card .tactical-live-card-role {
             background: transparent;
             border: 0;
             color: #f5c542;
@@ -26944,8 +26983,8 @@
             text-align: center;
         }
         .tactical-live-card-visual strong {
-            background: rgba(255, 255, 255, 0.96);
-            border-top: 1px solid rgba(18, 63, 115, 0.1);
+            background: #fffdf5;
+            border-top: 0;
             color: #123f73;
             flex: 0 0 clamp(0.7rem, 3.4cqi, 0.9rem);
             font-size: clamp(0.42rem, 2.1cqi, 0.56rem);
@@ -26958,7 +26997,13 @@
             white-space: nowrap;
             width: 100%;
         }
+        .tactical-live-card.is-filled .tactical-live-card-visual strong {
+            background: linear-gradient(180deg, #143456 0%, #0e2744 100%);
+            color: #ffe9a8;
+            text-shadow: 0 1px 0 rgba(10, 26, 48, 0.85);
+        }
         .tactical-live-card.is-empty .tactical-live-card-visual strong {
+            background: #fffdf5;
             color: transparent;
         }
         .tactical-live-card.is-phase-moving {
@@ -27065,7 +27110,10 @@
             opacity: 0.55;
         }
         #full-pitch-container .player-node.is-slot-role-changed .tactical-live-card-pos {
-            background: rgba(245, 197, 66, 0.95);
+            background: #f5c542;
+            box-shadow: inset 1px 1px 0 rgba(255, 253, 245, 0.45);
+        }
+        #full-pitch-container .player-node.is-slot-role-changed .tactical-live-card-pos-label {
             color: #0b2b4c;
         }
         .tactical-lineup-status-badge.is-live {
@@ -27764,12 +27812,18 @@
         }
         .tactical-live-board {
             background:
-                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.12), transparent 34%),
-                radial-gradient(circle at 0% 100%, rgba(255, 255, 255, 0.05), transparent 30%),
-                linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
-            border: 1px solid rgba(245, 197, 66, 0.18);
+                radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255, 214, 102, 0.5), transparent 52%),
+                radial-gradient(ellipse 90% 50% at 50% 120%, rgba(28, 130, 68, 0.38), transparent 55%),
+                radial-gradient(circle at 10% 55%, rgba(245, 197, 66, 0.12), transparent 32%),
+                linear-gradient(168deg, #1e5088 0%, #12386a 34%, #0a2448 68%, #040e1c 100%);
+            border: 3.5px solid #f5c542;
             border-radius: 1.25rem;
-            box-shadow: 0 16px 36px rgba(11, 43, 76, 0.22);
+            box-shadow:
+                0 0 0 2px #0a1a30,
+                0 0 0 5px rgba(196, 146, 20, 0.55),
+                0 20px 40px rgba(2, 6, 23, 0.42),
+                inset 0 3px 0 rgba(255, 255, 255, 0.28),
+                inset 0 -16px 36px rgba(0, 0, 0, 0.38);
             color: #ffffff;
             display: flex;
             flex-direction: column;
@@ -27782,10 +27836,76 @@
             min-height: min(44rem, calc(100vh - 7rem));
         }
         .live-side-board {
-            background:
-                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.1), transparent 32%),
-                linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
             min-height: 0;
+        }
+        .live-pitch-board .tactical-live-top {
+            background: transparent;
+            border-bottom: 0;
+            margin-bottom: 0.85rem;
+            min-height: 0;
+            padding: 0.85rem 1.05rem 0.7rem;
+            position: relative;
+        }
+        .live-pitch-board .tactical-live-top::after {
+            background: linear-gradient(
+                90deg,
+                transparent,
+                #ffe08a 20%,
+                #f5c542 50%,
+                #ffe08a 80%,
+                transparent
+            );
+            bottom: 0;
+            box-shadow: 0 0 10px rgba(245, 197, 66, 0.35);
+            content: "";
+            height: 2.5px;
+            left: 0.35rem;
+            position: absolute;
+            right: 0.35rem;
+        }
+        .live-pitch-board .match-bench-heading {
+            gap: 0.55rem;
+            padding: 0;
+        }
+        .live-pitch-board .match-bench-heading h3 {
+            color: #ffe9a8;
+            font-size: clamp(1.22rem, 3.4vw, 1.5rem);
+            font-weight: 950;
+            letter-spacing: 0.08em;
+            line-height: 1;
+            margin: 0;
+            text-shadow:
+                0 1px 0 rgba(255, 253, 245, 0.28),
+                0 2px 0 rgba(10, 26, 48, 0.55),
+                0 3px 0 rgba(122, 86, 8, 0.35),
+                0 0 18px rgba(255, 214, 102, 0.28);
+            text-transform: uppercase;
+        }
+        .live-pitch-board .tactical-live-mark {
+            align-items: center;
+            color: #f5c542;
+            display: inline-flex;
+            filter:
+                drop-shadow(0 1px 0 rgba(255, 253, 245, 0.85))
+                drop-shadow(0 3px 0 #6b4a0c)
+                drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
+            flex: 0 0 auto;
+            font-size: inherit;
+            height: 2.7rem;
+            justify-content: center;
+            margin: -0.15rem 0 -0.35rem;
+            transform: rotate(-10deg);
+            transform-origin: 50% 55%;
+            width: 2.7rem;
+        }
+        .live-pitch-board .tactical-live-mark i {
+            font-size: 1.85rem;
+            line-height: 1;
+            text-shadow:
+                -1px 0 0 #fffdf5,
+                1px 0 0 #fffdf5,
+                0 -1px 0 #fffdf5,
+                0 1px 0 #fffdf5;
         }
         .tactical-live-watermark {
             bottom: auto;
@@ -27800,23 +27920,34 @@
             min-height: var(--portal-topline-min-height);
         }
         .tactical-live-toolbar {
-            align-items: center;
-            background: rgba(255, 255, 255, 0.04);
-            border-bottom: 1px solid rgba(245, 197, 66, 0.14);
+            align-items: stretch;
+            background: transparent;
+            border-bottom: 0;
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.55rem;
-            justify-content: center;
-            padding: 0.85rem 1rem;
+            flex-direction: column;
+            gap: 0.45rem;
+            justify-content: flex-start;
+            padding: 0.15rem 1rem 0.85rem;
             z-index: 40;
         }
+        .tactical-live-toolbar-row {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            justify-content: flex-start;
+        }
         .tactical-live-board .tactical-match-select-wrap {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.12);
-            box-shadow: none;
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
+            border: 1.5px solid rgba(255, 224, 138, 0.42);
+            border-radius: 0.7rem;
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
             flex: 1 1 12rem;
+            height: 2.45rem;
             max-width: 18rem;
+            min-height: 2.45rem;
             min-width: 0;
+            padding: 0 0.7rem;
         }
         .tactical-live-board .tactical-match-select-wrap > i:first-child,
         .tactical-live-board .match-list-lag-chevron {
@@ -27853,10 +27984,11 @@
             z-index: 70;
         }
         .tactical-live-board .tactical-sandbox-formation .match-game-plan-formation-trigger {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(245, 197, 66, 0.22);
-            box-shadow: none;
-            color: rgba(255, 255, 255, 0.88);
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
+            border: 1.5px solid rgba(255, 224, 138, 0.42);
+            border-radius: 0.7rem;
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
+            color: rgba(255, 253, 245, 0.88);
             flex: 0 0 auto;
             font-size: 0.66rem;
             font-weight: 900;
@@ -27865,24 +27997,27 @@
             letter-spacing: 0.05em;
             max-height: 2.45rem;
             min-height: 2.45rem;
-            min-width: 6.5rem;
-            padding: 0 0.75rem;
+            min-width: 0;
+            padding: 0 0.55rem;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
             transform: none;
             width: auto;
         }
         .tactical-live-board .tactical-sandbox-formation .match-game-plan-formation-trigger:hover,
         .tactical-live-board .tactical-sandbox-formation .match-game-plan-formation-trigger:hover:not(.is-active) {
-            background: rgba(255, 255, 255, 0.16);
-            border-color: rgba(245, 197, 66, 0.38);
-            color: #ffffff;
+            background: linear-gradient(180deg, rgba(40, 95, 150, 0.85) 0%, rgba(12, 36, 68, 0.95) 100%);
+            border-color: rgba(255, 224, 138, 0.7);
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.5);
+            color: #fffdf5;
             transform: none;
         }
         .tactical-live-board .tactical-sandbox-formation .match-game-plan-formation-menu.is-open .match-game-plan-formation-trigger,
         .tactical-live-board .tactical-sandbox-formation .match-game-plan-formation-trigger.is-active {
-            background: linear-gradient(135deg, rgba(255, 243, 191, 0.96) 0%, rgba(245, 197, 66, 0.96) 100%);
-            border-color: rgba(245, 197, 66, 0.9);
-            box-shadow: 0 5px 14px rgba(2, 6, 23, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-            color: #0b2b4c;
+            background: linear-gradient(180deg, #ffe066 0%, #e69d10 60%, #a85800 100%);
+            border-color: #fff099;
+            box-shadow: 0 2px 0 #5c2e00;
+            color: #fffdf5;
+            text-shadow: 0 1px 0 #5c2e00;
         }
         .tactical-live-board .tactical-sandbox-formation .match-game-plan-formation-trigger-value {
             color: inherit;
@@ -27896,13 +28031,13 @@
         }
         .tactical-live-board .tactical-sandbox-formation .match-game-plan-formation-menu.is-open .match-game-plan-formation-trigger-chevron,
         .tactical-live-board .tactical-sandbox-formation .match-game-plan-formation-trigger.is-active .match-game-plan-formation-trigger-chevron {
-            color: #0b2b4c;
+            color: #fffdf5;
         }
         @media (max-width: 767px) {
             .tactical-live-board .tactical-sandbox-formation .match-game-plan-formation-trigger {
-                height: 2.75rem;
-                max-height: 2.75rem;
-                min-height: 2.75rem;
+                height: 2.45rem;
+                max-height: 2.45rem;
+                min-height: 2.45rem;
             }
         }
         .tactical-live-board .training-session-groups-info-btn {
@@ -27919,9 +28054,11 @@
             font-size: 0.95rem;
         }
         @media (max-width: 767px) {
-            .tactical-live-board .training-session-groups-info-btn {
-                min-height: 2.75rem;
-                min-width: 2.75rem;
+            .tactical-live-board .tactical-live-toolbar .training-session-groups-info-btn {
+                height: 2.45rem;
+                min-height: 2.45rem;
+                min-width: 2.45rem;
+                width: 2.45rem;
             }
         }
         .tactical-live-board .training-session-groups-info-btn:hover,
@@ -27933,12 +28070,66 @@
         .tactical-live-phases {
             align-items: center;
             display: flex;
-            flex: 1 1 auto;
             flex-wrap: wrap;
-            gap: 0.45rem;
-            justify-content: center;
+            gap: 0.35rem;
+            justify-content: flex-start;
             min-width: 0;
             padding: 0;
+            width: 100%;
+        }
+        .tactical-live-samspill-btn {
+            align-items: center;
+            appearance: none;
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
+            border: 1.5px solid rgba(255, 224, 138, 0.42);
+            border-radius: 0.7rem;
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
+            box-sizing: border-box;
+            color: rgba(255, 253, 245, 0.88);
+            cursor: pointer;
+            display: inline-flex;
+            flex: 0 0 2.45rem;
+            height: 2.45rem;
+            justify-content: center;
+            margin-left: 0.1rem;
+            max-height: 2.45rem;
+            max-width: 2.45rem;
+            min-height: 2.45rem;
+            min-width: 2.45rem;
+            padding: 0;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
+            width: 2.45rem;
+        }
+        .tactical-live-samspill-btn i {
+            color: inherit;
+            font-size: 0.95rem;
+            text-shadow: inherit;
+        }
+        .tactical-live-samspill-btn:hover {
+            background: linear-gradient(180deg, rgba(40, 95, 150, 0.85) 0%, rgba(12, 36, 68, 0.95) 100%);
+            border-color: rgba(255, 224, 138, 0.7);
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.5);
+            color: #fffdf5;
+        }
+        .tactical-live-samspill-btn.is-active {
+            background: linear-gradient(180deg, #ffe066 0%, #e69d10 60%, #a85800 100%);
+            border-color: #fff099;
+            box-shadow: 0 2px 0 #5c2e00;
+            color: #fffdf5;
+            text-shadow: 0 1px 0 #5c2e00;
+        }
+        .tactical-live-samspill-btn.is-active:hover {
+            background: linear-gradient(180deg, #ffe58a 0%, #f0b429 60%, #b86300 100%);
+            border-color: #fff3b0;
+            box-shadow: 0 2px 0 #5c2e00;
+            color: #fffdf5;
+        }
+        .tactical-live-samspill-btn:focus-visible {
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.4), 0 2px 0 rgba(2, 6, 23, 0.45);
+            outline: none;
+        }
+        .tactical-live-samspill-btn.is-active:focus-visible {
+            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.45), 0 2px 0 #5c2e00;
         }
         .tactical-live-board .tactical-lineup-controls {
             align-items: center;
@@ -28186,9 +28377,31 @@
             width: 100%;
         }
         .tactical-live-pitch-column .tactical-pitch {
+            border: 2px solid #f5c542;
+            border-radius: 0.85rem;
+            box-shadow:
+                0 0 0 1.5px #0a1a30,
+                0 4px 0 #071428,
+                0 14px 28px rgba(2, 6, 23, 0.28),
+                inset 0 1px 0 rgba(255, 253, 245, 0.18);
             flex: 0 0 auto;
             max-width: 28rem;
             width: 100%;
+        }
+        .live-pitch-board #full-pitch-container > [class*="bg-white"] {
+            background-color: transparent;
+            background-image: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 253, 245, 0.55) 12%,
+                rgba(255, 224, 138, 0.7) 50%,
+                rgba(255, 253, 245, 0.55) 88%,
+                transparent 100%
+            );
+            height: 2px;
+        }
+        .live-pitch-board #full-pitch-container > [class*="border-white"] {
+            border-color: rgba(255, 253, 245, 0.55);
         }
         .tactical-live-side-column {
             display: flex;
@@ -28268,25 +28481,63 @@
             color: rgba(255, 255, 255, 0.55);
             margin-top: 0.55rem;
         }
-        .tactical-live-board .phase-btn.bsk-btn-chip.portal-btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(245, 197, 66, 0.22);
-            color: rgba(255, 255, 255, 0.88);
+        .tactical-live-board .tactical-live-toolbar .phase-btn.bsk-btn-chip,
+        .tactical-live-board .tactical-live-toolbar #tactical-sandbox-btn,
+        .tactical-live-board .tactical-live-toolbar .bsk-btn-icon,
+        .tactical-live-board .tactical-live-toolbar .training-session-groups-info-btn {
+            border: 1.5px solid rgba(255, 224, 138, 0.42);
+            border-radius: 0.7rem;
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
+            font-size: 0.66rem;
+            font-weight: 900;
+            height: 2.45rem;
+            letter-spacing: 0.05em;
+            min-height: 2.45rem;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
         }
-        .tactical-live-board .phase-btn.bsk-btn-chip.portal-btn-secondary:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.16);
-            border-color: rgba(245, 197, 66, 0.38);
-            color: #ffffff;
+        .tactical-live-board .tactical-live-toolbar .phase-btn.bsk-btn-chip,
+        .tactical-live-board .tactical-live-toolbar .bsk-btn-icon,
+        .tactical-live-board .tactical-live-toolbar .training-session-groups-info-btn {
+            padding: 0;
+            width: 2.45rem;
         }
-        .tactical-live-board .phase-btn.bsk-btn-chip.portal-btn-primary {
-            background: linear-gradient(135deg, rgba(255, 243, 191, 0.96) 0%, rgba(245, 197, 66, 0.96) 100%);
-            border-color: rgba(245, 197, 66, 0.9);
-            box-shadow: 0 5px 14px rgba(2, 6, 23, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-            color: #0b2b4c;
+        .tactical-live-board .tactical-live-toolbar .bsk-btn-icon i,
+        .tactical-live-board .tactical-live-toolbar .training-session-groups-info-btn i {
+            color: inherit;
+            font-size: 0.95rem;
+            text-shadow: inherit;
         }
-        .tactical-live-board .phase-btn.bsk-btn-chip.portal-btn-primary:hover:not(:disabled) {
-            background: linear-gradient(135deg, #fff4c4 0%, #f7cf55 100%);
-            color: #0b2b4c;
+        .tactical-live-board .phase-btn.bsk-btn-chip.portal-btn-secondary,
+        .tactical-live-board #tactical-sandbox-btn:not(.is-active),
+        .tactical-live-board .tactical-live-toolbar .bsk-btn-icon,
+        .tactical-live-board .tactical-live-toolbar .training-session-groups-info-btn {
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
+            border-color: rgba(255, 224, 138, 0.42);
+            color: rgba(255, 253, 245, 0.88);
+        }
+        .tactical-live-board .phase-btn.bsk-btn-chip.portal-btn-secondary:hover:not(:disabled),
+        .tactical-live-board #tactical-sandbox-btn:not(.is-active):hover,
+        .tactical-live-board .tactical-live-toolbar .bsk-btn-icon:hover:not(:disabled),
+        .tactical-live-board .tactical-live-toolbar .training-session-groups-info-btn:hover {
+            background: linear-gradient(180deg, rgba(40, 95, 150, 0.85) 0%, rgba(12, 36, 68, 0.95) 100%);
+            border-color: rgba(255, 224, 138, 0.7);
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.5);
+            color: #fffdf5;
+        }
+        .tactical-live-board .phase-btn.bsk-btn-chip.portal-btn-primary,
+        .tactical-live-board #tactical-sandbox-btn.is-active {
+            background: linear-gradient(180deg, #ffe066 0%, #e69d10 60%, #a85800 100%);
+            border-color: #fff099;
+            box-shadow: 0 2px 0 #5c2e00;
+            color: #fffdf5;
+            text-shadow: 0 1px 0 #5c2e00;
+        }
+        .tactical-live-board .phase-btn.bsk-btn-chip.portal-btn-primary:hover:not(:disabled),
+        .tactical-live-board #tactical-sandbox-btn.is-active:hover {
+            background: linear-gradient(180deg, #ffe58a 0%, #f0b429 60%, #b86300 100%);
+            border-color: #fff3b0;
+            box-shadow: 0 2px 0 #5c2e00;
+            color: #fffdf5;
         }
         @media (min-width: 1024px) {
             .live-page-columns {
@@ -28309,8 +28560,8 @@
                 padding-right: 1.25rem;
             }
             .tactical-live-phases {
-                justify-content: flex-end;
-                margin-left: auto;
+                justify-content: flex-start;
+                margin-left: 0;
             }
             .tactical-live-main,
             .tactical-live-side-main {

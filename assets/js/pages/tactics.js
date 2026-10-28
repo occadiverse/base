@@ -158,7 +158,7 @@
         window.tacticalAppliedLiveMoves = window.tacticalAppliedLiveMoves || [];
         window.tacticalAppliedLiveRoleChanges = window.tacticalAppliedLiveRoleChanges || [];
         window.liveSlotRoles = window.liveSlotRoles || {};
-        window.tacticalSamspillLinesVisible = window.tacticalSamspillLinesVisible !== false;
+        window.tacticalSamspillLinesVisible = false;
         window.tacticalSandboxFormation = window.tacticalSandboxFormation || '4-2-4';
 
         const TACTICAL_SLOT_ROLE_OPTIONS = TACTICAL_POSITIONS.map((id) => ({
@@ -1986,33 +1986,19 @@
             const live = window.isTacticalLiveMatchMode();
             const mode = live ? 'live' : 'sandbox';
             if (window._tacticalPitchChromeMode !== mode) {
-                window.tacticalSamspillLinesVisible = !live;
+                window.tacticalSamspillLinesVisible = false;
                 window._tacticalPitchChromeMode = mode;
             }
 
-            const overlay = document.getElementById('tactical-stats-overlay');
-            const slot = document.getElementById('tactical-live-stats-slot');
-            const pitch = document.getElementById('full-pitch-container');
-            if (overlay && slot && pitch) {
-                if (live) {
-                    if (overlay.parentElement !== slot) slot.appendChild(overlay);
-                    slot.hidden = false;
-                } else {
-                    if (overlay.parentElement !== pitch) pitch.insertBefore(overlay, pitch.firstChild);
-                    slot.hidden = true;
-                }
-            }
             syncTacticalSamspillToggleUi();
         }
 
         function syncTacticalSamspillToggleUi() {
             const btn = document.getElementById('tactical-samspill-toggle');
-            const valueEl = document.getElementById('tactical-samspill-toggle-value');
             if (!btn) return;
             const visible = window.tacticalSamspillLinesVisible !== false;
             btn.classList.toggle('is-active', visible);
             btn.setAttribute('aria-pressed', visible ? 'true' : 'false');
-            if (valueEl) valueEl.textContent = visible ? 'På' : 'Av';
         }
 
         window.toggleTacticalSamspillLines = function() {
@@ -2339,7 +2325,7 @@
             setLivePlayingTimeStatus('');
 
             if (!matchId) {
-                window.tacticalSamspillLinesVisible = true;
+                window.tacticalSamspillLinesVisible = false;
                 window._tacticalPitchChromeMode = 'sandbox';
                 clearTacticalMatchLiveUi();
                 window.liveLineup = {};
@@ -3345,7 +3331,7 @@
                     <span class="tactical-live-card-visual" aria-hidden="true">
                         <span class="tactical-live-card-empty">
                             <span class="tactical-live-card-empty-add"></span>
-                            <span class="tactical-live-card-pos">${escapeTacticalHtml(posBadge)}</span>
+                            <span class="tactical-live-card-pos"><span class="tactical-live-card-pos-label">${escapeTacticalHtml(posBadge)}</span></span>
                         </span>
                         <strong></strong>
                     </span>
@@ -3378,7 +3364,7 @@
                             ${photoUrl
                                 ? `<img src="${escapeTacticalHtml(photoUrl)}" alt="">`
                                 : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
-                            <span class="tactical-live-card-pos">${escapeTacticalHtml(posBadge)}</span>
+                            <span class="tactical-live-card-pos"><span class="tactical-live-card-pos-label">${escapeTacticalHtml(posBadge)}</span></span>
                         </span>
                         ${roleBadges}
                     </span>
