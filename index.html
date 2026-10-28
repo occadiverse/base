@@ -17,7 +17,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20261028-live-btn-style">
+    <link rel="stylesheet" href="assets/css/base.css?v=20261028-live-bench-row">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -506,28 +506,28 @@
                         <div class="match-detail-footer match-list-column-footer match-list-footer-spacer relative z-10" aria-hidden="true"></div>
                     </section>
 
-                    <section class="match-detail-card tactical-live-board live-side-board">
-                        <div class="dashboard-next-match-watermark tactical-live-watermark" aria-hidden="true">
-                            <i class="fa-solid fa-users-rectangle"></i>
-                        </div>
-
-                        <div class="tactical-live-side-main relative z-10">
-                            <div class="tactical-live-side-column">
+                    <div class="live-side-stack">
                                 <div id="tactical-live-sub-panel" class="hidden tactical-live-panel space-y-3 transition-all" aria-live="polite"></div>
 
-                                <div
+                                <section
                                     id="tactical-live-clock-bar"
-                                    class="tactical-live-clock-bar tactical-live-panel hidden transition-all"
+                                    class="match-detail-card tactical-live-board live-side-card tactical-live-clock-bar hidden"
                                     aria-live="polite"
                                 >
-                                    <div class="tactical-live-panel-header">
-                                        <h3 class="tactical-live-panel-title">
-                                            <i class="fa-solid fa-clock" aria-hidden="true"></i>
-                                            <span>Kampklokke</span>
-                                        </h3>
-                                        <span class="tactical-live-panel-badge">Live</span>
+                                    <div class="dashboard-next-match-watermark tactical-live-watermark" aria-hidden="true">
+                                        <i class="fa-solid fa-clock"></i>
                                     </div>
-                                    <div class="tactical-live-clock-body">
+                                    <div class="match-detail-card-top tactical-live-top relative z-10">
+                                        <div class="match-bench-heading">
+                                            <span class="tactical-live-mark" aria-hidden="true">
+                                                <i class="fa-solid fa-clock"></i>
+                                            </span>
+                                            <div class="match-bench-heading-copy">
+                                                <h3>Kampklokke</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tactical-live-clock-body relative z-10">
                                         <div class="tactical-live-clock-controls">
                                                 <button
                                                     type="button"
@@ -567,35 +567,44 @@
                                             hidden
                                         ></div>
                                     </div>
-                                </div>
+                                </section>
 
-                                <div id="tactical-bench-card" class="hidden tactical-live-panel space-y-4 transition-all">
-                                    <div class="tactical-live-panel-header">
-                                        <h3 class="tactical-live-panel-title">
-                                            <i class="fa-solid fa-users-rectangle" aria-hidden="true"></i>
-                                            <span>Benken</span>
-                                        </h3>
-                                        <span class="tactical-live-panel-badge">Live</span>
+                                <section id="tactical-bench-card" class="match-detail-card tactical-live-board live-side-card hidden">
+                                    <div class="dashboard-next-match-watermark tactical-live-watermark" aria-hidden="true">
+                                        <i class="fa-solid fa-users-rectangle"></i>
                                     </div>
-                                    <div id="tactical-bench-list" class="grid grid-cols-1 gap-2 text-xs font-medium">
+                                    <div class="match-detail-card-top tactical-live-top relative z-10">
+                                        <div class="match-bench-heading">
+                                            <span class="tactical-live-mark" aria-hidden="true">
+                                                <i class="fa-solid fa-users-rectangle"></i>
+                                            </span>
+                                            <div class="match-bench-heading-copy">
+                                                <h3>Benken</h3>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                    <div id="tactical-bench-list" class="live-side-card-body grid grid-cols-1 gap-2 text-xs font-medium relative z-10">
+                                    </div>
+                                </section>
 
-                                <div id="tactical-live-subs-card" class="hidden tactical-live-panel space-y-3 transition-all">
-                                    <div class="tactical-live-panel-header">
-                                        <h3 class="tactical-live-panel-title">
-                                            <i class="fa-solid fa-right-left" aria-hidden="true"></i>
-                                            <span>Live bytter</span>
-                                        </h3>
+                                <section id="tactical-live-subs-card" class="match-detail-card tactical-live-board live-side-card hidden">
+                                    <div class="dashboard-next-match-watermark tactical-live-watermark" aria-hidden="true">
+                                        <i class="fa-solid fa-right-left"></i>
+                                    </div>
+                                    <div class="match-detail-card-top tactical-live-top relative z-10">
+                                        <div class="match-bench-heading">
+                                            <span class="tactical-live-mark" aria-hidden="true">
+                                                <i class="fa-solid fa-right-left"></i>
+                                            </span>
+                                            <div class="match-bench-heading-copy">
+                                                <h3>Live bytter</h3>
+                                            </div>
+                                        </div>
                                         <span class="tactical-live-panel-badge" id="tactical-live-subs-count" hidden>0</span>
                                     </div>
-                                    <div id="tactical-live-subs-log" class="tactical-live-subs-log" aria-label="Live bytter"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="match-detail-footer match-list-column-footer match-list-footer-spacer relative z-10" aria-hidden="true"></div>
-                    </section>
+                                    <div id="tactical-live-subs-log" class="live-side-card-body tactical-live-subs-log relative z-10" aria-label="Live bytter"></div>
+                                </section>
+                    </div>
                 </div>
             </div>
 
