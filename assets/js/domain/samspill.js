@@ -314,6 +314,7 @@
         const matches = (window.activeMatches || []).filter((match) => {
             if (excludeMatchId && match?.id === excludeMatchId) return false;
             if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(match)) return false;
+            if (typeof window.matchHasPlayedResult === 'function' && !window.matchHasPlayedResult(match)) return false;
             if (filterLag && match.matchGroup !== filterLag) return false;
             if (historicalOnly && typeof window.isHistoricalActivity === 'function'
                 && !window.isHistoricalActivity(match)) return false;
@@ -393,6 +394,7 @@
         allEvents.forEach(e => {
             if (filterLag && e.team !== filterLag) return;
             if (historicalOnly && typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return;
+            if (e.type === 'Kamp' && typeof window.matchHasPlayedResult === 'function' && !window.matchHasPlayedResult(e)) return;
             if (!e.attendance) return;
 
             const aPresent = window.isPlayerAttending(e.attendance, playerObjA);
@@ -661,6 +663,7 @@
         allEvents.forEach(e => {
             if (filterLag && e.team !== filterLag) return;
             if (historicalOnly && typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return;
+            if (e.type === 'Kamp' && typeof window.matchHasPlayedResult === 'function' && !window.matchHasPlayedResult(e)) return;
             if (!e.attendance) return;
 
             const aPresent = window.isPlayerAttending(e.attendance, playerObjA);

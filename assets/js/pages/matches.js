@@ -13413,6 +13413,7 @@ function buildPlayerPositionMatchStats(player, options = {}) {
     (window.activeMatches || []).forEach((match) => {
         if (!match || match.matchGroup !== player.spillerLag) return;
         if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(match)) return;
+        if (typeof window.matchHasPlayedResult === 'function' && !window.matchHasPlayedResult(match)) return;
         if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return;
         if (!window.isPlayerAttending?.(match.attendance, player)) return;
         if (yearNum != null && Number.isFinite(yearNum)) {

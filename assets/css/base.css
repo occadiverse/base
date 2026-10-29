@@ -5671,13 +5671,158 @@
             margin-top: 0;
         }
         :is(.stats-board-card, .stats-page-slot) .stats-team-match-history .stats-form-history-table-wrap {
-            background: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            border-radius: 0.85rem;
-            overflow-x: auto;
+            background: transparent;
+            border: 0;
+            overflow: visible;
+        }
+        .stats-match-log {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+        .stats-match-log-row {
+            align-items: center;
+            appearance: none;
+            background: linear-gradient(180deg, rgba(18, 42, 72, 0.88) 0%, rgba(12, 32, 58, 0.78) 100%);
+            border: 1.5px solid rgba(245, 197, 66, 0.48);
+            border-radius: 0.7rem;
+            box-shadow:
+                inset 0 3px 8px rgba(0, 0, 0, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                inset 0 0 0 1px rgba(245, 197, 66, 0.1);
+            color: #fffdf5;
+            cursor: pointer;
+            display: grid;
+            font: inherit;
+            gap: 0.65rem;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            padding: 0.5rem 0.65rem;
+            text-align: left;
+            width: 100%;
+        }
+        .stats-match-log-row:hover,
+        .stats-match-log-row:focus-visible {
+            border-color: rgba(245, 197, 66, 0.72);
+            outline: none;
+        }
+        .stats-match-log-date {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 2.35rem;
+        }
+        .stats-match-log-day {
+            color: #fffdf5;
+            font-size: 0.95rem;
+            font-weight: 950;
+            line-height: 1;
+        }
+        .stats-match-log-month {
+            color: #f5c542;
+            font-size: 0.58rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            line-height: 1.1;
+        }
+        .stats-match-log-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0.22rem;
+            min-width: 0;
+        }
+        .stats-match-log-title {
+            align-items: center;
+            display: flex;
+            gap: 0.35rem;
+            min-width: 0;
+        }
+        .stats-match-log-name {
+            font-size: 0.92rem;
+            font-weight: 900;
+            line-height: 1.15;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .stats-match-log-mark {
+            align-items: center;
+            border-radius: 0.28rem;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.58rem;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            line-height: 1;
+            padding: 0.16rem 0.32rem;
+            text-transform: uppercase;
+        }
+        .stats-match-log-mark.is-cup {
+            background: linear-gradient(180deg, #ff4fd8, #bd0a88);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            color: #fff;
+            letter-spacing: 0.02em;
+            text-shadow: 0 1px 0 rgba(74, 0, 53, 0.75);
+        }
+        .stats-match-log-mark.is-away {
+            background: rgba(255, 253, 245, 0.08);
+            border: 1px solid rgba(255, 253, 245, 0.32);
+            color: #fffdf5;
+        }
+        .stats-match-log-score {
+            align-items: flex-end;
+            display: flex;
+            flex-direction: column;
+            gap: 0.16rem;
+        }
+        .stats-match-log-outcome {
+            align-items: center;
+            display: inline-flex;
+            gap: 0.4rem;
+        }
+        .stats-match-log-result {
+            color: #fffdf5;
+            font-size: 0.95rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 950;
+            line-height: 1;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.45);
+        }
+        .stats-match-log .stats-form-history-result-pill {
+            border: 0;
+            border-radius: 0.38rem;
+            color: #052e1f;
+            font-size: 0.68rem;
+            height: 1.28rem;
+            min-width: 1.28rem;
+            text-shadow: none;
+        }
+        .stats-match-log .stats-form-history-result-pill.is-win {
+            background: linear-gradient(180deg, #d1fae5 0%, #6ee7b7 55%, #34d399 100%);
+            border: 0;
+            box-shadow: 0 2px 0 #059669;
+        }
+        .stats-match-log .stats-form-history-result-pill.is-draw {
+            background: linear-gradient(180deg, #fff7c2 0%, #ffe566 55%, #f5c542 100%);
+            border: 0;
+            box-shadow: 0 2px 0 #d4a017;
+            color: #5c2e00;
+        }
+        .stats-match-log .stats-form-history-result-pill.is-loss {
+            background: linear-gradient(180deg, #ffe4e6 0%, #fda4af 55%, #fb7185 100%);
+            border: 0;
+            box-shadow: 0 2px 0 #e11d48;
+            color: #4c0519;
+        }
+        .stats-match-log-penalty {
+            color: rgba(255, 253, 245, 0.62);
+            font-size: 0.58rem;
+            font-weight: 800;
+            white-space: nowrap;
         }
         :is(.stats-board-card, .stats-page-slot) .stats-team-match-history .stats-form-history-empty {
-            color: #64748b;
+            color: rgba(255, 253, 245, 0.62);
             padding: 1rem;
             text-align: center;
         }

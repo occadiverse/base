@@ -401,6 +401,7 @@ window.getPlayerKampbidragSnitt = function(playerOrRef, teamName) {
     (window.activeMatches || []).forEach(m => {
         if (m.matchGroup !== lag) return;
         if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(m)) return;
+        if (typeof window.matchHasPlayedResult === 'function' && !window.matchHasPlayedResult(m)) return;
         if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return;
         if (!window.isPlayerAttending(m.attendance, player)) return;
 
