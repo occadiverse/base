@@ -5682,8 +5682,15 @@
             flex-direction: column;
             gap: 0.45rem;
         }
+        .stats-match-log-col {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            min-width: 0;
+        }
         @container stats-match-log (min-width: 42rem) {
             .stats-match-log {
+                align-items: start;
                 display: grid;
                 grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             }

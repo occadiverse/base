@@ -7842,9 +7842,14 @@ window.renderTeamMatchHistoryTableHtml = function(history) {
                 </span>
             </button>
         `;
-    }).join('');
+    });
+    const splitAt = Math.ceil(bodyRows.length / 2);
+    const columns = [bodyRows.slice(0, splitAt), bodyRows.slice(splitAt)].filter(column => column.length);
+    const columnHtml = columns
+        .map(column => `<div class="stats-match-log-col">${column.join('')}</div>`)
+        .join('');
 
-    return `<div class="stats-match-log">${bodyRows}</div>`;
+    return `<div class="stats-match-log">${columnHtml}</div>`;
 };
 
 window.renderPlayerTrendChartSvg = function(trendData) {
