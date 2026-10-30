@@ -5896,6 +5896,40 @@
             gap: 0.7rem;
             min-width: 0;
         }
+        .hall-of-fame-info-btn {
+            align-items: center;
+            appearance: none;
+            background: rgba(255, 253, 245, 0.08);
+            border: 1px solid rgba(255, 224, 138, 0.42);
+            border-radius: 999px;
+            color: #ffe9a8;
+            cursor: pointer;
+            display: inline-flex;
+            flex: 0 0 auto;
+            height: 1.45rem;
+            justify-content: center;
+            padding: 0;
+            width: 1.45rem;
+        }
+        .hall-of-fame-info-btn i {
+            font-size: 0.72rem;
+        }
+        .hall-of-fame-info-btn:hover,
+        .hall-of-fame-info-btn.is-active {
+            background: rgba(245, 197, 66, 0.22);
+            border-color: rgba(255, 224, 138, 0.8);
+            color: #fffdf5;
+        }
+        .hall-of-fame-explain {
+            color: rgba(255, 253, 245, 0.78);
+            font-size: 0.72rem;
+            font-weight: 700;
+            line-height: 1.35;
+            margin: 0.1rem 0 0.15rem;
+        }
+        .hall-of-fame-explain.is-hidden {
+            display: none;
+        }
         .hall-of-fame-medal {
             align-items: center;
             background: linear-gradient(145deg, #fff6c2 0%, #ffe066 32%, #f0b429 62%, #c47a08 100%);
@@ -5984,6 +6018,70 @@
             background: linear-gradient(180deg, #ff4fd8, #bd0a88);
             border-color: rgba(255, 255, 255, 0.85);
             text-shadow: 0 1px 0 rgba(74, 0, 53, 0.75);
+        }
+        .hall-of-fame-lead-place {
+            align-items: center;
+            display: flex;
+            gap: 0.65rem;
+            margin-top: 0.35rem;
+        }
+        .hall-of-fame-lead-copy {
+            min-width: 0;
+        }
+        .hall-of-fame-lead-place .hall-of-fame-winner {
+            font-size: 1.35rem;
+            margin: 0;
+        }
+        .hall-of-fame-place-rank {
+            align-items: center;
+            border-radius: 999px;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-weight: 950;
+            justify-content: center;
+        }
+        .hall-of-fame-place-rank.is-first {
+            background: linear-gradient(180deg, #ffe066 0%, #e69d10 58%, #a85800 100%);
+            border: 1px solid #fff099;
+            box-shadow: 0 2px 0 #5c2e00;
+            color: #3b2200;
+            font-size: 1.05rem;
+            height: 2.15rem;
+            width: 2.15rem;
+        }
+        .hall-of-fame-place-rank.is-rest {
+            background: rgba(255, 253, 245, 0.08);
+            border: 1px solid rgba(255, 224, 138, 0.28);
+            color: #ffe9a8;
+            font-size: 0.68rem;
+            height: 1.15rem;
+            width: 1.15rem;
+        }
+        .hall-of-fame-places {
+            display: flex;
+            flex-direction: column;
+            gap: 0.28rem;
+            list-style: none;
+            margin: 0.45rem 0 0;
+            padding: 0;
+        }
+        .hall-of-fame-place {
+            align-items: center;
+            display: grid;
+            column-gap: 0.4rem;
+            grid-template-columns: 1.15rem minmax(0, 1fr);
+        }
+        .hall-of-fame-place-name {
+            color: rgba(255, 253, 245, 0.86);
+            font-size: 0.78rem;
+            font-weight: 800;
+            min-width: 0;
+        }
+        .hall-of-fame-place-value {
+            color: rgba(255, 253, 245, 0.55);
+            font-size: 0.66rem;
+            font-weight: 750;
+            grid-column: 2;
         }
         .hall-of-fame-winner {
             color: #ffe9a8;
