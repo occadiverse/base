@@ -5306,6 +5306,28 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return award;
         };
 
+        function getHallOfFamePlayerPhotoUrl(playerId, navn) {
+            const player = (playerId && typeof window.findPlayerByRef === 'function'
+                ? window.findPlayerByRef(playerId)
+                : null)
+                || (navn && typeof window.findPlayerByRef === 'function'
+                    ? window.findPlayerByRef(navn)
+                    : null);
+            if (typeof window.getPlayerProfilePhotoUrl === 'function') {
+                return window.getPlayerProfilePhotoUrl(player) || '';
+            }
+            return '';
+        }
+
+        function splitHallOfFameValue(valueText) {
+            const text = String(valueText || '').trim();
+            if (!text || text === '—') return { primary: '', rest: '' };
+            const parts = text.split(' · ');
+            if (parts.length > 1) return { primary: parts[0], rest: parts.slice(1).join(' · ') };
+            if (text.length <= 8) return { primary: text, rest: '' };
+            return { primary: '', rest: text };
+        }
+
         window.renderHallOfFamePlaqueHtml = function(award, rows, winners) {
             const withheld = award.withheldReason || '';
             const saved = withheld ? null : (winners[award.id] || null);
@@ -5345,22 +5367,44 @@ window.getFormScoreBorderClass = function(score, teamName) {
             ` : '';
             const podium = (!vote && !withheld && Array.isArray(award.podium)) ? award.podium : [];
             const first = podium[0] || null;
-            const placesHtml = podium.slice(1, 3).map((entry, index) => `
-                <li class="hall-of-fame-place">
-                    <span class="hall-of-fame-place-rank is-rest">${index + 2}</span>
-                    <span class="hall-of-fame-place-name">${escapeStatisticsHtml(entry.navn || '')}</span>
-                    <span class="hall-of-fame-place-value">${escapeStatisticsHtml(entry.valueText || '')}</span>
-                </li>
-            `).join('');
-            const placesList = placesHtml ? `<ol class="hall-of-fame-places">${placesHtml}</ol>` : '';
-            const firstBlock = first ? `
-                <div class="hall-of-fame-lead-place">
-                    <span class="hall-of-fame-place-rank is-first">1</span>
-                    <div class="hall-of-fame-lead-copy">
-                        <p class="hall-of-fame-winner">${escapeStatisticsHtml(first.navn || '')}</p>
-                        ${first.valueText ? `<p class="hall-of-fame-value">${escapeStatisticsHtml(first.valueText)}</p>` : ''}
-                    </div>
+            const avatarHtml = (playerId, navn) => {
+                const photo = getHallOfFamePlayerPhotoUrl(playerId, navn);
+                return `
+                    <span class="hall-of-fame-avatar" aria-hidden="true">
+                        ${photo
+                            ? `<img src="${escapeStatisticsHtml(photo)}" alt="" loading="lazy" decoding="async">`
+                            : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
+                    </span>
+                `;
+            };
+            const valueParts = splitHallOfFameValue(first && first.valueText);
+            const scoreHtml = valueParts.primary
+                ? `<div class="hall-of-fame-score"><span class="hall-of-fame-score-value">${escapeStatisticsHtml(valueParts.primary)}</span></div>`
+                : '';
+            const playHtml = valueParts.rest
+                ? `<p class="hall-of-fame-play">${escapeStatisticsHtml(valueParts.rest)}</p>`
+                : '';
+            const rackHtml = podium.slice(1, 3).map((entry, index) => `
+                <div class="hall-of-fame-tile">
+                    <strong>${index + 2}</strong>
+                    <span>${escapeStatisticsHtml(entry.navn || '')}</span>
+                    ${entry.valueText ? `<em>${escapeStatisticsHtml(entry.valueText)}</em>` : ''}
                 </div>
+            `).join('');
+            const rack = rackHtml ? `<div class="hall-of-fame-rack">${rackHtml}</div>` : '';
+            const chip3k = award.id === 'player'
+                ? '<span class="hall-of-fame-pos-chip">3K</span>'
+                : '';
+            const firstBlock = first ? `
+                <div class="hall-of-fame-identity">
+                    ${avatarHtml(first.playerId, first.navn)}
+                    <div class="hall-of-fame-identity-text">
+                        <p class="hall-of-fame-winner">${escapeStatisticsHtml(first.navn || '')}</p>
+                        ${playHtml}
+                    </div>
+                    ${scoreHtml}
+                </div>
+                ${rack}
             ` : '';
             const crownedNote = saved && first && saved.navn !== first.navn
                 ? `<p class="hall-of-fame-hint">Kåret: ${escapeStatisticsHtml(saved.navn)}</p>`
@@ -5373,7 +5417,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 ${editor}
             ` : (first ? `
                 ${firstBlock}
-                ${placesList}
                 ${crownedNote}
                 <div class="hall-of-fame-actions">
                     ${saved ? `
@@ -5390,10 +5433,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         >Kår ${escapeStatisticsHtml(first.navn)}</button>
                         <button type="button" class="hall-of-fame-btn" data-stat-action="edit-hall-award" data-award-id="${escapeStatisticsHtml(award.id)}">Velg spiller</button>
                     `}
+                    ${chip3k}
                 </div>
             ` : (saved ? `
-                <div class="hall-of-fame-lead-place">
-                    <div class="hall-of-fame-lead-copy">
+                <div class="hall-of-fame-identity">
+                    ${avatarHtml(saved.playerId, saved.navn)}
+                    <div class="hall-of-fame-identity-text">
                         <p class="hall-of-fame-winner">${escapeStatisticsHtml(saved.navn || '')}</p>
                     </div>
                 </div>
@@ -5419,13 +5464,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
             ].filter(Boolean).join('');
             return `
                 <article class="hall-of-fame-plaque${saved ? ' is-filled' : ' is-empty'}${withheld ? ' is-withheld' : ''}${editing ? ' is-editing' : ''}${infoOpen ? ' is-info-open' : ''}">
-                    <div class="hall-of-fame-plaque-top">
-                        <span class="hall-of-fame-medal" aria-hidden="true">${window.renderStatsAwardIconHtml(award)}</span>
-                        <div class="hall-of-fame-heading">
-                            <h5 class="hall-of-fame-title">${escapeStatisticsHtml(award.title)}</h5>
-                            ${chips ? `<div class="hall-of-fame-meta">${chips}</div>` : ''}
-                        </div>
-                        ${explain ? `
+                    <span class="hall-of-fame-gem">${escapeStatisticsHtml(award.title)}</span>
+                    <span class="hall-of-fame-mark" aria-hidden="true">${window.renderStatsAwardIconHtml(award)}</span>
+                    ${chips ? `<div class="hall-of-fame-meta">${chips}</div>` : ''}
+                    ${explain ? `
                             <button
                                 type="button"
                                 class="hall-of-fame-info-btn${infoOpen ? ' is-active' : ''}"
@@ -5439,7 +5481,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
                             </button>
                         ` : ''}
-                    </div>
                     ${explain ? `
                         <p id="${infoId}" class="hall-of-fame-explain${infoOpen ? '' : ' is-hidden'}" ${infoOpen ? '' : 'hidden'}>${escapeStatisticsHtml(explain)}</p>
                     ` : ''}
