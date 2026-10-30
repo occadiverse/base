@@ -17,7 +17,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20261030-hall-3k3">
+    <link rel="stylesheet" href="assets/css/base.css?v=20261030-hall-score-info">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -1230,6 +1230,96 @@
         </div>
     </div>
     
+    <div id="kampbidrag-info-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="kampbidrag-info-title" onclick="if (event.target === this && typeof closeKampbidragInfoModal === 'function') closeKampbidragInfoModal()">
+        <div class="bg-slate-800 text-slate-200 rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-slate-600 relative">
+            <div class="sticky top-0 bg-slate-800 p-4 border-b border-slate-600 flex justify-between items-center z-10 rounded-t-xl">
+                <h3 id="kampbidrag-info-title" class="text-xl font-black text-emerald-400">
+                    <i class="fa-solid fa-calculator text-emerald-500 mr-2"></i>Slik regnes kampbidrag
+                </h3>
+                <button type="button" data-close-stats-explain onclick="closeKampbidragInfoModal()" class="bsk-btn bsk-btn-icon bsk-btn-ghost text-2xl font-light leading-none" aria-label="Lukk">&times;</button>
+            </div>
+            <div class="p-6 space-y-5 text-sm">
+                <p class="text-base text-slate-300">
+                    <strong class="text-white">Kampbidrag</strong> er snitt kamppoeng i serie- og cupkampene spilleren har vært med på. Tallet vises med én desimal.
+                </p>
+                <div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">Poeng i én kamp</h4>
+                    <p class="mb-2 text-slate-300">Hver kamp starter på <strong class="text-white">15 poeng</strong>.</p>
+                    <ul class="space-y-1.5">
+                        <li class="flex justify-between gap-3"><span>Seier</span> <span class="font-bold text-emerald-400">+5</span></li>
+                        <li class="flex justify-between gap-3"><span>Uavgjort</span> <span class="font-bold text-blue-400">+2</span></li>
+                        <li class="flex justify-between gap-3"><span>Tap</span> <span class="font-bold text-rose-400">−2</span></li>
+                        <li class="flex justify-between gap-3"><span>Holdt nullen</span> <span class="font-bold text-emerald-400">+3</span></li>
+                        <li class="flex justify-between gap-3"><span>Mål for / mål imot</span> <span class="font-bold text-white">+1 / −1</span></li>
+                        <li class="flex justify-between gap-3"><span>Banens beste</span> <span class="font-bold text-white">+1</span></li>
+                        <li class="flex justify-between gap-3"><span>Spillerbørs 5</span> <span class="font-bold text-white">0</span></li>
+                        <li class="flex justify-between gap-3"><span>Spillerbørs over / under 5</span> <span class="font-bold text-white">opp til +15 / −15</span></li>
+                        <li class="flex justify-between gap-3"><span>31–60 min</span> <span class="font-bold text-white">+1</span></li>
+                        <li class="flex justify-between gap-3"><span>61 min eller mer</span> <span class="font-bold text-white">+2</span></li>
+                    </ul>
+                    <p class="mt-3 text-[12px] text-slate-400 leading-relaxed">Benk uten minutter får bare de 15 grunnpoengene. I cup følger seier, uavgjort og tap det endelige utfallet. Mål teller fra ordinær tid.</p>
+                </div>
+                <p class="text-[12px] text-slate-400">I Total Score settes samme snitt opp mot den beste i troppen og teller 50 %.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="total-score-info-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="total-score-info-title" onclick="if (event.target === this && typeof closeTotalScoreInfoModal === 'function') closeTotalScoreInfoModal()">
+        <div class="bg-slate-800 text-slate-200 rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-slate-600 relative">
+            <div class="sticky top-0 bg-slate-800 p-4 border-b border-slate-600 flex justify-between items-center z-10 rounded-t-xl">
+                <h3 id="total-score-info-title" class="text-xl font-black text-emerald-400">
+                    <i class="fa-solid fa-calculator text-emerald-500 mr-2"></i>Slik regnes Total Score
+                </h3>
+                <button type="button" data-close-stats-explain onclick="closeTotalScoreInfoModal()" class="bsk-btn bsk-btn-icon bsk-btn-ghost text-2xl font-light leading-none" aria-label="Lukk">&times;</button>
+            </div>
+            <div class="p-6 space-y-5 text-sm">
+                <p class="text-base text-slate-300">
+                    <strong class="text-white">Total Score (0–100)</strong> er sesongens helhet. Fire deler vektes og summeres, og tallet rundes til én desimal.
+                </p>
+                <div class="bg-slate-700/40 rounded-lg p-4 border border-slate-600">
+                    <strong class="block text-emerald-400 mb-2">Vekting</strong>
+                    <ul class="space-y-1.5">
+                        <li class="flex justify-between gap-3"><span>Kampbidrag</span> <span class="font-bold text-white">50 %</span></li>
+                        <li class="flex justify-between gap-3"><span>Spillerbørs</span> <span class="font-bold text-white">25 %</span></li>
+                        <li class="flex justify-between gap-3"><span>Treningsoppmøte</span> <span class="font-bold text-white">15 %</span></li>
+                        <li class="flex justify-between gap-3"><span>Disiplin</span> <span class="font-bold text-white">10 %</span></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">Kampbidrag · 50 %</h4>
+                    <p class="mb-3 text-slate-300">Snitt kamppoeng i kampene spilleren har vært med på, målt mot den beste i troppen. Den med høyest snitt får 100 på denne delen.</p>
+                    <p class="mb-2 text-slate-300">Hver kamp starter på <strong class="text-white">15 poeng</strong>.</p>
+                    <ul class="space-y-1.5">
+                        <li class="flex justify-between gap-3"><span>Seier</span> <span class="font-bold text-emerald-400">+5</span></li>
+                        <li class="flex justify-between gap-3"><span>Uavgjort</span> <span class="font-bold text-blue-400">+2</span></li>
+                        <li class="flex justify-between gap-3"><span>Tap</span> <span class="font-bold text-rose-400">−2</span></li>
+                        <li class="flex justify-between gap-3"><span>Holdt nullen</span> <span class="font-bold text-emerald-400">+3</span></li>
+                        <li class="flex justify-between gap-3"><span>Mål for / mål imot</span> <span class="font-bold text-white">+1 / −1</span></li>
+                        <li class="flex justify-between gap-3"><span>Banens beste</span> <span class="font-bold text-white">+1</span></li>
+                        <li class="flex justify-between gap-3"><span>Spillerbørs 5</span> <span class="font-bold text-white">0</span></li>
+                        <li class="flex justify-between gap-3"><span>Spillerbørs over / under 5</span> <span class="font-bold text-white">opp til +15 / −15</span></li>
+                        <li class="flex justify-between gap-3"><span>31–60 min</span> <span class="font-bold text-white">+1</span></li>
+                        <li class="flex justify-between gap-3"><span>61 min eller mer</span> <span class="font-bold text-white">+2</span></li>
+                    </ul>
+                    <p class="mt-3 text-[12px] text-slate-400 leading-relaxed">Benk uten minutter får bare de 15 grunnpoengene. I cup følger seier, uavgjort og tap det endelige utfallet. Mål teller fra ordinær tid.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">Spillerbørs · 25 %</h4>
+                    <p class="text-slate-300">Snittkarakteren ganges med 10. En snittbørs på 7,5 gir 75.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">Treningsoppmøte · 15 %</h4>
+                    <p class="text-slate-300">Andel av treningene spilleren har møtt, fra 0 til 100.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-bold text-slate-100 mb-2 border-b border-slate-700 pb-1">Disiplin · 10 %</h4>
+                    <p class="text-slate-300">Starter på 100. Hvert gult kort trekker 8, hvert rødt kort trekker 25. Står spilleren i fare for karantene i serien, trekkes 10 til. Uten kamper teller denne delen 0.</p>
+                </div>
+                <p class="text-[12px] text-slate-400">Uten kamper og uten trening blir Total Score 0.</p>
+            </div>
+        </div>
+    </div>
+
     <div id="kjemi-info-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 p-4 transition-opacity">
         <div class="bg-slate-800 text-slate-200 rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-slate-600 relative">
             <div class="sticky top-0 bg-slate-800 p-4 border-b border-slate-600 flex justify-between items-center z-10 rounded-t-xl">
@@ -1550,7 +1640,7 @@
     <script src="assets/js/pages/players.js?v=20261028-kamp-50"></script>
     <script src="assets/js/pages/matches.js?v=20261028-uspilt-ute"></script>
     <script src="assets/js/pages/attendance.js?v=20261025-kalender-live"></script>
-    <script src="assets/js/pages/statistics.js?v=20261030-hall-3k2"></script>
+    <script src="assets/js/pages/statistics.js?v=20261030-hall-kampbidrag"></script>
     <script src="assets/js/pages/tactics.js?v=20261028-live-samspill-off"></script>
     <script src="assets/js/pages/dashboard.js?v=20261025-session-count"></script>
     <script src="assets/js/pages/training-session.js?v=20261026-group-line"></script>

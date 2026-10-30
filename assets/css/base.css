@@ -5985,6 +5985,23 @@
         .hall-of-fame-explain.is-hidden {
             display: none;
         }
+        .hall-of-fame-term {
+            background: none;
+            border: 0;
+            color: #fff;
+            cursor: pointer;
+            display: inline;
+            font: inherit;
+            font-weight: 800;
+            padding: 0;
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 0.14em;
+        }
+        .hall-of-fame-term:hover,
+        .hall-of-fame-term:focus-visible {
+            color: #fff7c2;
+        }
         .hall-of-fame-identity {
             align-items: center;
             display: flex;
@@ -6028,6 +6045,16 @@
             gap: 0.16rem;
             min-width: 0;
         }
+        .hall-of-fame-name-row {
+            align-items: center;
+            display: flex;
+            gap: 0.55rem;
+            min-width: 0;
+        }
+        .hall-of-fame-name-row .hall-of-fame-winner {
+            flex: 0 1 auto;
+            min-width: 0;
+        }
         .hall-of-fame-play {
             color: rgba(233, 213, 255, 0.86);
             font-size: 0.74rem;
@@ -6057,7 +6084,6 @@
         }
         .hall-of-fame-score {
             flex: 0 0 auto;
-            text-align: right;
         }
         .hall-of-fame-score-value {
             color: #faf5ff;
@@ -6081,22 +6107,30 @@
             z-index: 1;
         }
         .hall-of-fame-tile {
+            align-items: center;
             background: rgba(30, 11, 58, 0.28);
             border: 1px solid rgba(196, 181, 253, 0.28);
             border-radius: 0.65rem;
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
             display: flex;
-            flex-direction: column;
-            gap: 0.08rem;
+            flex-direction: row;
+            gap: 0.45rem;
             min-width: 0;
             padding: 0.4rem 0.55rem 0.42rem;
         }
         .hall-of-fame-tile strong {
-            color: rgba(233, 213, 255, 0.78);
-            font-size: 0.62rem;
-            font-weight: 900;
-            letter-spacing: 0.08em;
+            color: rgba(233, 213, 255, 0.72);
+            flex: 0 0 auto;
+            font-size: 1.15rem;
+            font-weight: 950;
             line-height: 1;
+        }
+        .hall-of-fame-tile-copy {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            gap: 0.06rem;
+            min-width: 0;
         }
         .hall-of-fame-tile span {
             color: #faf5ff;
@@ -6166,35 +6200,42 @@
         }
         .hall-of-fame-btn {
             appearance: none;
-            background: rgba(30, 11, 58, 0.28);
-            border: 1px solid rgba(233, 213, 255, 0.45);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 46%),
+                linear-gradient(180deg, #6d4ea8 0%, #4c2d86 55%, #3b0764 100%);
+            border: 1.5px solid rgba(233, 213, 255, 0.8);
             border-radius: 999px;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.28),
+                0 2px 0 #2e1065;
             color: #faf5ff;
             cursor: pointer;
             font: inherit;
             font-size: 0.66rem;
             font-weight: 900;
             padding: 0.32rem 0.68rem;
+            text-shadow: 0 1px 0 rgba(46, 16, 101, 0.65);
         }
         .hall-of-fame-btn.is-gold {
             background: linear-gradient(180deg, #ffe066 0%, #e69d10 58%, #a85800 100%);
             border-color: #fff099;
             box-shadow: 0 2px 0 #5c2e00;
             color: #3b2200;
+            text-shadow: none;
         }
         .hall-of-fame-btn.is-crown {
             background:
-                linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0) 46%),
-                linear-gradient(180deg, #5ee9a8 0%, #22c55e 48%, #15803d 100%);
-            border-color: #d1fae5;
+                linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 42%),
+                linear-gradient(180deg, #3f9d6e 0%, #217a4b 52%, #145c36 100%);
+            border-color: #c6ead6;
             box-shadow:
-                inset 0 1px 0 rgba(255, 255, 255, 0.55),
-                0 2px 0 #064e3b;
-            color: #f7fff9;
-            text-shadow: 0 1px 0 rgba(6, 78, 59, 0.85);
+                inset 0 1px 0 rgba(255, 255, 255, 0.32),
+                0 2px 0 #0c3d24;
+            color: #f4fff8;
+            text-shadow: 0 1px 0 rgba(8, 50, 30, 0.7);
         }
         .hall-of-fame-btn:hover {
-            border-color: rgba(250, 245, 255, 0.85);
+            filter: brightness(1.08);
         }
         .hall-of-fame-select {
             appearance: none;
