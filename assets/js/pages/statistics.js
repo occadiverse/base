@@ -4931,7 +4931,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         },
                         {
                             id: 'oppmote',
-                            title: 'Årets oppmøte',
+                            title: 'Årets hederspris',
                             column: 'oppmoteSamletPct',
                             icon: 'fa-user-check',
                             valueFn: (stat) => {
@@ -5391,6 +5391,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         <button type="button" class="hall-of-fame-btn" data-stat-action="edit-hall-award" data-award-id="${escapeStatisticsHtml(award.id)}">Velg spiller</button>
                     `}
                 </div>
+            ` : (saved ? `
+                <div class="hall-of-fame-lead-place">
+                    <div class="hall-of-fame-lead-copy">
+                        <p class="hall-of-fame-winner">${escapeStatisticsHtml(saved.navn || '')}</p>
+                    </div>
+                </div>
+                <div class="hall-of-fame-actions">
+                    <button type="button" class="hall-of-fame-btn" data-stat-action="edit-hall-award" data-award-id="${escapeStatisticsHtml(award.id)}">Endre</button>
+                    <button type="button" class="hall-of-fame-btn" data-stat-action="clear-hall-award" data-award-id="${escapeStatisticsHtml(award.id)}">Fjern</button>
+                </div>
             ` : `
                 <p class="hall-of-fame-winner is-pending">Ikke kåret</p>
                 ${vote
@@ -5399,7 +5409,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 <div class="hall-of-fame-actions">
                     <button type="button" class="hall-of-fame-btn${vote ? ' is-gold' : ''}" data-stat-action="edit-hall-award" data-award-id="${escapeStatisticsHtml(award.id)}">${vote ? 'Velg fra troppen' : 'Velg spiller'}</button>
                 </div>
-            `));
+            `)));
             const explain = window.getHallOfFameAwardExplain(award);
             const infoOpen = Boolean(explain) && window.hallOfFameInfoId === award.id;
             const infoId = `hall-award-info-${escapeStatisticsHtml(award.id)}`;

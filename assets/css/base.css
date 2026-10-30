@@ -6041,10 +6041,10 @@
             justify-content: center;
         }
         .hall-of-fame-place-rank.is-first {
-            background: linear-gradient(180deg, #ffe066 0%, #e69d10 58%, #a85800 100%);
-            border: 1px solid #fff099;
-            box-shadow: 0 2px 0 #5c2e00;
-            color: #3b2200;
+            background: linear-gradient(180deg, #fffdf8 0%, #f3efe4 100%);
+            border: 1px solid rgba(255, 253, 245, 0.9);
+            box-shadow: 0 2px 0 #0b2744;
+            color: #123056;
             font-size: 1.05rem;
             height: 2.15rem;
             width: 2.15rem;
@@ -6084,7 +6084,7 @@
             grid-column: 2;
         }
         .hall-of-fame-winner {
-            color: #ffe9a8;
+            color: #fffdf5;
             font-size: 1.15rem;
             font-weight: 950;
             letter-spacing: 0.02em;
