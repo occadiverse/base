@@ -5413,13 +5413,18 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const explain = window.getHallOfFameAwardExplain(award);
             const infoOpen = Boolean(explain) && window.hallOfFameInfoId === award.id;
             const infoId = `hall-award-info-${escapeStatisticsHtml(award.id)}`;
+            const chips = [
+                vote ? '<span class="hall-of-fame-official is-vote">Stemmer</span>' : '',
+                saved && !editing ? '<span class="hall-of-fame-official">Offisiell</span>' : ''
+            ].filter(Boolean).join('');
             return `
                 <article class="hall-of-fame-plaque${saved ? ' is-filled' : ' is-empty'}${withheld ? ' is-withheld' : ''}${editing ? ' is-editing' : ''}${infoOpen ? ' is-info-open' : ''}">
                     <div class="hall-of-fame-plaque-top">
                         <span class="hall-of-fame-medal" aria-hidden="true">${window.renderStatsAwardIconHtml(award)}</span>
-                        <h5 class="hall-of-fame-title">${escapeStatisticsHtml(award.title)}</h5>
-                        ${vote ? '<span class="hall-of-fame-official is-vote">Stemmer</span>' : ''}
-                        ${saved && !editing ? '<span class="hall-of-fame-official">Offisiell</span>' : ''}
+                        <div class="hall-of-fame-heading">
+                            <h5 class="hall-of-fame-title">${escapeStatisticsHtml(award.title)}</h5>
+                            ${chips ? `<div class="hall-of-fame-meta">${chips}</div>` : ''}
+                        </div>
                         ${explain ? `
                             <button
                                 type="button"
