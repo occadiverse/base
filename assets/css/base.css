@@ -6032,6 +6032,17 @@
             box-shadow: 0 2px 0 #5c2e00;
             color: #3b2200;
         }
+        .hall-of-fame-btn.is-crown {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0) 46%),
+                linear-gradient(180deg, #5ee9a8 0%, #22c55e 48%, #15803d 100%);
+            border-color: #d1fae5;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.55),
+                0 2px 0 #064e3b;
+            color: #f7fff9;
+            text-shadow: 0 1px 0 rgba(6, 78, 59, 0.85);
+        }
         .hall-of-fame-btn:hover {
             border-color: rgba(255, 224, 138, 0.7);
         }

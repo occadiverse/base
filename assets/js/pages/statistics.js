@@ -5306,7 +5306,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const picks = vote ? '' : (award.podium || []).map(entry => `
                 <button
                     type="button"
-                    class="hall-of-fame-btn is-gold"
+                    class="hall-of-fame-btn is-crown"
                     data-stat-action="save-hall-award"
                     data-award-id="${escapeStatisticsHtml(award.id)}"
                     data-player-id="${escapeStatisticsHtml(entry.playerId || '')}"
@@ -5347,7 +5347,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ${suggested ? `
                         <button
                             type="button"
-                            class="hall-of-fame-btn is-gold"
+                            class="hall-of-fame-btn is-crown"
                             data-stat-action="save-hall-award"
                             data-award-id="${escapeStatisticsHtml(award.id)}"
                             data-player-id="${escapeStatisticsHtml(suggested.playerId || '')}"
