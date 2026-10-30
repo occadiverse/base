@@ -747,7 +747,7 @@ window.checkIndividualChemistry = function() {
             }
         };
 
-        window.renderStatsCollapsiblePanelHtml = function({ id, title, badge = '', showLabel, hideLabel, content, headerActionsHtml = '', headingExtraHtml = '', infoPanelHtml = '' }) {
+        window.renderStatsCollapsiblePanelHtml = function({ id, title, badge = '', showLabel, hideLabel, content, headerActionsHtml = '', headingExtraHtml = '', infoPanelHtml = '', markHtml = '' }) {
             const isOpen = window.isStatsKampPanelOpen(id);
             const badgeHtml = badge !== '' && badge != null
                 ? `<span class="match-detail-section-badge">${badge}</span>`
@@ -756,6 +756,7 @@ window.checkIndividualChemistry = function() {
                 <section class="match-game-plan-panel match-collapsible-panel stats-kamp-collapsible-panel ${isOpen ? '' : 'is-collapsed'}" data-stats-panel="${id}">
                     <div class="match-bench-action-row match-bench-topline">
                         <div class="match-bench-heading">
+                            ${markHtml}
                             <h3>${title}</h3>
                             ${badgeHtml}
                             ${headingExtraHtml}
@@ -3036,9 +3037,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return window.renderStatsCollapsiblePanelHtml({
                 id: 'kampforkamp',
                 title: 'Kamp for Kamp',
-                badge: String(yearFilter),
                 showLabel: 'Vis kamp for kamp',
                 hideLabel: 'Skjul kamp for kamp',
+                markHtml: '<span class="stats-match-log-heading-mark" aria-hidden="true"><i class="fa-solid fa-futbol"></i></span>',
+                headerActionsHtml: `<span class="stats-match-log-year">${escapeStatisticsHtml(String(yearFilter))}</span>`,
                 content: typeof window.buildTeamMatchHistoryHtml === 'function'
                     ? window.buildTeamMatchHistoryHtml(data)
                     : ''
@@ -7820,7 +7822,14 @@ window.renderTeamMatchHistoryTableHtml = function(history) {
             ? ` type="button" class="stats-match-log-row" data-stat-action="open-kampstats" data-match-id="${escapeStatisticsHtml(matchId)}" title="Vis kampstats" aria-label="Vis kampstats for ${escapeStatisticsHtml(ariaBits.join(', '))}"`
             : ' type="button" class="stats-match-log-row" disabled';
 
-        return `
+        const monthKey = hasDate ? `${date.getFullYear()}-${date.getMonth()}` : '';
+        const monthLabel = hasDate
+            ? date.toLocaleDateString('no-NO', { month: 'long' }).replace('.', '')
+            : '';
+        return {
+            monthKey,
+            monthLabel,
+            html: `
             <button${rowAttrs}>
                 <span class="stats-match-log-date" aria-hidden="true">
                     <span class="stats-match-log-day">${escapeStatisticsHtml(day)}</span>
@@ -7841,13 +7850,27 @@ window.renderTeamMatchHistoryTableHtml = function(history) {
                     ${penaltyResult ? `<span class="stats-match-log-penalty">${escapeStatisticsHtml(penaltyResult)}</span>` : ''}
                 </span>
             </button>
-        `;
+        `
+        };
     });
     const splitAt = Math.ceil(bodyRows.length / 2);
     const columns = [bodyRows.slice(0, splitAt), bodyRows.slice(splitAt)].filter(column => column.length);
-    const columnHtml = columns
-        .map(column => `<div class="stats-match-log-col">${column.join('')}</div>`)
-        .join('');
+    let previousMonth = '';
+    const columnHtml = columns.map(column => {
+        let lastMonth = '';
+        const parts = [];
+        column.forEach((item, index) => {
+            if (item.monthLabel && item.monthKey !== lastMonth) {
+                const continues = index === 0 && item.monthKey === previousMonth;
+                parts.push(`<div class="stats-match-log-divider${continues ? ' is-continued' : ''}">${escapeStatisticsHtml(item.monthLabel)}</div>`);
+                lastMonth = item.monthKey;
+            }
+            parts.push(item.html);
+        });
+        const lastItem = column[column.length - 1];
+        if (lastItem && lastItem.monthKey) previousMonth = lastItem.monthKey;
+        return `<div class="stats-match-log-col">${parts.join('')}</div>`;
+    }).join('');
 
     return `<div class="stats-match-log">${columnHtml}</div>`;
 };
