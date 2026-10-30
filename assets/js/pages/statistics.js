@@ -154,7 +154,13 @@ function bindStatisticsEvents() {
                 navn = option?.dataset.name || '';
                 playerId = option?.value || '';
             }
-            if (awardId && navn && typeof window.saveHallOfFameWinner === 'function') {
+            const lineAward = (window.getStatsAwardDefinitions?.() || [])
+                .flatMap(group => group.awards || [])
+                .find(award => award.id === awardId);
+            const withheld = lineAward && typeof window.hallOfFameLineAwardWithheldReason === 'function'
+                ? window.hallOfFameLineAwardWithheldReason(lineAward)
+                : '';
+            if (!withheld && awardId && navn && typeof window.saveHallOfFameWinner === 'function') {
                 window.saveHallOfFameWinner(awardId, { navn, playerId });
             }
             window.hallOfFameEditingId = '';
@@ -2034,7 +2040,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         minutesAvg: minutesMatches > 0 ? minutesTotal / minutesMatches : 0,
                         minutesPossible,
                         minutesSharePct,
-                        fodselsaar: p.fodselsaar || ''
+                        fodselsaar: p.fodselsaar || '',
+                        tilknyttetFra: typeof window.getPlayerJoinedFromDate === 'function'
+                            ? window.getPlayerJoinedFromDate(p)
+                            : ''
                     };
                 });
 
@@ -4633,6 +4642,38 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return '';
         };
 
+        window.getStatsSuggestedMalscorerName = function(model) {
+            let name = '';
+            (model?.groups || []).some(group => (group.awards || []).some(award => {
+                if (award.id !== 'mal') return false;
+                name = award.podium?.[0]?.navn || '';
+                return true;
+            }));
+            return name;
+        };
+
+        window.getStatsPlayerLine = function(rows, name) {
+            if (!name) return '';
+            const stat = (Array.isArray(rows) ? rows : []).find(row => row?.navn === name);
+            if (stat) return window.getStatsAwardPositionGroup(stat.pos1);
+            const player = (window.activePlayers || []).find(item => item?.navn === name);
+            return window.getStatsAwardPositionGroup(player?.pos1);
+        };
+
+        window.getStatsLineAwardWithheldReason = function(award, scorerLine) {
+            const line = award?.group;
+            if (!line || !scorerLine || line !== scorerLine) return '';
+            const labels = {
+                keeper: 'keeper',
+                forsvar: 'forsvar',
+                midtbane: 'midtbane',
+                angrep: 'angrep'
+            };
+            const label = labels[line];
+            if (!label) return '';
+            return `Målscoreren kommer fra ${label}, så prisen deles ikke ut.`;
+        };
+
         window.getStatsAwardSeasonYear = function(yearFilter) {
             const year = parseInt(yearFilter, 10);
             return Number.isFinite(year) ? year : new Date().getFullYear();
@@ -4644,7 +4685,29 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return window.getStatsAwardSeasonYear(yearFilter) - birth;
         };
 
-        window.getStatsAwardFilterFn = function(award, yearFilter) {
+        window.playerJoinedInAwardSeason = function(stat, yearFilter, rows) {
+            const joined = String(stat?.tilknyttetFra || '');
+            const year = parseInt(joined.slice(0, 4), 10);
+            if (!Number.isFinite(year) || year !== window.getStatsAwardSeasonYear(yearFilter)) return false;
+            const peers = (Array.isArray(rows) ? rows : [])
+                .map(row => String(row?.tilknyttetFra || ''))
+                .filter(date => parseInt(date.slice(0, 4), 10) === year);
+            const counts = new Map();
+            peers.forEach(date => counts.set(date, (counts.get(date) || 0) + 1));
+            let baseline = '';
+            let baselineCount = 0;
+            counts.forEach((count, date) => {
+                if (count > baselineCount || (count === baselineCount && date < baseline)) {
+                    baseline = date;
+                    baselineCount = count;
+                }
+            });
+            const laterArrivalExists = peers.some(date => date > baseline);
+            if (baselineCount >= 3 && laterArrivalExists && joined === baseline) return false;
+            return true;
+        };
+
+        window.getStatsAwardFilterFn = function(award, yearFilter, rows) {
             const filters = [];
             if (award?.group) {
                 filters.push((stat) => window.getStatsAwardPositionGroup(stat.pos1) === award.group);
@@ -4654,6 +4717,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const age = window.getStatsAwardPlayerAge(stat, yearFilter);
                     return age != null && age <= award.maxAge;
                 });
+            }
+            if (award?.joinedInSeason) {
+                filters.push((stat) => window.playerJoinedInAwardSeason(stat, yearFilter, rows));
             }
             if (award?.id === 'fairplay' || award?.id === 'tropp') {
                 filters.push((stat) => (Number(stat.attendedMatches) || 0) > 0);
@@ -4819,6 +4885,21 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             icon: 'fa-seedling',
                             maxAge: 19,
                             explain: 'Høyest Total Score blant spillere som er 19 år eller yngre i valgt sesong. Krever minst 50 % av lagets kamper.'
+                        },
+                        {
+                            id: 'nykommer',
+                            title: 'Årets Nykommer',
+                            column: 'totalScore',
+                            icon: 'fa-user-plus',
+                            joinedInSeason: true,
+                            requireQualify: false,
+                            tiebreakKamper: 'more',
+                            valueFn: (stat) => {
+                                const score = Number(stat.totalScore);
+                                const shown = Number.isFinite(score) && score > 0 ? score.toFixed(1) : '—';
+                                return `${shown} · ${Number(stat.kamper) || 0} kamper`;
+                            },
+                            explain: 'Høyest Total Score blant spillere som ble tilknyttet laget i valgt sesong, etter datoen troppen allerede var registrert på. Krever ikke 50 % av kampene, siden mange kommer inn underveis.'
                         }
                     ]
                 },
@@ -4844,6 +4925,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             id: 'oppmote',
                             title: 'Årets oppmøte',
                             column: 'oppmoteSamletPct',
+                            icon: 'fa-user-check',
                             valueFn: (stat) => {
                                 const possible = Number(stat?.oppmoteSamletPossible) || 0;
                                 if (possible <= 0) return '—';
@@ -4948,7 +5030,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         requireQualify: award.requireQualify,
                         qualifyAs: award.qualifyAs,
                         tiebreakKamper: award.tiebreakKamper,
-                        filterFn: window.getStatsAwardFilterFn(award, yearFilter)
+                        filterFn: window.getStatsAwardFilterFn(award, yearFilter, rows)
                     });
                     return {
                         ...award,
@@ -5157,9 +5239,51 @@ window.getFormScoreBorderClass = function(score, teamName) {
             ];
         };
 
+        window.hallOfFameLineAwardWithheldReason = function(award, rows, winners, model) {
+            const awardModel = model || (typeof window.buildStatsAwardsModel === 'function' ? window.buildStatsAwardsModel() : null);
+            const yearFilter = awardModel?.year;
+            const awardRows = Array.isArray(rows)
+                ? rows
+                : (typeof window.buildPlayerStatsData === 'function'
+                    ? window.buildPlayerStatsData({ applyYearFilter: true, yearFilter })
+                    : []);
+            const awardWinners = winners || (typeof window.getHallOfFameWinners === 'function' ? window.getHallOfFameWinners() : {});
+            const scorerName = awardWinners?.mal?.navn || window.getStatsSuggestedMalscorerName(awardModel);
+            return window.getStatsLineAwardWithheldReason(award, window.getStatsPlayerLine(awardRows, scorerName));
+        };
+
+        window.getHallOfFameKampGeneralAward = function(rows) {
+            const award = {
+                id: 'kampgeneral',
+                title: 'Reserve2: Årets Kamp general',
+                column: 'kampbonus',
+                icon: 'fa-chess-king',
+                tiebreakKamper: 'more',
+                valueFn: (stat) => {
+                    const avg = Number(stat?.kampbonus);
+                    const shown = Number.isFinite(avg) && avg > 0 ? avg.toFixed(1) : '—';
+                    return `${shown} · ${Number(stat?.kamper) || 0} kamper`;
+                }
+            };
+            const podium = typeof window.buildStatsAwardPodium === 'function'
+                ? window.buildStatsAwardPodium(rows, {
+                    column: 'kampbonus',
+                    tiebreakKamper: 'more',
+                    requireQualify: true
+                })
+                : [];
+            award.podium = podium.map(stat => ({
+                navn: stat.navn,
+                playerId: typeof getStatsPlayerIdForName === 'function' ? getStatsPlayerIdForName(stat.navn) : '',
+                valueText: award.valueFn(stat)
+            }));
+            return award;
+        };
+
         window.renderHallOfFamePlaqueHtml = function(award, rows, winners) {
-            const saved = winners[award.id] || null;
-            const editing = window.hallOfFameEditingId === award.id;
+            const withheld = award.withheldReason || '';
+            const saved = withheld ? null : (winners[award.id] || null);
+            const editing = withheld ? false : window.hallOfFameEditingId === award.id;
             const vote = award.vote === true;
             const suggested = !vote && Array.isArray(award.podium) ? award.podium[0] : null;
             const stat = !vote && saved
@@ -5202,7 +5326,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <button type="button" class="hall-of-fame-btn" data-stat-action="cancel-hall-award">Avbryt</button>
                 </div>
             ` : '';
-            const body = saved && !editing ? `
+            const body = withheld ? `
+                <p class="hall-of-fame-winner is-pending">Deles ikke ut</p>
+                <p class="hall-of-fame-hint">${escapeStatisticsHtml(withheld)}</p>
+            ` : (saved && !editing ? `
                 <p class="hall-of-fame-winner">${escapeStatisticsHtml(saved.navn)}</p>
                 ${valueText ? `<p class="hall-of-fame-value">${escapeStatisticsHtml(valueText)}</p>` : ''}
                 <div class="hall-of-fame-actions">
@@ -5232,9 +5359,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             ` : `
                 <p class="hall-of-fame-winner${saved ? '' : ' is-pending'}">${saved ? escapeStatisticsHtml(saved.navn) : 'Velg vinner'}</p>
                 ${editor}
-            `);
+            `));
             return `
-                <article class="hall-of-fame-plaque${saved ? ' is-filled' : ' is-empty'}${editing ? ' is-editing' : ''}">
+                <article class="hall-of-fame-plaque${saved ? ' is-filled' : ' is-empty'}${withheld ? ' is-withheld' : ''}${editing ? ' is-editing' : ''}">
                     <div class="hall-of-fame-plaque-top">
                         <span class="hall-of-fame-medal" aria-hidden="true">${window.renderStatsAwardIconHtml(award)}</span>
                         <h5 class="hall-of-fame-title">${escapeStatisticsHtml(award.title)}</h5>
@@ -5246,7 +5373,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
-        window.HALL_OF_FAME_AWARD_IDS = ['player', 'mal', 'forsvar', 'midtbane', 'angrep', 'oppmote'];
+        window.HALL_OF_FAME_AWARD_IDS = ['player', 'mal', 'nykommer', 'forsvar', 'midtbane', 'angrep', 'oppmote'];
 
         window.renderHallOfFamePanelHtml = function() {
             const model = typeof window.buildStatsAwardsModel === 'function'
@@ -5258,18 +5385,37 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 : [];
             const winners = window.getHallOfFameWinners();
             const hallIds = new Set(window.HALL_OF_FAME_AWARD_IDS);
+            const reservedAwards = [];
             const groups = (model.groups || []).map(group => {
                 const awards = (group.awards || []).filter(award => hallIds.has(award.id));
-                if (!awards.length) return '';
+                const shown = [];
+                awards.forEach(award => {
+                    const withheldReason = window.hallOfFameLineAwardWithheldReason(award, rows, winners, model);
+                    if (withheldReason) {
+                        reservedAwards.push({ ...award, withheldReason });
+                        return;
+                    }
+                    shown.push(award);
+                });
+                if (!shown.length) return '';
                 return `
                 <section class="hall-of-fame-group" aria-label="${escapeStatisticsHtml(group.label)}">
                     <h4 class="hall-of-fame-group-title">${escapeStatisticsHtml(group.label)}</h4>
                     <div class="hall-of-fame-grid">
-                        ${awards.map(award => window.renderHallOfFamePlaqueHtml(award, rows, winners)).join('')}
+                        ${shown.map(award => window.renderHallOfFamePlaqueHtml(award, rows, winners)).join('')}
                     </div>
                 </section>
             `;
             }).join('');
+            reservedAwards.push(window.getHallOfFameKampGeneralAward(rows));
+            const reserveGroup = reservedAwards.length ? `
+                <section class="hall-of-fame-group" aria-label="Reserve kåringer">
+                    <h4 class="hall-of-fame-group-title">Reserve kåringer</h4>
+                    <div class="hall-of-fame-grid">
+                        ${reservedAwards.map(award => window.renderHallOfFamePlaqueHtml(award, rows, winners)).join('')}
+                    </div>
+                </section>
+            ` : '';
             const voteGroup = `
                 <section class="hall-of-fame-group" aria-label="Spillernes stemmer">
                     <h4 class="hall-of-fame-group-title">Spillernes stemmer</h4>
@@ -5291,6 +5437,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         <i class="fa-solid fa-trophy hall-of-fame-watermark" aria-hidden="true"></i>
                         <p class="hall-of-fame-lead">De offisielle kåringene for sesongen. Statistikken foreslår, laget kårer.</p>
                         ${groups}
+                        ${reserveGroup}
                         ${voteGroup}
                     </div>
                 `
