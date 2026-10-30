@@ -135,6 +135,42 @@ function bindStatisticsEvents() {
             }
             return;
         }
+        if (action === 'edit-hall-award' || action === 'cancel-hall-award') {
+            event.preventDefault();
+            event.stopPropagation();
+            window.hallOfFameEditingId = action === 'edit-hall-award' ? (actionEl.dataset.awardId || '') : '';
+            if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
+            return;
+        }
+        if (action === 'save-hall-award') {
+            event.preventDefault();
+            event.stopPropagation();
+            const awardId = actionEl.dataset.awardId || '';
+            let navn = actionEl.dataset.playerName || '';
+            let playerId = actionEl.dataset.playerId || '';
+            if (!navn) {
+                const select = actionEl.closest('.hall-of-fame-plaque')?.querySelector('select');
+                const option = select?.selectedOptions?.[0];
+                navn = option?.dataset.name || '';
+                playerId = option?.value || '';
+            }
+            if (awardId && navn && typeof window.saveHallOfFameWinner === 'function') {
+                window.saveHallOfFameWinner(awardId, { navn, playerId });
+            }
+            window.hallOfFameEditingId = '';
+            if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
+            return;
+        }
+        if (action === 'clear-hall-award') {
+            event.preventDefault();
+            event.stopPropagation();
+            if (typeof window.saveHallOfFameWinner === 'function') {
+                window.saveHallOfFameWinner(actionEl.dataset.awardId, null);
+            }
+            window.hallOfFameEditingId = '';
+            if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
+            return;
+        }
         if (action === 'set-kamp-year') {
             const year = actionEl.dataset.year;
             if (year && typeof window.setStatsKampYearFilter === 'function') window.setStatsKampYearFilter(year);
@@ -692,7 +728,8 @@ window.checkIndividualChemistry = function() {
                 spillerutvikling: false,
                 oppfolging: false,
                 spillerliste: false,
-                sesongkaaringer: false
+                sesongkaaringer: false,
+                halloffame: true
             };
             window.statsKampPanelState = window.statsKampPanelState || {};
             Object.keys(defaults).forEach(key => {
@@ -747,13 +784,13 @@ window.checkIndividualChemistry = function() {
             }
         };
 
-        window.renderStatsCollapsiblePanelHtml = function({ id, title, badge = '', showLabel, hideLabel, content, headerActionsHtml = '', headingExtraHtml = '', infoPanelHtml = '', markHtml = '' }) {
+        window.renderStatsCollapsiblePanelHtml = function({ id, title, badge = '', showLabel, hideLabel, content, headerActionsHtml = '', headingExtraHtml = '', infoPanelHtml = '', markHtml = '', clash = false }) {
             const isOpen = window.isStatsKampPanelOpen(id);
             const badgeHtml = badge !== '' && badge != null
                 ? `<span class="match-detail-section-badge">${badge}</span>`
                 : '';
             return `
-                <section class="match-game-plan-panel match-collapsible-panel stats-kamp-collapsible-panel ${isOpen ? '' : 'is-collapsed'}" data-stats-panel="${id}">
+                <section class="match-game-plan-panel match-collapsible-panel stats-kamp-collapsible-panel${clash ? ' stats-clash-panel' : ''} ${isOpen ? '' : 'is-collapsed'}" data-stats-panel="${id}">
                     <div class="match-bench-action-row match-bench-topline">
                         <div class="match-bench-heading">
                             ${markHtml}
@@ -3039,8 +3076,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 title: 'Kamp for Kamp',
                 showLabel: 'Vis kamp for kamp',
                 hideLabel: 'Skjul kamp for kamp',
-                markHtml: '<span class="stats-match-log-heading-mark" aria-hidden="true"><i class="fa-solid fa-futbol"></i></span>',
-                headerActionsHtml: `<span class="stats-match-log-year">${escapeStatisticsHtml(String(yearFilter))}</span>`,
+                clash: true,
+                markHtml: '<span class="stats-clash-heading-mark" aria-hidden="true"><i class="fa-solid fa-futbol"></i></span>',
+                headerActionsHtml: `<span class="stats-clash-year">${escapeStatisticsHtml(String(yearFilter))}</span>`,
                 content: typeof window.buildTeamMatchHistoryHtml === 'function'
                     ? window.buildTeamMatchHistoryHtml(data)
                     : ''
@@ -4480,6 +4518,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             if (summary) summary.classList.add('hidden');
 
+            const hallSlot = document.getElementById('stats-hall-of-fame-slot');
+            if (hallSlot) hallSlot.classList.toggle('hidden', activeSection !== 'spillerdata');
             const awardsSlot = document.getElementById('stats-awards-slot');
             if (awardsSlot) awardsSlot.classList.toggle('hidden', activeSection !== 'spillerdata');
             const spillerstatsSlot = document.getElementById('stats-spillerstats-slot');
@@ -4526,6 +4566,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const kampdataSlot = document.getElementById('stats-kampdata-slot');
             const kampstatsSlot = document.getElementById('stats-kampstats-slot');
             const kampForKampSlot = document.getElementById('stats-kampforkamp-slot');
+            const hallSlot = document.getElementById('stats-hall-of-fame-slot');
             const awardsSlot = document.getElementById('stats-awards-slot');
             const spillerstatsSlot = document.getElementById('stats-spillerstats-slot');
             const utviklingSlot = document.getElementById('stats-utvikling-slot');
@@ -4540,6 +4581,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (kampdataSlot) kampdataSlot.innerHTML = '';
                 if (kampForKampSlot) kampForKampSlot.innerHTML = '';
                 if (kampstatsSlot) kampstatsSlot.innerHTML = '';
+                if (hallSlot) hallSlot.innerHTML = '';
                 if (awardsSlot) awardsSlot.innerHTML = '';
                 if (spillerstatsSlot) spillerstatsSlot.innerHTML = '';
                 if (utviklingSlot) utviklingSlot.innerHTML = '';
@@ -5026,6 +5068,239 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     `).join('')}
                 </div>
             `;
+        };
+
+        window.HALL_OF_FAME_KEY = 'bsk_hall_of_fame';
+
+        window.readHallOfFameStore = function() {
+            try {
+                const parsed = JSON.parse(window.localStorage.getItem(window.HALL_OF_FAME_KEY) || '{}');
+                return parsed && typeof parsed === 'object' ? parsed : {};
+            } catch (error) {
+                return {};
+            }
+        };
+
+        window.getHallOfFameScope = function() {
+            const teamFilter = typeof window.getStatsTeamFilter === 'function'
+                ? window.getStatsTeamFilter()
+                : 'Alle';
+            const year = typeof window.getStatsSpillerYearFilter === 'function'
+                ? window.getStatsSpillerYearFilter()
+                : new Date().getFullYear();
+            return {
+                team: teamFilter && teamFilter !== 'Alle' ? String(teamFilter) : 'Alle',
+                year: String(year)
+            };
+        };
+
+        window.getHallOfFameWinners = function() {
+            const store = window.readHallOfFameStore();
+            const scope = window.getHallOfFameScope();
+            const bucket = store[scope.team] && store[scope.team][scope.year];
+            return bucket && typeof bucket === 'object' ? bucket : {};
+        };
+
+        window.saveHallOfFameWinner = function(awardId, winner) {
+            if (!awardId) return;
+            const store = window.readHallOfFameStore();
+            const scope = window.getHallOfFameScope();
+            if (!store[scope.team]) store[scope.team] = {};
+            if (!store[scope.team][scope.year]) store[scope.team][scope.year] = {};
+            if (winner && winner.navn) {
+                store[scope.team][scope.year][awardId] = {
+                    navn: String(winner.navn),
+                    playerId: winner.playerId ? String(winner.playerId) : ''
+                };
+            } else {
+                delete store[scope.team][scope.year][awardId];
+            }
+            try {
+                window.localStorage.setItem(window.HALL_OF_FAME_KEY, JSON.stringify(store));
+            } catch (error) {
+                /* Storage can be full or blocked; the plaque still updates for this view. */
+            }
+        };
+
+        window.getHallOfFameSquadPlayers = function() {
+            const teamFilter = typeof window.getStatsTeamFilter === 'function'
+                ? window.getStatsTeamFilter()
+                : 'Alle';
+            return (window.activePlayers || [])
+                .filter(player => {
+                    if (!player || !player.navn) return false;
+                    if (typeof window.isPlayerInCurrentSquadPool === 'function' && !window.isPlayerInCurrentSquadPool(player)) return false;
+                    if (teamFilter && teamFilter !== 'Alle' && player.spillerLag !== teamFilter) return false;
+                    return true;
+                })
+                .map(player => ({
+                    navn: player.navn,
+                    playerId: player.id != null ? String(player.id) : ''
+                }))
+                .sort((a, b) => a.navn.localeCompare(b.navn, 'no'));
+        };
+
+        window.getHallOfFameVoteAwards = function() {
+            return [
+                {
+                    id: 'spillernes-beste',
+                    title: 'Årets Spillernes Beste',
+                    icon: 'fa-hand-fist',
+                    vote: true
+                },
+                {
+                    id: 'spillernes-favoritt',
+                    title: 'Årets Spillernes favoritt',
+                    icon: 'fa-heart',
+                    vote: true
+                }
+            ];
+        };
+
+        window.renderHallOfFamePlaqueHtml = function(award, rows, winners) {
+            const saved = winners[award.id] || null;
+            const editing = window.hallOfFameEditingId === award.id;
+            const vote = award.vote === true;
+            const suggested = !vote && Array.isArray(award.podium) ? award.podium[0] : null;
+            const stat = !vote && saved
+                ? rows.find(item => item.navn === saved.navn)
+                : null;
+            const valueText = stat
+                ? (typeof award.valueFn === 'function'
+                    ? award.valueFn(stat)
+                    : window.formatStatsAwardValue(stat, award.column))
+                : '';
+            const players = vote
+                ? window.getHallOfFameSquadPlayers()
+                : rows
+                    .map(item => ({
+                        navn: item.navn || '',
+                        playerId: typeof getStatsPlayerIdForName === 'function' ? getStatsPlayerIdForName(item.navn) : ''
+                    }))
+                    .filter(item => item.navn)
+                    .sort((a, b) => a.navn.localeCompare(b.navn, 'no'));
+            const picks = vote ? '' : (award.podium || []).map(entry => `
+                <button
+                    type="button"
+                    class="hall-of-fame-btn is-gold"
+                    data-stat-action="save-hall-award"
+                    data-award-id="${escapeStatisticsHtml(award.id)}"
+                    data-player-id="${escapeStatisticsHtml(entry.playerId || '')}"
+                    data-player-name="${escapeStatisticsHtml(entry.navn || '')}"
+                >Kår ${escapeStatisticsHtml(entry.navn || '')}</button>
+            `).join('');
+            const editor = editing ? `
+                ${picks ? `<div class="hall-of-fame-picks">${picks}</div>` : ''}
+                <select class="hall-of-fame-select" aria-label="${vote ? 'Velg fra spillertroppen' : 'Velg vinner av'} ${escapeStatisticsHtml(award.title)}">
+                    <option value="" data-name="">${vote ? 'Velg fra troppen' : 'Velg spiller'}</option>
+                    ${players.map(player => `
+                        <option value="${escapeStatisticsHtml(player.playerId)}" data-name="${escapeStatisticsHtml(player.navn)}"${saved && saved.navn === player.navn ? ' selected' : ''}>${escapeStatisticsHtml(player.navn)}</option>
+                    `).join('')}
+                </select>
+                <div class="hall-of-fame-actions">
+                    <button type="button" class="hall-of-fame-btn is-gold" data-stat-action="save-hall-award" data-award-id="${escapeStatisticsHtml(award.id)}">Lagre</button>
+                    <button type="button" class="hall-of-fame-btn" data-stat-action="cancel-hall-award">Avbryt</button>
+                </div>
+            ` : '';
+            const body = saved && !editing ? `
+                <p class="hall-of-fame-winner">${escapeStatisticsHtml(saved.navn)}</p>
+                ${valueText ? `<p class="hall-of-fame-value">${escapeStatisticsHtml(valueText)}</p>` : ''}
+                <div class="hall-of-fame-actions">
+                    <button type="button" class="hall-of-fame-btn" data-stat-action="edit-hall-award" data-award-id="${escapeStatisticsHtml(award.id)}">Endre</button>
+                    <button type="button" class="hall-of-fame-btn" data-stat-action="clear-hall-award" data-award-id="${escapeStatisticsHtml(award.id)}">Fjern</button>
+                </div>
+            ` : (!editing ? `
+                <p class="hall-of-fame-winner is-pending">Ikke kåret</p>
+                ${vote
+                    ? '<p class="hall-of-fame-hint">Avgjøres av spillernes stemmer. Velg fra troppen.</p>'
+                    : (suggested
+                        ? `<p class="hall-of-fame-hint">Sesongen peker på ${escapeStatisticsHtml(suggested.navn)}</p>`
+                        : '<p class="hall-of-fame-hint">Ingen statistikk å foreslå fra ennå.</p>')}
+                <div class="hall-of-fame-actions">
+                    ${suggested ? `
+                        <button
+                            type="button"
+                            class="hall-of-fame-btn is-gold"
+                            data-stat-action="save-hall-award"
+                            data-award-id="${escapeStatisticsHtml(award.id)}"
+                            data-player-id="${escapeStatisticsHtml(suggested.playerId || '')}"
+                            data-player-name="${escapeStatisticsHtml(suggested.navn || '')}"
+                        >Kår ${escapeStatisticsHtml(suggested.navn)}</button>
+                    ` : ''}
+                    <button type="button" class="hall-of-fame-btn${vote ? ' is-gold' : ''}" data-stat-action="edit-hall-award" data-award-id="${escapeStatisticsHtml(award.id)}">${vote ? 'Velg fra troppen' : 'Velg spiller'}</button>
+                </div>
+            ` : `
+                <p class="hall-of-fame-winner${saved ? '' : ' is-pending'}">${saved ? escapeStatisticsHtml(saved.navn) : 'Velg vinner'}</p>
+                ${editor}
+            `);
+            return `
+                <article class="hall-of-fame-plaque${saved ? ' is-filled' : ' is-empty'}${editing ? ' is-editing' : ''}">
+                    <div class="hall-of-fame-plaque-top">
+                        <span class="hall-of-fame-medal" aria-hidden="true">${window.renderStatsAwardIconHtml(award)}</span>
+                        <h5 class="hall-of-fame-title">${escapeStatisticsHtml(award.title)}</h5>
+                        ${vote ? '<span class="hall-of-fame-official is-vote">Stemmer</span>' : ''}
+                        ${saved && !editing ? '<span class="hall-of-fame-official">Offisiell</span>' : ''}
+                    </div>
+                    ${body}
+                </article>
+            `;
+        };
+
+        window.HALL_OF_FAME_AWARD_IDS = ['player', 'mal', 'forsvar', 'midtbane', 'angrep', 'oppmote'];
+
+        window.renderHallOfFamePanelHtml = function() {
+            const model = typeof window.buildStatsAwardsModel === 'function'
+                ? window.buildStatsAwardsModel()
+                : { year: new Date().getFullYear(), groups: [] };
+            const yearFilter = model.year;
+            const rows = typeof window.buildPlayerStatsData === 'function'
+                ? window.buildPlayerStatsData({ applyYearFilter: true, yearFilter })
+                : [];
+            const winners = window.getHallOfFameWinners();
+            const hallIds = new Set(window.HALL_OF_FAME_AWARD_IDS);
+            const groups = (model.groups || []).map(group => {
+                const awards = (group.awards || []).filter(award => hallIds.has(award.id));
+                if (!awards.length) return '';
+                return `
+                <section class="hall-of-fame-group" aria-label="${escapeStatisticsHtml(group.label)}">
+                    <h4 class="hall-of-fame-group-title">${escapeStatisticsHtml(group.label)}</h4>
+                    <div class="hall-of-fame-grid">
+                        ${awards.map(award => window.renderHallOfFamePlaqueHtml(award, rows, winners)).join('')}
+                    </div>
+                </section>
+            `;
+            }).join('');
+            const voteGroup = `
+                <section class="hall-of-fame-group" aria-label="Spillernes stemmer">
+                    <h4 class="hall-of-fame-group-title">Spillernes stemmer</h4>
+                    <div class="hall-of-fame-grid">
+                        ${window.getHallOfFameVoteAwards().map(award => window.renderHallOfFamePlaqueHtml(award, rows, winners)).join('')}
+                    </div>
+                </section>
+            `;
+            return window.renderStatsCollapsiblePanelHtml({
+                id: 'halloffame',
+                title: 'Hall of Fame',
+                clash: true,
+                showLabel: 'Vis Hall of Fame',
+                hideLabel: 'Skjul Hall of Fame',
+                markHtml: '<span class="stats-clash-heading-mark" aria-hidden="true"><i class="fa-solid fa-trophy"></i></span>',
+                headerActionsHtml: `<span class="stats-clash-year">${escapeStatisticsHtml(String(yearFilter))}</span>`,
+                content: `
+                    <div class="hall-of-fame-hall">
+                        <i class="fa-solid fa-trophy hall-of-fame-watermark" aria-hidden="true"></i>
+                        <p class="hall-of-fame-lead">De offisielle kåringene for sesongen. Statistikken foreslår, laget kårer.</p>
+                        ${groups}
+                        ${voteGroup}
+                    </div>
+                `
+            });
+        };
+
+        window.renderHallOfFameSlot = function() {
+            const slot = document.getElementById('stats-hall-of-fame-slot');
+            if (!slot || typeof window.renderHallOfFamePanelHtml !== 'function') return;
+            slot.innerHTML = window.renderHallOfFamePanelHtml();
         };
 
         window.renderStatsAwardsPanelHtml = function() {
@@ -5841,6 +6116,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const hero = document.getElementById('stats-tab-hero');
             if (hero && typeof window.paintStatsChrome === 'function' && typeof window.renderStatsChromeTabsOnly === 'function') {
                 window.paintStatsChrome(window.renderStatsChromeTabsOnly(window.renderStatsHeroTabsHtml('spillere')));
+            }
+            const hallSlot = document.getElementById('stats-hall-of-fame-slot');
+            if (hallSlot && typeof window.renderHallOfFameSlot === 'function') {
+                window.renderHallOfFameSlot();
             }
             const awardsSlot = document.getElementById('stats-awards-slot');
             if (awardsSlot) {

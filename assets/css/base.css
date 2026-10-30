@@ -5677,19 +5677,19 @@
             border: 0;
             overflow: visible;
         }
-        #view-statistikk [data-stats-panel="kampforkamp"] {
-            container-name: kampforkamp-panel;
+        #view-statistikk .stats-clash-panel {
+            container-name: stats-clash-panel;
             container-type: inline-size;
         }
-        #view-statistikk [data-stats-panel="kampforkamp"] .match-bench-topline,
-        #view-statistikk [data-stats-panel="kampforkamp"] .match-bench-topline:hover {
+        #view-statistikk .stats-clash-panel .match-bench-topline,
+        #view-statistikk .stats-clash-panel .match-bench-topline:hover {
             background: transparent;
             border-bottom: 0;
             margin-bottom: 0.85rem;
             overflow: visible;
             padding-bottom: 0.7rem;
         }
-        #view-statistikk [data-stats-panel="kampforkamp"] .match-bench-topline::after {
+        #view-statistikk .stats-clash-panel .match-bench-topline::after {
             background: linear-gradient(
                 90deg,
                 transparent,
@@ -5708,7 +5708,7 @@
             right: 0.35rem;
             z-index: 1;
         }
-        #view-statistikk [data-stats-panel="kampforkamp"] .match-bench-heading {
+        #view-statistikk .stats-clash-panel .match-bench-heading {
             align-items: center;
             gap: 0.55rem;
             min-height: 2.65rem;
@@ -5717,10 +5717,10 @@
             position: relative;
             z-index: 2;
         }
-        #view-statistikk [data-stats-panel="kampforkamp"] .match-panel-toggle-btn {
+        #view-statistikk .stats-clash-panel .match-panel-toggle-btn {
             display: none;
         }
-        #view-statistikk [data-stats-panel="kampforkamp"] .stats-match-log-heading-mark {
+        #view-statistikk .stats-clash-panel .stats-clash-heading-mark {
             align-items: center;
             color: #f5c542;
             display: inline-flex;
@@ -5736,7 +5736,7 @@
             transform-origin: 50% 55%;
             width: 2.85rem;
         }
-        #view-statistikk [data-stats-panel="kampforkamp"] .stats-match-log-heading-mark i {
+        #view-statistikk .stats-clash-panel .stats-clash-heading-mark i {
             font-size: 1.85rem;
             line-height: 1;
             text-shadow:
@@ -5745,7 +5745,7 @@
                 0 -1px 0 #fffdf5,
                 0 1px 0 #fffdf5;
         }
-        #view-statistikk [data-stats-panel="kampforkamp"] .match-bench-heading h3 {
+        #view-statistikk .stats-clash-panel .match-bench-heading h3 {
             color: #ffe9a8;
             flex: 1 1 auto;
             font-size: clamp(1.05rem, 2.6vw, 1.4rem);
@@ -5764,21 +5764,21 @@
             text-transform: uppercase;
             white-space: nowrap;
         }
-        @container kampforkamp-panel (max-width: 42rem) {
-            #view-statistikk [data-stats-panel="kampforkamp"] .match-bench-heading h3 {
+        @container stats-clash-panel (max-width: 42rem) {
+            #view-statistikk .stats-clash-panel .match-bench-heading h3 {
                 font-size: 0.98rem;
                 letter-spacing: 0.05em;
             }
-            #view-statistikk [data-stats-panel="kampforkamp"] .stats-match-log-heading-mark {
+            #view-statistikk .stats-clash-panel .stats-clash-heading-mark {
                 height: 2.2rem;
                 margin-bottom: -0.2rem;
                 width: 2.2rem;
             }
-            #view-statistikk [data-stats-panel="kampforkamp"] .stats-match-log-heading-mark i {
+            #view-statistikk .stats-clash-panel .stats-clash-heading-mark i {
                 font-size: 1.4rem;
             }
         }
-        #view-statistikk [data-stats-panel="kampforkamp"] .stats-match-log-year {
+        #view-statistikk .stats-clash-panel .stats-clash-year {
             align-items: center;
             background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
             border: 1.5px solid rgba(255, 224, 138, 0.42);
@@ -5797,6 +5797,219 @@
             position: relative;
             text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
             z-index: 2;
+        }
+        .hall-of-fame-hall {
+            display: flex;
+            flex-direction: column;
+            gap: 1.05rem;
+            position: relative;
+        }
+        .hall-of-fame-watermark {
+            color: rgba(245, 197, 66, 0.09);
+            font-size: 9rem;
+            pointer-events: none;
+            position: absolute;
+            right: -0.4rem;
+            top: -1.6rem;
+            transform: rotate(-12deg);
+            z-index: 0;
+        }
+        .hall-of-fame-lead {
+            color: rgba(255, 253, 245, 0.68);
+            font-size: 0.74rem;
+            font-weight: 700;
+            line-height: 1.4;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+        .hall-of-fame-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            position: relative;
+            z-index: 1;
+        }
+        .hall-of-fame-group-title {
+            align-items: center;
+            color: #ffe9a8;
+            display: flex;
+            font-size: 0.68rem;
+            font-weight: 900;
+            gap: 0.65rem;
+            letter-spacing: 0.1em;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .hall-of-fame-group-title::after {
+            background: linear-gradient(90deg, rgba(245, 197, 66, 0.7), rgba(255, 255, 255, 0.08));
+            content: "";
+            flex: 1 1 auto;
+            height: 1px;
+        }
+        .hall-of-fame-grid {
+            display: grid;
+            gap: 0.65rem;
+            grid-template-columns: 1fr;
+        }
+        @media (min-width: 720px) {
+            .hall-of-fame-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        .hall-of-fame-plaque {
+            background:
+                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.16), transparent 42%),
+                linear-gradient(180deg, rgba(18, 42, 72, 0.94) 0%, rgba(8, 24, 46, 0.9) 100%);
+            border: 1.5px solid rgba(245, 197, 66, 0.55);
+            border-radius: 0.85rem;
+            box-shadow:
+                inset 0 0 0 1px rgba(255, 224, 138, 0.16),
+                inset 0 3px 8px rgba(0, 0, 0, 0.28),
+                0 8px 18px rgba(2, 6, 23, 0.22);
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            min-width: 0;
+            padding: 0.75rem 0.8rem 0.7rem;
+            position: relative;
+        }
+        .hall-of-fame-plaque::before {
+            background: linear-gradient(90deg, transparent, #ffe08a 18%, #f5c542 50%, #ffe08a 82%, transparent);
+            content: "";
+            height: 2px;
+            left: 0.7rem;
+            position: absolute;
+            right: 0.7rem;
+            top: 0;
+        }
+        .hall-of-fame-plaque.is-empty {
+            border-color: rgba(245, 197, 66, 0.28);
+            box-shadow: inset 0 0 0 1px rgba(255, 224, 138, 0.08);
+        }
+        .hall-of-fame-plaque.is-editing {
+            border-color: rgba(255, 224, 138, 0.85);
+        }
+        .hall-of-fame-plaque-top {
+            align-items: center;
+            display: flex;
+            gap: 0.5rem;
+            min-width: 0;
+        }
+        .hall-of-fame-medal {
+            align-items: center;
+            background: linear-gradient(180deg, #ffe066 0%, #e69d10 58%, #a85800 100%);
+            border: 1px solid #fff099;
+            border-radius: 999px;
+            box-shadow: 0 2px 0 #5c2e00;
+            color: #3b2200;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.78rem;
+            height: 1.7rem;
+            justify-content: center;
+            width: 1.7rem;
+        }
+        .hall-of-fame-plaque.is-empty .hall-of-fame-medal {
+            background: rgba(255, 253, 245, 0.08);
+            border-color: rgba(255, 224, 138, 0.35);
+            box-shadow: none;
+            color: #f5c542;
+        }
+        .hall-of-fame-title {
+            color: rgba(255, 253, 245, 0.78);
+            flex: 1 1 auto;
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            margin: 0;
+            min-width: 0;
+            text-transform: uppercase;
+        }
+        .hall-of-fame-official {
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
+            border: 1px solid rgba(255, 224, 138, 0.42);
+            border-radius: 999px;
+            color: #fffdf5;
+            flex: 0 0 auto;
+            font-size: 0.56rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            padding: 0.16rem 0.38rem;
+            text-transform: uppercase;
+        }
+        .hall-of-fame-official.is-vote {
+            background: linear-gradient(180deg, #ff4fd8, #bd0a88);
+            border-color: rgba(255, 255, 255, 0.85);
+            text-shadow: 0 1px 0 rgba(74, 0, 53, 0.75);
+        }
+        .hall-of-fame-winner {
+            color: #ffe9a8;
+            font-size: 1.15rem;
+            font-weight: 950;
+            letter-spacing: 0.02em;
+            line-height: 1.15;
+            margin: 0.15rem 0 0;
+            text-shadow: 0 2px 0 rgba(10, 26, 48, 0.45);
+        }
+        .hall-of-fame-winner.is-pending {
+            color: rgba(255, 253, 245, 0.45);
+            font-size: 0.95rem;
+            font-weight: 800;
+            text-shadow: none;
+        }
+        .hall-of-fame-value,
+        .hall-of-fame-hint {
+            color: rgba(255, 253, 245, 0.62);
+            font-size: 0.7rem;
+            font-weight: 750;
+            margin: 0;
+        }
+        .hall-of-fame-actions,
+        .hall-of-fame-picks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin-top: 0.25rem;
+        }
+        .hall-of-fame-btn {
+            appearance: none;
+            background: rgba(255, 253, 245, 0.08);
+            border: 1px solid rgba(255, 224, 138, 0.38);
+            border-radius: 999px;
+            color: #fffdf5;
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.66rem;
+            font-weight: 900;
+            padding: 0.28rem 0.62rem;
+        }
+        .hall-of-fame-btn.is-gold {
+            background: linear-gradient(180deg, #ffe066 0%, #e69d10 58%, #a85800 100%);
+            border-color: #fff099;
+            box-shadow: 0 2px 0 #5c2e00;
+            color: #3b2200;
+        }
+        .hall-of-fame-btn:hover {
+            border-color: rgba(255, 224, 138, 0.7);
+        }
+        .hall-of-fame-select {
+            appearance: none;
+            background: rgba(8, 24, 46, 0.85);
+            border: 1px solid rgba(255, 224, 138, 0.38);
+            border-radius: 0.55rem;
+            color: #fffdf5;
+            font: inherit;
+            font-size: 0.74rem;
+            font-weight: 750;
+            margin-top: 0.2rem;
+            max-width: 100%;
+            padding: 0.4rem 0.55rem;
+            width: 100%;
+        }
+        .hall-of-fame-select option {
+            background: #0b2b4c;
+            color: #fffdf5;
         }
         .stats-match-log {
             display: flex;
