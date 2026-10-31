@@ -6051,14 +6051,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             </div>
                             <div class="hall-of-fame-list">${officialList}</div>
                         </section>
-                        <section class="hall-of-fame-group" aria-label="Årets alternative kåringer">
+                        <section class="hall-of-fame-group" aria-label="Alternative årets kåringer">
                             <button
                                 type="button"
                                 class="hall-of-fame-section-toggle"
                                 data-stat-action="toggle-hall-alternative"
                                 aria-expanded="${alternativeOpen ? 'true' : 'false'}"
                             >
-                                <span class="hall-of-fame-section-label">Årets alternative kåringer</span>
+                                <span class="hall-of-fame-section-label">Alternative årets kåringer</span>
                                 <span class="hall-of-fame-section-count">${alternative.length}</span>
                                 <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
                             </button>
