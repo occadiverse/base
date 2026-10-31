@@ -2051,6 +2051,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         // Sesongsum for Spillerstats (serie + cup)
                         gule: guleSerie + guleCup,
                         rode: rodeSerie + rodeCup,
+                        fairPlayKort: ((guleSerie + guleCup) * 8) + ((rodeSerie + rodeCup) * 25),
                         serieAtRisk: serieHint.isAtRisk,
                         kjemi: window.getPlayerFormComponents(p.navn, { yearFilter }).total,
                         snittBors: ratingCount > 0 ? ratingSum / ratingCount : 0,
@@ -4748,6 +4749,20 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return (stat) => filters.every((fn) => fn(stat));
         };
 
+        window.formatFairPlayCards = function(stat) {
+            const yellow = Number(stat?.gule) || 0;
+            const red = Number(stat?.rode) || 0;
+            const games = Number(stat?.kamper) || 0;
+            const parts = [];
+            if (yellow === 0 && red === 0) {
+                parts.push('0 kort');
+            } else {
+                if (yellow > 0) parts.push(yellow === 1 ? '1 gult' : `${yellow} gule`);
+                if (red > 0) parts.push(red === 1 ? '1 rødt' : `${red} røde`);
+            }
+            return `${parts.join(', ')} · ${games} kamper`;
+        };
+
         window.formatTroppAttendanceDisplay = function(stat) {
             const attended = Number(stat?.attendedMatches) || 0;
             const possible = Number(stat?.teamKampCount) || 0;
@@ -5002,14 +5017,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         {
                             id: 'fairplay',
                             title: 'Fair play',
-                            column: 'gule',
+                            column: 'fairPlayKort',
                             icon: 'fa-scale-balanced',
                             ascending: true,
                             requireRelevant: false,
                             qualifyAs: 'totalScore',
                             tiebreakKamper: 'more',
-                            valueFn: (stat) => `${Number(stat.gule) || 0} gule · ${Number(stat.kamper) || 0} kamper`,
-                            explain: 'Færrest gule kort blant spillere med minst 50 % av lagets kamper. Ved likt vinner den med flest kamper.'
+                            valueFn: (stat) => window.formatFairPlayCards(stat),
+                            explain: 'Færrest kort blant spillere med minst 50 % av lagets kamper. Både gule og røde teller, og et rødt kort veier tyngre enn et gult. Ved likt vinner den med flest kamper.'
                         },
                         {
                             id: 'gule',
@@ -5203,24 +5218,100 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return bucket && typeof bucket === 'object' ? bucket : {};
         };
 
+        window.normalizeHallOfFameStore = function(store) {
+            const normalized = {};
+            Object.keys(store || {}).sort().forEach((team) => {
+                Object.keys(store[team] || {}).sort().forEach((year) => {
+                    Object.keys(store[team][year] || {}).sort().forEach((awardId) => {
+                        const winner = store[team][year][awardId];
+                        if (!winner || !winner.navn) return;
+                        if (!normalized[team]) normalized[team] = {};
+                        if (!normalized[team][year]) normalized[team][year] = {};
+                        normalized[team][year][awardId] = {
+                            navn: String(winner.navn),
+                            playerId: winner.playerId ? String(winner.playerId) : ''
+                        };
+                    });
+                });
+            });
+            return normalized;
+        };
+
+        window.writeHallOfFameStore = function(store) {
+            const normalized = window.normalizeHallOfFameStore(store);
+            const next = JSON.stringify(normalized);
+            let previous = '';
+            try {
+                previous = window.localStorage.getItem(window.HALL_OF_FAME_KEY) || '';
+                window.localStorage.setItem(window.HALL_OF_FAME_KEY, next);
+            } catch (error) {
+                /* Storage can be full or blocked. */
+            }
+            return next !== previous;
+        };
+
+        window._hallOfFamePending = window._hallOfFamePending || new Map();
+
+        window.hallOfFamePendingKey = function(team, year, awardId) {
+            return `${String(team || '')}\u0000${String(year || '')}\u0000${String(awardId || '')}`;
+        };
+
+        window.applyPendingHallOfFameWrites = function(store) {
+            const next = window.normalizeHallOfFameStore(store);
+            window._hallOfFamePending.forEach((winner, key) => {
+                const [team, year, awardId] = key.split('\u0000');
+                const remoteWinner = next[team] && next[team][year] ? next[team][year][awardId] : null;
+                const remoteName = remoteWinner && remoteWinner.navn ? remoteWinner.navn : '';
+                const remoteId = remoteWinner && remoteWinner.playerId ? remoteWinner.playerId : '';
+                const localName = winner && winner.navn ? winner.navn : '';
+                const localId = winner && winner.playerId ? winner.playerId : '';
+                if (remoteName === localName && remoteId === localId) {
+                    window._hallOfFamePending.delete(key);
+                    return;
+                }
+                if (!next[team]) next[team] = {};
+                if (!next[team][year]) next[team][year] = {};
+                if (winner && winner.navn) next[team][year][awardId] = winner;
+                else delete next[team][year][awardId];
+            });
+            return window.normalizeHallOfFameStore(next);
+        };
+
+        window.applyHallOfFameStore = function(store) {
+            const changed = window.writeHallOfFameStore(window.applyPendingHallOfFameWrites(store));
+            if (!changed || window.hallOfFameEditingId) return;
+            const slot = document.getElementById('stats-hall-of-fame-slot');
+            if (slot && typeof window.renderHallOfFameSlot === 'function') {
+                window.renderHallOfFameSlot();
+            }
+        };
+
         window.saveHallOfFameWinner = function(awardId, winner) {
             if (!awardId) return;
             const store = window.readHallOfFameStore();
             const scope = window.getHallOfFameScope();
             if (!store[scope.team]) store[scope.team] = {};
             if (!store[scope.team][scope.year]) store[scope.team][scope.year] = {};
-            if (winner && winner.navn) {
-                store[scope.team][scope.year][awardId] = {
+            const storedWinner = winner && winner.navn
+                ? {
                     navn: String(winner.navn),
                     playerId: winner.playerId ? String(winner.playerId) : ''
-                };
+                }
+                : null;
+            if (storedWinner) {
+                store[scope.team][scope.year][awardId] = storedWinner;
             } else {
                 delete store[scope.team][scope.year][awardId];
             }
-            try {
-                window.localStorage.setItem(window.HALL_OF_FAME_KEY, JSON.stringify(store));
-            } catch (error) {
-                /* Storage can be full or blocked; the plaque still updates for this view. */
+            window._hallOfFamePending.set(
+                window.hallOfFamePendingKey(scope.team, scope.year, awardId),
+                storedWinner
+            );
+            window.writeHallOfFameStore(store);
+            if (typeof window.saveHallOfFameToDatabase === 'function') {
+                Promise.resolve(window.saveHallOfFameToDatabase(scope, awardId, storedWinner)).catch((error) => {
+                    console.error('Kunne ikke lagre kåring i databasen:', error);
+                });
             }
         };
 
@@ -5253,7 +5344,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 forsvar: 'Høyest snitt kampbidrag blant forsvarsspillere med minst 50 % av kampene. Deles ikke ut hvis målscoreren kommer fra forsvar.',
                 midtbane: 'Høyest snitt kampbidrag blant midtbanespillere med minst 50 % av kampene. Deles ikke ut hvis målscoreren kommer fra midtbane.',
                 angrep: 'Høyest snitt kampbidrag blant angrepsspillere med minst 50 % av kampene. Deles ikke ut hvis målscoreren kommer fra angrep.',
-                kampgeneral: 'Høyest snitt kampbidrag i troppen. Krever minst 50 % av kampene.'
+                kampgeneral: 'Høyest snitt kampbidrag i troppen. Krever minst 50 % av kampene.',
+                fairplay: 'Færrest gule og røde kort. Et rødt kort veier tyngre enn et gult. Krever minst 50 % av kampene.'
             };
             return text[award?.id] || '';
         };
@@ -5321,6 +5413,36 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     column: 'kampbonus',
                     tiebreakKamper: 'more',
                     requireQualify: true
+                })
+                : [];
+            award.podium = podium.map(stat => ({
+                navn: stat.navn,
+                playerId: typeof getStatsPlayerIdForName === 'function' ? getStatsPlayerIdForName(stat.navn) : '',
+                valueText: award.valueFn(stat)
+            }));
+            return award;
+        };
+
+        window.getHallOfFameFairPlayAward = function(rows) {
+            const award = {
+                id: 'fairplay',
+                title: 'Fair play',
+                column: 'fairPlayKort',
+                icon: 'fa-scale-balanced',
+                ascending: true,
+                requireRelevant: false,
+                qualifyAs: 'totalScore',
+                tiebreakKamper: 'more',
+                valueFn: (stat) => window.formatFairPlayCards(stat)
+            };
+            const podium = typeof window.buildStatsAwardPodium === 'function'
+                ? window.buildStatsAwardPodium(rows, {
+                    column: 'fairPlayKort',
+                    ascending: true,
+                    requireRelevant: false,
+                    requireQualify: true,
+                    qualifyAs: 'totalScore',
+                    tiebreakKamper: 'more'
                 })
                 : [];
             award.podium = podium.map(stat => ({
@@ -5562,6 +5684,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
             }).join('');
             reservedAwards.push(window.getHallOfFameKampGeneralAward(rows));
+            reservedAwards.push(window.getHallOfFameFairPlayAward(rows));
             const reserveGroup = reservedAwards.length ? `
                 <section class="hall-of-fame-group" aria-label="Reserve kåringer">
                     <h4 class="hall-of-fame-group-title">Reserve kåringer</h4>

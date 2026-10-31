@@ -15,12 +15,15 @@
         let onSnapshot = null;
         let collection = null;
         let deleteDoc = null;
+        let deleteField = null;
         
         let activeMatchesCollectionRef = null;
         let activeTeamsCollectionRef = null;
         let activePlayersCollectionRef = null;
         let activeEventsCollectionRef = null;
+        let activeHallOfFameCollectionRef = null;
         let firebaseEnabled = false;
+        let hasHandledInitialHallSnapshot = false;
         let hasHandledInitialPlayersSnapshot = false;
 
         // Paint cached data immediately so mobile/UI is not blocked on Firebase CDN + auth.
@@ -41,7 +44,7 @@
 
         try {
             ({ signInAnonymously } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js'));
-            ({ doc, setDoc, onSnapshot, collection, deleteDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js'));
+            ({ doc, setDoc, onSnapshot, collection, deleteDoc, deleteField } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js'));
             const firestoreConfig = await loadFirestoreConfig();
             if (!firestoreConfig) throw new Error("Firestore-config mangler, bruker lokal lagring.");
             ({ db, auth } = firestoreConfig);
@@ -52,6 +55,7 @@
             activeTeamsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'teams');
             activePlayersCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
             activeEventsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'events');
+            activeHallOfFameCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'hallOfFame');
             
             firebaseEnabled = true;
             console.log("Firebase lastet inn via firestore-config.js! 🎉");
@@ -389,6 +393,29 @@
                     syncEvents(fb); 
                 }
             }, (error) => handleSyncError('events', syncEvents, initialMockEvents, error));
+
+            onSnapshot(activeHallOfFameCollectionRef, (snapshot) => {
+                const remote = readHallOfFameSnapshot(snapshot);
+                if (!hasHandledInitialHallSnapshot) {
+                    hasHandledInitialHallSnapshot = true;
+                    const local = typeof window.readHallOfFameStore === 'function'
+                        ? window.readHallOfFameStore()
+                        : {};
+                    const { merged, uploads } = mergeHallOfFameStores(remote, local);
+                    if (typeof window.applyHallOfFameStore === 'function') window.applyHallOfFameStore(merged);
+                    uploads.forEach(item => {
+                        window.saveHallOfFameToDatabase(
+                            { team: item.team, year: item.year },
+                            item.awardId,
+                            item.winner
+                        ).catch(error => console.warn('Kunne ikke løfte lokal kåring til databasen:', error));
+                    });
+                    return;
+                }
+                if (typeof window.applyHallOfFameStore === 'function') window.applyHallOfFameStore(remote);
+            }, (error) => {
+                console.warn('Database-tilgang avvist for hall of fame (beholder lokal lagring):', error.message);
+            });
         } else {
             loadAllFromLocalStorage();
         }
@@ -536,6 +563,95 @@
             }
             syncEvents(current);
             return true;
+        };
+
+        function hallOfFameDocId(team, year) {
+            return `${encodeURIComponent(String(team || 'Alle'))}__${String(year || '')}`;
+        }
+
+        function readHallOfFameSnapshot(snapshot) {
+            const store = {};
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data() || {};
+                const team = data._team ? String(data._team) : '';
+                const year = data._year != null ? String(data._year) : '';
+                if (!team || !year) return;
+                if (!store[team]) store[team] = {};
+                const awards = {};
+                Object.keys(data).forEach((key) => {
+                    if (key.startsWith('_')) return;
+                    const value = data[key];
+                    if (!value || !value.navn) return;
+                    awards[key] = {
+                        navn: String(value.navn),
+                        playerId: value.playerId ? String(value.playerId) : ''
+                    };
+                });
+                store[team][year] = awards;
+            });
+            return store;
+        }
+
+        function mergeHallOfFameStores(remote, local) {
+            const merged = {};
+            const copyAwards = (source) => {
+                Object.keys(source || {}).forEach((team) => {
+                    Object.keys(source[team] || {}).forEach((year) => {
+                        if (!merged[team]) merged[team] = {};
+                        if (!merged[team][year]) merged[team][year] = {};
+                        Object.keys(source[team][year] || {}).forEach((awardId) => {
+                            const winner = source[team][year][awardId];
+                            if (!winner || !winner.navn) return;
+                            merged[team][year][awardId] = {
+                                navn: String(winner.navn),
+                                playerId: winner.playerId ? String(winner.playerId) : ''
+                            };
+                        });
+                    });
+                });
+            };
+            copyAwards(remote);
+            const uploads = [];
+            Object.keys(local || {}).forEach((team) => {
+                Object.keys(local[team] || {}).forEach((year) => {
+                    Object.keys(local[team][year] || {}).forEach((awardId) => {
+                        const winner = local[team][year][awardId];
+                        if (!winner || !winner.navn) return;
+                        const already = merged[team] && merged[team][year] && merged[team][year][awardId];
+                        if (already && already.navn) return;
+                        if (!merged[team]) merged[team] = {};
+                        if (!merged[team][year]) merged[team][year] = {};
+                        const stored = {
+                            navn: String(winner.navn),
+                            playerId: winner.playerId ? String(winner.playerId) : ''
+                        };
+                        merged[team][year][awardId] = stored;
+                        uploads.push({ team, year, awardId, winner: stored });
+                    });
+                });
+            });
+            return { merged, uploads };
+        }
+
+        window.saveHallOfFameToDatabase = async function(scope, awardId, winner) {
+            if (!awardId || !isFirebaseWriteActive() || !activeHallOfFameCollectionRef) return false;
+            const team = scope && scope.team ? String(scope.team) : 'Alle';
+            const year = scope && scope.year != null ? String(scope.year) : '';
+            if (!year) return false;
+            const payload = {
+                _team: team,
+                _year: year
+            };
+            payload[awardId] = winner && winner.navn
+                ? { navn: String(winner.navn), playerId: winner.playerId ? String(winner.playerId) : '' }
+                : deleteField();
+            try {
+                await setDoc(doc(activeHallOfFameCollectionRef, hallOfFameDocId(team, year)), payload, { merge: true });
+                return true;
+            } catch (error) {
+                console.error('Kunne ikke lagre kåring i databasen:', error);
+                throw createFirebaseWriteError('lagre kåring', error);
+            }
         };
 
         window.deleteEventFromDatabase = async function(eventId) {
