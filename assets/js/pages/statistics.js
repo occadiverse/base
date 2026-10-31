@@ -155,10 +155,51 @@ function bindStatisticsEvents() {
             if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
             return;
         }
+        if (action === 'toggle-hall-award') {
+            event.preventDefault();
+            event.stopPropagation();
+            const awardId = actionEl.dataset.awardId || '';
+            const nextOpen = window.hallOfFameOpenId === awardId ? '' : awardId;
+            window.hallOfFameOpenId = nextOpen;
+            if (window.hallOfFameEditingId && window.hallOfFameEditingId !== nextOpen) {
+                window.hallOfFameEditingId = '';
+            }
+            if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
+            return;
+        }
+        if (action === 'toggle-hall-alternative') {
+            event.preventDefault();
+            event.stopPropagation();
+            window.hallOfFameAlternativeOpen = !window.hallOfFameAlternativeOpen;
+            if (!window.hallOfFameAlternativeOpen) {
+                const alternativeSection = actionEl.closest('.hall-of-fame-group');
+                const openEntry = alternativeSection ? alternativeSection.querySelector('.hall-of-fame-entry.is-open') : null;
+                if (openEntry) {
+                    window.hallOfFameOpenId = '';
+                    window.hallOfFameEditingId = '';
+                }
+            }
+            if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
+            return;
+        }
+        if (action === 'set-hall-category') {
+            event.preventDefault();
+            event.stopPropagation();
+            const awardId = actionEl.dataset.awardId || '';
+            const placement = actionEl.dataset.category === 'official' ? 'official' : 'alternative';
+            if (awardId && typeof window.saveHallOfFameCategory === 'function') {
+                window.saveHallOfFameCategory(awardId, placement);
+            }
+            window.hallOfFameOpenId = awardId;
+            if (placement === 'alternative') window.hallOfFameAlternativeOpen = true;
+            if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
+            return;
+        }
         if (action === 'edit-hall-award' || action === 'cancel-hall-award') {
             event.preventDefault();
             event.stopPropagation();
             window.hallOfFameEditingId = action === 'edit-hall-award' ? (actionEl.dataset.awardId || '') : '';
+            if (window.hallOfFameEditingId) window.hallOfFameOpenId = window.hallOfFameEditingId;
             if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
             return;
         }
@@ -5218,12 +5259,19 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return bucket && typeof bucket === 'object' ? bucket : {};
         };
 
+        window.cleanHallOfFameIdList = function(value) {
+            if (!Array.isArray(value)) return [];
+            return [...new Set(value.map(id => String(id || '')).filter(id => id && !id.startsWith('_')))].sort();
+        };
+
         window.normalizeHallOfFameStore = function(store) {
             const normalized = {};
             Object.keys(store || {}).sort().forEach((team) => {
                 Object.keys(store[team] || {}).sort().forEach((year) => {
-                    Object.keys(store[team][year] || {}).sort().forEach((awardId) => {
-                        const winner = store[team][year][awardId];
+                    const bucket = store[team][year] || {};
+                    Object.keys(bucket).sort().forEach((awardId) => {
+                        if (awardId.startsWith('_')) return;
+                        const winner = bucket[awardId];
                         if (!winner || !winner.navn) return;
                         if (!normalized[team]) normalized[team] = {};
                         if (!normalized[team][year]) normalized[team][year] = {};
@@ -5232,6 +5280,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             playerId: winner.playerId ? String(winner.playerId) : ''
                         };
                     });
+                    const official = window.cleanHallOfFameIdList(bucket._official);
+                    const officialSet = new Set(official);
+                    const alternative = window.cleanHallOfFameIdList(bucket._alternative).filter(id => !officialSet.has(id));
+                    if (!official.length && !alternative.length) return;
+                    if (!normalized[team]) normalized[team] = {};
+                    if (!normalized[team][year]) normalized[team][year] = {};
+                    if (official.length) normalized[team][year]._official = official;
+                    if (alternative.length) normalized[team][year]._alternative = alternative;
                 });
             });
             return normalized;
@@ -5251,6 +5307,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window._hallOfFamePending = window._hallOfFamePending || new Map();
+        window._hallOfFamePendingCategory = window._hallOfFamePendingCategory || new Map();
 
         window.hallOfFamePendingKey = function(team, year, awardId) {
             return `${String(team || '')}\u0000${String(year || '')}\u0000${String(awardId || '')}`;
@@ -5273,6 +5330,29 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (!next[team][year]) next[team][year] = {};
                 if (winner && winner.navn) next[team][year][awardId] = winner;
                 else delete next[team][year][awardId];
+            });
+            window._hallOfFamePendingCategory.forEach((placement, key) => {
+                const [team, year, awardId] = key.split('\u0000');
+                if (!next[team]) next[team] = {};
+                if (!next[team][year]) next[team][year] = {};
+                const bucket = next[team][year];
+                const official = Array.isArray(bucket._official) ? bucket._official : [];
+                const alternative = Array.isArray(bucket._alternative) ? bucket._alternative : [];
+                const remote = official.includes(awardId)
+                    ? 'official'
+                    : (alternative.includes(awardId) ? 'alternative' : '');
+                if (remote === placement) {
+                    window._hallOfFamePendingCategory.delete(key);
+                    return;
+                }
+                const nextOfficial = official.filter(id => id !== awardId);
+                const nextAlternative = alternative.filter(id => id !== awardId);
+                if (placement === 'official') nextOfficial.push(awardId);
+                else nextAlternative.push(awardId);
+                if (nextOfficial.length) bucket._official = nextOfficial;
+                else delete bucket._official;
+                if (nextAlternative.length) bucket._alternative = nextAlternative;
+                else delete bucket._alternative;
             });
             return window.normalizeHallOfFameStore(next);
         };
@@ -5311,6 +5391,51 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (typeof window.saveHallOfFameToDatabase === 'function') {
                 Promise.resolve(window.saveHallOfFameToDatabase(scope, awardId, storedWinner)).catch((error) => {
                     console.error('Kunne ikke lagre kåring i databasen:', error);
+                });
+            }
+        };
+
+        window.HALL_OF_FAME_ORDER = ['player', 'spillernes-beste', 'mal', 'nykommer', 'oppmote', 'spillernes-favoritt', 'forsvar', 'midtbane', 'angrep', 'kampgeneral', 'fairplay'];
+        window.HALL_OF_FAME_ALTERNATIVE_DEFAULTS = ['kampgeneral', 'fairplay'];
+
+        window.hallOfFameAwardCategory = function(award, winners) {
+            const bucket = winners || (typeof window.getHallOfFameWinners === 'function' ? window.getHallOfFameWinners() : {});
+            const official = Array.isArray(bucket._official) ? bucket._official : [];
+            const alternative = Array.isArray(bucket._alternative) ? bucket._alternative : [];
+            const awardId = award && award.id ? String(award.id) : '';
+            if (official.includes(awardId)) return 'official';
+            if (alternative.includes(awardId)) return 'alternative';
+            if (award && award.withheldReason) return 'alternative';
+            if (window.HALL_OF_FAME_ALTERNATIVE_DEFAULTS.includes(awardId)) return 'alternative';
+            return 'official';
+        };
+
+        window.saveHallOfFameCategory = function(awardId, placement) {
+            if (!awardId) return;
+            const store = window.readHallOfFameStore();
+            const scope = window.getHallOfFameScope();
+            if (!store[scope.team]) store[scope.team] = {};
+            if (!store[scope.team][scope.year]) store[scope.team][scope.year] = {};
+            const bucket = store[scope.team][scope.year];
+            const official = new Set(window.cleanHallOfFameIdList(bucket._official));
+            const alternative = new Set(window.cleanHallOfFameIdList(bucket._alternative));
+            if (placement === 'official') {
+                official.add(awardId);
+                alternative.delete(awardId);
+            } else {
+                alternative.add(awardId);
+                official.delete(awardId);
+            }
+            bucket._official = [...official];
+            bucket._alternative = [...alternative];
+            window._hallOfFamePendingCategory.set(
+                window.hallOfFamePendingKey(scope.team, scope.year, awardId),
+                placement === 'official' ? 'official' : 'alternative'
+            );
+            window.writeHallOfFameStore(store);
+            if (typeof window.saveHallOfFameCategoryToDatabase === 'function') {
+                Promise.resolve(window.saveHallOfFameCategoryToDatabase(scope, awardId, placement)).catch((error) => {
+                    console.error('Kunne ikke lagre kåringskategori i databasen:', error);
                 });
             }
         };
@@ -5475,7 +5600,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return { primary: '', rest: text };
         }
 
-        window.renderHallOfFamePlaqueHtml = function(award, rows, winners) {
+        window.renderHallOfFamePlaqueHtml = function(award, rows, winners, category) {
+            const placement = category === 'alternative' ? 'alternative' : 'official';
+            const moveBtn = `<button type="button" class="hall-of-fame-btn" data-stat-action="set-hall-category" data-award-id="${escapeStatisticsHtml(award.id)}" data-category="${placement === 'official' ? 'alternative' : 'official'}">${placement === 'official' ? 'Legg som alternativ' : 'Gjør offisiell'}</button>`;
             const withheld = award.withheldReason || '';
             const saved = withheld ? null : (winners[award.id] || null);
             const editing = withheld ? false : window.hallOfFameEditingId === award.id;
@@ -5510,6 +5637,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 <div class="hall-of-fame-actions">
                     <button type="button" class="hall-of-fame-btn is-gold" data-stat-action="save-hall-award" data-award-id="${escapeStatisticsHtml(award.id)}">Lagre</button>
                     <button type="button" class="hall-of-fame-btn" data-stat-action="cancel-hall-award">Avbryt</button>
+                    ${moveBtn}
                 </div>
             ` : '';
             const podium = (!vote && !withheld && Array.isArray(award.podium)) ? award.podium : [];
@@ -5564,7 +5692,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const body = withheld ? `
                 <p class="hall-of-fame-winner is-pending">Deles ikke ut</p>
                 <p class="hall-of-fame-hint">${escapeStatisticsHtml(withheld)}</p>
-                ${prizeChip ? `<div class="hall-of-fame-actions">${prizeChip}</div>` : ''}
+                <div class="hall-of-fame-actions">${moveBtn}${prizeChip}</div>
             ` : (editing ? `
                 <p class="hall-of-fame-winner${saved ? '' : ' is-pending'}">${saved ? escapeStatisticsHtml(saved.navn) : 'Velg vinner'}</p>
                 ${editor}
@@ -5586,6 +5714,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         >Kår ${escapeStatisticsHtml(first.navn)}</button>
                         <button type="button" class="hall-of-fame-btn" data-stat-action="edit-hall-award" data-award-id="${escapeStatisticsHtml(award.id)}">Velg spiller</button>
                     `}
+                    ${moveBtn}
                     ${prizeChip}
                 </div>
             ` : (saved ? `
@@ -5598,6 +5727,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 <div class="hall-of-fame-actions">
                     <button type="button" class="hall-of-fame-btn" data-stat-action="edit-hall-award" data-award-id="${escapeStatisticsHtml(award.id)}">Endre</button>
                     <button type="button" class="hall-of-fame-btn" data-stat-action="clear-hall-award" data-award-id="${escapeStatisticsHtml(award.id)}">Fjern</button>
+                    ${moveBtn}
                     ${prizeChip}
                 </div>
             ` : `
@@ -5607,41 +5737,78 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     : '<p class="hall-of-fame-hint">Ingen statistikk å foreslå fra ennå.</p>'}
                 <div class="hall-of-fame-actions">
                     <button type="button" class="hall-of-fame-btn${vote ? ' is-crown' : ''}" data-stat-action="edit-hall-award" data-award-id="${escapeStatisticsHtml(award.id)}">${vote ? 'Velg fra troppen' : 'Velg spiller'}</button>
+                    ${moveBtn}
                     ${prizeChip}
                 </div>
             `)));
             const explain = window.getHallOfFameAwardExplain(award);
-            const infoOpen = Boolean(explain) && window.hallOfFameInfoId === award.id;
-            const infoId = `hall-award-info-${escapeStatisticsHtml(award.id)}`;
-            return `
-                <article class="hall-of-fame-plaque${saved ? ' is-filled' : ' is-empty'}${withheld ? ' is-withheld' : ''}${editing ? ' is-editing' : ''}${infoOpen ? ' is-info-open' : ''}">
-                    <span class="hall-of-fame-gem">${escapeStatisticsHtml(award.title)}</span>
+            const open = window.hallOfFameOpenId === award.id || editing;
+            let teaserName = 'Ikke kåret';
+            let teaserPending = true;
+            let teaserScore = '';
+            if (withheld) {
+                teaserName = 'Deles ikke ut';
+            } else if (saved && saved.navn) {
+                teaserName = saved.navn;
+                teaserPending = false;
+                if (first && first.navn === saved.navn) teaserScore = valueParts.primary || valueParts.rest || '';
+            } else if (first && first.navn) {
+                teaserName = first.navn;
+                teaserScore = valueParts.primary || valueParts.rest || '';
+            }
+            const detailId = `hall-award-detail-${escapeStatisticsHtml(award.id)}`;
+            const detail = open ? `
+                <article id="${detailId}" class="hall-of-fame-plaque is-detail${saved ? ' is-filled' : ' is-empty'}${withheld ? ' is-withheld' : ''}${editing ? ' is-editing' : ''}">
                     <span class="hall-of-fame-mark" aria-hidden="true">${window.renderStatsAwardIconHtml(award)}</span>
-                    ${explain ? `
-                            <button
-                                type="button"
-                                class="hall-of-fame-info-btn${infoOpen ? ' is-active' : ''}"
-                                data-stat-action="toggle-hall-info"
-                                data-award-id="${escapeStatisticsHtml(award.id)}"
-                                aria-expanded="${infoOpen ? 'true' : 'false'}"
-                                aria-controls="${infoId}"
-                                title="Forklaring av ${escapeStatisticsHtml(award.title)}"
-                                aria-label="Forklaring av ${escapeStatisticsHtml(award.title)}"
-                            >
-                                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                            </button>
-                        ` : ''}
-                    ${explain ? `
-                        <p id="${infoId}" class="hall-of-fame-explain${infoOpen ? '' : ' is-hidden'}" ${infoOpen ? '' : 'hidden'}>${window.renderHallOfFameExplainHtml(explain)}</p>
-                    ` : ''}
+                    ${explain ? `<p class="hall-of-fame-explain">${window.renderHallOfFameExplainHtml(explain)}</p>` : ''}
                     ${body}
+                </article>
+            ` : '';
+            return `
+                <article class="hall-of-fame-entry${open ? ' is-open' : ''}${saved ? ' is-crowned' : ''}${withheld ? ' is-withheld' : ''}">
+                    <button
+                        type="button"
+                        class="hall-of-fame-teaser"
+                        data-stat-action="toggle-hall-award"
+                        data-award-id="${escapeStatisticsHtml(award.id)}"
+                        aria-expanded="${open ? 'true' : 'false'}"
+                        aria-controls="${detailId}"
+                    >
+                        <span class="hall-of-fame-teaser-title">${escapeStatisticsHtml(award.title)}</span>
+                        <span class="hall-of-fame-teaser-main">
+                            <span class="hall-of-fame-teaser-name${teaserPending ? ' is-pending' : ''}">${escapeStatisticsHtml(teaserName)}</span>
+                            ${teaserScore ? `<span class="hall-of-fame-teaser-score">${escapeStatisticsHtml(teaserScore)}</span>` : ''}
+                        </span>
+                        <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    ${detail}
                 </article>
             `;
         };
 
         window.HALL_OF_FAME_AWARD_IDS = ['player', 'mal', 'nykommer', 'forsvar', 'midtbane', 'angrep', 'oppmote'];
 
+        window.collectHallOfFameAwards = function(rows, winners, model) {
+            const awardModel = model || (typeof window.buildStatsAwardsModel === 'function' ? window.buildStatsAwardsModel() : { groups: [] });
+            const byId = new Map();
+            (awardModel.groups || []).forEach(group => {
+                (group.awards || []).forEach(award => {
+                    if (!window.HALL_OF_FAME_AWARD_IDS.includes(award.id)) return;
+                    const withheldReason = window.hallOfFameLineAwardWithheldReason(award, rows, winners, awardModel);
+                    byId.set(award.id, withheldReason ? { ...award, withheldReason } : award);
+                });
+            });
+            window.getHallOfFameVoteAwards().forEach(award => {
+                if (award.hallGroup) byId.set(award.id, award);
+            });
+            byId.set('kampgeneral', window.getHallOfFameKampGeneralAward(rows));
+            byId.set('fairplay', window.getHallOfFameFairPlayAward(rows));
+            return window.HALL_OF_FAME_ORDER.map(id => byId.get(id)).filter(Boolean);
+        };
+
         window.renderHallOfFamePanelHtml = function() {
+            if (typeof window.hallOfFameOpenId !== 'string') window.hallOfFameOpenId = '';
+            if (typeof window.hallOfFameAlternativeOpen !== 'boolean') window.hallOfFameAlternativeOpen = false;
             const model = typeof window.buildStatsAwardsModel === 'function'
                 ? window.buildStatsAwardsModel()
                 : { year: new Date().getFullYear(), groups: [] };
@@ -5650,54 +5817,23 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 ? window.buildPlayerStatsData({ applyYearFilter: true, yearFilter })
                 : [];
             const winners = window.getHallOfFameWinners();
-            const hallIds = new Set(window.HALL_OF_FAME_AWARD_IDS);
-            const reservedAwards = [];
-            const groups = (model.groups || []).map(group => {
-                const awards = (group.awards || []).filter(award => hallIds.has(award.id));
-                const shown = [];
-                awards.forEach(award => {
-                    const withheldReason = window.hallOfFameLineAwardWithheldReason(award, rows, winners, model);
-                    if (withheldReason) {
-                        reservedAwards.push({ ...award, withheldReason });
-                        return;
-                    }
-                    shown.push(award);
-                });
-                window.getHallOfFameVoteAwards()
-                    .filter(award => award.hallGroup === group.id)
-                    .forEach(award => {
-                        const playerIndex = shown.findIndex(item => item.id === 'player');
-                        shown.splice(playerIndex >= 0 ? playerIndex + 1 : shown.length, 0, award);
-                    });
-                if (!shown.length) return '';
-                return `
-                <section class="hall-of-fame-group" aria-label="${escapeStatisticsHtml(group.label)}">
-                    <h4 class="hall-of-fame-group-title">${escapeStatisticsHtml(group.label)}</h4>
-                    <div class="hall-of-fame-grid">
-                        ${shown.map(award => window.renderHallOfFamePlaqueHtml(award, rows, winners)).join('')}
-                    </div>
-                </section>
-            `;
-            }).join('');
-            reservedAwards.push(window.getHallOfFameKampGeneralAward(rows));
-            reservedAwards.push(window.getHallOfFameFairPlayAward(rows));
-            const reserveGroup = reservedAwards.length ? `
-                <section class="hall-of-fame-group" aria-label="Reserve kåringer">
-                    <h4 class="hall-of-fame-group-title">Reserve kåringer</h4>
-                    <div class="hall-of-fame-grid">
-                        ${reservedAwards.map(award => window.renderHallOfFamePlaqueHtml(award, rows, winners)).join('')}
-                    </div>
-                </section>
-            ` : '';
-            const looseVotes = window.getHallOfFameVoteAwards().filter(award => !award.hallGroup);
-            const voteGroup = looseVotes.length ? `
-                <section class="hall-of-fame-group" aria-label="Spillernes stemmer">
-                    <h4 class="hall-of-fame-group-title">Spillernes stemmer</h4>
-                    <div class="hall-of-fame-grid">
-                        ${looseVotes.map(award => window.renderHallOfFamePlaqueHtml(award, rows, winners)).join('')}
-                    </div>
-                </section>
-            ` : '';
+            const awards = window.collectHallOfFameAwards(rows, winners, model);
+            const official = [];
+            const alternative = [];
+            awards.forEach(award => {
+                if (window.hallOfFameAwardCategory(award, winners) === 'alternative') alternative.push(award);
+                else official.push(award);
+            });
+            if (window.hallOfFameOpenId && alternative.some(award => award.id === window.hallOfFameOpenId)) {
+                window.hallOfFameAlternativeOpen = true;
+            }
+            const officialList = official.length
+                ? official.map(award => window.renderHallOfFamePlaqueHtml(award, rows, winners, 'official')).join('')
+                : '<p class="hall-of-fame-empty">Ingen kåringer i denne kategorien.</p>';
+            const alternativeList = alternative.length
+                ? alternative.map(award => window.renderHallOfFamePlaqueHtml(award, rows, winners, 'alternative')).join('')
+                : '<p class="hall-of-fame-empty">Ingen kåringer i denne kategorien.</p>';
+            const alternativeOpen = window.hallOfFameAlternativeOpen === true;
             return window.renderStatsCollapsiblePanelHtml({
                 id: 'halloffame',
                 title: 'Hall of Fame',
@@ -5709,10 +5845,23 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 content: `
                     <div class="hall-of-fame-hall">
                         <i class="fa-solid fa-trophy hall-of-fame-watermark" aria-hidden="true"></i>
-                        <p class="hall-of-fame-lead">De offisielle kåringene for sesongen. Statistikken foreslår, laget kårer.</p>
-                        ${groups}
-                        ${reserveGroup}
-                        ${voteGroup}
+                        <section class="hall-of-fame-group" aria-label="Årets offisielle kåringer">
+                            <h4 class="hall-of-fame-group-title is-primary">Årets offisielle kåringer</h4>
+                            <div class="hall-of-fame-list">${officialList}</div>
+                        </section>
+                        <section class="hall-of-fame-group" aria-label="Årets alternative kåringer">
+                            <button
+                                type="button"
+                                class="hall-of-fame-section-toggle"
+                                data-stat-action="toggle-hall-alternative"
+                                aria-expanded="${alternativeOpen ? 'true' : 'false'}"
+                            >
+                                <span class="hall-of-fame-section-label">Årets alternative kåringer</span>
+                                <span class="hall-of-fame-section-count">${alternative.length}</span>
+                                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                            </button>
+                            ${alternativeOpen ? `<div class="hall-of-fame-list">${alternativeList}</div>` : ''}
+                        </section>
                     </div>
                 `
             });
