@@ -403,7 +403,7 @@
                     const local = typeof window.readHallOfFameStore === 'function'
                         ? window.readHallOfFameStore()
                         : {};
-                    const { merged, uploads, categoryUploads, prizeUploads } = mergeHallOfFameStores(remote, local);
+                    const { merged, uploads, categoryUploads, prizeUploads, lockUploads } = mergeHallOfFameStores(remote, local);
                     if (typeof window.applyHallOfFameStore === 'function') window.applyHallOfFameStore(merged);
                     uploads.forEach(item => {
                         window.saveHallOfFameToDatabase(
@@ -424,6 +424,12 @@
                             { team: item.team, year: item.year },
                             item.hidden
                         ).catch(error => console.warn('Kunne ikke løfte premiechip til databasen:', error));
+                    });
+                    (lockUploads || []).forEach(item => {
+                        window.saveHallOfFameLockToDatabase(
+                            { team: item.team, year: item.year },
+                            item.locked
+                        ).catch(error => console.warn('Kunne ikke løfte hall of fame-lås til databasen:', error));
                     });
                     return;
                 }
@@ -609,6 +615,9 @@
                 if (Object.prototype.hasOwnProperty.call(data, '_hiddenPrizes')) {
                     awards._hiddenPrizes = Array.isArray(data._hiddenPrizes) ? data._hiddenPrizes.map(id => String(id)) : [];
                 }
+                if (Object.prototype.hasOwnProperty.call(data, '_locked')) {
+                    awards._locked = data._locked === true;
+                }
                 store[team][year] = awards;
             });
             return store;
@@ -642,6 +651,18 @@
             target[team][year]._hiddenPrizes = hidden;
         }
 
+        function hallLockValue(bucket) {
+            if (!bucket || !Object.prototype.hasOwnProperty.call(bucket, '_locked')) return null;
+            return bucket._locked === true;
+        }
+
+        function applyHallLock(target, team, year, locked) {
+            if (typeof locked !== 'boolean') return;
+            if (!target[team]) target[team] = {};
+            if (!target[team][year]) target[team][year] = {};
+            target[team][year]._locked = locked;
+        }
+
         function mergeHallOfFameStores(remote, local) {
             const merged = {};
             const copyAwards = (source) => {
@@ -660,6 +681,7 @@
                         });
                         applyHallCategoryLists(merged, team, year, hallCategoryLists(source[team][year]));
                         applyHallPrizeList(merged, team, year, hallPrizeList(source[team][year]));
+                        applyHallLock(merged, team, year, hallLockValue(source[team][year]));
                     });
                 });
             };
@@ -667,6 +689,7 @@
             const uploads = [];
             const categoryUploads = [];
             const prizeUploads = [];
+            const lockUploads = [];
             Object.keys(local || {}).forEach((team) => {
                 Object.keys(local[team] || {}).forEach((year) => {
                     Object.keys(local[team][year] || {}).forEach((awardId) => {
@@ -701,9 +724,15 @@
                         applyHallPrizeList(merged, team, year, localHidden);
                         prizeUploads.push({ team, year, hidden: localHidden });
                     }
+                    const remoteLock = hallLockValue(merged[team] && merged[team][year]);
+                    const localLock = hallLockValue(local[team][year]);
+                    if (remoteLock === null && typeof localLock === 'boolean') {
+                        applyHallLock(merged, team, year, localLock);
+                        lockUploads.push({ team, year, locked: localLock });
+                    }
                 });
             });
-            return { merged, uploads, categoryUploads, prizeUploads };
+            return { merged, uploads, categoryUploads, prizeUploads, lockUploads };
         }
 
         window.saveHallOfFameCategoryToDatabase = async function(scope, awardId, placement) {
@@ -783,6 +812,24 @@
             } catch (error) {
                 console.error('Kunne ikke lagre premiechiper i databasen:', error);
                 throw createFirebaseWriteError('lagre premiechip', error);
+            }
+        };
+
+        window.saveHallOfFameLockToDatabase = async function(scope, locked) {
+            if (!isFirebaseWriteActive() || !activeHallOfFameCollectionRef) return false;
+            const team = scope && scope.team ? String(scope.team) : 'Alle';
+            const year = scope && scope.year != null ? String(scope.year) : '';
+            if (!year) return false;
+            try {
+                await setDoc(doc(activeHallOfFameCollectionRef, hallOfFameDocId(team, year)), {
+                    _team: team,
+                    _year: year,
+                    _locked: Boolean(locked)
+                }, { merge: true });
+                return true;
+            } catch (error) {
+                console.error('Kunne ikke lagre hall of fame-lås i databasen:', error);
+                throw createFirebaseWriteError('lagre hall of fame-lås', error);
             }
         };
 
