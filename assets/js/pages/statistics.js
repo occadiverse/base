@@ -5389,9 +5389,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
         };
 
-        window.HALL_OF_FAME_ORDER = ['player', 'spillernes-beste', 'oppmote', 'mal', 'nykommer', 'spillernes-favoritt', 'forsvar', 'midtbane', 'angrep', 'kampgeneral', 'fairplay'];
+        window.HALL_OF_FAME_ORDER = ['player', 'spillernes-beste', 'oppmote', 'mal', 'nykommer', 'spillernes-favoritt', 'forsvar', 'midtbane', 'angrep', 'kampgeneral', 'fairplay', 'punch', 'bors'];
         window.HALL_OF_FAME_FIXED = ['player', 'spillernes-beste', 'oppmote'];
-        window.HALL_OF_FAME_ALTERNATIVE_DEFAULTS = ['kampgeneral', 'fairplay'];
+        window.HALL_OF_FAME_ALTERNATIVE_DEFAULTS = ['kampgeneral', 'fairplay', 'punch', 'bors'];
 
         window.hallOfFameAwardCategory = function(award, winners) {
             const awardId = award && award.id ? String(award.id) : '';
@@ -5467,7 +5467,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 midtbane: 'Høyest snitt kampbidrag blant midtbanespillere med minst 50 % av kampene. Deles ikke ut hvis målscoreren kommer fra midtbane.',
                 angrep: 'Høyest snitt kampbidrag blant angrepsspillere med minst 50 % av kampene. Deles ikke ut hvis målscoreren kommer fra angrep.',
                 kampgeneral: 'Høyest snitt kampbidrag i troppen. Krever minst 50 % av kampene.',
-                fairplay: 'Færrest gule og røde kort. Et rødt kort veier tyngre enn et gult. Krever minst 50 % av kampene.'
+                fairplay: 'Færrest gule og røde kort. Et rødt kort veier tyngre enn et gult. Krever minst 50 % av kampene.',
+                punch: 'Flest mål og assist per 90 minutter. Krever minst 50 % av kampene, og under 60 % av minuttene.',
+                bors: 'Høyest snittkarakter på Spillerbørs. Krever minst 50 % av kampene.'
             };
             return text[award?.id] || '';
         };
@@ -5575,6 +5577,46 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return award;
         };
 
+        window.getHallOfFamePunchAward = function(rows) {
+            const award = {
+                id: 'punch',
+                title: 'Årets punch',
+                column: 'punchPer90',
+                icon: 'fa-bolt',
+                tiebreakKamper: 'more',
+                valueFn: (stat) => {
+                    const rate = Number(stat?.punchPer90);
+                    const shown = Number.isFinite(rate) && rate > 0 ? rate.toFixed(1) : '—';
+                    return `${shown} · ${Number(stat?.kamper) || 0} kamper`;
+                }
+            };
+            const prepared = (Array.isArray(rows) ? rows : []).map(stat => {
+                const minutes = Number(stat?.minutesTotal) || 0;
+                const points = (Number(stat?.mal) || 0) + (Number(stat?.assist) || 0);
+                const rate = minutes > 0 ? Math.round((points / minutes) * 90 * 10) / 10 : 0;
+                return { ...stat, punchPer90: rate };
+            });
+            const podium = typeof window.buildStatsAwardPodium === 'function'
+                ? window.buildStatsAwardPodium(prepared, {
+                    column: 'punchPer90',
+                    requireRelevant: false,
+                    requireQualify: true,
+                    qualifyAs: 'totalScore',
+                    tiebreakKamper: 'more',
+                    filterFn: (stat) => {
+                        const share = Number(stat?.minutesSharePct);
+                        return Number.isFinite(share) && share < 60 && (Number(stat?.minutesTotal) || 0) > 0;
+                    }
+                })
+                : [];
+            award.podium = podium.map(stat => ({
+                navn: stat.navn,
+                playerId: typeof getStatsPlayerIdForName === 'function' ? getStatsPlayerIdForName(stat.navn) : '',
+                valueText: award.valueFn(stat)
+            }));
+            return award;
+        };
+
         function getHallOfFamePlayerPhotoUrl(playerId, navn) {
             const player = (playerId && typeof window.findPlayerByRef === 'function'
                 ? window.findPlayerByRef(playerId)
@@ -5667,7 +5709,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 </div>
             `).join('');
             const rack = rackHtml ? `<div class="hall-of-fame-rack">${rackHtml}</div>` : '';
-            const prizeLabels = { player: '3K', 'spillernes-beste': '2.5K', mal: '1K', nykommer: '1K', oppmote: '2.5K', 'spillernes-favoritt': '1K', forsvar: '1K', midtbane: '1K', angrep: '1K', kampgeneral: '1K', fairplay: '1K' };
+            const prizeLabels = { player: '3K', 'spillernes-beste': '2.5K', mal: '1K', nykommer: '1K', oppmote: '2.5K', 'spillernes-favoritt': '1K', forsvar: '1K', midtbane: '1K', angrep: '1K', kampgeneral: '1K', fairplay: '1K', punch: '1K', bors: '1K' };
             const prizeChip = prizeLabels[award.id]
                 ? `<span class="hall-of-fame-pos-chip">${prizeLabels[award.id]}</span>`
                 : '';
@@ -5776,7 +5818,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
-        window.HALL_OF_FAME_AWARD_IDS = ['player', 'mal', 'nykommer', 'forsvar', 'midtbane', 'angrep', 'oppmote'];
+        window.HALL_OF_FAME_AWARD_IDS = ['player', 'mal', 'nykommer', 'forsvar', 'midtbane', 'angrep', 'oppmote', 'bors'];
 
         window.collectHallOfFameAwards = function(rows, winners, model) {
             const awardModel = model || (typeof window.buildStatsAwardsModel === 'function' ? window.buildStatsAwardsModel() : { groups: [] });
@@ -5793,6 +5835,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             });
             byId.set('kampgeneral', window.getHallOfFameKampGeneralAward(rows));
             byId.set('fairplay', window.getHallOfFameFairPlayAward(rows));
+            byId.set('punch', window.getHallOfFamePunchAward(rows));
             return window.HALL_OF_FAME_ORDER.map(id => byId.get(id)).filter(Boolean);
         };
 
