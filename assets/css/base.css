@@ -5944,11 +5944,20 @@
             border-color: rgba(250, 245, 255, 0.78);
         }
         .hall-of-fame-teaser-title {
+            align-items: center;
+            display: flex;
             font-size: 0.92rem;
             font-weight: 900;
+            gap: 0.4rem;
             grid-area: title;
             line-height: 1.2;
             min-width: 0;
+        }
+        .hall-of-fame-teaser-title-text {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .hall-of-fame-teaser-main {
             align-items: baseline;
@@ -5980,6 +5989,10 @@
             font-weight: 950;
             text-shadow: 0 1px 0 rgba(62, 40, 4, 0.45);
         }
+        .hall-of-fame-teaser-score.is-squad {
+            align-self: center;
+            font-size: 0.82rem;
+        }
         .hall-of-fame-teaser > i {
             color: rgba(196, 181, 253, 0.95);
             font-size: 0.72rem;
@@ -5992,7 +6005,7 @@
         @container hall-of-fame (min-width: 26rem) {
             .hall-of-fame-teaser {
                 grid-template-areas: "title main chevron";
-                grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.95fr) auto;
+                grid-template-columns: auto minmax(0, 1fr) auto;
             }
             .hall-of-fame-teaser-main {
                 justify-content: flex-end;
