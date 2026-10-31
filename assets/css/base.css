@@ -5974,9 +5974,11 @@
             color: #fffdf5;
         }
         .hall-of-fame-teaser-score {
+            color: #f5c542;
             flex: 0 0 auto;
             font-size: 0.95rem;
             font-weight: 950;
+            text-shadow: 0 1px 0 rgba(62, 40, 4, 0.45);
         }
         .hall-of-fame-teaser > i {
             color: rgba(196, 181, 253, 0.95);
@@ -6035,6 +6037,15 @@
         .hall-of-fame-plaque.is-detail {
             margin-top: 0;
             padding-top: 0.9rem;
+        }
+        .hall-of-fame-plaque.is-detail .hall-of-fame-pos-chip {
+            position: absolute;
+            right: 0.65rem;
+            top: 0.55rem;
+            z-index: 4;
+        }
+        .hall-of-fame-plaque.is-detail.has-prize .hall-of-fame-explain {
+            padding-right: 2.6rem;
         }
         .hall-of-fame-plaque.is-empty {
             box-shadow:
@@ -6205,10 +6216,6 @@
             line-height: 1.2;
             margin: 0;
             text-shadow: 0 1px 0 rgba(46, 16, 101, 0.35);
-        }
-        .hall-of-fame-actions .hall-of-fame-pos-chip {
-            align-self: center;
-            margin-left: auto;
         }
         .hall-of-fame-pos-chip {
             align-items: center;
