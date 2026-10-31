@@ -6354,6 +6354,17 @@
                 0 1px 0 var(--hall-ink),
                 0 2px 0 rgba(26, 11, 46, 0.45);
         }
+        .hall-of-fame-winner:has(.hall-of-fame-squad) {
+            align-items: center;
+            display: inline-flex;
+            gap: 0.4rem;
+        }
+        .hall-of-fame-squad {
+            color: #f5c542;
+            flex: 0 0 auto;
+            font-size: 0.82rem;
+            text-shadow: 0 1px 0 rgba(62, 40, 4, 0.45);
+        }
         .hall-of-fame-winner.is-pending {
             color: rgba(250, 245, 255, 0.72);
             font-size: 1.05rem;

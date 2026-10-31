@@ -5870,8 +5870,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const crownedNote = saved && first && saved.navn !== first.navn
                 ? `<p class="hall-of-fame-hint">Kåret: ${escapeStatisticsHtml(saved.navn)}</p>`
                 : '';
+            const squadMark = vote
+                ? '<i class="fa-solid fa-users hall-of-fame-squad" title="Kåres av troppen" aria-hidden="true"></i>'
+                : '';
             const body = editing ? `
-                <p class="hall-of-fame-winner${saved ? '' : ' is-pending'}">${saved ? escapeStatisticsHtml(saved.navn) : 'Velg vinner'}</p>
+                <p class="hall-of-fame-winner${saved ? '' : ' is-pending'}">${saved ? escapeStatisticsHtml(saved.navn) : 'Velg vinner'}${saved ? squadMark : ''}</p>
                 ${editor}
             ` : (first ? `
                 ${firstBlock}
@@ -5898,7 +5901,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 <div class="hall-of-fame-identity">
                     ${avatarHtml(saved.playerId, saved.navn)}
                     <div class="hall-of-fame-identity-text">
-                        <p class="hall-of-fame-winner">${escapeStatisticsHtml(saved.navn || '')}</p>
+                        <p class="hall-of-fame-winner">${escapeStatisticsHtml(saved.navn || '')}${squadMark}</p>
                     </div>
                 </div>
                 ${locked ? '' : `<div class="hall-of-fame-actions">
