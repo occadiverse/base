@@ -5939,13 +5939,6 @@
         .hall-of-fame-mark .stats-sort-glyph {
             color: inherit;
         }
-        .hall-of-fame-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.3rem;
-            position: relative;
-            z-index: 1;
-        }
         .hall-of-fame-info-btn {
             align-items: center;
             appearance: none;
@@ -6145,23 +6138,6 @@
             font-style: normal;
             font-weight: 750;
             line-height: 1.2;
-        }
-        .hall-of-fame-official {
-            background: rgba(250, 245, 255, 0.14);
-            border: 1px solid rgba(233, 213, 255, 0.55);
-            border-radius: 999px;
-            color: #faf5ff;
-            flex: 0 0 auto;
-            font-size: 0.56rem;
-            font-weight: 900;
-            letter-spacing: 0.06em;
-            padding: 0.16rem 0.38rem;
-            text-transform: uppercase;
-        }
-        .hall-of-fame-official.is-vote {
-            background: linear-gradient(180deg, #ff4fd8, #bd0a88);
-            border-color: rgba(255, 255, 255, 0.85);
-            text-shadow: 0 1px 0 rgba(74, 0, 53, 0.75);
         }
         .hall-of-fame-winner {
             color: #faf5ff;
