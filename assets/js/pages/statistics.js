@@ -5936,6 +5936,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 teaserName = first.navn;
                 teaserScore = teaserScoreText;
             }
+            const teaserIcon = window.renderStatsAwardIconHtml(award);
+            const teaserMark = teaserIcon
+                ? `<span class="hall-of-fame-teaser-mark">${teaserIcon}</span>`
+                : '';
             const detailId = `hall-award-detail-${escapeStatisticsHtml(award.id)}`;
             const detail = open ? `
                 <article id="${detailId}" class="hall-of-fame-plaque is-detail${saved ? ' is-filled' : ' is-empty'}${withheld ? ' is-withheld' : ''}${editing ? ' is-editing' : ''}${prizeChip ? ' has-prize' : ''}">
@@ -5955,7 +5959,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         aria-expanded="${open ? 'true' : 'false'}"
                         aria-controls="${detailId}"
                     >
-                        <span class="hall-of-fame-teaser-title"><span class="hall-of-fame-teaser-title-text">${escapeStatisticsHtml(award.title)}</span>${prizeChip}</span>
+                        <span class="hall-of-fame-teaser-title">${teaserMark}<span class="hall-of-fame-teaser-title-text">${escapeStatisticsHtml(award.title)}</span>${prizeChip}</span>
                         <span class="hall-of-fame-teaser-main">
                             <span class="hall-of-fame-teaser-name${teaserPending ? ' is-pending' : ''}">${escapeStatisticsHtml(teaserName)}</span>
                             ${teaserScore

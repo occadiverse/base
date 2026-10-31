@@ -5993,6 +5993,19 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+        .hall-of-fame-teaser-mark {
+            align-items: center;
+            color: #f5c542;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.82rem;
+            line-height: 1;
+            text-shadow: 0 1px 0 rgba(62, 40, 4, 0.45);
+        }
+        .hall-of-fame-teaser-mark .fa-solid,
+        .hall-of-fame-teaser-mark .stats-sort-glyph {
+            color: inherit;
+        }
         .hall-of-fame-teaser-main {
             align-items: baseline;
             display: flex;
