@@ -1594,10 +1594,10 @@ window.getPlayerFormComponents = function(playerName, options = {}) {
         })
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
-    const recentEvents = teamEvents.slice(0, 8);
-    const attendedRecentEvents = recentEvents.filter(e => window.isPlayerAttending(e.attendance, playerObj)).length;
-    const availabilityScore = recentEvents.length > 0
-        ? (attendedRecentEvents / recentEvents.length) * 20
+    const recentTrainings = teamEvents.filter(e => e.type === 'Trening').slice(0, 5);
+    const attendedTrainings = recentTrainings.filter(e => window.isPlayerAttending(e.attendance, playerObj)).length;
+    const availabilityScore = recentTrainings.length > 0
+        ? (attendedTrainings / recentTrainings.length) * 10
         : 0;
 
     const recentMatches = (window.activeMatches || [])
@@ -1615,7 +1615,7 @@ window.getPlayerFormComponents = function(playerName, options = {}) {
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
         .slice(0, 5);
 
-    if (recentMatches.length === 0) {
+    if (recentMatches.length < 5) {
         const empty = { total: 0, kamp: 0, oppm: 0, dis: 0, hasFormData: false };
         if (cache) cache.set(cacheKey, empty);
         return empty;
@@ -1637,7 +1637,7 @@ window.getPlayerFormComponents = function(playerName, options = {}) {
     const weightedAverage = totalWeight > 0 ? weightedPoints / totalWeight : 0;
     performanceScore = typeof window.scaleFormKampScore === 'function'
         ? window.scaleFormKampScore(weightedAverage)
-        : Math.max(0, Math.min(80, ((weightedAverage - 12) / 20) * 80));
+        : Math.max(0, Math.min(90, ((weightedAverage - 12) / 20) * 90));
 
     const kamp = Math.round(performanceScore);
     const oppm = Math.round(availabilityScore);
@@ -2536,7 +2536,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return column === 'totalScore'
                 || column === 'kampbonus'
                 || column === 'kampbonusTotal'
-                || column === 'kjemi'
                 || column === 'snittBors'
                 || column === 'expectedMalpoeng'
                 || column === 'minutesSharePct';
@@ -5687,7 +5686,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.getHallOfFameFairPlayAward = function(rows) {
             const award = {
                 id: 'fairplay',
-                title: 'Fair play',
+                title: 'Årets Fair Play',
                 column: 'fairPlayKort',
                 icon: 'fa-scale-balanced',
                 ascending: true,
@@ -6791,10 +6790,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 title: 'Spillerstats · Form',
                 buttonLabel: 'Slik regnes form',
                 items: [
-                    '<strong>Form</strong> er siste 5 kamper. Skala 0–100.',
+                    '<strong>Form</strong> er siste 5 kamper spilleren har spilt, pluss siste 5 treninger. Skala 0–100.',
                     'Nyeste kamp teller mest: ved 5 kamper vektes de 5–4–3–2–1. En fersk kamp trekker Form mer enn en eldre i det vinduet.',
-                    'Kampdel inntil 80 (15 + børs + minutter + seier +2 / uavgjort +1 / tap 0) og oppmøte 20. Kort teller ikke i Form.',
-                    'Krever minst 50 % av lagets kamper for å ligge øverst. Uten minst én kamp blir Form 0.'
+                    'Kampdel inntil 90 (15 + børs + minutter + seier +2 / uavgjort +1 / tap 0). Trening inntil 10, bare de siste 5 treningene. Kamper teller ikke der. Kort teller ikke i Form.',
+                    'Krever 5 spilte kamper. Med færre blir Form 0.'
                 ]
             }
         };
