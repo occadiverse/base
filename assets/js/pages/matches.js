@@ -1200,9 +1200,12 @@ function getMatchBattleCenterPresentation(match, data) {
     const presentation = data || getMatchCardPresentation(match);
     const kickoffTime = String(match?.time || '').trim() || '--:--';
     if (isMatchBattleFinished(match)) {
+        const fullScore = String(presentation.centerValue || '');
+        const penaltySplit = fullScore.match(/^(.*?)\s+(\([^)]*str\.\))$/);
         return {
             finished: true,
-            value: presentation.centerValue,
+            value: penaltySplit ? penaltySplit[1] : fullScore,
+            penalty: penaltySplit ? penaltySplit[2] : '',
             label: match?.penaltyResult ? 'Etter straffespark' : 'Slutt',
             kickoffTime,
             countdownLabel: ''
@@ -1214,13 +1217,14 @@ function getMatchBattleCenterPresentation(match, data) {
             ? 'Kampstart'
             : `Om ${countdown.value}`)
         : presentation.centerLabel;
-    return {
-        finished: false,
-        value: kickoffTime,
-        label: countdownLabel,
-        kickoffTime,
-        countdownLabel
-    };
+        return {
+            finished: false,
+            value: kickoffTime,
+            penalty: '',
+            label: countdownLabel,
+            kickoffTime,
+            countdownLabel
+        };
 }
 
 function getMatchBattleInfoChips(match, data) {
@@ -1276,7 +1280,10 @@ function buildMatchDetailBattleCenterHtml(match, data) {
         return `
             <div class="match-detail-center match-detail-battle-center is-finished">
                 <span class="match-detail-time match-detail-battle-score">${escapeMatchHtml(battle.value)}</span>
-                <span class="match-detail-sub" data-battle-sub>${escapeMatchHtml(battle.label)}</span>
+                <div class="match-detail-battle-subs">
+                    ${battle.penalty ? `<span class="match-detail-sub" data-battle-penalty>${escapeMatchHtml(battle.penalty)}</span>` : ''}
+                    <span class="match-detail-sub" data-battle-sub>${escapeMatchHtml(battle.label)}</span>
+                </div>
             </div>
         `;
     }
@@ -1331,6 +1338,20 @@ function syncMatchDetailCardResult(match) {
             timeEl.textContent = battle.value;
         }
         if (subEl) subEl.textContent = battle.label;
+        let penaltyEl = center.querySelector('[data-battle-penalty]');
+        if (battle.penalty) {
+            if (!penaltyEl) {
+                penaltyEl = document.createElement('span');
+                penaltyEl.className = 'match-detail-sub';
+                penaltyEl.dataset.battlePenalty = '';
+                const subs = center.querySelector('.match-detail-battle-subs') || center;
+                if (subEl && subEl.parentElement === subs) subs.insertBefore(penaltyEl, subEl);
+                else subs.appendChild(penaltyEl);
+            }
+            penaltyEl.textContent = battle.penalty;
+        } else {
+            penaltyEl?.remove();
+        }
 
         const infoHost = document.querySelector('#kampdetaljer-info [data-battle-info]');
         if (infoHost) {

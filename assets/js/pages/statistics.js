@@ -147,6 +147,14 @@ function bindStatisticsEvents() {
             }
             return;
         }
+        if (action === 'toggle-award-list') {
+            event.preventDefault();
+            event.stopPropagation();
+            if (typeof window.toggleStatsAwardList === 'function') {
+                window.toggleStatsAwardList(actionEl.dataset.awardId);
+            }
+            return;
+        }
         if (action === 'toggle-hall-info') {
             event.preventDefault();
             event.stopPropagation();
@@ -296,6 +304,10 @@ function bindStatisticsEvents() {
         if (action === 'set-lag-section') {
             const section = actionEl.dataset.sectionId;
             if (section && typeof window.setStatsLagSection === 'function') window.setStatsLagSection(section);
+            return;
+        }
+        if (action === 'open-hall-of-fame') {
+            if (typeof window.openStatsHallOfFame === 'function') window.openStatsHallOfFame();
             return;
         }
         if (action === 'navigate-match') {
@@ -662,7 +674,8 @@ window.checkIndividualChemistry = function() {
                 : [
                     { id: 'kampdata', label: 'Kamp', icon: 'fa-shield-halved' },
                     { id: 'spillerdata', label: 'Spiller', icon: 'fa-users' },
-                    { id: 'treningsdata', label: 'Trening', icon: 'fa-user-check' }
+                    { id: 'treningsdata', label: 'Trening', icon: 'fa-user-check' },
+                    { id: 'halloffame', label: 'HOF', icon: 'fa-trophy' }
                 ];
 
             return sections.map(section => `
@@ -673,6 +686,7 @@ window.checkIndividualChemistry = function() {
                     class="bsk-btn bsk-btn-chip stats-lag-section-btn ${activeSection === section.id ? 'is-active' : ''}"
                     data-stat-action="set-lag-section"
                     data-section-id="${escapeStatisticsHtml(section.id)}"
+                    ${section.id === 'halloffame' ? 'aria-label="Hall of Fame"' : ''}
                 >
                     ${section.icon ? `<i class="fa-solid ${escapeStatisticsHtml(section.icon)}" aria-hidden="true"></i>` : ''}
                     <span>${escapeStatisticsHtml(section.label)}</span>
@@ -1404,6 +1418,9 @@ window.checkIndividualChemistry = function() {
                 if (slot && !slot.innerHTML.trim()) slot.innerHTML = placeholder;
             } else if (activeSection === 'treningsdata') {
                 const slot = document.getElementById('stats-oppmote-slot');
+                if (slot && !slot.innerHTML.trim()) slot.innerHTML = placeholder;
+            } else if (activeSection === 'halloffame') {
+                const slot = document.getElementById('stats-hall-of-fame-slot');
                 if (slot && !slot.innerHTML.trim()) slot.innerHTML = placeholder;
             }
         };
@@ -4567,7 +4584,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.statsLagSections = [
             { id: 'kampdata', label: 'Kamp', icon: 'fa-shield-halved' },
             { id: 'spillerdata', label: 'Spiller', icon: 'fa-users' },
-            { id: 'treningsdata', label: 'Trening', icon: 'fa-user-check' }
+            { id: 'treningsdata', label: 'Trening', icon: 'fa-user-check' },
+            { id: 'halloffame', label: 'HOF', icon: 'fa-trophy' }
         ];
         window.statsLagSection = window.statsLagSection || 'kampdata';
 
@@ -4611,7 +4629,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (summary) summary.classList.add('hidden');
 
             const hallSlot = document.getElementById('stats-hall-of-fame-slot');
-            if (hallSlot) hallSlot.classList.toggle('hidden', activeSection !== 'spillerdata');
+            if (hallSlot) hallSlot.classList.toggle('hidden', activeSection !== 'halloffame');
             const awardsSlot = document.getElementById('stats-awards-slot');
             if (awardsSlot) awardsSlot.classList.toggle('hidden', activeSection !== 'spillerdata');
             const spillerstatsSlot = document.getElementById('stats-spillerstats-slot');
@@ -4632,8 +4650,19 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (playerData) playerData.classList.toggle('hidden', activeSection !== 'spillerdata' || !window._statsSelectedPlayer);
         };
 
+        window.openStatsHallOfFame = function() {
+            if (typeof window.setStatsLagSection === 'function') window.setStatsLagSection('halloffame');
+        };
+
         window.setStatsLagSection = function(section) {
             window.statsLagSection = window.statsLagSections.some(item => item.id === section) ? section : 'kampdata';
+            if (window.statsLagSection === 'halloffame') {
+                const state = typeof window.getStatsKampPanelState === 'function' ? window.getStatsKampPanelState() : null;
+                if (state) state.halloffame = true;
+                if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
+                window.updateStatsLagSectionVisibility();
+                return;
+            }
             if (window.statsLagSection === 'spillerdata') {
                 if (window._statsSelectedPlayer && typeof window.renderSpillereDetail === 'function') {
                     window.renderSpillereDetail(window._statsSelectedPlayer);
@@ -4710,6 +4739,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
             } else if (activeSection === 'treningsdata') {
                 if (oppmoteSlot && typeof window.renderStatsOppmotePanelHtml === 'function') {
                     oppmoteSlot.innerHTML = window.renderStatsOppmotePanelHtml(data);
+                }
+            } else if (activeSection === 'halloffame') {
+                const state = typeof window.getStatsKampPanelState === 'function' ? window.getStatsKampPanelState() : null;
+                if (state) state.halloffame = true;
+                if (hallSlot && typeof window.renderHallOfFameSlot === 'function') {
+                    window.renderHallOfFameSlot();
                 }
             }
 
@@ -4836,7 +4871,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.buildStatsAwardPodium = function(rows, options = {}) {
             const column = options.column;
             const ascending = options.ascending === true;
-            const limit = Number.isFinite(options.limit) ? options.limit : 3;
+            const limit = Object.prototype.hasOwnProperty.call(options, 'limit') ? options.limit : 3;
             const requireRelevant = options.requireRelevant !== false;
             const requireQualify = options.requireQualify !== false;
             const qualifyAs = options.qualifyAs || column;
@@ -4872,8 +4907,15 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 }
                 return String(a.navn || '').localeCompare(String(b.navn || ''), 'nb', { sensitivity: 'base' });
             });
-            return pool.slice(0, limit);
+            if (limit == null || !Number.isFinite(Number(limit))) return pool;
+            return pool.slice(0, Math.max(0, Number(limit)));
         };
+
+        function statsAwardBoardTitle(title) {
+            const stripped = String(title || '').replace(/^Årets\s+/i, '').trim();
+            if (!stripped) return stripped;
+            return stripped.charAt(0).toLocaleUpperCase('nb') + stripped.slice(1);
+        }
 
         window.formatStatsAwardValue = function(stat, column, extra = '') {
             if (!stat) return '—';
@@ -5123,6 +5165,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const podium = window.buildStatsAwardPodium(rows, {
                         column: award.column,
                         ascending: award.ascending === true,
+                        limit: null,
                         requireRelevant: award.requireRelevant,
                         requireQualify: award.requireQualify,
                         qualifyAs: award.qualifyAs,
@@ -5152,7 +5195,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (!podium.length) {
                 return `<p class="stats-awards-empty">Ingen data</p>`;
             }
-            return `
+            const previewCount = 5;
+            const listOpen = window.statsAwardListsOpen instanceof Set && window.statsAwardListsOpen.has(award.id);
+            const rows = `
                 <ol class="stats-awards-podium">
                     ${podium.map((entry, index) => {
                         const rank = index + 1;
@@ -5160,7 +5205,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         const value = escapeStatisticsHtml(entry.valueText || '—');
                         const playerId = escapeStatisticsHtml(entry.playerId || '');
                         return `
-                            <li class="stats-awards-podium-item is-rank-${rank}">
+                            <li class="stats-awards-podium-item is-rank-${rank}${index >= previewCount ? ' is-extra' : ''}">
                                 <button
                                     type="button"
                                     class="stats-awards-podium-btn"
@@ -5177,6 +5222,37 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     }).join('')}
                 </ol>
             `;
+            if (podium.length <= previewCount) return rows;
+            const label = listOpen ? 'Vis topp 5' : `Vis alle ${podium.length}`;
+            return `
+                ${rows}
+                <button
+                    type="button"
+                    class="stats-awards-more"
+                    data-stat-action="toggle-award-list"
+                    data-award-id="${escapeStatisticsHtml(award.id)}"
+                    data-award-count="${podium.length}"
+                    aria-expanded="${listOpen ? 'true' : 'false'}"
+                >${label}</button>
+            `;
+        };
+
+        window.toggleStatsAwardList = function(awardId) {
+            const id = String(awardId || '');
+            if (!id) return;
+            if (!(window.statsAwardListsOpen instanceof Set)) window.statsAwardListsOpen = new Set();
+            const open = window.statsAwardListsOpen.has(id);
+            if (open) window.statsAwardListsOpen.delete(id);
+            else window.statsAwardListsOpen.add(id);
+            const nextOpen = !open;
+            const card = document.querySelector(`#view-statistikk .stats-awards-card[data-award-id="${id}"]`);
+            if (!card) return;
+            card.classList.toggle('is-list-open', nextOpen);
+            const btn = card.querySelector('[data-stat-action="toggle-award-list"]');
+            if (!btn) return;
+            const total = Number(btn.dataset.awardCount) || 0;
+            btn.textContent = nextOpen ? 'Vis topp 5' : `Vis alle ${total}`;
+            btn.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
         };
 
         window.toggleStatsAwardInfo = function(awardId) {
@@ -5204,17 +5280,19 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return `
                 <div class="stats-awards-board">
                     ${(data.groups || []).map((group) => `
-                        <section class="stats-awards-group" aria-label="${escapeStatisticsHtml(group.label)}">
-                            <h4 class="stats-awards-group-title">${escapeStatisticsHtml(group.label)}</h4>
+                        <section class="stats-awards-group" aria-label="${escapeStatisticsHtml(statsAwardBoardTitle(group.label))}">
+                            <h4 class="stats-awards-group-title">${escapeStatisticsHtml(statsAwardBoardTitle(group.label))}</h4>
                             <div class="stats-awards-grid">
                                 ${(group.awards || []).map((award) => {
                                     const open = window.statsAwardInfoOpen === award.id;
+                                    const listOpen = window.statsAwardListsOpen instanceof Set && window.statsAwardListsOpen.has(award.id);
                                     const infoId = `stats-award-info-${escapeStatisticsHtml(award.id)}`;
+                                    const title = statsAwardBoardTitle(award.title);
                                     return `
-                                    <article class="stats-awards-card${open ? ' is-info-open' : ''}" data-award-id="${escapeStatisticsHtml(award.id)}">
+                                    <article class="stats-awards-card${open ? ' is-info-open' : ''}${listOpen ? ' is-list-open' : ''}" data-award-id="${escapeStatisticsHtml(award.id)}">
                                         <div class="stats-awards-card-head">
                                             <span class="stats-awards-icon">${window.renderStatsAwardIconHtml(award)}</span>
-                                            <h5 class="stats-awards-title">${escapeStatisticsHtml(award.title)}</h5>
+                                            <h5 class="stats-awards-title">${escapeStatisticsHtml(title)}</h5>
                                             ${award.explain ? `
                                                 <button
                                                     type="button"
@@ -5223,8 +5301,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                                     data-award-id="${escapeStatisticsHtml(award.id)}"
                                                     aria-expanded="${open ? 'true' : 'false'}"
                                                     aria-controls="${infoId}"
-                                                    title="Forklaring av ${escapeStatisticsHtml(award.title)}"
-                                                    aria-label="Forklaring av ${escapeStatisticsHtml(award.title)}"
+                                                    title="Forklaring av ${escapeStatisticsHtml(title)}"
+                                                    aria-label="Forklaring av ${escapeStatisticsHtml(title)}"
                                                 >
                                                     <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
                                                 </button>
@@ -6126,11 +6204,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 </header>
                 ${(data.groups || []).map((group) => `
                     <section class="match-print-section stats-awards-print-section">
-                        <h2>${escapeStatisticsHtml(group.label)}</h2>
+                        <h2>${escapeStatisticsHtml(statsAwardBoardTitle(group.label))}</h2>
                         <div class="stats-awards-print-grid">
                             ${(group.awards || []).map((award) => `
                                 <div class="stats-awards-print-item">
-                                    <h3>${escapeStatisticsHtml(award.title)}</h3>
+                                    <h3>${escapeStatisticsHtml(statsAwardBoardTitle(award.title))}</h3>
                                     ${award.explain ? `<p class="stats-awards-print-explain">${escapeStatisticsHtml(award.explain)}</p>` : ''}
                                     ${award.podium.length ? `
                                         <table class="stats-awards-print-table">
@@ -6937,10 +7015,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const hero = document.getElementById('stats-tab-hero');
             if (hero && typeof window.paintStatsChrome === 'function' && typeof window.renderStatsChromeTabsOnly === 'function') {
                 window.paintStatsChrome(window.renderStatsChromeTabsOnly(window.renderStatsHeroTabsHtml('spillere')));
-            }
-            const hallSlot = document.getElementById('stats-hall-of-fame-slot');
-            if (hallSlot && typeof window.renderHallOfFameSlot === 'function') {
-                window.renderHallOfFameSlot();
             }
             const awardsSlot = document.getElementById('stats-awards-slot');
             if (awardsSlot) {

@@ -1129,6 +1129,202 @@
         .hjem-loading-card {
             min-height: 14rem;
         }
+        #hjem-hero-match-container.is-absent,
+        #hjem-bottom-widgets.is-absent,
+        #hjem-season-summary.is-absent {
+            display: none;
+        }
+        .hjem-season {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            min-width: 0;
+        }
+        .hjem-season-story-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            padding: 1.25rem 1.35rem 1.4rem;
+        }
+        .hjem-season-story-body .match-detail-chip,
+        .hjem-season-cup-body .match-detail-chip {
+            align-self: flex-start;
+        }
+        .hjem-season-cup-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            padding: 1.25rem 1.35rem 0.45rem;
+        }
+        .hjem-season-panel:has(.hjem-season-cup-body) {
+            padding-top: 0;
+        }
+        .hjem-season-story-body p,
+        .hjem-season-cup-lead {
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 1.05rem;
+            font-weight: 500;
+            letter-spacing: 0;
+            line-height: 1.55;
+            margin: 0;
+            max-width: 42rem;
+            text-transform: none;
+        }
+        .hjem-season-panel {
+            display: flex;
+            flex-direction: column;
+            padding: 0.35rem 0;
+        }
+        .hjem-season-row {
+            background: transparent;
+            border: 0;
+            border-radius: 0.85rem;
+            color: inherit;
+            cursor: pointer;
+            display: block;
+            margin: 0 0.45rem;
+            padding: 0.85rem 0.9rem;
+            text-align: left;
+            width: auto;
+        }
+        .hjem-season-row + .hjem-season-row {
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+        .hjem-season-row:hover,
+        .hjem-season-row:focus-visible {
+            background: rgba(255, 255, 255, 0.05);
+            outline: none;
+        }
+        .hjem-season-cup-lead {
+            margin: 0;
+            padding: 0;
+        }
+        .hjem-season-cup-body + .hjem-season-row {
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+        .hjem-season-row-line {
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 0.98rem;
+            font-weight: 650;
+            line-height: 1.45;
+            margin: 0;
+        }
+        .hjem-season-name {
+            color: #fff;
+            font-weight: 800;
+        }
+        .hjem-season-quote {
+            border-left: 2px solid rgba(245, 197, 66, 0.75);
+            color: rgba(255, 248, 220, 0.92);
+            font-size: 0.95rem;
+            font-weight: 500;
+            line-height: 1.45;
+            margin: 0.55rem 0 0;
+            padding-left: 0.75rem;
+        }
+        .hjem-season-awards-card.hjem-season-panel {
+            padding: 0;
+        }
+        .hjem-season-awards {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            padding: 1.25rem 0.45rem 0.7rem;
+        }
+        .hjem-season-awards .match-detail-chip {
+            align-self: flex-start;
+            margin: 0 0.7rem 0.45rem;
+        }
+        .hjem-season-award {
+            align-items: center;
+            background: transparent;
+            border: 0;
+            border-radius: 0.85rem;
+            color: inherit;
+            cursor: pointer;
+            display: flex;
+            gap: 0.9rem;
+            margin: 0 0.25rem;
+            padding: 0.7rem 0.7rem;
+            text-align: left;
+            width: auto;
+        }
+        .hjem-season-award + .hjem-season-award {
+            box-shadow: inset 0 1px 0 rgba(245, 197, 66, 0.22);
+        }
+        .hjem-season-award:hover,
+        .hjem-season-award:focus-visible {
+            background: rgba(245, 197, 66, 0.08);
+            outline: none;
+        }
+        .hjem-season-award-photo {
+            align-items: center;
+            background: linear-gradient(180deg, #1e5088 0%, #0b2b4c 100%);
+            border: 2px solid #ffe08a;
+            border-radius: 0.72rem;
+            box-shadow:
+                0 0 0 1px rgba(107, 74, 12, 0.7),
+                0 3px 0 #6b4a0c,
+                0 7px 12px rgba(2, 6, 23, 0.35);
+            display: flex;
+            flex: 0 0 auto;
+            height: 4.15rem;
+            justify-content: center;
+            overflow: hidden;
+            transform: rotate(-7deg);
+            width: 3.15rem;
+        }
+        .hjem-season-award-photo img {
+            display: block;
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
+        }
+        .hjem-season-award-photo i {
+            color: rgba(255, 224, 138, 0.8);
+            font-size: 1.15rem;
+        }
+        .hjem-season-award-copy {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            gap: 0.18rem;
+            min-width: 0;
+        }
+        .hjem-season-award-name {
+            color: #fffdf5;
+            font-size: 1.05rem;
+            font-weight: 950;
+            letter-spacing: 0.01em;
+            line-height: 1.15;
+            text-shadow:
+                0 1px 0 rgba(255, 253, 245, 0.18),
+                0 2px 0 rgba(10, 26, 48, 0.5);
+        }
+        .hjem-season-award-line {
+            color: #ffe08a;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            line-height: 1.25;
+        }
+        .hjem-season-award-score {
+            color: #fffdf5;
+            flex: 0 0 auto;
+            font-size: 1.9rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 950;
+            line-height: 0.9;
+            text-shadow:
+                -1px 0 0 #6b4a0c,
+                1px 0 0 #6b4a0c,
+                0 -1px 0 #6b4a0c,
+                0 1px 0 #6b4a0c,
+                0 3px 0 rgba(10, 26, 48, 0.55);
+        }
+        .hjem-page .hjem-season-story {
+            cursor: pointer;
+        }
         @media (min-width: 1024px) {
             .hjem-home-grid {
                 gap: 1.25rem;
@@ -4403,6 +4599,12 @@
             font-size: clamp(1.55rem, 6.2vw, 2.55rem);
             font-variant-numeric: tabular-nums;
             letter-spacing: 0.02em;
+        }
+        :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero, .training-session-page > .match-detail-card).is-battle-hero .match-detail-battle-subs {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            gap: 0.12rem;
         }
         :is(.match-detail-page > .match-detail-card, .hjem-page #hjem-hero-match-container > .match-detail-card.is-battle-hero, .training-session-page > .match-detail-card).is-battle-hero .match-detail-battle-center .match-detail-sub {
             margin-top: 0;
@@ -11525,8 +11727,21 @@
             align-items: stretch;
             display: grid;
             gap: 0.45rem;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             min-width: 0;
+        }
+        @media (max-width: 520px) {
+            :is(.stats-board-card, .stats-page-slot) .stats-lag-filters {
+                gap: 0.35rem;
+                grid-template-columns: repeat(6, minmax(0, 1fr));
+            }
+            :is(.stats-board-card, .stats-page-slot) .stats-lag-filters > .stats-lag-section-btn:nth-child(-n+3) {
+                grid-column: span 2;
+            }
+            :is(.stats-board-card, .stats-page-slot) .stats-lag-filters > .stats-lag-section-btn:nth-child(4),
+            :is(.stats-board-card, .stats-page-slot) .stats-lag-filters > .stats-filter-menu {
+                grid-column: span 3;
+            }
         }
         :is(.stats-board-card, .stats-page-slot) .stats-lag-filters .stats-filter-menu {
             min-width: 0;
@@ -12039,6 +12254,28 @@
             list-style: none;
             margin: 0;
             padding: 0;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-awards-card:not(.is-list-open) .stats-awards-podium-item.is-extra {
+            display: none;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-awards-more {
+            appearance: none;
+            background: none;
+            border: 0;
+            color: #f5c542;
+            cursor: pointer;
+            display: inline-flex;
+            font: inherit;
+            font-size: 0.72rem;
+            font-weight: 800;
+            margin-top: 0.4rem;
+            padding: 0.1rem 0 0;
+            text-align: left;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-awards-more:hover,
+        :is(.stats-board-card, .stats-page-slot) .stats-awards-more:focus-visible {
+            color: #ffe08a;
+            outline: none;
         }
         :is(.stats-board-card, .stats-page-slot) .stats-awards-podium-btn {
             align-items: center;
