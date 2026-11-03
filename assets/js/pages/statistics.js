@@ -3403,9 +3403,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.renderStatsKampForKampPanelHtml = function(data) {
-            const yearFilter = typeof window.getStatsKampYearFilter === 'function'
-                ? window.getStatsKampYearFilter()
-                : new Date().getFullYear();
             return window.renderStatsCollapsiblePanelHtml({
                 id: 'kampforkamp',
                 title: 'Kamp for Kamp',
@@ -3413,7 +3410,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 hideLabel: 'Skjul kamp for kamp',
                 clash: true,
                 markHtml: '<span class="stats-clash-heading-mark" aria-hidden="true"><i class="fa-solid fa-futbol"></i></span>',
-                headerActionsHtml: `<span class="stats-clash-year">${escapeStatisticsHtml(String(yearFilter))}</span>`,
                 content: typeof window.buildTeamMatchHistoryHtml === 'function'
                     ? window.buildTeamMatchHistoryHtml(data)
                     : ''
@@ -8917,9 +8913,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ? `${s.goals}/${s.assists}`
                     : '–';
                 const minutesText = s.minutes != null && s.minutes > 0 ? `${s.minutes}'` : '–';
+                const cardMark = (count, tone, title) => count > 0
+                    ? `<span class="stats-kampdata-card-pair" title="${title}"><span class="stats-season-card-mark is-${tone}" aria-hidden="true"></span>${count > 1 ? `<span class="stats-kampdata-card-count">${count}</span>` : ''}</span>`
+                    : '';
                 const cardBits = [];
-                if (s.yellow > 0) cardBits.push(`<span class="stats-kampdata-card-dot is-yellow" title="Gult kort">${s.yellow > 1 ? s.yellow : ''}</span>`);
-                if (s.red > 0) cardBits.push(`<span class="stats-kampdata-card-dot is-red" title="Rødt kort">${s.red > 1 ? s.red : ''}</span>`);
+                const yellowMark = cardMark(s.yellow, 'yellow', 'Gult kort');
+                const redMark = cardMark(s.red, 'red', 'Rødt kort');
+                if (yellowMark) cardBits.push(yellowMark);
+                if (redMark) cardBits.push(redMark);
                 if (s.isBbInMatch) cardBits.push('<span class="stats-kampdata-bb-mark" title="Banens beste"><i class="fa-solid fa-crown" aria-hidden="true"></i></span>');
                 const cardsHtml = cardBits.length ? cardBits.join('') : '–';
                 const roleHtml = s.onPitch === false
@@ -8967,44 +8968,32 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 ? window.buildMatchCoachNotesFieldsHtml(match)
                 : '';
 
+            const ratingText = avgRating ? avgRating.toFixed(1).replace('.', ',') : '–';
+            const metricIcon = (icon, tone) => `<span class="stats-season-metric-mark is-${tone}" aria-hidden="true"><i class="fa-solid ${icon}"></i></span>`;
+            const cardIcon = tone => `<span class="stats-season-card-mark is-${tone}" aria-hidden="true"></span>`;
+            const snapshotItem = (label, iconHtml, value) => `
+                <div class="stats-kampdata-snapshot-item">
+                    <span class="stats-season-foot-label">${label}</span>
+                    <span class="stats-season-foot-value stats-season-cards">
+                        <span class="stats-season-card-pair">
+                            ${iconHtml}
+                            <span class="stats-season-card-count">${value}</span>
+                        </span>
+                    </span>
+                </div>
+            `;
+
             container.innerHTML = `
                 <div class="stats-kampdata-stack">
                     <div class="stats-kampdata-snapshot" aria-label="Kamp-snapshot">
-                        <div class="stats-kampdata-snapshot-item">
-                            <span class="stats-kampdata-snapshot-label">Snittbørs</span>
-                            <strong class="stats-kampdata-snapshot-value">${avgRating ? avgRating.toFixed(1) : '–'}</strong>
-                        </div>
-                        <div class="stats-kampdata-snapshot-item">
-                            <span class="stats-kampdata-snapshot-label">Mål for</span>
-                            <strong class="stats-kampdata-snapshot-value">${formatDash(goalsFor)}</strong>
-                        </div>
-                        <div class="stats-kampdata-snapshot-item">
-                            <span class="stats-kampdata-snapshot-label">Mål imot</span>
-                            <strong class="stats-kampdata-snapshot-value">${formatDash(goalsAgainst)}</strong>
-                        </div>
-                        <div class="stats-kampdata-snapshot-item">
-                            <span class="stats-kampdata-snapshot-label">Gule</span>
-                            <strong class="stats-kampdata-snapshot-value">${totalYellow}</strong>
-                        </div>
-                        <div class="stats-kampdata-snapshot-item">
-                            <span class="stats-kampdata-snapshot-label">Røde</span>
-                            <strong class="stats-kampdata-snapshot-value">${totalRed}</strong>
-                        </div>
+                        ${snapshotItem('Snittbørs', metricIcon('fa-star', 'bors'), ratingText)}
+                        ${snapshotItem('Mål for', metricIcon('fa-futbol', 'for'), formatDash(goalsFor))}
+                        ${snapshotItem('Mål imot', metricIcon('fa-futbol', 'against'), formatDash(goalsAgainst))}
+                        ${snapshotItem('Gule', cardIcon('yellow'), totalYellow)}
+                        ${snapshotItem('Røde', cardIcon('red'), totalRed)}
                     </div>
 
                     <section class="stats-kampdata-players-panel">
-                        <div class="stats-kampdata-table-toolbar">
-                            <h3 class="stats-kampdata-table-title">Spillere</h3>
-                            <button
-                                type="button"
-                                data-stat-action="open-form-info"
-                                class="training-session-groups-info-btn stats-chrome-info-btn"
-                                title="Slik regnes kampbidrag"
-                                aria-label="Slik regnes kampbidrag"
-                            >
-                                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                            </button>
-                        </div>
                         <div class="stats-kampdata-table-wrap">
                             <table class="stats-kampdata-table">
                                 <thead>
@@ -9029,10 +9018,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <p class="stats-mini-label">Trenernotater</p>
                             ${notesHtml}
                         </div>
-                        <button type="button" data-stat-action="open-tactical" data-match-id="${escapeStatisticsHtml(match.id)}" class="portal-btn portal-btn-primary portal-btn-lg portal-btn-full">
-                            <i class="fa-solid fa-broadcast-tower" aria-hidden="true"></i>
-                            Gå til Live
-                        </button>
                     </div>
                 </div>
             `;

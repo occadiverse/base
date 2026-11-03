@@ -6058,6 +6058,8 @@
         }
         .stats-season-metric-mark.is-bors { color: #f5c542; }
         .stats-season-metric-mark.is-kampbidrag { color: #8ed4ff; }
+        .stats-season-metric-mark.is-for { color: #8ed4b8; }
+        .stats-season-metric-mark.is-against { color: #e7aeb6; }
         .stats-season-card-count {
             color: #fffdf5;
             font-size: 1.4rem;
@@ -6289,8 +6291,8 @@
             height: 2px;
             opacity: 0.65;
         }
-        #view-statistikk .stats-kamp-collapsible-panel.is-game-card[data-stats-panel="kampdata"],
-        #view-statistikk .stats-kamp-collapsible-panel.is-game-card.is-collapsed[data-stats-panel="kampdata"] {
+        #view-statistikk .stats-kamp-collapsible-panel.is-game-card:is([data-stats-panel="kampdata"], [data-stats-panel="kampforkamp"], [data-stats-panel="kampstats"]),
+        #view-statistikk .stats-kamp-collapsible-panel.is-game-card.is-collapsed:is([data-stats-panel="kampdata"], [data-stats-panel="kampforkamp"], [data-stats-panel="kampstats"]) {
             background:
                 linear-gradient(180deg, rgba(186, 214, 245, 0.12) 0%, rgba(50, 110, 180, 0.04) 18%, transparent 36%),
                 radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.08), transparent 34%),
@@ -11991,18 +11993,18 @@
         /* Lys overflate (spillerdetalj / kampdata-tabell): samme form, lesbar farge */
         .stats-panel .training-session-groups-info-btn,
         .stats-kampdata-players-panel .training-session-groups-info-btn {
-            background: rgba(245, 197, 66, 0.18);
-            border-color: rgba(18, 63, 115, 0.14);
-            color: #123f73;
+            background: rgba(245, 197, 66, 0.16);
+            border-color: rgba(245, 197, 66, 0.34);
+            color: #f5c542;
             margin-left: 0;
         }
         .stats-panel .training-session-groups-info-btn:hover,
         .stats-panel .training-session-groups-info-btn.is-active,
         .stats-kampdata-players-panel .training-session-groups-info-btn:hover,
         .stats-kampdata-players-panel .training-session-groups-info-btn.is-active {
-            background: rgba(245, 197, 66, 0.32);
+            background: rgba(245, 197, 66, 0.28);
             border-color: rgba(245, 197, 66, 0.55);
-            color: #0b2b4c;
+            color: #ffe08a;
         }
         :is(.stats-board-card, .stats-page-slot) #statsLagFilterWrap {
             background: rgba(255, 255, 255, 0.08);
@@ -16359,44 +16361,23 @@
             grid-template-columns: repeat(5, minmax(0, 1fr));
         }
         .stats-kampdata-snapshot-item {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.8rem;
-            padding: 0.55rem 0.45rem;
-            text-align: center;
-        }
-        .stats-kampdata-snapshot-label {
-            color: rgba(255, 255, 255, 0.55);
-            display: block;
-            font-size: 0.58rem;
-            font-weight: 800;
-            letter-spacing: 0.04em;
-            margin-bottom: 0.2rem;
-            text-transform: uppercase;
-        }
-        .stats-kampdata-snapshot-value {
-            color: #ffffff;
-            font-size: 0.95rem;
-            font-weight: 950;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 32%),
+                rgba(3, 14, 32, 0.32);
+            border: 1px solid rgba(186, 214, 245, 0.16);
+            border-radius: 0.75rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+            min-width: 0;
+            padding: 0.55rem 0.45rem 0.6rem;
         }
         .stats-kampdata-players-panel {
-            background: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            border-radius: 0.95rem;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 18%, transparent 34%),
+                rgba(3, 14, 32, 0.32);
+            border: 1px solid rgba(186, 214, 245, 0.16);
+            border-radius: 0.75rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
             overflow: hidden;
-        }
-        .stats-kampdata-table-toolbar {
-            align-items: center;
-            display: flex;
-            gap: 0.5rem;
-            justify-content: space-between;
-            padding: 0.55rem 0.75rem 0.15rem;
-        }
-        .stats-kampdata-table-title {
-            color: #0b2b4c;
-            font-size: 0.85rem;
-            font-weight: 950;
-            margin: 0;
         }
         .stats-kampdata-table-wrap {
             overflow-x: auto;
@@ -16405,42 +16386,43 @@
         .stats-kampdata-table {
             border-collapse: separate;
             border-spacing: 0;
-            min-width: 34rem;
+            min-width: 0;
             table-layout: fixed;
             width: 100%;
         }
-        .stats-kampdata-table thead {
-            background: linear-gradient(90deg, #0b2b4c 0%, #123f73 58%, #1f5d9e 100%);
+        .stats-kampdata-table thead th {
+            background: linear-gradient(180deg, rgba(46, 118, 186, 0.55) 0%, rgba(18, 58, 108, 0.22) 100%);
         }
         .stats-kampdata-table th {
-            border-bottom: 2px solid rgba(245, 197, 66, 0.35);
-            color: rgba(255, 255, 255, 0.92);
-            font-size: 0.58rem;
-            font-weight: 900;
-            letter-spacing: 0.08em;
-            padding: 0.7rem 0.45rem;
+            border-bottom: 1px solid rgba(245, 197, 66, 0.35);
+            color: rgba(255, 253, 245, 0.86);
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            padding: 0.72rem 0.3rem 0.55rem;
             text-align: left;
             text-transform: uppercase;
             white-space: nowrap;
         }
         .stats-kampdata-table th:first-child {
-            padding-left: 0.9rem;
+            padding-left: 0.75rem;
             text-align: left;
+            width: auto;
         }
         .stats-kampdata-table th:not(:first-child),
         .stats-kampdata-table td:not(:first-child) {
             text-align: right;
-            width: 3.4rem;
+            width: 3rem;
         }
         .stats-kampdata-table th.stats-kampdata-pc,
         .stats-kampdata-table td.stats-kampdata-col-pos,
         .stats-kampdata-table td.stats-kampdata-col-sb {
             text-align: center;
-            width: 3.1rem;
+            width: 2.7rem;
         }
         .stats-kampdata-table th:last-child,
         .stats-kampdata-table td:last-child {
-            padding-right: 0.9rem;
+            padding-right: 0.7rem;
         }
         .stats-kampdata-table-row {
             cursor: pointer;
@@ -16448,21 +16430,21 @@
         }
         .stats-kampdata-table-row:hover,
         .stats-kampdata-table-row:focus-visible {
-            background: rgba(245, 197, 66, 0.1);
+            background: rgba(255, 253, 245, 0.06);
             outline: none;
         }
         .stats-kampdata-table-row + .stats-kampdata-table-row td {
-            border-top: 1px solid rgba(18, 63, 115, 0.08);
+            border-top: 1px solid rgba(255, 253, 245, 0.08);
         }
         .stats-kampdata-table td {
-            color: #0b2b4c;
+            color: #fffdf5;
             font-size: 0.78rem;
             font-weight: 700;
-            padding: 0.62rem 0.45rem;
+            padding: 0.55rem 0.3rem;
             vertical-align: middle;
         }
         .stats-kampdata-table td:first-child {
-            padding-left: 0.9rem;
+            padding-left: 0.75rem;
         }
         .stats-kampdata-table-row.is-bench {
             opacity: 0.72;
@@ -16476,17 +16458,17 @@
             white-space: nowrap;
         }
         .stats-kampdata-col-sb.is-start {
-            color: #0f766e;
+            color: #8ed4b8;
             font-weight: 900;
         }
         .stats-kampdata-col-sb.is-bench {
-            color: #94a3b8;
+            color: rgba(255, 253, 245, 0.45);
             font-weight: 900;
         }
         .stats-kampdata-pos-code {
-            background: rgba(18, 63, 115, 0.08);
+            background: rgba(255, 253, 245, 0.08);
             border-radius: 0.35rem;
-            color: #123f73;
+            color: #fffdf5;
             display: inline-block;
             font-size: 0.68rem;
             font-weight: 900;
@@ -16496,7 +16478,7 @@
             text-align: center;
         }
         .stats-kampdata-pos-path {
-            color: #64748b;
+            color: rgba(255, 253, 245, 0.48);
             display: block;
             font-size: 0.62rem;
             font-weight: 800;
@@ -16512,46 +16494,60 @@
         }
         .stats-kampdata-player-name {
             display: block;
-            font-weight: 950;
+            font-weight: 850;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
         .stats-kampdata-role {
-            color: #64748b;
+            color: rgba(255, 253, 245, 0.48);
             display: inline-block;
             font-size: 0.62rem;
             font-weight: 800;
             margin-top: 0.1rem;
             text-transform: uppercase;
         }
-        .stats-kampdata-col-rating.is-high {
-            color: #047857;
-            font-weight: 950;
+        .stats-kampdata-col-rating.is-high,
+        .stats-kampdata-col-points.is-high {
+            color: #3dce8a;
+            font-weight: 850;
         }
-        .stats-kampdata-col-rating.is-mid {
-            color: #123f73;
-            font-weight: 950;
+        .stats-kampdata-col-rating.is-mid,
+        .stats-kampdata-col-points.is-mid {
+            color: #fffdf5;
+            font-weight: 850;
         }
         .stats-kampdata-col-rating.is-low {
-            color: #be123c;
-            font-weight: 950;
-        }
-        .stats-kampdata-col-points.is-high {
-            color: #047857;
-            font-weight: 950;
-        }
-        .stats-kampdata-col-points.is-mid {
-            color: #123f73;
-            font-weight: 950;
+            color: #ff7388;
+            font-weight: 850;
         }
         .stats-kampdata-col-points.is-low,
         .stats-kampdata-col-points.is-neutral {
-            color: #0b2b4c;
-            font-weight: 900;
+            color: rgba(255, 253, 245, 0.72);
+            font-weight: 800;
         }
         .stats-kampdata-col-cards {
             white-space: nowrap;
+        }
+        .stats-kampdata-card-pair {
+            align-items: center;
+            display: inline-flex;
+            gap: 0.16rem;
+            margin-left: 0.22rem;
+            vertical-align: middle;
+        }
+        .stats-kampdata-card-pair:first-child {
+            margin-left: 0;
+        }
+        .stats-kampdata-col-cards .stats-season-card-mark {
+            height: 0.82rem;
+            width: 0.58rem;
+        }
+        .stats-kampdata-card-count {
+            color: #fffdf5;
+            font-size: 0.72rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 850;
         }
         .stats-kampdata-card-dot {
             border-radius: 0.2rem;
@@ -16573,7 +16569,7 @@
             color: #ffffff;
         }
         .stats-kampdata-bb-mark {
-            color: #c084fc;
+            color: #f5c542;
             font-size: 0.78rem;
             font-weight: 950;
             margin-left: 0.15rem;
@@ -16584,7 +16580,11 @@
             gap: 0.75rem;
         }
         :is(.stats-board-card, .stats-page-slot) .stats-kampdata-secondary .stats-mini-label {
-            color: rgba(255, 255, 255, 0.55);
+            color: #fffdf5;
+            font-size: 1.02rem;
+            font-weight: 850;
+            letter-spacing: 0.01em;
+            text-transform: none;
         }
         .stats-kampdata-notes {
             display: flex;
@@ -16601,7 +16601,19 @@
                 display: none !important;
             }
             .stats-kampdata-table {
-                min-width: 26rem;
+                min-width: 0;
+            }
+            .stats-kampdata-table th:not(:first-child),
+            .stats-kampdata-table td:not(:first-child) {
+                width: 2.35rem;
+            }
+            .stats-kampdata-table th {
+                font-size: 0.56rem;
+                letter-spacing: 0.01em;
+            }
+            .stats-kampdata-table th:first-child,
+            .stats-kampdata-table td:first-child {
+                padding-left: 0.6rem;
             }
         }
         .stats-kampdata-layout {
