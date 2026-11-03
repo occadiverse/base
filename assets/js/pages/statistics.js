@@ -3014,21 +3014,35 @@ window.getFormScoreBorderClass = function(score, teamName) {
             let gule = 0;
             let rode = 0;
             const forms = [];
+            const results = [];
             matches.forEach(match => {
                 const regular = statsMatchRegularScore(match);
                 const outcome = statsMatchOutcomeScore(match);
                 goals += Number(regular.bsk) || 0;
                 conceded += Number(regular.opponent) || 0;
+                let tone = 'is-draw';
+                let label = 'uavgjort';
                 if (outcome.bsk > outcome.opponent) {
                     wins += 1;
                     forms.push('S');
+                    tone = 'is-win';
+                    label = 'seier';
                 } else if (outcome.bsk < outcome.opponent) {
                     losses += 1;
                     forms.push('T');
+                    tone = 'is-loss';
+                    label = 'tap';
                 } else {
                     draws += 1;
                     forms.push('U');
                 }
+                results.push({
+                    tone,
+                    label,
+                    bsk: Number(regular.bsk) || 0,
+                    opp: Number(regular.opponent) || 0,
+                    opponent: String(match.opponent || '').trim()
+                });
                 if (match.matchType === 'Cup') cup += 1;
                 else serie += 1;
                 if (match.matchType === 'Serie' || match.matchType === 'Cup') {
@@ -3055,6 +3069,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 lastFive: {
                     count: lastFive.length,
                     forms: forms.slice(0, 5).slice().reverse(),
+                    results: results.slice(0, 5).slice().reverse(),
                     goalsFor: statsGoalAverage(lastFive, 'for'),
                     goalsAgainst: statsGoalAverage(lastFive, 'against')
                 },
@@ -3066,21 +3081,31 @@ window.getFormScoreBorderClass = function(score, teamName) {
             };
         };
 
-        function statsSeasonCountLine(summary) {
-            const total = Number(summary?.matches) || 0;
-            const kamp = total === 1 ? 'kamp' : 'kamper';
-            if (summary.serie > 0 && summary.cup > 0) {
-                return `${total} ${kamp}, ${summary.serie} serie og ${summary.cup} cup`;
+        function statsSeasonLineHtml(summary) {
+            const matches = Number(summary.matches) || 0;
+            const serie = Number(summary.serie) || 0;
+            const cup = Number(summary.cup) || 0;
+            const parts = [];
+            if (serie > 0 && cup > 0) {
+                parts.push(`${matches} ${matches === 1 ? 'kamp' : 'kamper'}`);
+            } else if (cup > 0) {
+                parts.push(`${matches} ${matches === 1 ? 'cupkamp' : 'cupkamper'}`);
+            } else {
+                parts.push(`${matches} ${matches === 1 ? 'kamp' : 'kamper'}`);
             }
-            if (summary.cup > 0) return `${total} ${total === 1 ? 'cupkamp' : 'cupkamper'}`;
-            return `${total} ${total === 1 ? 'seriekamp' : 'seriekamper'}`;
+            parts.push(`<span class="is-for">${summary.goals}</span><span class="stats-season-line-dash">–</span><span class="is-against">${summary.conceded}</span> mål`);
+            if (serie > 0 && cup > 0) {
+                parts.push(`${serie} serie`);
+                parts.push(`${cup} cup`);
+            }
+            return `<p class="stats-season-line">${parts.map(part => `<span class="stats-season-line-part">${part}</span>`).join('')}</p>`;
         }
 
-        function statsSeasonFormPills(forms) {
-            return (forms || []).map(letter => {
-                const tone = letter === 'S' ? 'is-win' : (letter === 'T' ? 'is-loss' : 'is-draw');
-                const label = letter === 'S' ? 'seier' : (letter === 'T' ? 'tap' : 'uavgjort');
-                return `<span class="stats-form-history-result-pill ${tone}" title="${label}">${letter}</span>`;
+        function statsSeasonResultChips(results) {
+            return (results || []).map(result => {
+                const who = result.opponent ? ` mot ${result.opponent}` : '';
+                const title = escapeStatisticsHtml(`${result.bsk}–${result.opp}${who}, ${result.label}`);
+                return `<span class="stats-season-result ${result.tone}" title="${title}">${result.bsk}<span class="stats-season-result-dash">–</span>${result.opp}</span>`;
             }).join('');
         }
 
@@ -3090,12 +3115,17 @@ window.getFormScoreBorderClass = function(score, teamName) {
         }
 
         function statsSeasonHeroFormHtml(summary) {
-            if (!summary.lastFive?.forms?.length) return '';
+            const results = summary.lastFive?.results || [];
+            if (!results.length) return '';
             const kicker = statsSeasonKicker(summary.lastFive.count);
+            const spoken = results.map(result => {
+                const who = result.opponent ? ` mot ${result.opponent}` : '';
+                return `${result.bsk}–${result.opp}${who}, ${result.label}`;
+            }).join('. ');
             return `
-                <div class="stats-season-hero-form">
+                <div class="stats-season-hero-form" aria-label="${escapeStatisticsHtml(`${kicker}. ${spoken}`)}">
                     <span class="stats-season-form-kicker">${kicker}</span>
-                    <span class="stats-season-run" aria-hidden="true">${statsSeasonFormPills(summary.lastFive.forms)}</span>
+                    <span class="stats-season-run" aria-hidden="true">${statsSeasonResultChips(results)}</span>
                 </div>
             `;
         }
@@ -3133,11 +3163,19 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         function statsSeasonFootHtml(summary) {
             const items = [];
+            const metricValue = (icon, tone, value, title = '') => `
+                <span class="stats-season-foot-value stats-season-cards"${title ? ` title="${escapeStatisticsHtml(title)}"` : ''}>
+                    <span class="stats-season-card-pair">
+                        <span class="stats-season-metric-mark is-${tone}" aria-hidden="true"><i class="fa-solid ${icon}"></i></span>
+                        <span class="stats-season-card-count">${value}</span>
+                    </span>
+                </span>
+            `;
             if (summary.bors != null) {
                 items.push(`
                     <div class="stats-season-plate stats-season-foot-item">
                         <span class="stats-season-foot-label">Børs</span>
-                        <span class="stats-season-foot-value">${escapeStatisticsHtml(statsNbNumber(summary.bors, 1))}</span>
+                        ${metricValue('fa-star', 'bors', escapeStatisticsHtml(statsNbNumber(summary.bors, 1)))}
                     </div>
                 `);
             }
@@ -3145,7 +3183,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 items.push(`
                     <div class="stats-season-plate stats-season-foot-item">
                         <span class="stats-season-foot-label">Kampbidrag</span>
-                        <span class="stats-season-foot-value" title="Snitt per kamp. Hver kamp teller likt.">${escapeStatisticsHtml(statsNbNumber(summary.kampbidrag, 1))}</span>
+                        ${metricValue('fa-chart-line', 'kampbidrag', escapeStatisticsHtml(statsNbNumber(summary.kampbidrag, 1)), 'Snitt per kamp. Hver kamp teller likt.')}
                     </div>
                 `);
             }
@@ -3153,15 +3191,18 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const red = Number(summary.rode) || 0;
             const yellowKind = yellow === 1 ? 'gult' : 'gule';
             const redKind = red === 1 ? 'rødt' : 'røde';
+            const cardPair = (count, kind, tone) => `
+                <span class="stats-season-card-pair" aria-label="${count} ${kind}">
+                    <span class="stats-season-card-mark is-${tone}" aria-hidden="true"></span>
+                    <span class="stats-season-card-count">${count}</span>
+                </span>
+            `;
             items.push(`
                 <div class="stats-season-plate stats-season-foot-item">
                     <span class="stats-season-foot-label">Kort</span>
                     <span class="stats-season-foot-value stats-season-cards">
-                        <span class="stats-season-card-pair">
-                            <span class="stats-season-card-count is-yellow">${yellow}</span>
-                            <span class="stats-season-cards-kind">${yellowKind}</span>
-                        </span>
-                        ${red > 0 ? `<span class="stats-season-card-pair"><span class="stats-season-card-count is-red">${red}</span><span class="stats-season-cards-kind">${redKind}</span></span>` : ''}
+                        ${cardPair(yellow, yellowKind, 'yellow')}
+                        ${red > 0 ? cardPair(red, redKind, 'red') : ''}
                     </span>
                 </div>
             `);
@@ -3179,11 +3220,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             <p class="stats-season-record">
                                 <span class="is-win">${summary.wins}</span><span class="stats-season-dash">–</span><span class="is-draw">${summary.draws}</span><span class="stats-season-dash">–</span><span class="is-loss">${summary.losses}</span>
                             </p>
-                            <p class="stats-season-goals">
-                                <span class="is-for">${summary.goals}</span><span class="stats-season-dash">–</span><span class="is-against">${summary.conceded}</span>
-                                <span class="stats-season-goals-label">i mål</span>
-                            </p>
-                            <p class="stats-season-basis">${escapeStatisticsHtml(statsSeasonCountLine(summary))}</p>
+                            ${statsSeasonLineHtml(summary)}
                         </div>
                         ${statsSeasonHeroFormHtml(summary)}
                     </div>
