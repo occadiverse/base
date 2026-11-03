@@ -887,18 +887,34 @@ window.checkIndividualChemistry = function() {
             }
         };
 
-        window.renderStatsCollapsiblePanelHtml = function({ id, title, badge = '', showLabel, hideLabel, content, headerActionsHtml = '', headingExtraHtml = '', infoPanelHtml = '', markHtml = '', clash = false }) {
+        window.renderStatsClashMarkHtml = function(icon) {
+            const name = String(icon || 'fa-chart-simple').replace(/[^\w-]/g, '');
+            return `<span class="stats-clash-heading-mark" aria-hidden="true"><i class="fa-solid ${name}"></i></span>`;
+        };
+
+        window.renderStatsCollapsiblePanelHtml = function({ id, title, badge = '', showLabel, hideLabel, content, headerActionsHtml = '', headingExtraHtml = '', infoPanelHtml = '', markHtml = '', icon = '' }) {
             const isOpen = window.isStatsKampPanelOpen(id);
+            const icons = {
+                oppmote: 'fa-user-check',
+                kampdata: 'fa-chart-simple',
+                kampforkamp: 'fa-futbol',
+                kampstats: 'fa-table-list',
+                halloffame: 'fa-trophy',
+                sesongkaaringer: 'fa-chart-column',
+                oppfolging: 'fa-clipboard-list',
+                spillerutvikling: 'fa-chart-line',
+                spillerliste: 'fa-users'
+            };
+            const mark = markHtml || window.renderStatsClashMarkHtml(icon || icons[id]);
             const badgeHtml = badge !== '' && badge != null
-                ? `<span class="match-detail-section-badge">${badge}</span>`
+                ? `<span class="stats-clash-year">${badge}</span>`
                 : '';
             return `
-                <section class="match-game-plan-panel match-collapsible-panel stats-kamp-collapsible-panel${clash ? ' stats-clash-panel' : ''} ${isOpen ? '' : 'is-collapsed'}" data-stats-panel="${id}">
+                <section class="match-game-plan-panel match-collapsible-panel stats-kamp-collapsible-panel is-game-card stats-clash-panel ${isOpen ? '' : 'is-collapsed'}" data-stats-panel="${id}">
                     <div class="match-bench-action-row match-bench-topline">
                         <div class="match-bench-heading">
-                            ${markHtml}
+                            ${mark}
                             <h3>${title}</h3>
-                            ${badgeHtml}
                             ${headingExtraHtml}
                         </div>
                         <button
@@ -913,6 +929,7 @@ window.checkIndividualChemistry = function() {
                         >
                             <i class="fa-solid fa-chevron-up"></i>
                         </button>
+                        ${badgeHtml}
                         ${headerActionsHtml}
                     </div>
                     ${infoPanelHtml}
@@ -2912,102 +2929,278 @@ window.getFormScoreBorderClass = function(score, teamName) {
             `;
         };
 
-        window.buildTeamSeasonStatsGridHtml = function(data, report) {
+        function statsNbNumber(value, digits) {
+            const number = Number(value);
+            if (!Number.isFinite(number)) return '—';
+            const text = digits == null ? String(Math.round(number)) : number.toFixed(digits);
+            return text.replace('.', ',');
+        }
+
+        function statsMatchRegularScore(match) {
+            if (typeof window.getMatchRegularScore === 'function') return window.getMatchRegularScore(match);
+            return typeof parseScore === 'function' ? parseScore(match?.result) : null;
+        }
+
+        function statsMatchOutcomeScore(match) {
+            if (typeof window.getMatchOutcomeScore === 'function') return window.getMatchOutcomeScore(match);
+            return statsMatchRegularScore(match);
+        }
+
+        function statsAverage(values) {
+            const nums = (values || []).filter(value => Number.isFinite(value));
+            if (!nums.length) return null;
+            return Math.round((nums.reduce((total, value) => total + value, 0) / nums.length) * 10) / 10;
+        }
+
+        function statsGoalAverage(matches, side) {
+            return statsAverage(matches.map(match => {
+                const score = statsMatchRegularScore(match);
+                if (!score) return null;
+                return side === 'against' ? Number(score.opponent) : Number(score.bsk);
+            }));
+        }
+
+        function statsMatchKampbidrag(match, players) {
+            if (typeof window.calculatePlayerMatchPoints !== 'function') return null;
+            let sum = 0;
+            let count = 0;
+            players.forEach(player => {
+                if (!window.isPlayerAttending(match.attendance, player)) return;
+                sum += Number(window.calculatePlayerMatchPoints(match, player)) || 0;
+                count += 1;
+            });
+            return count > 0 ? sum / count : null;
+        }
+
+        function statsPooledBors(matches, players) {
+            let sum = 0;
+            let count = 0;
+            matches.forEach(match => {
+                players.forEach(player => {
+                    if (!window.isPlayerAttending(match.attendance, player)) return;
+                    const rating = Number(window.getPlayerRefMapValue(match.ratings, player, 0));
+                    if (!Number.isFinite(rating) || rating <= 0) return;
+                    sum += rating;
+                    count += 1;
+                });
+            });
+            return count > 0 ? Math.round((sum / count) * 10) / 10 : null;
+        }
+
+        window.buildStatsKampSeasonSummary = function(filterLag, yearFilter) {
+            const year = yearFilter !== undefined
+                ? yearFilter
+                : (typeof window.getStatsKampYearFilter === 'function'
+                    ? window.getStatsKampYearFilter()
+                    : new Date().getFullYear());
+            const team = filterLag && filterLag !== 'Alle' ? filterLag : '';
+            const players = (window.activePlayers || []).filter(player => !team || player.spillerLag === team);
+            const matches = (window.activeMatches || []).filter(match => {
+                if (!match?.result || !String(match.result).includes('-')) return false;
+                if (team && match.matchGroup !== team) return false;
+                if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return false;
+                if (typeof window.matchBelongsToStatsKampFilters === 'function' && !window.matchBelongsToStatsKampFilters(match)) return false;
+                if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(match, year)) return false;
+                return Boolean(statsMatchRegularScore(match) && statsMatchOutcomeScore(match));
+            }).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+            let wins = 0;
+            let draws = 0;
+            let losses = 0;
+            let goals = 0;
+            let conceded = 0;
+            let serie = 0;
+            let cup = 0;
+            let gule = 0;
+            let rode = 0;
+            const forms = [];
+            matches.forEach(match => {
+                const regular = statsMatchRegularScore(match);
+                const outcome = statsMatchOutcomeScore(match);
+                goals += Number(regular.bsk) || 0;
+                conceded += Number(regular.opponent) || 0;
+                if (outcome.bsk > outcome.opponent) {
+                    wins += 1;
+                    forms.push('S');
+                } else if (outcome.bsk < outcome.opponent) {
+                    losses += 1;
+                    forms.push('T');
+                } else {
+                    draws += 1;
+                    forms.push('U');
+                }
+                if (match.matchType === 'Cup') cup += 1;
+                else serie += 1;
+                if (match.matchType === 'Serie' || match.matchType === 'Cup') {
+                    gule += Array.isArray(match.guleKort) ? match.guleKort.length : 0;
+                    rode += Array.isArray(match.rodeKort) ? match.rodeKort.length : 0;
+                }
+            });
+
+            const lastFive = matches.slice(0, 5);
+            const earlier = matches.slice(5);
+            return {
+                matches: matches.length,
+                wins,
+                draws,
+                losses,
+                goals,
+                conceded,
+                serie,
+                cup,
+                gule,
+                rode,
+                bors: statsPooledBors(matches, players),
+                kampbidrag: statsAverage(matches.map(match => statsMatchKampbidrag(match, players))),
+                lastFive: {
+                    count: lastFive.length,
+                    forms: forms.slice(0, 5).slice().reverse(),
+                    goalsFor: statsGoalAverage(lastFive, 'for'),
+                    goalsAgainst: statsGoalAverage(lastFive, 'against')
+                },
+                earlier: {
+                    count: earlier.length,
+                    goalsFor: statsGoalAverage(earlier, 'for'),
+                    goalsAgainst: statsGoalAverage(earlier, 'against')
+                }
+            };
+        };
+
+        function statsSeasonCountLine(summary) {
+            const total = Number(summary?.matches) || 0;
+            const kamp = total === 1 ? 'kamp' : 'kamper';
+            if (summary.serie > 0 && summary.cup > 0) {
+                return `${total} ${kamp}, ${summary.serie} serie og ${summary.cup} cup`;
+            }
+            if (summary.cup > 0) return `${total} ${total === 1 ? 'cupkamp' : 'cupkamper'}`;
+            return `${total} ${total === 1 ? 'seriekamp' : 'seriekamper'}`;
+        }
+
+        function statsSeasonFormPills(forms) {
+            return (forms || []).map(letter => {
+                const tone = letter === 'S' ? 'is-win' : (letter === 'T' ? 'is-loss' : 'is-draw');
+                const label = letter === 'S' ? 'seier' : (letter === 'T' ? 'tap' : 'uavgjort');
+                return `<span class="stats-form-history-result-pill ${tone}" title="${label}">${letter}</span>`;
+            }).join('');
+        }
+
+        function statsSeasonKicker(count) {
+            const countWord = { 2: 'to', 3: 'tre', 4: 'fire', 5: 'fem' }[count] || String(count);
+            return count === 1 ? 'Siste' : `Siste ${countWord}`;
+        }
+
+        function statsSeasonHeroFormHtml(summary) {
+            if (!summary.lastFive?.forms?.length) return '';
+            const kicker = statsSeasonKicker(summary.lastFive.count);
+            return `
+                <div class="stats-season-hero-form">
+                    <span class="stats-season-form-kicker">${kicker}</span>
+                    <span class="stats-season-run" aria-hidden="true">${statsSeasonFormPills(summary.lastFive.forms)}</span>
+                </div>
+            `;
+        }
+
+        function statsSeasonFormHtml(summary) {
+            if (!summary.earlier.count || !summary.lastFive.count) return '';
+            const kicker = statsSeasonKicker(summary.lastFive.count);
+            const nowFor = escapeStatisticsHtml(statsNbNumber(summary.lastFive.goalsFor, 1));
+            const thenFor = escapeStatisticsHtml(statsNbNumber(summary.earlier.goalsFor, 1));
+            const nowAgainst = escapeStatisticsHtml(statsNbNumber(summary.lastFive.goalsAgainst, 1));
+            const thenAgainst = escapeStatisticsHtml(statsNbNumber(summary.earlier.goalsAgainst, 1));
+            const beforeHead = summary.earlier.count === 1 ? 'Før' : `${summary.earlier.count} før`;
+            return `
+                <section class="stats-season-plate stats-season-form" aria-label="${kicker}: mål ${nowFor} mot ${thenFor} før, innsluppet ${nowAgainst} mot ${thenAgainst} før">
+                    <div class="stats-season-compare">
+                        <div class="stats-season-compare-row is-head" aria-hidden="true">
+                            <span></span>
+                            <span>Siste</span>
+                            <span>${escapeStatisticsHtml(beforeHead)}</span>
+                        </div>
+                        <p class="stats-season-compare-row">
+                            <span class="stats-season-compare-label">Mål</span>
+                            <span class="stats-season-compare-now">${nowFor}</span>
+                            <span class="stats-season-compare-then">${thenFor}</span>
+                        </p>
+                        <p class="stats-season-compare-row">
+                            <span class="stats-season-compare-label">Innsluppet</span>
+                            <span class="stats-season-compare-now">${nowAgainst}</span>
+                            <span class="stats-season-compare-then">${thenAgainst}</span>
+                        </p>
+                    </div>
+                </section>
+            `;
+        }
+
+        function statsSeasonFootHtml(summary) {
+            const items = [];
+            if (summary.bors != null) {
+                items.push(`
+                    <div class="stats-season-plate stats-season-foot-item">
+                        <span class="stats-season-foot-label">Børs</span>
+                        <span class="stats-season-foot-value">${escapeStatisticsHtml(statsNbNumber(summary.bors, 1))}</span>
+                    </div>
+                `);
+            }
+            if (summary.kampbidrag != null) {
+                items.push(`
+                    <div class="stats-season-plate stats-season-foot-item">
+                        <span class="stats-season-foot-label">Kampbidrag</span>
+                        <span class="stats-season-foot-value" title="Snitt per kamp. Hver kamp teller likt.">${escapeStatisticsHtml(statsNbNumber(summary.kampbidrag, 1))}</span>
+                    </div>
+                `);
+            }
+            const yellow = Number(summary.gule) || 0;
+            const red = Number(summary.rode) || 0;
+            const yellowKind = yellow === 1 ? 'gult' : 'gule';
+            const redKind = red === 1 ? 'rødt' : 'røde';
+            items.push(`
+                <div class="stats-season-plate stats-season-foot-item">
+                    <span class="stats-season-foot-label">Kort</span>
+                    <span class="stats-season-foot-value stats-season-cards">
+                        <span class="stats-season-card-pair">
+                            <span class="stats-season-card-count is-yellow">${yellow}</span>
+                            <span class="stats-season-cards-kind">${yellowKind}</span>
+                        </span>
+                        ${red > 0 ? `<span class="stats-season-card-pair"><span class="stats-season-card-count is-red">${red}</span><span class="stats-season-cards-kind">${redKind}</span></span>` : ''}
+                    </span>
+                </div>
+            `);
+            return `<div class="stats-season-foot">${items.join('')}</div>`;
+        }
+
+        window.renderStatsKampSeasonSummaryHtml = function(summary) {
+            if (!summary || !summary.matches) {
+                return `<p class="stats-kamp-panel-hint">Ingen spilte kamper i denne sesongen.</p>`;
+            }
+            return `
+                <div class="stats-season-read">
+                    <div class="stats-season-hero">
+                        <div class="stats-season-hero-main">
+                            <p class="stats-season-record">
+                                <span class="is-win">${summary.wins}</span><span class="stats-season-dash">–</span><span class="is-draw">${summary.draws}</span><span class="stats-season-dash">–</span><span class="is-loss">${summary.losses}</span>
+                            </p>
+                            <p class="stats-season-goals">
+                                <span class="is-for">${summary.goals}</span><span class="stats-season-dash">–</span><span class="is-against">${summary.conceded}</span>
+                                <span class="stats-season-goals-label">i mål</span>
+                            </p>
+                            <p class="stats-season-basis">${escapeStatisticsHtml(statsSeasonCountLine(summary))}</p>
+                        </div>
+                        ${statsSeasonHeroFormHtml(summary)}
+                    </div>
+                    ${statsSeasonFormHtml(summary)}
+                    ${statsSeasonFootHtml(summary)}
+                </div>
+            `;
+        };
+
+        window.buildTeamSeasonStatsGridHtml = function(data) {
             const filterLag = data?.filterLag && data.filterLag !== 'Alle' ? data.filterLag : '';
             const yearFilter = typeof window.getStatsKampYearFilter === 'function'
                 ? window.getStatsKampYearFilter()
                 : 'alle';
-
-            let assists = 0;
-            let guleKort = 0;
-            let rodeKort = 0;
-            let ratingSum = 0;
-            let ratingCount = 0;
-            let kampbidragSum = 0;
-            let kampbidragCount = 0;
-
-            const matches = (window.activeMatches || []).filter(m => {
-                if (!m.result || !String(m.result).includes('-')) return false;
-                if (filterLag && m.matchGroup !== filterLag) return false;
-                if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return false;
-                if (typeof window.matchBelongsToStatsKampFilters === 'function' && !window.matchBelongsToStatsKampFilters(m)) return false;
-                if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(m, yearFilter)) return false;
-                return true;
-            });
-
-            const teamPlayers = (window.activePlayers || []).filter(p => !filterLag || p.spillerLag === filterLag);
-
-            matches.forEach(match => {
-                teamPlayers.forEach(player => {
-                    if (!window.isPlayerAttending(match.attendance, player)) return;
-                    assists += Number(window.getPlayerRefMapValue(match.assists, player, 0)) || 0;
-                    const rating = Number(window.getPlayerRefMapValue(match.ratings, player, 0));
-                    if (Number.isFinite(rating) && rating > 0) {
-                        ratingSum += rating;
-                        ratingCount += 1;
-                    }
-                    if (typeof window.calculatePlayerMatchPoints === 'function') {
-                        kampbidragSum += Number(window.calculatePlayerMatchPoints(match, player)) || 0;
-                        kampbidragCount += 1;
-                    }
-                });
-
-                // Kort telles fra Serie + Cup (samme kamptyper som getPlayerCardCounts).
-                if (match.matchType === 'Serie' || match.matchType === 'Cup') {
-                    guleKort += Array.isArray(match.guleKort) ? match.guleKort.length : 0;
-                    rodeKort += Array.isArray(match.rodeKort) ? match.rodeKort.length : 0;
-                }
-            });
-
-            const snittBors = ratingCount > 0 ? (Math.round((ratingSum / ratingCount) * 10) / 10).toFixed(1) : '-';
-            const kampbidrag = kampbidragCount > 0
-                ? String(Math.round((kampbidragSum / kampbidragCount) * 10) / 10)
-                : '-';
-            const chip = window.renderTeamSeasonStatChipHtml;
-
-            let totalScoreLabel = '-';
-            if (typeof window.buildPlayerStatsData === 'function') {
-                const totalScores = window.buildPlayerStatsData({
-                    applyYearFilter: yearFilter !== 'alle',
-                    yearFilter
-                })
-                    .filter(stat => (
-                        (!filterLag || stat.spillerLag === filterLag) &&
-                        (Number(stat.totalScore) || 0) > 0
-                    ))
-                    .map(stat => Number(stat.totalScore))
-                    .filter(score => Number.isFinite(score) && score > 0);
-                const medianTotal = typeof window.getMedianOfNumbers === 'function'
-                    ? window.getMedianOfNumbers(totalScores)
-                    : null;
-                if (medianTotal != null) totalScoreLabel = String(medianTotal);
-            }
-
-            return `
-                <div class="stats-team-season-wrap">
-                    ${typeof window.renderKamputviklingCardsHtml === 'function'
-                        ? window.renderKamputviklingCardsHtml(report)
-                        : ''}
-                    <div class="player-profile-stat-grid stats-team-season-grid">
-                        ${chip('Kamper', String(report?.matchCount ?? 0))}
-                        ${chip('Seire', String(data?.wins ?? 0))}
-                        ${chip('Uavgjort', String(data?.draws ?? 0))}
-                        ${chip('Tap', String(data?.losses ?? 0))}
-                        ${chip('Mål', String(data?.goals ?? 0))}
-                        ${chip('Mål imot', String(report?.conceded ?? 0))}
-                        ${chip('Assist', String(assists))}
-                        ${chip('Børs', snittBors)}
-                        ${chip(
-                            'Kampbidrag per spiller',
-                            kampbidrag,
-                            'Snitt kampbidrag per oppmøtt spiller på tvers av alle kamper'
-                        )}
-                        ${chip('Totalscore', totalScoreLabel)}
-                        ${chip('Gule kort', String(guleKort))}
-                        ${chip('Røde kort', String(rodeKort))}
-                    </div>
-                </div>
-            `;
+            return window.renderStatsKampSeasonSummaryHtml(
+                window.buildStatsKampSeasonSummary(filterLag, yearFilter)
+            );
         };
 
         window.buildTeamMatchHistoryHtml = function(data) {
@@ -3161,13 +3354,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.renderStatsKampdataPanelHtml = function(data, report) {
-            const yearFilter = typeof window.getStatsKampYearFilter === 'function'
-                ? window.getStatsKampYearFilter()
-                : new Date().getFullYear();
             return window.renderStatsCollapsiblePanelHtml({
                 id: 'kampdata',
                 title: 'Sesong i tall',
-                badge: String(yearFilter),
                 showLabel: 'Vis sesong i tall',
                 hideLabel: 'Skjul sesong i tall',
                 content: typeof window.buildTeamSeasonStatsGridHtml === 'function'
@@ -5054,10 +5243,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         },
                         {
                             id: 'tropp',
-                            title: 'Troppens spiller',
+                            title: 'Kamper',
                             column: 'attendedMatches',
                             icon: 'fa-users',
-                            valueFn: (stat) => window.formatTroppAttendanceDisplay(stat),
+                            valueFn: (stat) => {
+                                const attended = Number(stat?.attendedMatches) || 0;
+                                return attended > 0 ? String(attended) : '—';
+                            },
                             explain: 'Flest spilte kamper i troppen på kampdagen, uavhengig av minutter. En kamp teller først når resultatet er registrert. Ved likt antall rangeres den med flest kamper på banen høyest.'
                         },
                         {
@@ -5144,7 +5336,194 @@ window.getFormScoreBorderClass = function(score, teamName) {
             ];
         };
 
-        window.buildStatsAwardsModel = function() {
+        window.getStatsSeasonCategoryDefinitions = function() {
+            return [
+                {
+                    id: 'scoringer',
+                    label: 'Scoringer',
+                    awards: [
+                        {
+                            id: 'mal',
+                            title: 'Mål',
+                            column: 'mal',
+                            tiebreakKamper: 'fewer',
+                            valueFn: (stat) => `${Number(stat.mal) || 0} · ${Number(stat.kamper) || 0} kamper`,
+                            explain: 'Scoringer i sesongen, serie og cup samlet.'
+                        },
+                        {
+                            id: 'playmaker',
+                            title: 'Assist',
+                            column: 'assist',
+                            tiebreakKamper: 'fewer',
+                            valueFn: (stat) => `${Number(stat.assist) || 0} · ${Number(stat.kamper) || 0} kamper`,
+                            explain: 'Assists i sesongen, serie og cup samlet.'
+                        },
+                        {
+                            id: 'xp',
+                            title: 'Expected målpoeng',
+                            column: 'expectedMalpoeng',
+                            tiebreakKamper: 'fewer',
+                            valueFn: (stat) => typeof window.formatExpectedMalpoengDisplay === 'function'
+                                ? window.formatExpectedMalpoengDisplay(stat)
+                                : `${Number(stat.expectedMalpoeng).toFixed(1)} · ${Number(stat.kamper) || 0} kamper`,
+                            explain: 'Mål og assist per kamp på banen.'
+                        },
+                        {
+                            id: 'bb',
+                            title: 'Banens beste',
+                            column: 'bb',
+                            tiebreakKamper: 'fewer',
+                            valueFn: (stat) => `${Number(stat.bb) || 0} · ${Number(stat.kamper) || 0} kamper`,
+                            explain: 'Antall ganger spilleren er kåret til banens beste.'
+                        }
+                    ]
+                },
+                {
+                    id: 'sesong',
+                    label: 'Sesong',
+                    awards: [
+                        {
+                            id: 'player',
+                            title: 'Total score',
+                            column: 'totalScore',
+                            tiebreakKamper: 'more',
+                            valueFn: (stat) => {
+                                const score = Number(stat.totalScore);
+                                const shown = Number.isFinite(score) && score > 0 ? score.toFixed(1) : '—';
+                                return `${shown} · ${Number(stat.kamper) || 0} kamper`;
+                            },
+                            explain: 'Total Score for sesongen: kampbidrag 50 %, spillerbørs 25 %, treningsoppmøte 15 % og disiplin 10 %.'
+                        },
+                        {
+                            id: 'bors',
+                            title: 'Børs',
+                            column: 'snittBors',
+                            tiebreakKamper: 'more',
+                            valueFn: (stat) => {
+                                const avg = Number(stat.snittBors);
+                                const shown = Number.isFinite(avg) && avg > 0 ? avg.toFixed(1) : '—';
+                                return `${shown} · ${Number(stat.kamper) || 0} kamper`;
+                            },
+                            explain: 'Snittkarakter på Spillerbørs gjennom sesongen.'
+                        },
+                        {
+                            id: 'tropp',
+                            title: 'Kamper',
+                            column: 'attendedMatches',
+                            icon: 'fa-users',
+                            valueFn: (stat) => {
+                                const attended = Number(stat?.attendedMatches) || 0;
+                                return attended > 0 ? String(attended) : '—';
+                            },
+                            explain: 'Kamper i troppen på kampdagen, uavhengig av minutter. En kamp teller når resultatet er registrert.'
+                        },
+                        {
+                            id: 'jernmann',
+                            title: 'Minutter',
+                            column: 'minutesTotal',
+                            explain: 'Registrerte spilleminutter. Tallet viser total minutter og snitt per kamp.'
+                        },
+                        {
+                            id: 'oppmote',
+                            title: 'Oppmøte',
+                            column: 'oppmoteSamletPct',
+                            icon: 'fa-user-check',
+                            valueFn: (stat) => {
+                                const possible = Number(stat?.oppmoteSamletPossible) || 0;
+                                if (possible <= 0) return '—';
+                                const pct = Math.round(Number(stat.oppmoteSamletPct) || 0);
+                                const attended = Number(stat.oppmoteSamletAttended) || 0;
+                                return `${pct}% ${attended}/${possible}`;
+                            },
+                            explain: 'Samlet oppmøte på trening, kamp og treningskamp. Bare økter og kamper med registrert oppmøte teller.'
+                        }
+                    ]
+                },
+                {
+                    id: 'linjer',
+                    label: 'Linjer',
+                    awards: [
+                        {
+                            id: 'keeper',
+                            title: 'Keeper',
+                            column: 'kampbonus',
+                            icon: 'fa-mitten',
+                            group: 'keeper',
+                            explain: 'Snitt kampbidrag blant keepere gjennom sesongen.'
+                        },
+                        {
+                            id: 'forsvar',
+                            title: 'Forsvar',
+                            column: 'kampbonus',
+                            icon: 'fa-shield-halved',
+                            group: 'forsvar',
+                            explain: 'Snitt kampbidrag blant stoppere og bekker gjennom sesongen.'
+                        },
+                        {
+                            id: 'midtbane',
+                            title: 'Midtbane',
+                            column: 'kampbonus',
+                            icon: 'fa-diagram-project',
+                            group: 'midtbane',
+                            explain: 'Snitt kampbidrag blant defensiv midtbane, offensiv midtbane og playmaker gjennom sesongen.'
+                        },
+                        {
+                            id: 'angrep',
+                            title: 'Angrep',
+                            column: 'kampbonus',
+                            icon: 'fa-bullseye',
+                            group: 'angrep',
+                            explain: 'Snitt kampbidrag blant kanter og spisser gjennom sesongen.'
+                        }
+                    ]
+                },
+                {
+                    id: 'kort',
+                    label: 'Kort',
+                    awards: [
+                        {
+                            id: 'gule',
+                            title: 'Gule',
+                            column: 'gule',
+                            glyph: 'g',
+                            tiebreakKamper: 'fewer',
+                            valueFn: (stat) => `${Number(stat.gule) || 0} · ${Number(stat.kamper) || 0} kamper`,
+                            explain: 'Gule kort i sesongen, serie og cup samlet.'
+                        }
+                    ]
+                }
+            ];
+        };
+
+        function statsSeasonMatchBasis(yearFilter, teamName) {
+            let serie = 0;
+            let cup = 0;
+            (window.activeMatches || []).forEach((match) => {
+                if (teamName && match?.matchGroup !== teamName) return;
+                if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return;
+                if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(match, yearFilter)) return;
+                if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(match)) return;
+                if (typeof window.matchHasPlayedResult === 'function' && !window.matchHasPlayedResult(match)) return;
+                if (match.matchType === 'Cup') cup += 1;
+                else serie += 1;
+            });
+            return { serie, cup, total: serie + cup };
+        }
+
+        function statsSeasonBasisSentence(basis) {
+            const total = Number(basis?.total) || 0;
+            const serie = Number(basis?.serie) || 0;
+            const cup = Number(basis?.cup) || 0;
+            const tail = 'Treningskamper holdes utenfor. Oppmøte tar også med trening.';
+            if (total <= 0) return `Serie og cup samlet. ${tail}`;
+            const kamp = total === 1 ? 'kamp' : 'kamper';
+            if (serie > 0 && cup > 0) return `${total} ${kamp}, ${serie} serie og ${cup} cup. ${tail}`;
+            if (cup > 0) return `${total} ${total === 1 ? 'cupkamp' : 'cupkamper'}. ${tail}`;
+            return `${total} ${total === 1 ? 'seriekamp' : 'seriekamper'}. ${tail}`;
+        }
+
+        window.buildStatsAwardsModel = function(options = {}) {
+            const seasonTables = options.mode === 'season';
             const yearFilter = typeof window.getStatsSpillerYearFilter === 'function'
                 ? window.getStatsSpillerYearFilter()
                 : new Date().getFullYear();
@@ -5157,8 +5536,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const teamName = teamFilter && teamFilter !== 'Alle'
                 ? teamFilter
                 : (typeof window.getPrimaryTeamName === 'function' ? window.getPrimaryTeamName() : 'BSK');
+            const definitions = seasonTables && typeof window.getStatsSeasonCategoryDefinitions === 'function'
+                ? window.getStatsSeasonCategoryDefinitions()
+                : window.getStatsAwardDefinitions();
 
-            const groups = window.getStatsAwardDefinitions().map((group) => ({
+            const groups = definitions.map((group) => ({
                 id: group.id,
                 label: group.label,
                 awards: group.awards.map((award) => {
@@ -5167,7 +5549,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         ascending: award.ascending === true,
                         limit: null,
                         requireRelevant: award.requireRelevant,
-                        requireQualify: award.requireQualify,
+                        requireQualify: seasonTables ? false : award.requireQualify,
                         qualifyAs: award.qualifyAs,
                         tiebreakKamper: award.tiebreakKamper,
                         filterFn: window.getStatsAwardFilterFn(award, yearFilter, rows)
@@ -5187,7 +5569,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 })
             }));
 
-            return { year: yearFilter, teamName, groups };
+            const basisText = seasonTables
+                ? statsSeasonBasisSentence(statsSeasonMatchBasis(yearFilter, teamName))
+                : '';
+            return { year: yearFilter, teamName, groups, basisText };
         };
 
         window.renderStatsAwardPodiumHtml = function(award) {
@@ -5281,6 +5666,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 <div class="stats-awards-board">
                     ${(data.groups || []).map((group) => `
                         <section class="stats-awards-group" aria-label="${escapeStatisticsHtml(statsAwardBoardTitle(group.label))}">
+                            ${group.id === 'scoringer' && data.basisText ? `
+                                <p class="stats-awards-basis">${escapeStatisticsHtml(data.basisText)}</p>
+                            ` : ''}
                             <h4 class="stats-awards-group-title">${escapeStatisticsHtml(statsAwardBoardTitle(group.label))}</h4>
                             <div class="stats-awards-grid">
                                 ${(group.awards || []).map((award) => {
@@ -6162,26 +6550,28 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 : [];
             const yearFilterHtml = typeof window.renderStatsYearFilterHtml === 'function'
                 ? window.renderStatsYearFilterHtml(
-                    'Filtrer kåringer etter år',
+                    'Filtrer statistikk etter år',
                     yearOptions,
                     yearFilter,
                     { includeAlle: false }
                 )
                 : '';
-            const model = window.buildStatsAwardsModel();
+            const model = window.buildStatsAwardsModel({ mode: 'season' });
             return window.renderStatsCollapsiblePanelHtml({
                 id: 'sesongkaaringer',
-                title: 'Sesongens kåringer',
-                badge: yearFilter,
-                showLabel: 'Vis kåringer',
-                hideLabel: 'Skjul kåringer',
+                title: 'Sesongstatistikk',
+                clash: true,
+                markHtml: '<span class="stats-clash-heading-mark" aria-hidden="true"><i class="fa-solid fa-chart-column"></i></span>',
+                showLabel: 'Vis sesongstatistikk',
+                hideLabel: 'Skjul sesongstatistikk',
                 headerActionsHtml: `
+                    <span class="stats-clash-year">${escapeStatisticsHtml(String(yearFilter))}</span>
                     <button
                         type="button"
                         class="training-session-attendance-add-btn match-print-sheet-btn"
                         data-stat-action="print-awards"
-                        title="Skriv ut sesongens kåringer"
-                        aria-label="Skriv ut sesongens kåringer"
+                        title="Skriv ut sesongstatistikken"
+                        aria-label="Skriv ut sesongstatistikken"
                     >
                         <i class="fa-solid fa-print" aria-hidden="true"></i>
                         <span>Skriv ut</span>
@@ -6195,12 +6585,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
         };
 
         window.buildStatsAwardsPrintSheetHtml = function(model) {
-            const data = model || window.buildStatsAwardsModel();
+            const data = model || window.buildStatsAwardsModel({ mode: 'season' });
             const yearLabel = data.year === 'alle' ? 'Alle år' : String(data.year);
             return `
                 <header class="match-print-header">
-                    <h1>Sesongens kåringer</h1>
+                    <h1>Sesongstatistikk</h1>
                     <p class="match-print-meta">${escapeStatisticsHtml(data.teamName || 'BSK')} · ${escapeStatisticsHtml(yearLabel)}</p>
+                    ${data.basisText ? `<p class="match-print-meta">${escapeStatisticsHtml(data.basisText)}</p>` : ''}
                 </header>
                 ${(data.groups || []).map((group) => `
                     <section class="match-print-section stats-awards-print-section">
@@ -8982,6 +9373,13 @@ window.renderTeamMatchHistoryTableHtml = function(history) {
         const formHtml = entry.form
             ? `<span class="stats-form-history-result-pill ${formTone}">${escapeStatisticsHtml(entry.form)}</span>`
             : '';
+        const formationText = String(entry.formation || '').trim();
+        const borsText = entry.rating != null && entry.rating !== '-' && entry.rating !== ''
+            ? `Børs ${String(entry.rating).replace('.', ',')}`
+            : '';
+        const metaHtml = formationText || borsText
+            ? `<span class="stats-match-log-meta">${formationText ? `<span>${escapeStatisticsHtml(formationText)}</span>` : ''}${borsText ? `<span>${escapeStatisticsHtml(borsText)}</span>` : ''}</span>`
+            : '';
         const isCup = entry.matchType === 'Cup';
         const isAway = entry.venue === 'Borte';
         const typeMark = isCup
@@ -8991,7 +9389,7 @@ window.renderTeamMatchHistoryTableHtml = function(history) {
             ? '<span class="stats-match-log-mark is-away">Borte</span>'
             : '';
         const matchId = entry.matchId ? String(entry.matchId) : '';
-        const ariaBits = [opponent, isCup ? 'cup' : '', isAway ? 'borte' : '', mainResult, formLabel].filter(Boolean);
+        const ariaBits = [opponent, isCup ? 'cup' : '', isAway ? 'borte' : '', formationText, borsText, mainResult, formLabel].filter(Boolean);
         const rowAttrs = matchId
             ? ` type="button" class="stats-match-log-row" data-stat-action="open-kampstats" data-match-id="${escapeStatisticsHtml(matchId)}" title="Vis kampstats" aria-label="Vis kampstats for ${escapeStatisticsHtml(ariaBits.join(', '))}"`
             : ' type="button" class="stats-match-log-row" disabled';
@@ -9015,6 +9413,7 @@ window.renderTeamMatchHistoryTableHtml = function(history) {
                         ${typeMark}
                         ${awayMark}
                     </span>
+                    ${metaHtml}
                 </span>
                 <span class="stats-match-log-score">
                     <span class="stats-match-log-outcome ${formTone}">
