@@ -6216,17 +6216,12 @@
             text-transform: uppercase;
             white-space: nowrap;
         }
-        #view-statistikk [data-stats-panel="sesongkaaringer"] .match-bench-heading h3 {
-            font-size: clamp(1.15rem, 3.1vw, 1.4rem);
-            letter-spacing: 0.02em;
-        }
         @container stats-clash-panel (max-width: 24rem) {
             #view-statistikk .stats-clash-panel .match-bench-heading h3 {
                 letter-spacing: 0;
             }
             #view-statistikk [data-stats-panel="sesongkaaringer"] .match-bench-heading h3 {
-                font-size: 0.9rem;
-                letter-spacing: 0;
+                font-size: 1.18rem;
             }
         }
         #view-statistikk [data-stats-panel="sesongkaaringer"] .match-print-sheet-btn span {
@@ -6291,8 +6286,8 @@
             height: 2px;
             opacity: 0.65;
         }
-        #view-statistikk .stats-kamp-collapsible-panel.is-game-card:is([data-stats-panel="kampdata"], [data-stats-panel="kampforkamp"], [data-stats-panel="kampstats"]),
-        #view-statistikk .stats-kamp-collapsible-panel.is-game-card.is-collapsed:is([data-stats-panel="kampdata"], [data-stats-panel="kampforkamp"], [data-stats-panel="kampstats"]) {
+        #view-statistikk .stats-kamp-collapsible-panel.is-game-card:is([data-stats-panel="kampdata"], [data-stats-panel="kampforkamp"], [data-stats-panel="kampstats"], [data-stats-panel="sesongkaaringer"], [data-stats-panel="spillerliste"], [data-stats-panel="spillerutvikling"], [data-stats-panel="oppfolging"]),
+        #view-statistikk .stats-kamp-collapsible-panel.is-game-card.is-collapsed:is([data-stats-panel="kampdata"], [data-stats-panel="kampforkamp"], [data-stats-panel="kampstats"], [data-stats-panel="sesongkaaringer"], [data-stats-panel="spillerliste"], [data-stats-panel="spillerutvikling"], [data-stats-panel="oppfolging"]) {
             background:
                 linear-gradient(180deg, rgba(186, 214, 245, 0.12) 0%, rgba(50, 110, 180, 0.04) 18%, transparent 36%),
                 radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.08), transparent 34%),

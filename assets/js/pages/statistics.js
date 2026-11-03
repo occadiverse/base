@@ -6598,7 +6598,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 showLabel: 'Vis sesongstatistikk',
                 hideLabel: 'Skjul sesongstatistikk',
                 headerActionsHtml: `
-                    <span class="stats-clash-year">${escapeStatisticsHtml(String(yearFilter))}</span>
                     <button
                         type="button"
                         class="training-session-attendance-add-btn match-print-sheet-btn"
@@ -7392,7 +7391,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return window.renderStatsCollapsiblePanelHtml({
                 id: 'spillerliste',
                 title: 'Spillerstats',
-                badge: yearFilter,
                 showLabel: 'Vis spillerstats',
                 hideLabel: 'Skjul spillerstats',
                 headerActionsHtml: `
