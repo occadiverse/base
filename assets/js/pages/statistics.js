@@ -2428,6 +2428,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 case 'minutesTotal': return (Number(stat.minutesTotal) || 0) > 0;
                 case 'minutesSharePct': return (Number(stat.minutesPossible) || 0) > 0 && stat.minutesSharePct != null;
                 case 'attendedMatches': return (Number(stat.attendedMatches) || 0) > 0;
+                case 'seierMedPct': return (Number(stat.seierMedKamper) || 0) > 0 && stat.seierMedPct != null;
+                case 'seierUtenPct': return (Number(stat.seierUtenKamper) || 0) > 0 && stat.seierUtenPct != null;
                 default: return true;
             }
         };
@@ -2449,7 +2451,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 snittBors: 'spillerbørs',
                 oppmotePct: 'oppmøte',
                 minutesTotal: 'spilleminutter',
-                minutesSharePct: 'minuttandel'
+                minutesSharePct: 'minuttandel',
+                seierMedPct: 'seier med spilleren',
+                seierUtenPct: 'seier uten spilleren'
             };
 
             const label = labels[column];
@@ -2568,13 +2572,46 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return (Number(stat?.kampSharePct) || 0) >= 50;
         };
 
+        window.playerMeetsKampShareFloor = function(stat, minPct) {
+            return (Number(stat?.kampSharePct) || 0) >= Number(minPct);
+        };
+
         window.statsSortUsesKampShareThreshold = function(column) {
             return column === 'totalScore'
                 || column === 'kampbonus'
                 || column === 'kampbonusTotal'
                 || column === 'snittBors'
                 || column === 'expectedMalpoeng'
-                || column === 'minutesSharePct';
+                || column === 'minutesSharePct'
+                || column === 'seierMedPct';
+        };
+
+        window.STATS_SEIER_UTEN_MIN_MATCHES = 3;
+
+        window.playerMeetsSeierUtenMatchFloor = function(stat) {
+            return (Number(stat?.seierUtenKamper) || 0) >= window.STATS_SEIER_UTEN_MIN_MATCHES;
+        };
+
+        window.attachPlayerPresenceWinStats = function(rows) {
+            const yearFilter = typeof window.getStatsSpillerYearFilter === 'function'
+                ? window.getStatsSpillerYearFilter()
+                : new Date().getFullYear();
+            const players = window.activePlayers || [];
+            return (Array.isArray(rows) ? rows : []).map(stat => {
+                const player = players.find(item => item.navn === stat.navn && (!stat.spillerLag || item.spillerLag === stat.spillerLag))
+                    || players.find(item => item.navn === stat.navn)
+                    || null;
+                const split = player && typeof getPlayerProfileWinSplit === 'function'
+                    ? getPlayerProfileWinSplit(player, yearFilter)
+                    : null;
+                return {
+                    ...stat,
+                    seierMedPct: split?.inne?.pct ?? null,
+                    seierMedKamper: split?.inne?.n || 0,
+                    seierUtenPct: split?.ute?.pct ?? null,
+                    seierUtenKamper: split?.ute?.n || 0
+                };
+            });
         };
 
         window.playerQualifiesForStatsSort = function(stat, column) {
@@ -2596,6 +2633,27 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (column === 'navn') {
                 const nameCmp = String(a?.navn || '').localeCompare(String(b?.navn || ''), 'nb', { sensitivity: 'base' });
                 return descending ? nameCmp : -nameCmp;
+            }
+            if (column === 'seierMedPct' || column === 'seierUtenPct') {
+                const countKey = column === 'seierMedPct' ? 'seierMedKamper' : 'seierUtenKamper';
+                const va = Number(a?.[column]);
+                const vb = Number(b?.[column]);
+                const aMissing = !Number.isFinite(va);
+                const bMissing = !Number.isFinite(vb);
+                if (aMissing || bMissing) {
+                    if (aMissing && bMissing) {
+                        return String(a?.navn || '').localeCompare(String(b?.navn || ''), 'nb', { sensitivity: 'base' });
+                    }
+                    return aMissing ? 1 : -1;
+                }
+                if (va !== vb) {
+                    if (column === 'seierUtenPct') return descending ? va - vb : vb - va;
+                    return descending ? vb - va : va - vb;
+                }
+                const ma = Number(a?.[countKey]) || 0;
+                const mb = Number(b?.[countKey]) || 0;
+                if (ma !== mb) return descending ? mb - ma : ma - mb;
+                return String(a?.navn || '').localeCompare(String(b?.navn || ''), 'nb', { sensitivity: 'base' });
             }
             let va = Number(a?.[column]) || 0;
             let vb = Number(b?.[column]) || 0;
@@ -7048,6 +7106,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
             let statsData = typeof window.getStatsSpillerListData === 'function'
                 ? window.getStatsSpillerListData()
                 : window.buildPlayerStatsData({ applyYearFilter: true });
+            if ((currentStatSortCol === 'seierMedPct' || currentStatSortCol === 'seierUtenPct')
+                && typeof window.attachPlayerPresenceWinStats === 'function') {
+                statsData = window.attachPlayerPresenceWinStats(statsData);
+            }
             statsData = statsData.filter(stat => window.playerStatsRelevantForSort(stat, currentStatSortCol));
 
             const sortRows = (rows) => {
@@ -7068,12 +7130,23 @@ window.getFormScoreBorderClass = function(score, teamName) {
             };
 
             let qualified = statsData;
+            let midThreshold = [];
             let belowThreshold = [];
+            let midThresholdLabel = '';
+            let belowThresholdLabel = 'Under 50 % kamper';
             if (typeof window.statsSortUsesKampShareThreshold === 'function'
                 && window.statsSortUsesKampShareThreshold(currentStatSortCol)
                 && typeof window.playerMeetsKampShareThreshold === 'function') {
                 qualified = sortRows(statsData.filter(stat => window.playerMeetsKampShareThreshold(stat)));
-                belowThreshold = sortRows(statsData.filter(stat => !window.playerMeetsKampShareThreshold(stat)));
+                midThreshold = sortRows(statsData.filter(stat => !window.playerMeetsKampShareThreshold(stat) && window.playerMeetsKampShareFloor(stat, 30)));
+                belowThreshold = sortRows(statsData.filter(stat => !window.playerMeetsKampShareFloor(stat, 30)));
+                midThresholdLabel = 'Under 50 % kamper';
+                belowThresholdLabel = 'Under 30 % kamper';
+            } else if (currentStatSortCol === 'seierUtenPct'
+                && typeof window.playerMeetsSeierUtenMatchFloor === 'function') {
+                belowThresholdLabel = `Under ${window.STATS_SEIER_UTEN_MIN_MATCHES} kamper`;
+                qualified = sortRows(statsData.filter(stat => window.playerMeetsSeierUtenMatchFloor(stat)));
+                belowThreshold = sortRows(statsData.filter(stat => !window.playerMeetsSeierUtenMatchFloor(stat)));
             } else {
                 sortRows(statsData);
                 qualified = statsData;
@@ -7095,7 +7168,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ? window.renderStatsSpillerstatsInfoPanelHtml(infoKind)
                     : ''}
             `;
-            const totalPlayers = qualified.length + belowThreshold.length;
+            const totalPlayers = qualified.length + midThreshold.length + belowThreshold.length;
 
             if (!totalPlayers) {
                 const positionOption = typeof window.getStatsSpillerPositionFilterOption === 'function'
@@ -7133,6 +7206,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if ((currentStatSortCol === 'mal' || currentStatSortCol === 'assist' || currentStatSortCol === 'snittBors' || currentStatSortCol === 'totalScore' || currentStatSortCol === 'expectedMalpoeng' || currentStatSortCol === 'gule' || currentStatSortCol === 'bb') && (Number(stat.kamper) || 0) > 0) {
                     valueHtml = `${escapeStatisticsHtml(sortValue)} <span class="training-data-rank-count">${Number(stat.kamper)} kamper</span>`;
                 }
+                if (currentStatSortCol === 'seierMedPct' || currentStatSortCol === 'seierUtenPct') {
+                    const matchCount = currentStatSortCol === 'seierMedPct'
+                        ? Number(stat.seierMedKamper) || 0
+                        : Number(stat.seierUtenKamper) || 0;
+                    const matchLabel = matchCount === 1 ? 'kamp' : 'kamper';
+                    valueHtml = `${escapeStatisticsHtml(sortValue)} <span class="training-data-rank-count">${matchCount} ${matchLabel}</span>`;
+                }
                 return `
                     <li class="${overflow ? 'is-overflow' : ''}">
                         <button type="button" class="training-data-rank-row" data-stat-action="open-player" data-player-id="${playerIdAttr}" data-player-name="${safeNameHtml}" aria-label="${safeNameHtml}, plass ${rankIndex + 1}, ${escapeStatisticsHtml(sortLabel)} ${escapeStatisticsHtml(sortValue)}">
@@ -7151,22 +7231,28 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 return renderPlayerRow(stat, index, overflow);
             }).join('');
 
-            let belowHtml = '';
-            if (belowThreshold.length) {
+            const renderThresholdGroup = (rows, label) => {
+                if (!rows.length) return '';
                 const sepOverflow = visiblePlayerCount >= visibleLimit;
-                belowHtml = `
+                const rowsHtml = rows.map((stat, index) => {
+                    const overflow = visiblePlayerCount >= visibleLimit;
+                    visiblePlayerCount += 1;
+                    return renderPlayerRow(stat, index, overflow);
+                }).join('');
+                return `
                     <li class="training-data-rank-separator${sepOverflow ? ' is-overflow' : ''}" role="presentation">
                         <span class="training-data-rank-separator-line" aria-hidden="true"></span>
-                        <span class="training-data-rank-separator-label">Under 50 % kamper</span>
+                        <span class="training-data-rank-separator-label">${escapeStatisticsHtml(label)}</span>
                         <span class="training-data-rank-separator-line" aria-hidden="true"></span>
                     </li>
-                    ${belowThreshold.map((stat, index) => {
-                        const overflow = visiblePlayerCount >= visibleLimit;
-                        visiblePlayerCount += 1;
-                        return renderPlayerRow(stat, index, overflow);
-                    }).join('')}
+                    ${rowsHtml}
                 `;
-            }
+            };
+
+            let belowHtml = `
+                ${renderThresholdGroup(midThreshold, midThresholdLabel)}
+                ${renderThresholdGroup(belowThreshold, belowThresholdLabel)}
+            `;
 
             list.innerHTML = `
                 <div class="training-data-rank-block">
@@ -7283,6 +7369,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'bb', label: 'Banens beste', icon: 'fa-crown' },
             { id: 'oppmotePct', label: 'Oppmøte', icon: 'fa-user-check', title: 'Treningsoppmøte: møtt / mulige økter med registrert oppmøte' },
             { id: 'kamper', label: 'Kamper', icon: 'fa-shield-halved' },
+            { id: 'seierMedPct', label: 'Seier med', icon: 'fa-user-plus', title: 'Høyest seiersprosent i kampene spilleren sto på banen' },
+            { id: 'seierUtenPct', label: 'Seier uten', icon: 'fa-user-minus', title: 'Lavest seiersprosent i kampene spilleren ikke sto på banen' },
             { id: 'minutesTotal', label: 'Minutter', icon: 'fa-stopwatch', title: 'Total / snitt per kamp' },
             { id: 'minutesSharePct', label: 'Minuttandel', icon: 'fa-chart-pie' }
         ];
@@ -7327,6 +7415,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     return value.toFixed(1);
                 }
                 if (column === 'kjemi') return String(stat.kjemi || 0);
+                if (column === 'seierMedPct' || column === 'seierUtenPct') {
+                    const pct = Number(stat[column]);
+                    return Number.isFinite(pct) ? `${Math.round(pct)}%` : '-';
+                }
                 const value = stat[column];
                 if (value == null || value === '') return '-';
                 return String(value);
@@ -7456,7 +7548,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 buttonLabel: 'Slik regnes sesong',
                 items: [
                     '<strong>Sesong</strong> rangeres etter Total Score: kampbidrag 50 %, spillerbørs 25 %, treningsoppmøte 15 % og disiplin 10 %.',
-                    'Krever minst 50 % av lagets kamper for å ligge øverst.'
+                    'Krever minst 50 % av lagets kamper for å ligge øverst. Under den streken deles listen ved 30 %.'
                 ]
             },
             kampbonus: {
@@ -7465,7 +7557,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 items: [
                     '<strong>Kampbidrag</strong> er snitt kamppoeng i kampene spilleren har vært med på.',
                     'Per kamp: 15 + resultat + børs + minutter. Børs 5 er par. 61+ min gir +2. Seier +5, uavgjort +2, tap −2, rent null +3, ±1 per mål.',
-                    'Krever minst 50 % av lagets kamper for å ligge øverst. Benk uten minutter får bare de 15 grunnpoengene.'
+                    'Krever minst 50 % av lagets kamper for å ligge øverst. Under den streken deles listen ved 30 %. Benk uten minutter får bare de 15 grunnpoengene.'
                 ]
             },
             kjemi: {
@@ -7476,6 +7568,24 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     'Nyeste kamp teller mest: ved 5 kamper vektes de 5–4–3–2–1. En fersk kamp trekker Form mer enn en eldre i det vinduet.',
                     'Kampdel inntil 90 (15 + børs + minutter + seier +2 / uavgjort +1 / tap 0). Trening inntil 10, bare de siste 5 treningene. Kamper teller ikke der. Kort teller ikke i Form.',
                     'Krever 5 spilte kamper. Med færre blir Form 0.'
+                ]
+            },
+            seierMedPct: {
+                title: 'Spillerstats · Seier med',
+                buttonLabel: 'Slik regnes seier med',
+                items: [
+                    '<strong>Seier med</strong> er lagets seiersprosent i kampene spilleren sto på banen.',
+                    'Tallet ved siden av er antall kamper han spilte.',
+                    'Krever minst 50 % av lagets kamper for å ligge øverst. Under den streken deles listen ved 30 %.'
+                ]
+            },
+            seierUtenPct: {
+                title: 'Spillerstats · Seier uten',
+                buttonLabel: 'Slik regnes seier uten',
+                items: [
+                    '<strong>Seier uten</strong> er lagets seiersprosent i kampene spilleren ikke sto på banen.',
+                    'Lavest prosent ligger øverst. Tallet ved siden av er antall kamper han ikke spilte.',
+                    'Krever minst 3 slike kamper for å ligge øverst. Færre kamper ligger under streken.'
                 ]
             }
         };

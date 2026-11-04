@@ -11323,6 +11323,157 @@
             gap: 0.45rem;
             margin: 0 0 0.2rem;
         }
+        .player-profile-presence-card {
+            background:
+                linear-gradient(180deg, rgba(186, 214, 245, 0.12) 0%, rgba(50, 110, 180, 0.04) 18%, transparent 36%),
+                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.08), transparent 34%),
+                linear-gradient(180deg, #14528f 0%, #0e3a6c 20%, #0a2a50 52%, #081e3c 78%, #0c3058 100%);
+            border: 0;
+            box-shadow:
+                0 0 0 2px #0a1a30,
+                0 0 0 5px rgba(196, 146, 20, 0.55),
+                0 20px 40px rgba(2, 6, 23, 0.42);
+            overflow: visible;
+            padding: 0.95rem 1rem 1.1rem;
+        }
+        .player-profile-presence-topline {
+            align-items: center;
+            display: flex;
+            gap: 0.55rem;
+            margin-bottom: 0.85rem;
+            padding-bottom: 0.7rem;
+            position: relative;
+        }
+        .player-profile-presence-topline::after {
+            background: linear-gradient(
+                90deg,
+                transparent,
+                #ffe08a 20%,
+                #f5c542 50%,
+                #ffe08a 80%,
+                transparent
+            );
+            bottom: 0;
+            box-shadow: 0 0 10px rgba(245, 197, 66, 0.35);
+            content: "";
+            height: 2.5px;
+            left: 0.15rem;
+            pointer-events: none;
+            position: absolute;
+            right: 0.15rem;
+        }
+        .player-profile-presence-heading {
+            align-items: center;
+            display: flex;
+            gap: 0.4rem;
+            min-width: 0;
+        }
+        .player-profile-presence-mark {
+            align-items: center;
+            color: #f5c542;
+            display: inline-flex;
+            filter:
+                drop-shadow(0 1px 0 rgba(255, 253, 245, 0.85))
+                drop-shadow(0 3px 0 #6b4a0c)
+                drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
+            flex: 0 0 auto;
+            height: 2.7rem;
+            justify-content: center;
+            transform: rotate(-10deg);
+            transform-origin: 50% 55%;
+            width: 2.7rem;
+        }
+        .player-profile-presence-mark i {
+            font-size: 1.85rem;
+            line-height: 1;
+            text-shadow:
+                -1px 0 0 #fffdf5,
+                1px 0 0 #fffdf5,
+                0 -1px 0 #fffdf5,
+                0 1px 0 #fffdf5;
+        }
+        .player-profile-presence-card .player-profile-panel-title {
+            color: #ffe9a8;
+            font-size: clamp(1.2rem, 3.4vw, 1.45rem);
+            font-weight: 950;
+            letter-spacing: 0.06em;
+            line-height: 1;
+            margin: 0;
+            text-shadow:
+                0 1px 0 rgba(255, 253, 245, 0.28),
+                0 2px 0 rgba(10, 26, 48, 0.55),
+                0 3px 0 rgba(122, 86, 8, 0.35),
+                0 0 18px rgba(255, 214, 102, 0.28);
+            text-transform: uppercase;
+        }
+        .player-profile-presence-topline .player-profile-year-filter {
+            flex: 0 0 auto;
+            margin-left: auto;
+        }
+        .player-profile-presence-year {
+            align-items: center;
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
+            border: 1.5px solid rgba(255, 224, 138, 0.42);
+            border-radius: 999px;
+            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
+            color: #fffdf5;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            line-height: 1;
+            margin-left: auto;
+            min-height: 1.7rem;
+            padding: 0.28rem 0.7rem;
+        }
+        .player-profile-presence-wrap {
+            border: 1px solid rgba(245, 197, 66, 0.18);
+            border-radius: 0.9rem;
+            margin-top: 0.55rem;
+            overflow: hidden;
+        }
+        .player-profile-presence-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .player-profile-presence-table th,
+        .player-profile-presence-table td {
+            font-size: 0.95rem;
+            padding: 0.62rem 0.75rem;
+            text-align: right;
+            white-space: nowrap;
+        }
+        .player-profile-presence-table thead th {
+            background: rgba(255, 255, 255, 0.06);
+            color: #ffffff;
+            font-size: 0.86rem;
+            font-weight: 900;
+        }
+        .player-profile-presence-table thead th span {
+            color: rgba(255, 253, 245, 0.62);
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-top: 0.12rem;
+        }
+        .player-profile-presence-table tbody th {
+            color: rgba(255, 253, 245, 0.78);
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            text-align: left;
+            text-transform: uppercase;
+        }
+        .player-profile-presence-table td {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            font-variant-numeric: tabular-nums;
+            font-weight: 800;
+        }
+        .player-profile-presence-table tbody th {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
         .player-profile-year-chip {
             background: rgba(245, 197, 66, 0.16);
             border: 1px solid rgba(245, 197, 66, 0.42);
@@ -11447,6 +11598,80 @@
             display: grid;
             gap: 0.55rem;
             grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+        .player-profile-season-wrap {
+            border: 1px solid rgba(245, 197, 66, 0.18);
+            border-radius: 0.9rem;
+            overflow: hidden;
+        }
+        .player-profile-season-table {
+            border-collapse: collapse;
+            table-layout: fixed;
+            width: 100%;
+        }
+        .player-profile-season-table th,
+        .player-profile-season-table td {
+            padding: 0.58rem 0.7rem;
+            vertical-align: middle;
+        }
+        .player-profile-season-table thead th {
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 253, 245, 0.62);
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-align: left;
+            text-transform: uppercase;
+        }
+        .player-profile-season-table thead .player-profile-season-value,
+        .player-profile-season-table thead .player-profile-season-rank {
+            text-align: right;
+        }
+        .player-profile-season-table tbody th {
+            color: rgba(255, 253, 245, 0.86);
+            font-size: 0.86rem;
+            font-weight: 800;
+            text-align: left;
+        }
+        .player-profile-season-table tbody td,
+        .player-profile-season-table tbody th {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .player-profile-season-icon {
+            padding-right: 0.15rem;
+            text-align: center;
+            width: 2.4rem;
+        }
+        .player-profile-season-glyph {
+            align-items: center;
+            color: #f5c542;
+            display: inline-flex;
+            font-size: 1.05rem;
+            font-weight: 950;
+            justify-content: center;
+            line-height: 1;
+            min-width: 1.35rem;
+        }
+        .player-profile-season-glyph .fa-solid {
+            color: #f5c542;
+            font-size: 1.05rem;
+        }
+        .player-profile-season-value {
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 800;
+            text-align: right;
+            width: 38%;
+        }
+        .player-profile-season-rank {
+            color: rgba(255, 253, 245, 0.78);
+            font-size: 0.95rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 800;
+            text-align: right;
+            white-space: nowrap;
+            width: 3.6rem;
         }
         .player-profile-horizon-strip {
             display: grid;

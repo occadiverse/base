@@ -609,29 +609,49 @@ function getPlayerProfileWinSplit(player, yearFilter) {
         if (onPitch) inne.push(match);
         else ute.push(match);
     });
-    const wins = (list) => list.reduce((sum, match) => sum + (playerProfileMatchIsWin(match) ? 1 : 0), 0);
-    const cleanSheets = (list) => list.reduce((sum, match) => {
-        const score = typeof window.getMatchRegularScore === 'function'
-            ? window.getMatchRegularScore(match)
-            : null;
-        return sum + (score && Number(score.opponent) === 0 ? 1 : 0);
-    }, 0);
-    const inneWins = wins(inne);
-    const uteWins = wins(ute);
-    const inneClean = cleanSheets(inne);
+    const summarize = (list) => {
+        let w = 0;
+        let d = 0;
+        let l = 0;
+        let gf = 0;
+        let ga = 0;
+        let clean = 0;
+        list.forEach(match => {
+            const outcome = typeof window.getMatchOutcomeScore === 'function'
+                ? window.getMatchOutcomeScore(match)
+                : (typeof window.getMatchRegularScore === 'function' ? window.getMatchRegularScore(match) : null);
+            const regular = typeof window.getMatchRegularScore === 'function'
+                ? window.getMatchRegularScore(match)
+                : outcome;
+            if (outcome && outcome.bsk > outcome.opponent) w += 1;
+            else if (outcome && outcome.bsk === outcome.opponent) d += 1;
+            else if (outcome) l += 1;
+            const scored = Number(regular?.bsk) || 0;
+            const conceded = Number(regular?.opponent) || 0;
+            gf += scored;
+            ga += conceded;
+            if (regular && Number(regular.opponent) === 0) clean += 1;
+        });
+        const n = list.length;
+        const per = (value) => (n ? Math.round((value / n) * 10) / 10 : null);
+        return {
+            n,
+            w,
+            d,
+            l,
+            pct: n ? Math.round((w / n) * 100) : null,
+            gf,
+            ga,
+            gfPer: per(gf),
+            gaPer: per(ga),
+            gdPer: per(gf - ga),
+            clean,
+            cleanPct: n ? Math.round((clean / n) * 100) : null
+        };
+    };
     return {
-        inne: {
-            n: inne.length,
-            w: inneWins,
-            pct: inne.length ? Math.round((inneWins / inne.length) * 100) : null,
-            clean: inneClean,
-            cleanPct: inne.length ? Math.round((inneClean / inne.length) * 100) : null
-        },
-        ute: {
-            n: ute.length,
-            w: uteWins,
-            pct: ute.length ? Math.round((uteWins / ute.length) * 100) : null
-        }
+        inne: summarize(inne),
+        ute: summarize(ute)
     };
 }
 
@@ -916,6 +936,106 @@ function buildPlayerProfileRadarHtml(player, yearFilter, yearLabel) {
                 ` : ''}
             </div>
             <p class="player-profile-radar-note">${escapeRosterHtml(note)}</p>
+        </section>
+    `;
+}
+
+function formatPlayerProfilePresencePer(value) {
+    if (value == null || !Number.isFinite(Number(value))) return '—';
+    const rounded = Math.round(Number(value) * 10) / 10;
+    return Number.isInteger(rounded) ? rounded.toFixed(1) : rounded.toFixed(1);
+}
+
+function formatPlayerProfilePresenceSigned(value) {
+    if (value == null || !Number.isFinite(Number(value))) return '—';
+    const rounded = Math.round(Number(value) * 10) / 10;
+    const text = rounded.toFixed(1);
+    return rounded > 0 ? `+${text}` : text;
+}
+
+function buildPlayerProfilePresenceHeaderHtml(yearLabel) {
+    return `
+        <div class="player-profile-presence-topline">
+            <div class="player-profile-presence-heading">
+                <span class="player-profile-presence-mark" aria-hidden="true"><i class="fa-solid fa-right-left"></i></span>
+                <h2 class="player-profile-panel-title">Med og uten</h2>
+            </div>
+            <span class="player-profile-presence-year">${escapeRosterHtml(yearLabel)}</span>
+        </div>
+    `;
+}
+
+function buildPlayerProfilePresenceHtml(player, yearFilter, yearLabel) {
+    const split = getPlayerProfileWinSplit(player, yearFilter);
+    const med = split.inne;
+    const uten = split.ute;
+    if (!med.n && !uten.n) {
+        return `
+            <section class="match-detail-card player-profile-panel player-profile-presence-card relative">
+                ${buildPlayerProfilePresenceHeaderHtml(yearLabel)}
+                <p class="player-profile-empty">Ingen kamper i perioden.</p>
+            </section>
+        `;
+    }
+
+    const cell = (side, text) => (side.n > 0 ? text : '—');
+    const goalsText = (side) => cell(side, `${side.gf} · ${formatPlayerProfilePresencePer(side.gfPer)}`);
+    const concededText = (side) => cell(side, `${side.ga} · ${formatPlayerProfilePresencePer(side.gaPer)}`);
+    const recordText = (side) => cell(side, `${side.w}–${side.d}–${side.l}`);
+    const winPctText = (side) => cell(side, side.pct == null ? '—' : `${side.pct}%`);
+    const teamMatches = med.n + uten.n;
+    let lead = `${med.n} av ${teamMatches} kamper på banen.`;
+    if (med.n > 0) lead += ` Seier i ${med.w} av de ${med.n}.`;
+    if (uten.n > 0) lead += ` Laget vant ${uten.w} av de ${uten.n} han ikke spilte.`;
+    else lead += ' Han spilte alle kampene.';
+
+    return `
+        <section class="match-detail-card player-profile-panel player-profile-presence-card relative">
+            ${buildPlayerProfilePresenceHeaderHtml(yearLabel)}
+            <p class="player-profile-radar-read">${escapeRosterHtml(lead)}</p>
+            <div class="player-profile-presence-wrap">
+                <table class="player-profile-presence-table">
+                    <thead>
+                        <tr>
+                            <th scope="col"></th>
+                            <th scope="col">Med<span>${med.n} kamper</span></th>
+                            <th scope="col">Uten<span>${uten.n} kamper</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">Resultat</th>
+                            <td>${escapeRosterHtml(recordText(med))}</td>
+                            <td>${escapeRosterHtml(recordText(uten))}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Seiersprosent</th>
+                            <td>${escapeRosterHtml(winPctText(med))}</td>
+                            <td>${escapeRosterHtml(winPctText(uten))}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Mål scoret</th>
+                            <td>${escapeRosterHtml(goalsText(med))}</td>
+                            <td>${escapeRosterHtml(goalsText(uten))}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Mål imot</th>
+                            <td>${escapeRosterHtml(concededText(med))}</td>
+                            <td>${escapeRosterHtml(concededText(uten))}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Målforskjell</th>
+                            <td>${escapeRosterHtml(cell(med, formatPlayerProfilePresenceSigned(med.gdPer)))}</td>
+                            <td>${escapeRosterHtml(cell(uten, formatPlayerProfilePresenceSigned(uten.gdPer)))}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Rent null</th>
+                            <td>${escapeRosterHtml(cell(med, String(med.clean)))}</td>
+                            <td>${escapeRosterHtml(cell(uten, String(uten.clean)))}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
     `;
 }
@@ -1395,27 +1515,27 @@ function getPlayerProfileStatChipVisual(column) {
     };
 }
 
-function buildPlayerProfileStatChipHtml(label, value, options = {}) {
-    const toneClass = options.tone ? ` is-${options.tone}` : '';
+function buildPlayerProfileSeasonGlyphHtml(options = {}) {
+    if (options.glyph) {
+        return `<span class="player-profile-season-glyph stats-sort-glyph stats-sort-glyph-${escapeRosterHtml(options.glyph)}" aria-hidden="true"></span>`;
+    }
+    if (options.icon) {
+        return `<span class="player-profile-season-glyph" aria-hidden="true"><i class="fa-solid ${escapeRosterHtml(options.icon)}"></i></span>`;
+    }
+    return '';
+}
+
+function buildPlayerProfileSeasonRowHtml(label, value, options = {}) {
     const titleAttr = options.title ? ` title="${escapeRosterHtml(options.title)}"` : '';
     const rank = Number(options.rank) || 0;
-    const rankHtml = rank > 0
-        ? `<span class="player-profile-stat-chip-rank">(${rank})</span>`
-        : '';
-    let glyphHtml = '';
-    if (options.glyph) {
-        glyphHtml = `<span class="player-profile-stat-chip-glyph stats-sort-glyph stats-sort-glyph-${escapeRosterHtml(options.glyph)}" aria-hidden="true"></span>`;
-    } else if (options.icon) {
-        glyphHtml = `<span class="player-profile-stat-chip-glyph" aria-hidden="true"><i class="fa-solid ${escapeRosterHtml(options.icon)}"></i></span>`;
-    }
+    const rankText = rank > 0 ? `${rank}.` : '—';
     return `
-        <div class="player-profile-stat-chip${toneClass}"${titleAttr}>
-            ${glyphHtml}
-            <span class="player-profile-stat-chip-body">
-                <span class="player-profile-stat-chip-label">${escapeRosterHtml(label)}</span>
-                <span class="player-profile-stat-chip-value">${escapeRosterHtml(value)}${rankHtml}</span>
-            </span>
-        </div>
+        <tr${titleAttr}>
+            <td class="player-profile-season-icon">${buildPlayerProfileSeasonGlyphHtml(options)}</td>
+            <th scope="row">${escapeRosterHtml(label)}</th>
+            <td class="player-profile-season-value">${escapeRosterHtml(value)}</td>
+            <td class="player-profile-season-rank">${rankText}</td>
+        </tr>
     `;
 }
 
@@ -1608,12 +1728,6 @@ window.renderPlayerProfilePage = function(playerId) {
 
     const rankOf = (column) => getPlayerProfileStatRank(player.navn, column, rankRows);
     const formRank = rankOf('kjemi');
-    const seasonHorizonValue = totalScore !== '-'
-        ? `${totalScore}${totalRank > 0 ? ` · ${totalRank}. plass` : ''}`
-        : (totalRank > 0 ? `${totalRank}. plass` : '—');
-    const formHorizonValue = formComponents.total > 0
-        ? `${formComponents.total}${formRank ? ` · ${formRank}. plass` : ''}`
-        : (formRank ? `${formRank}. plass` : '—');
 
     const formToneClass = formTone === 'green' ? 'is-green' : formTone === 'red' ? 'is-red' : formTone === 'amber' ? 'is-amber' : 'is-muted';
 
@@ -1681,88 +1795,93 @@ window.renderPlayerProfilePage = function(playerId) {
             ${buildPlayerUtviklingsmomentSectionHtml(player)}
         </section>
 
-        <section class="match-detail-card player-profile-panel relative">
-            <div class="player-profile-panel-header">
-                <div class="min-w-0">
+        ${buildPlayerProfilePresenceHtml(player, yearFilter, yearLabel)}
+
+        <section class="match-detail-card player-profile-panel player-profile-presence-card player-profile-season-card relative">
+            <div class="player-profile-presence-topline">
+                <div class="player-profile-presence-heading">
+                    <span class="player-profile-presence-mark" aria-hidden="true"><i class="fa-solid fa-ranking-star"></i></span>
                     <h2 class="player-profile-panel-title">Sesong i tall</h2>
                 </div>
                 ${buildPlayerProfileYearFilterHtml(player)}
             </div>
-            <div class="player-profile-horizon-strip" aria-label="Sesong og nå">
-                <div class="player-profile-horizon-item is-season">
-                    <i class="fa-solid fa-ranking-star player-profile-horizon-icon" aria-hidden="true"></i>
-                    <span class="player-profile-horizon-body">
-                        <span class="player-profile-horizon-label">Total score - sesong</span>
-                        <span class="player-profile-horizon-value">${escapeRosterHtml(seasonHorizonValue)}</span>
-                    </span>
-                </div>
-                <div class="player-profile-horizon-item is-now">
-                    <i class="fa-solid fa-heart-pulse player-profile-horizon-icon" aria-hidden="true"></i>
-                    <span class="player-profile-horizon-body">
-                        <span class="player-profile-horizon-label">Form - nå</span>
-                        <span class="player-profile-horizon-value">${escapeRosterHtml(formHorizonValue)}</span>
-                    </span>
-                </div>
-            </div>
-            <div class="player-profile-stat-grid">
-                ${buildPlayerProfileStatChipHtml('Plassering (sesong)', totalRank > 0 ? String(totalRank) : '-', {
-                    title: 'Rangert etter Total Score for sesongen',
-                    ...getPlayerProfileStatChipVisual('totalScore')
-                })}
-                ${buildPlayerProfileStatChipHtml('Kamper', kamper, {
-                    rank: rankOf('kamper'),
-                    ...getPlayerProfileStatChipVisual('kamper')
-                })}
-                ${buildPlayerProfileStatChipHtml('Mål', mal, {
-                    rank: rankOf('mal'),
-                    ...getPlayerProfileStatChipVisual('mal')
-                })}
-                ${buildPlayerProfileStatChipHtml('Assist', assist, {
-                    rank: rankOf('assist'),
-                    ...getPlayerProfileStatChipVisual('assist')
-                })}
-                ${buildPlayerProfileStatChipHtml('Expected målpoeng', expectedMalpoeng, {
-                    title: 'Mål + assist per kamp på banen (vist som snitt / kamper). Hovedlisten krever minst 50 % kamper.',
-                    rank: rankOf('expectedMalpoeng'),
-                    ...getPlayerProfileStatChipVisual('expectedMalpoeng')
-                })}
-                ${buildPlayerProfileStatChipHtml('Gule kort', gule, {
-                    title: 'Serie / Cup',
-                    rank: rankOf('gule'),
-                    ...getPlayerProfileStatChipVisual('gule')
-                })}
-                ${buildPlayerProfileStatChipHtml('Røde kort', rode, {
-                    title: 'Serie / Cup',
-                    rank: rankOf('rode'),
-                    ...getPlayerProfileStatChipVisual('rode')
-                })}
-                ${buildPlayerProfileStatChipHtml('Børs', snittBors, {
-                    rank: rankOf('snittBors'),
-                    ...getPlayerProfileStatChipVisual('snittBors')
-                })}
-                ${buildPlayerProfileStatChipHtml('Kampbidrag', kampbidrag, {
-                    rank: rankOf('kampbonus'),
-                    ...getPlayerProfileStatChipVisual('kampbonus')
-                })}
-                ${buildPlayerProfileStatChipHtml('Oppmøte', oppmote, {
-                    title: 'Treningsoppmøte: møtt / mulige økter med registrert oppmøte',
-                    rank: rankOf('oppmotePct'),
-                    ...getPlayerProfileStatChipVisual('oppmotePct')
-                })}
-                ${buildPlayerProfileStatChipHtml('Banens beste', bb, {
-                    rank: rankOf('bb'),
-                    ...getPlayerProfileStatChipVisual('bb')
-                })}
-                ${buildPlayerProfileStatChipHtml('Spilletid', spilletid, {
-                    title: 'Forklarende statistikk — ikke del av Beste sesong eller Beste nå',
-                    rank: rankOf('minutesTotal'),
-                    ...getPlayerProfileStatChipVisual('minutesTotal')
-                })}
-                ${buildPlayerProfileStatChipHtml('Minuttandel', minuttandel, {
-                    title: 'Forklarende statistikk — ikke del av Beste sesong eller Beste nå',
-                    rank: rankOf('minutesSharePct'),
-                    ...getPlayerProfileStatChipVisual('minutesSharePct')
-                })}
+            <div class="player-profile-season-wrap">
+                <table class="player-profile-season-table">
+                    <thead>
+                        <tr>
+                            <th class="player-profile-season-icon" scope="col"><span class="sr-only">Ikon</span></th>
+                            <th scope="col">Stat</th>
+                            <th class="player-profile-season-value" scope="col">Verdi</th>
+                            <th class="player-profile-season-rank" scope="col">Plass</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${buildPlayerProfileSeasonRowHtml('Total score', totalScore, {
+                            title: 'Rangert etter Total Score for sesongen',
+                            rank: totalRank,
+                            icon: 'fa-ranking-star'
+                        })}
+                        ${buildPlayerProfileSeasonRowHtml('Form', form, {
+                            title: 'Form nå',
+                            rank: formRank,
+                            icon: 'fa-heart-pulse'
+                        })}
+                        ${buildPlayerProfileSeasonRowHtml('Kamper', kamper, {
+                            rank: rankOf('kamper'),
+                            ...getPlayerProfileStatChipVisual('kamper')
+                        })}
+                        ${buildPlayerProfileSeasonRowHtml('Mål', mal, {
+                            rank: rankOf('mal'),
+                            ...getPlayerProfileStatChipVisual('mal')
+                        })}
+                        ${buildPlayerProfileSeasonRowHtml('Assist', assist, {
+                            rank: rankOf('assist'),
+                            ...getPlayerProfileStatChipVisual('assist')
+                        })}
+                        ${buildPlayerProfileSeasonRowHtml('Expected målpoeng', expectedMalpoeng, {
+                            title: 'Mål + assist per kamp på banen (vist som snitt / kamper). Hovedlisten krever minst 50 % kamper.',
+                            rank: rankOf('expectedMalpoeng'),
+                            ...getPlayerProfileStatChipVisual('expectedMalpoeng')
+                        })}
+                        ${buildPlayerProfileSeasonRowHtml('Gule kort', gule, {
+                            title: 'Serie / Cup',
+                            rank: rankOf('gule'),
+                            ...getPlayerProfileStatChipVisual('gule')
+                        })}
+                        ${buildPlayerProfileSeasonRowHtml('Røde kort', rode, {
+                            title: 'Serie / Cup',
+                            rank: rankOf('rode'),
+                            ...getPlayerProfileStatChipVisual('rode')
+                        })}
+                        ${buildPlayerProfileSeasonRowHtml('Børs', snittBors, {
+                            rank: rankOf('snittBors'),
+                            ...getPlayerProfileStatChipVisual('snittBors')
+                        })}
+                        ${buildPlayerProfileSeasonRowHtml('Kampbidrag', kampbidrag, {
+                            rank: rankOf('kampbonus'),
+                            ...getPlayerProfileStatChipVisual('kampbonus')
+                        })}
+                        ${buildPlayerProfileSeasonRowHtml('Oppmøte', oppmote, {
+                            title: 'Treningsoppmøte: møtt / mulige økter med registrert oppmøte',
+                            rank: rankOf('oppmotePct'),
+                            ...getPlayerProfileStatChipVisual('oppmotePct')
+                        })}
+                        ${buildPlayerProfileSeasonRowHtml('Banens beste', bb, {
+                            rank: rankOf('bb'),
+                            ...getPlayerProfileStatChipVisual('bb')
+                        })}
+                        ${buildPlayerProfileSeasonRowHtml('Spilletid', spilletid, {
+                            title: 'Forklarende statistikk — ikke del av Beste sesong eller Beste nå',
+                            rank: rankOf('minutesTotal'),
+                            ...getPlayerProfileStatChipVisual('minutesTotal')
+                        })}
+                        ${buildPlayerProfileSeasonRowHtml('Minuttandel', minuttandel, {
+                            title: 'Forklarende statistikk — ikke del av Beste sesong eller Beste nå',
+                            rank: rankOf('minutesSharePct'),
+                            ...getPlayerProfileStatChipVisual('minutesSharePct')
+                        })}
+                    </tbody>
+                </table>
             </div>
         </section>
 
