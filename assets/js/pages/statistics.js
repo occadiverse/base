@@ -5579,6 +5579,41 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     ]
                 },
                 {
+                    id: 'med-uten',
+                    label: 'Med og uten',
+                    awards: [
+                        {
+                            id: 'seier-med',
+                            title: 'Seier med',
+                            column: 'seierMedPct',
+                            icon: 'fa-user-plus',
+                            tiebreakKamper: 'more',
+                            valueFn: (stat) => {
+                                const pct = Number(stat.seierMedPct);
+                                const count = Number(stat.seierMedKamper) || 0;
+                                if (!Number.isFinite(pct)) return '—';
+                                return `${Math.round(pct)}% · ${count} ${count === 1 ? 'kamp' : 'kamper'}`;
+                            },
+                            explain: 'Lagets seiersprosent i kampene spilleren sto på banen. De med minst halvparten av lagets kamper rangeres først.'
+                        },
+                        {
+                            id: 'seier-uten',
+                            title: 'Seier uten',
+                            column: 'seierUtenPct',
+                            icon: 'fa-user-minus',
+                            belowLabel: 'Under 3 kamper',
+                            tiebreakKamper: 'more',
+                            valueFn: (stat) => {
+                                const pct = Number(stat.seierUtenPct);
+                                const count = Number(stat.seierUtenKamper) || 0;
+                                if (!Number.isFinite(pct)) return '—';
+                                return `${Math.round(pct)}% · ${count} ${count === 1 ? 'kamp' : 'kamper'}`;
+                            },
+                            explain: 'Lagets seiersprosent i kampene spilleren ikke sto på banen. Lavest prosent ligger øverst. Minst 3 slike kamper for å ligge over streken.'
+                        }
+                    ]
+                },
+                {
                     id: 'linjer',
                     label: 'Linjer',
                     awards: [
@@ -5678,6 +5713,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const rows = typeof window.buildPlayerStatsData === 'function'
                 ? window.buildPlayerStatsData({ applyYearFilter: true, yearFilter })
                 : [];
+            const statsRows = seasonTables && typeof window.attachPlayerPresenceWinStats === 'function'
+                ? window.attachPlayerPresenceWinStats(rows)
+                : rows;
             const teamFilter = typeof window.getStatsTeamFilter === 'function'
                 ? window.getStatsTeamFilter()
                 : 'Alle';
@@ -5695,15 +5733,20 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const seasonRate = seasonTables
                         && typeof window.statsSortUsesKampShareThreshold === 'function'
                         && window.statsSortUsesKampShareThreshold(award.column);
+                    const seierUten = seasonTables && award.column === 'seierUtenPct';
+                    const baseFilter = window.getStatsAwardFilterFn(award, yearFilter, statsRows);
                     const podiumOptions = {
                         column: award.column,
                         ascending: award.ascending === true,
                         limit: null,
                         requireRelevant: award.requireRelevant,
-                        requireQualify: seasonTables ? seasonRate : award.requireQualify,
+                        requireQualify: seasonTables ? (seierUten ? false : seasonRate) : award.requireQualify,
                         qualifyAs: award.qualifyAs,
                         tiebreakKamper: award.tiebreakKamper,
-                        filterFn: window.getStatsAwardFilterFn(award, yearFilter, rows)
+                        filterFn: seierUten
+                            ? (stat) => (Number(stat?.seierUtenKamper) || 0) >= window.STATS_SEIER_UTEN_MIN_MATCHES
+                                && (!baseFilter || baseFilter(stat))
+                            : baseFilter
                     };
                     const toEntry = (stat) => ({
                         navn: stat.navn,
@@ -5714,20 +5757,31 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             ? award.valueFn(stat)
                             : window.formatStatsAwardValue(stat, award.column)
                     });
-                    const podium = window.buildStatsAwardPodium(rows, podiumOptions);
-                    const below = seasonRate
-                        ? window.buildStatsAwardPodium(rows, {
+                    const podium = window.buildStatsAwardPodium(statsRows, podiumOptions);
+                    const below = seierUten
+                        ? window.buildStatsAwardPodium(statsRows, {
                             ...podiumOptions,
                             requireQualify: false,
-                            belowThresholdOnly: true,
                             filterFn: (stat) => {
-                                if (podiumOptions.filterFn && !podiumOptions.filterFn(stat)) return false;
-                                return (Number(stat?.attendedMatches) || 0) > 0;
+                                const count = Number(stat?.seierUtenKamper) || 0;
+                                return count > 0 && count < window.STATS_SEIER_UTEN_MIN_MATCHES
+                                    && (!baseFilter || baseFilter(stat));
                             }
                         })
-                        : [];
+                        : (seasonRate
+                            ? window.buildStatsAwardPodium(statsRows, {
+                                ...podiumOptions,
+                                requireQualify: false,
+                                belowThresholdOnly: true,
+                                filterFn: (stat) => {
+                                    if (baseFilter && !baseFilter(stat)) return false;
+                                    return (Number(stat?.attendedMatches) || 0) > 0;
+                                }
+                            })
+                            : []);
                     return {
                         ...award,
+                        belowLabel: award.belowLabel || (seasonRate ? 'Under 50 % kamper' : ''),
                         podium: podium.map(toEntry),
                         below: below.map(toEntry)
                     };
@@ -5777,7 +5831,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const belowHtml = below.length ? `
                 <li class="stats-awards-threshold${separatorExtra ? ' is-extra' : ''}" role="presentation">
                     <span class="stats-awards-threshold-line" aria-hidden="true"></span>
-                    <span class="stats-awards-threshold-label">Under 50 % kamper</span>
+                    <span class="stats-awards-threshold-label">${escapeStatisticsHtml(award.belowLabel || 'Under 50 % kamper')}</span>
                     <span class="stats-awards-threshold-line" aria-hidden="true"></span>
                 </li>
                 ${below.map((entry, index) => renderEntry(entry, index + 1, true)).join('')}
@@ -6868,7 +6922,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                                 `).join('')}
                                                 ${(award.below || []).length ? `
                                                     <tr>
-                                                        <td colspan="3">Under 50 % kamper</td>
+                                                        <td colspan="3">${escapeStatisticsHtml(award.belowLabel || 'Under 50 % kamper')}</td>
                                                     </tr>
                                                     ${award.below.map((entry, index) => `
                                                         <tr>
