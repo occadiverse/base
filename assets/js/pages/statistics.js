@@ -160,7 +160,7 @@ function bindStatisticsEvents() {
             event.stopPropagation();
             const awardId = actionEl.dataset.awardId || '';
             window.hallOfFameInfoId = window.hallOfFameInfoId === awardId ? '' : awardId;
-            if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
+            if (typeof window.renderAaretsKaaringerSlot === 'function') window.renderAaretsKaaringerSlot();
             return;
         }
         if (action === 'toggle-hall-award') {
@@ -172,7 +172,7 @@ function bindStatisticsEvents() {
             if (window.hallOfFameEditingId && window.hallOfFameEditingId !== nextOpen) {
                 window.hallOfFameEditingId = '';
             }
-            if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
+            if (typeof window.renderAaretsKaaringerSlot === 'function') window.renderAaretsKaaringerSlot();
             return;
         }
         if (action === 'toggle-hall-lock') {
@@ -181,7 +181,7 @@ function bindStatisticsEvents() {
             const locked = !(typeof window.hallOfFameIsLocked === 'function' && window.hallOfFameIsLocked());
             if (typeof window.hallOfFameSetLocked === 'function') window.hallOfFameSetLocked(locked);
             if (locked) window.hallOfFameEditingId = '';
-            if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
+            if (typeof window.renderAaretsKaaringerSlot === 'function') window.renderAaretsKaaringerSlot();
             return;
         }
         if (action === 'toggle-hall-alternative') {
@@ -196,7 +196,7 @@ function bindStatisticsEvents() {
                     window.hallOfFameEditingId = '';
                 }
             }
-            if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
+            if (typeof window.renderAaretsKaaringerSlot === 'function') window.renderAaretsKaaringerSlot();
             return;
         }
         if (action === 'set-hall-category') {
@@ -210,7 +210,7 @@ function bindStatisticsEvents() {
             }
             window.hallOfFameOpenId = awardId;
             if (placement === 'alternative') window.hallOfFameAlternativeOpen = true;
-            if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
+            if (typeof window.renderAaretsKaaringerSlot === 'function') window.renderAaretsKaaringerSlot();
             return;
         }
         if (action === 'toggle-hall-prize') {
@@ -225,7 +225,7 @@ function bindStatisticsEvents() {
                 window.saveHallOfFamePrize(awardId, !visible);
             }
             window.hallOfFameOpenId = awardId;
-            if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
+            if (typeof window.renderAaretsKaaringerSlot === 'function') window.renderAaretsKaaringerSlot();
             return;
         }
         if (action === 'edit-hall-award' || action === 'cancel-hall-award') {
@@ -234,7 +234,7 @@ function bindStatisticsEvents() {
             if (action === 'edit-hall-award' && typeof window.hallOfFameIsLocked === 'function' && window.hallOfFameIsLocked()) return;
             window.hallOfFameEditingId = action === 'edit-hall-award' ? (actionEl.dataset.awardId || '') : '';
             if (window.hallOfFameEditingId) window.hallOfFameOpenId = window.hallOfFameEditingId;
-            if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
+            if (typeof window.renderAaretsKaaringerSlot === 'function') window.renderAaretsKaaringerSlot();
             return;
         }
         if (action === 'save-hall-award') {
@@ -254,7 +254,7 @@ function bindStatisticsEvents() {
                 window.saveHallOfFameWinner(awardId, { navn, playerId });
             }
             window.hallOfFameEditingId = '';
-            if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
+            if (typeof window.renderAaretsKaaringerSlot === 'function') window.renderAaretsKaaringerSlot();
             return;
         }
         if (action === 'clear-hall-award') {
@@ -265,7 +265,7 @@ function bindStatisticsEvents() {
                 window.saveHallOfFameWinner(actionEl.dataset.awardId, null);
             }
             window.hallOfFameEditingId = '';
-            if (typeof window.renderHallOfFameSlot === 'function') window.renderHallOfFameSlot();
+            if (typeof window.renderAaretsKaaringerSlot === 'function') window.renderAaretsKaaringerSlot();
             return;
         }
         if (action === 'set-kamp-year') {
@@ -832,6 +832,7 @@ window.checkIndividualChemistry = function() {
                 oppfolging: false,
                 spillerliste: false,
                 sesongkaaringer: false,
+                aretskaaringer: false,
                 halloffame: true
             };
             window.statsKampPanelState = window.statsKampPanelState || {};
@@ -900,6 +901,7 @@ window.checkIndividualChemistry = function() {
                 kampforkamp: 'fa-futbol',
                 kampstats: 'fa-table-list',
                 halloffame: 'fa-trophy',
+                aretskaaringer: 'fa-award',
                 sesongkaaringer: 'fa-chart-column',
                 oppfolging: 'fa-clipboard-list',
                 spillerutvikling: 'fa-chart-line',
@@ -4856,6 +4858,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             if (awardsSlot) awardsSlot.classList.toggle('hidden', activeSection !== 'spillerdata');
             const spillerstatsSlot = document.getElementById('stats-spillerstats-slot');
             if (spillerstatsSlot) spillerstatsSlot.classList.toggle('hidden', activeSection !== 'spillerdata');
+            const kaaringerSlot = document.getElementById('stats-arets-karinger-slot');
+            if (kaaringerSlot) kaaringerSlot.classList.toggle('hidden', activeSection !== 'spillerdata');
             const utviklingSlot = document.getElementById('stats-utvikling-slot');
             if (utviklingSlot) utviklingSlot.classList.toggle('hidden', activeSection !== 'spillerdata');
             const oppfolgingSlot = document.getElementById('stats-oppfolging-slot');
@@ -4912,6 +4916,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const hallSlot = document.getElementById('stats-hall-of-fame-slot');
             const awardsSlot = document.getElementById('stats-awards-slot');
             const spillerstatsSlot = document.getElementById('stats-spillerstats-slot');
+            const kaaringerSlot = document.getElementById('stats-arets-karinger-slot');
             const utviklingSlot = document.getElementById('stats-utvikling-slot');
             const oppfolgingSlot = document.getElementById('stats-oppfolging-slot');
             const oppmoteSlot = document.getElementById('stats-oppmote-slot');
@@ -4927,6 +4932,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (hallSlot) hallSlot.innerHTML = '';
                 if (awardsSlot) awardsSlot.innerHTML = '';
                 if (spillerstatsSlot) spillerstatsSlot.innerHTML = '';
+                if (kaaringerSlot) kaaringerSlot.innerHTML = '';
                 if (utviklingSlot) utviklingSlot.innerHTML = '';
                 if (oppfolgingSlot) oppfolgingSlot.innerHTML = '';
                 if (oppmoteSlot) oppmoteSlot.innerHTML = '';
@@ -5109,6 +5115,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     && !window.playerQualifiesForStatsSort(stat, qualifyAs)) {
                     return false;
                 }
+                if (options.belowThresholdOnly === true
+                    && typeof window.playerQualifiesForStatsSort === 'function'
+                    && window.playerQualifiesForStatsSort(stat, qualifyAs)) {
+                    return false;
+                }
                 return true;
             });
             pool.sort((a, b) => {
@@ -5160,6 +5171,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         window.renderStatsAwardIconHtml = function(award) {
             if (!award) return '';
+            if (award.cardMark === 'yellow' || award.cardMark === 'red') {
+                return `<span class="stats-season-card-mark is-${award.cardMark}" aria-hidden="true"></span>`;
+            }
             if (award.glyph) {
                 return `<i class="stats-sort-glyph stats-sort-glyph-${escapeStatisticsHtml(award.glyph)}" aria-hidden="true"></i>`;
             }
@@ -5359,7 +5373,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             id: 'gule',
                             title: 'Årets gule',
                             column: 'gule',
-                            glyph: 'g',
+                            cardMark: 'yellow',
                             tiebreakKamper: 'fewer',
                             valueFn: (stat) => `${Number(stat.gule) || 0} · ${Number(stat.kamper) || 0} kamper`,
                             explain: 'Flest gule kort i valgt sesong, serie og cup samlet. Ved likt antall rangeres den med færre kamper høyest.'
@@ -5399,7 +5413,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             valueFn: (stat) => typeof window.formatExpectedMalpoengDisplay === 'function'
                                 ? window.formatExpectedMalpoengDisplay(stat)
                                 : `${Number(stat.expectedMalpoeng).toFixed(1)} · ${Number(stat.kamper) || 0} kamper`,
-                            explain: 'Mål og assist per kamp på banen.'
+                            explain: 'Mål og assist per kamp på banen. De med minst halvparten av lagets kamper rangeres først.'
                         },
                         {
                             id: 'bb',
@@ -5425,7 +5439,29 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 const shown = Number.isFinite(score) && score > 0 ? score.toFixed(1) : '—';
                                 return `${shown} · ${Number(stat.kamper) || 0} kamper`;
                             },
-                            explain: 'Total Score for sesongen: kampbidrag 50 %, spillerbørs 25 %, treningsoppmøte 15 % og disiplin 10 %.'
+                            explain: 'Total Score for sesongen: kampbidrag 50 %, spillerbørs 25 %, treningsoppmøte 15 % og disiplin 10 %. De med minst halvparten av lagets kamper rangeres først.'
+                        },
+                        {
+                            id: 'kampbidrag',
+                            title: 'Kampbidrag',
+                            column: 'kampbonus',
+                            icon: 'fa-chart-line',
+                            tiebreakKamper: 'more',
+                            valueFn: (stat) => {
+                                const avg = Number(stat.kampbonus);
+                                const shown = Number.isFinite(avg) && avg > 0 ? avg.toFixed(1) : '—';
+                                return `${shown} · ${Number(stat.kamper) || 0} kamper`;
+                            },
+                            explain: 'Snitt kampbidrag per kamp. Hver kamp teller likt. De med minst halvparten av lagets kamper rangeres først.'
+                        },
+                        {
+                            id: 'form',
+                            title: 'Form',
+                            column: 'kjemi',
+                            icon: 'fa-heart-pulse',
+                            tiebreakKamper: 'more',
+                            valueFn: (stat) => `${Number(stat.kjemi) || 0} · ${Number(stat.kamper) || 0} kamper`,
+                            explain: 'Form nå, fra de siste fem kampene og fem treningene. Krever fem kamper.'
                         },
                         {
                             id: 'bors',
@@ -5437,7 +5473,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 const shown = Number.isFinite(avg) && avg > 0 ? avg.toFixed(1) : '—';
                                 return `${shown} · ${Number(stat.kamper) || 0} kamper`;
                             },
-                            explain: 'Snittkarakter på Spillerbørs gjennom sesongen.'
+                            explain: 'Snittkarakter på Spillerbørs gjennom sesongen. De med minst halvparten av lagets kamper rangeres først.'
                         },
                         {
                             id: 'tropp',
@@ -5455,6 +5491,18 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             title: 'Minutter',
                             column: 'minutesTotal',
                             explain: 'Registrerte spilleminutter. Tallet viser total minutter og snitt per kamp.'
+                        },
+                        {
+                            id: 'minuttandel',
+                            title: 'Minuttandel',
+                            column: 'minutesSharePct',
+                            icon: 'fa-chart-pie',
+                            tiebreakKamper: 'more',
+                            valueFn: (stat) => {
+                                if (!(Number(stat.minutesPossible) > 0) || stat.minutesSharePct == null) return '—';
+                                return `${Math.round(Number(stat.minutesSharePct) || 0)}% · ${Number(stat.kamper) || 0} kamper`;
+                            },
+                            explain: 'Andel av mulige minutter på banen. De med minst halvparten av lagets kamper rangeres først.'
                         },
                         {
                             id: 'oppmote',
@@ -5482,7 +5530,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             column: 'kampbonus',
                             icon: 'fa-mitten',
                             group: 'keeper',
-                            explain: 'Snitt kampbidrag blant keepere gjennom sesongen.'
+                            explain: 'Snitt kampbidrag blant keepere gjennom sesongen. De med minst halvparten av lagets kamper rangeres først.'
                         },
                         {
                             id: 'forsvar',
@@ -5490,7 +5538,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             column: 'kampbonus',
                             icon: 'fa-shield-halved',
                             group: 'forsvar',
-                            explain: 'Snitt kampbidrag blant stoppere og bekker gjennom sesongen.'
+                            explain: 'Snitt kampbidrag blant stoppere og bekker gjennom sesongen. De med minst halvparten av lagets kamper rangeres først.'
                         },
                         {
                             id: 'midtbane',
@@ -5498,7 +5546,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             column: 'kampbonus',
                             icon: 'fa-diagram-project',
                             group: 'midtbane',
-                            explain: 'Snitt kampbidrag blant defensiv midtbane, offensiv midtbane og playmaker gjennom sesongen.'
+                            explain: 'Snitt kampbidrag blant defensiv midtbane, offensiv midtbane og playmaker gjennom sesongen. De med minst halvparten av lagets kamper rangeres først.'
                         },
                         {
                             id: 'angrep',
@@ -5506,7 +5554,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             column: 'kampbonus',
                             icon: 'fa-bullseye',
                             group: 'angrep',
-                            explain: 'Snitt kampbidrag blant kanter og spisser gjennom sesongen.'
+                            explain: 'Snitt kampbidrag blant kanter og spisser gjennom sesongen. De med minst halvparten av lagets kamper rangeres først.'
                         }
                     ]
                 },
@@ -5518,10 +5566,19 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             id: 'gule',
                             title: 'Gule',
                             column: 'gule',
-                            glyph: 'g',
+                            cardMark: 'yellow',
                             tiebreakKamper: 'fewer',
                             valueFn: (stat) => `${Number(stat.gule) || 0} · ${Number(stat.kamper) || 0} kamper`,
                             explain: 'Gule kort i sesongen, serie og cup samlet.'
+                        },
+                        {
+                            id: 'rode',
+                            title: 'Røde',
+                            column: 'rode',
+                            cardMark: 'red',
+                            tiebreakKamper: 'fewer',
+                            valueFn: (stat) => `${Number(stat.rode) || 0} · ${Number(stat.kamper) || 0} kamper`,
+                            explain: 'Røde kort i sesongen, serie og cup samlet.'
                         }
                     ]
                 }
@@ -5547,7 +5604,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const total = Number(basis?.total) || 0;
             const serie = Number(basis?.serie) || 0;
             const cup = Number(basis?.cup) || 0;
-            const tail = 'Treningskamper holdes utenfor. Oppmøte tar også med trening.';
+            const tail = 'Treningskamper holdes utenfor. Oppmøte tar også med trening. Snitt, total score, minuttandel og linjene rangerer først dem med minst halvparten av kampene.';
             if (total <= 0) return `Serie og cup samlet. ${tail}`;
             const kamp = total === 1 ? 'kamp' : 'kamper';
             if (serie > 0 && cup > 0) return `${total} ${kamp}, ${serie} serie og ${cup} cup. ${tail}`;
@@ -5577,27 +5634,44 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 id: group.id,
                 label: group.label,
                 awards: group.awards.map((award) => {
-                    const podium = window.buildStatsAwardPodium(rows, {
+                    const seasonRate = seasonTables
+                        && typeof window.statsSortUsesKampShareThreshold === 'function'
+                        && window.statsSortUsesKampShareThreshold(award.column);
+                    const podiumOptions = {
                         column: award.column,
                         ascending: award.ascending === true,
                         limit: null,
                         requireRelevant: award.requireRelevant,
-                        requireQualify: seasonTables ? false : award.requireQualify,
+                        requireQualify: seasonTables ? seasonRate : award.requireQualify,
                         qualifyAs: award.qualifyAs,
                         tiebreakKamper: award.tiebreakKamper,
                         filterFn: window.getStatsAwardFilterFn(award, yearFilter, rows)
+                    };
+                    const toEntry = (stat) => ({
+                        navn: stat.navn,
+                        playerId: typeof getStatsPlayerIdForName === 'function'
+                            ? getStatsPlayerIdForName(stat.navn)
+                            : '',
+                        valueText: typeof award.valueFn === 'function'
+                            ? award.valueFn(stat)
+                            : window.formatStatsAwardValue(stat, award.column)
                     });
+                    const podium = window.buildStatsAwardPodium(rows, podiumOptions);
+                    const below = seasonRate
+                        ? window.buildStatsAwardPodium(rows, {
+                            ...podiumOptions,
+                            requireQualify: false,
+                            belowThresholdOnly: true,
+                            filterFn: (stat) => {
+                                if (podiumOptions.filterFn && !podiumOptions.filterFn(stat)) return false;
+                                return (Number(stat?.attendedMatches) || 0) > 0;
+                            }
+                        })
+                        : [];
                     return {
                         ...award,
-                        podium: podium.map((stat) => ({
-                            navn: stat.navn,
-                            playerId: typeof getStatsPlayerIdForName === 'function'
-                                ? getStatsPlayerIdForName(stat.navn)
-                                : '',
-                            valueText: typeof award.valueFn === 'function'
-                                ? award.valueFn(stat)
-                                : window.formatStatsAwardValue(stat, award.column)
-                        }))
+                        podium: podium.map(toEntry),
+                        below: below.map(toEntry)
                     };
                 })
             }));
@@ -5610,38 +5684,55 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         window.renderStatsAwardPodiumHtml = function(award) {
             const podium = Array.isArray(award?.podium) ? award.podium : [];
-            if (!podium.length) {
+            const below = Array.isArray(award?.below) ? award.below : [];
+            if (!podium.length && !below.length) {
                 return `<p class="stats-awards-empty">Ingen data</p>`;
             }
             const previewCount = 5;
             const listOpen = window.statsAwardListsOpen instanceof Set && window.statsAwardListsOpen.has(award.id);
+            let shown = 0;
+            const renderEntry = (entry, rank, isBelow) => {
+                const extra = shown >= previewCount;
+                shown += 1;
+                const name = escapeStatisticsHtml(entry.navn || '');
+                const value = escapeStatisticsHtml(entry.valueText || '—');
+                const playerId = escapeStatisticsHtml(entry.playerId || '');
+                const rankClass = !isBelow && rank === 1 ? ' is-rank-1' : '';
+                return `
+                    <li class="stats-awards-podium-item${rankClass}${isBelow ? ' is-below' : ''}${extra ? ' is-extra' : ''}">
+                        <button
+                            type="button"
+                            class="stats-awards-podium-btn"
+                            data-stat-action="open-player"
+                            data-player-id="${playerId}"
+                            data-player-name="${name}"
+                        >
+                            <span class="stats-awards-rank">${rank}</span>
+                            <span class="stats-awards-name">${name}</span>
+                            <span class="stats-awards-value">${value}</span>
+                        </button>
+                    </li>
+                `;
+            };
+            const qualifiedHtml = podium.map((entry, index) => renderEntry(entry, index + 1, false)).join('');
+            const separatorExtra = shown >= previewCount;
+            const belowHtml = below.length ? `
+                <li class="stats-awards-threshold${separatorExtra ? ' is-extra' : ''}" role="presentation">
+                    <span class="stats-awards-threshold-line" aria-hidden="true"></span>
+                    <span class="stats-awards-threshold-label">Under 50 % kamper</span>
+                    <span class="stats-awards-threshold-line" aria-hidden="true"></span>
+                </li>
+                ${below.map((entry, index) => renderEntry(entry, index + 1, true)).join('')}
+            ` : '';
+            const total = podium.length + below.length;
             const rows = `
                 <ol class="stats-awards-podium">
-                    ${podium.map((entry, index) => {
-                        const rank = index + 1;
-                        const name = escapeStatisticsHtml(entry.navn || '');
-                        const value = escapeStatisticsHtml(entry.valueText || '—');
-                        const playerId = escapeStatisticsHtml(entry.playerId || '');
-                        return `
-                            <li class="stats-awards-podium-item is-rank-${rank}${index >= previewCount ? ' is-extra' : ''}">
-                                <button
-                                    type="button"
-                                    class="stats-awards-podium-btn"
-                                    data-stat-action="open-player"
-                                    data-player-id="${playerId}"
-                                    data-player-name="${name}"
-                                >
-                                    <span class="stats-awards-rank">${rank}</span>
-                                    <span class="stats-awards-name">${name}</span>
-                                    <span class="stats-awards-value">${value}</span>
-                                </button>
-                            </li>
-                        `;
-                    }).join('')}
+                    ${qualifiedHtml}
+                    ${belowHtml}
                 </ol>
             `;
-            if (podium.length <= previewCount) return rows;
-            const label = listOpen ? 'Vis topp 5' : `Vis alle ${podium.length}`;
+            if (total <= previewCount) return rows;
+            const label = listOpen ? 'Vis topp 5' : `Vis alle ${total}`;
             return `
                 ${rows}
                 <button
@@ -5649,7 +5740,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     class="stats-awards-more"
                     data-stat-action="toggle-award-list"
                     data-award-id="${escapeStatisticsHtml(award.id)}"
-                    data-award-count="${podium.length}"
+                    data-award-count="${total}"
                     aria-expanded="${listOpen ? 'true' : 'false'}"
                 >${label}</button>
             `;
@@ -5918,9 +6009,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.applyHallOfFameStore = function(store) {
             const changed = window.writeHallOfFameStore(window.applyPendingHallOfFameWrites(store));
             if (!changed || window.hallOfFameEditingId) return;
-            const slot = document.getElementById('stats-hall-of-fame-slot');
-            if (slot && typeof window.renderHallOfFameSlot === 'function') {
-                window.renderHallOfFameSlot();
+            const slot = document.getElementById('stats-arets-karinger-slot');
+            if (slot && typeof window.renderAaretsKaaringerSlot === 'function') {
+                window.renderAaretsKaaringerSlot();
             }
         };
 
@@ -6154,7 +6245,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return window.getStatsLineAwardWithheldReason(award, window.getStatsPlayerLine(awardRows, scorerName));
         };
 
-        window.getHallOfFameKampGeneralAward = function(rows) {
+        window.getHallOfFameKampGeneralAward = function(rows, options = {}) {
             const award = {
                 id: 'kampgeneral',
                 title: 'Årets kamp general',
@@ -6167,12 +6258,14 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     return `${shown} · ${Number(stat?.kamper) || 0} kamper`;
                 }
             };
+            const podiumOptions = {
+                column: 'kampbonus',
+                tiebreakKamper: 'more',
+                requireQualify: true
+            };
+            if (Object.prototype.hasOwnProperty.call(options, 'limit')) podiumOptions.limit = options.limit;
             const podium = typeof window.buildStatsAwardPodium === 'function'
-                ? window.buildStatsAwardPodium(rows, {
-                    column: 'kampbonus',
-                    tiebreakKamper: 'more',
-                    requireQualify: true
-                })
+                ? window.buildStatsAwardPodium(rows, podiumOptions)
                 : [];
             award.podium = podium.map(stat => ({
                 navn: stat.navn,
@@ -6212,7 +6305,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return award;
         };
 
-        window.getHallOfFamePunchAward = function(rows) {
+        window.getHallOfFamePunchAward = function(rows, options = {}) {
             const award = {
                 id: 'punch',
                 title: 'Årets punch',
@@ -6231,18 +6324,20 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const rate = minutes > 0 ? Math.round((points / minutes) * 90 * 10) / 10 : 0;
                 return { ...stat, punchPer90: rate };
             });
+            const podiumOptions = {
+                column: 'punchPer90',
+                requireRelevant: false,
+                requireQualify: true,
+                qualifyAs: 'totalScore',
+                tiebreakKamper: 'more',
+                filterFn: (stat) => {
+                    const share = Number(stat?.minutesSharePct);
+                    return Number.isFinite(share) && share < 60 && (Number(stat?.minutesTotal) || 0) > 0;
+                }
+            };
+            if (Object.prototype.hasOwnProperty.call(options, 'limit')) podiumOptions.limit = options.limit;
             const podium = typeof window.buildStatsAwardPodium === 'function'
-                ? window.buildStatsAwardPodium(prepared, {
-                    column: 'punchPer90',
-                    requireRelevant: false,
-                    requireQualify: true,
-                    qualifyAs: 'totalScore',
-                    tiebreakKamper: 'more',
-                    filterFn: (stat) => {
-                        const share = Number(stat?.minutesSharePct);
-                        return Number.isFinite(share) && share < 60 && (Number(stat?.minutesTotal) || 0) > 0;
-                    }
-                })
+                ? window.buildStatsAwardPodium(prepared, podiumOptions)
                 : [];
             award.podium = podium.map(stat => ({
                 navn: stat.navn,
@@ -6493,7 +6588,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return window.HALL_OF_FAME_ORDER.map(id => byId.get(id)).filter(Boolean);
         };
 
-        window.renderHallOfFamePanelHtml = function() {
+        window.renderAaretsKaaringerPanelHtml = function() {
             if (typeof window.migrateHallOfFameBrowserLock === 'function') window.migrateHallOfFameBrowserLock();
             if (typeof window.hallOfFameOpenId !== 'string') window.hallOfFameOpenId = '';
             if (typeof window.hallOfFameAlternativeOpen !== 'boolean') window.hallOfFameAlternativeOpen = false;
@@ -6524,16 +6619,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 : '<p class="hall-of-fame-empty">Ingen kåringer i denne kategorien.</p>';
             const alternativeOpen = window.hallOfFameAlternativeOpen === true;
             return window.renderStatsCollapsiblePanelHtml({
-                id: 'halloffame',
-                title: 'Hall of Fame',
+                id: 'aretskaaringer',
+                title: 'Årets kåringer',
                 clash: true,
-                showLabel: 'Vis Hall of Fame',
-                hideLabel: 'Skjul Hall of Fame',
-                markHtml: '<span class="stats-clash-heading-mark" aria-hidden="true"><i class="fa-solid fa-trophy"></i></span>',
+                showLabel: 'Vis Årets kåringer',
+                hideLabel: 'Skjul Årets kåringer',
+                markHtml: '<span class="stats-clash-heading-mark" aria-hidden="true"><i class="fa-solid fa-award"></i></span>',
                 headerActionsHtml: `<span class="stats-clash-year">${escapeStatisticsHtml(String(yearFilter))}</span>`,
                 content: `
                     <div class="hall-of-fame-hall">
-                        <i class="fa-solid fa-trophy hall-of-fame-watermark" aria-hidden="true"></i>
+                        <i class="fa-solid fa-award hall-of-fame-watermark" aria-hidden="true"></i>
                         <section class="hall-of-fame-group" aria-label="Årets offisielle kåringer">
                             <div class="hall-of-fame-heading">
                                 <h4 class="hall-of-fame-group-title is-primary">Årets offisielle kåringer</h4>
@@ -6564,6 +6659,76 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             ${alternativeOpen ? `<div class="hall-of-fame-list">${alternativeList}</div>` : ''}
                         </section>
                     </div>
+                `
+            });
+        };
+
+        window.renderAaretsKaaringerSlot = function() {
+            const slot = document.getElementById('stats-arets-karinger-slot');
+            if (!slot || typeof window.renderAaretsKaaringerPanelHtml !== 'function') return;
+            slot.innerHTML = window.renderAaretsKaaringerPanelHtml();
+        };
+
+        window.buildHallOfFameCandidateModel = function() {
+            const awardModel = typeof window.buildStatsAwardsModel === 'function'
+                ? window.buildStatsAwardsModel()
+                : { year: new Date().getFullYear(), groups: [] };
+            const byId = new Map();
+            (awardModel.groups || []).forEach(group => {
+                (group.awards || []).forEach(award => {
+                    if (award?.id) byId.set(award.id, award);
+                });
+            });
+            const yearFilter = awardModel.year;
+            const rows = typeof window.buildPlayerStatsData === 'function'
+                ? window.buildPlayerStatsData({ applyYearFilter: true, yearFilter })
+                : [];
+            byId.set('kampgeneral', {
+                ...window.getHallOfFameKampGeneralAward(rows, { limit: 5 }),
+                explain: 'Høyest snitt kampbidrag. Krever minst halvparten av lagets kamper. Ved likt snitt rangeres den med flest kamper høyest.'
+            });
+            byId.set('punch', {
+                ...window.getHallOfFamePunchAward(rows, { limit: 5 }),
+                explain: 'Mål og assist per 90 minutter. Krever minst halvparten av kampene, og under 60 % av minuttene.'
+            });
+            const groups = [
+                { id: 'hof-hoved', label: 'Hovedkåringer', ids: ['player', 'bors', 'mal', 'nykommer'] },
+                { id: 'hof-innsats', label: 'Innsats', ids: ['oppmote', 'kampgeneral'] },
+                { id: 'hof-linjer', label: 'Linjer', ids: ['forsvar', 'midtbane', 'angrep'] },
+                { id: 'hof-fair', label: 'Fair play', ids: ['fairplay', 'punch'] }
+            ].map(group => ({
+                id: group.id,
+                label: group.label,
+                awards: group.ids.map(id => {
+                    const award = byId.get(id);
+                    if (!award) return null;
+                    return {
+                        ...award,
+                        id: `hof-${award.id}`,
+                        podium: (award.podium || []).slice(0, 5),
+                        below: []
+                    };
+                }).filter(Boolean)
+            })).filter(group => group.awards.length);
+            return { year: yearFilter, teamName: awardModel.teamName, groups, basisText: '' };
+        };
+
+        window.renderHallOfFamePanelHtml = function() {
+            const model = window.buildHallOfFameCandidateModel();
+            const yearFilter = model.year || (typeof window.getStatsSpillerYearFilter === 'function'
+                ? window.getStatsSpillerYearFilter()
+                : new Date().getFullYear());
+            return window.renderStatsCollapsiblePanelHtml({
+                id: 'halloffame',
+                title: 'Hall of Fame',
+                clash: true,
+                showLabel: 'Vis Hall of Fame',
+                hideLabel: 'Skjul Hall of Fame',
+                markHtml: '<span class="stats-clash-heading-mark" aria-hidden="true"><i class="fa-solid fa-trophy"></i></span>',
+                headerActionsHtml: `<span class="stats-clash-year">${escapeStatisticsHtml(String(yearFilter))}</span>`,
+                content: `
+                    <p class="stats-awards-basis">Topp 5 kandidater. Total score, børs, linjene, kampgeneral, fair play og punch krever minst halvparten av kampene. Mål, nykommer og oppmøte rangeres uten den grensen.</p>
+                    ${window.renderStatsAwardsCardHtml(model)}
                 `
             });
         };
@@ -6633,7 +6798,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 <div class="stats-awards-print-item">
                                     <h3>${escapeStatisticsHtml(statsAwardBoardTitle(award.title))}</h3>
                                     ${award.explain ? `<p class="stats-awards-print-explain">${escapeStatisticsHtml(award.explain)}</p>` : ''}
-                                    ${award.podium.length ? `
+                                    ${(award.podium.length || (award.below || []).length) ? `
                                         <table class="stats-awards-print-table">
                                             <tbody>
                                                 ${award.podium.map((entry, index) => `
@@ -6643,6 +6808,18 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                                         <td class="stats-awards-print-value">${escapeStatisticsHtml(entry.valueText)}</td>
                                                     </tr>
                                                 `).join('')}
+                                                ${(award.below || []).length ? `
+                                                    <tr>
+                                                        <td colspan="3">Under 50 % kamper</td>
+                                                    </tr>
+                                                    ${award.below.map((entry, index) => `
+                                                        <tr>
+                                                            <td class="stats-awards-print-rank">${index + 1}</td>
+                                                            <td class="stats-awards-print-name">${escapeStatisticsHtml(entry.navn)}</td>
+                                                            <td class="stats-awards-print-value">${escapeStatisticsHtml(entry.valueText)}</td>
+                                                        </tr>
+                                                    `).join('')}
+                                                ` : ''}
                                             </tbody>
                                         </table>
                                     ` : '<p class="match-print-empty">Ingen data</p>'}
@@ -7449,6 +7626,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 spillerstatsSlot.innerHTML = typeof window.renderStatsSpillerstatsPanelHtml === 'function'
                     ? window.renderStatsSpillerstatsPanelHtml()
                     : '';
+            }
+            const kaaringerSlot = document.getElementById('stats-arets-karinger-slot');
+            if (kaaringerSlot && typeof window.renderAaretsKaaringerSlot === 'function') {
+                window.renderAaretsKaaringerSlot();
             }
             const utviklingSlot = document.getElementById('stats-utvikling-slot');
             if (utviklingSlot) {

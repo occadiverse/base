@@ -6223,6 +6223,9 @@
             #view-statistikk [data-stats-panel="sesongkaaringer"] .match-bench-heading h3 {
                 font-size: 1.18rem;
             }
+            #view-statistikk [data-stats-panel="aretskaaringer"] .match-bench-heading h3 {
+                font-size: 1.22rem;
+            }
         }
         #view-statistikk [data-stats-panel="sesongkaaringer"] .match-print-sheet-btn span {
             display: none;
@@ -6286,8 +6289,8 @@
             height: 2px;
             opacity: 0.65;
         }
-        #view-statistikk .stats-kamp-collapsible-panel.is-game-card:is([data-stats-panel="kampdata"], [data-stats-panel="kampforkamp"], [data-stats-panel="kampstats"], [data-stats-panel="sesongkaaringer"], [data-stats-panel="spillerliste"], [data-stats-panel="spillerutvikling"], [data-stats-panel="oppfolging"]),
-        #view-statistikk .stats-kamp-collapsible-panel.is-game-card.is-collapsed:is([data-stats-panel="kampdata"], [data-stats-panel="kampforkamp"], [data-stats-panel="kampstats"], [data-stats-panel="sesongkaaringer"], [data-stats-panel="spillerliste"], [data-stats-panel="spillerutvikling"], [data-stats-panel="oppfolging"]) {
+        #view-statistikk .stats-kamp-collapsible-panel.is-game-card:is([data-stats-panel="kampdata"], [data-stats-panel="kampforkamp"], [data-stats-panel="kampstats"], [data-stats-panel="sesongkaaringer"], [data-stats-panel="spillerliste"], [data-stats-panel="aretskaaringer"], [data-stats-panel="halloffame"], [data-stats-panel="spillerutvikling"], [data-stats-panel="oppfolging"]),
+        #view-statistikk .stats-kamp-collapsible-panel.is-game-card.is-collapsed:is([data-stats-panel="kampdata"], [data-stats-panel="kampforkamp"], [data-stats-panel="kampstats"], [data-stats-panel="sesongkaaringer"], [data-stats-panel="spillerliste"], [data-stats-panel="aretskaaringer"], [data-stats-panel="halloffame"], [data-stats-panel="spillerutvikling"], [data-stats-panel="oppfolging"]) {
             background:
                 linear-gradient(180deg, rgba(186, 214, 245, 0.12) 0%, rgba(50, 110, 180, 0.04) 18%, transparent 36%),
                 radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.08), transparent 34%),
@@ -12683,6 +12686,9 @@
         :is(.stats-board-card, .stats-page-slot) .stats-awards-icon .stats-sort-glyph {
             color: #f5c542;
         }
+        :is(.stats-board-card, .stats-page-slot) .stats-awards-icon .stats-sort-glyph-r {
+            color: #ff7b7b;
+        }
         :is(.stats-board-card, .stats-page-slot) .stats-awards-empty {
             color: rgba(255, 255, 255, 0.5);
             font-size: 0.75rem;
@@ -12697,8 +12703,35 @@
             margin: 0;
             padding: 0;
         }
-        :is(.stats-board-card, .stats-page-slot) .stats-awards-card:not(.is-list-open) .stats-awards-podium-item.is-extra {
+        :is(.stats-board-card, .stats-page-slot) .stats-awards-card:not(.is-list-open) .stats-awards-podium-item.is-extra,
+        :is(.stats-board-card, .stats-page-slot) .stats-awards-card:not(.is-list-open) .stats-awards-threshold.is-extra {
             display: none;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-awards-threshold {
+            align-items: center;
+            display: flex;
+            gap: 0.4rem;
+            padding: 0.45rem 0 0.2rem;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-awards-threshold-line {
+            background: rgba(255, 253, 245, 0.18);
+            flex: 1 1 auto;
+            height: 1px;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-awards-threshold-label {
+            color: rgba(255, 253, 245, 0.62);
+            flex: 0 1 auto;
+            font-size: 0.6rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            line-height: 1.2;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-awards-podium-item.is-below .stats-awards-name,
+        :is(.stats-board-card, .stats-page-slot) .stats-awards-podium-item.is-below .stats-awards-value,
+        :is(.stats-board-card, .stats-page-slot) .stats-awards-podium-item.is-below .stats-awards-rank {
+            color: rgba(255, 253, 245, 0.62);
         }
         :is(.stats-board-card, .stats-page-slot) .stats-awards-more {
             appearance: none;
