@@ -7575,8 +7575,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         type="button"
                         data-stat-action="open-form-info"
                         class="training-session-groups-info-btn stats-chrome-info-btn"
-                        title="Statsforklaring"
-                        aria-label="Statsforklaring"
+                        title="Slik regnes Form"
+                        aria-label="Slik regnes Form"
                     >
                         <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
                     </button>
@@ -7764,14 +7764,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
                     <div class="stats-panel stats-player-chart-panel">
                         <div class="stats-panel-header">
-                            <div class="stats-player-panel-heading">
-                                <div class="min-w-0">
-                                    <h3 class="stats-panel-title">Utvikling</h3>
-                                    <p class="stats-panel-subtitle">Spillerutvikling vs troppens utvikling. Nyeste kamp til høyre.</p>
-                                </div>
-                                <button type="button" data-stat-action="open-form-info" class="training-session-groups-info-btn stats-chrome-info-btn stats-form-info-btn" title="Statsforklaring" aria-label="Statsforklaring">
-                                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                                </button>
+                            <div class="min-w-0">
+                                <h3 class="stats-panel-title">Utvikling</h3>
+                                <p class="stats-panel-subtitle">Spillerutvikling vs troppens utvikling. Nyeste kamp til høyre.</p>
                             </div>
                         </div>
                         <div class="stats-player-chart-wrap">

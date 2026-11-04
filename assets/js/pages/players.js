@@ -566,12 +566,472 @@ function buildPlayerPositionLabel(player) {
         : player.pos1;
 }
 
+function getPlayerProfileRadarLineLabel(line) {
+    const labels = {
+        keeper: 'keepere',
+        forsvar: 'forsvarsspillere',
+        midtbane: 'midtbanespillere',
+        angrep: 'angrepsspillere'
+    };
+    return labels[line] || 'troppen';
+}
+
+function getPlayerProfileSeasonMatches(player, yearFilter) {
+    const team = player?.spillerLag;
+    if (!team) return [];
+    return (window.activeMatches || []).filter(match => {
+        if (match.matchGroup !== team) return false;
+        if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(match)) return false;
+        if (typeof window.matchHasPlayedResult === 'function' && !window.matchHasPlayedResult(match)) return false;
+        if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return false;
+        if (yearFilter !== 'alle'
+            && typeof window.activityBelongsToStatsYear === 'function'
+            && !window.activityBelongsToStatsYear(match, yearFilter)) return false;
+        return true;
+    });
+}
+
+function playerProfileMatchIsWin(match) {
+    const outcome = typeof window.getMatchOutcomeScore === 'function'
+        ? window.getMatchOutcomeScore(match)
+        : (typeof window.getMatchRegularScore === 'function' ? window.getMatchRegularScore(match) : null);
+    return Boolean(outcome && outcome.bsk > outcome.opponent);
+}
+
+function getPlayerProfileWinSplit(player, yearFilter) {
+    const inne = [];
+    const ute = [];
+    getPlayerProfileSeasonMatches(player, yearFilter).forEach(match => {
+        const onPitch = typeof window.isPlayerAttending === 'function'
+            && window.isPlayerAttending(match.attendance, player)
+            && typeof window.isPlayerOnPitch === 'function'
+            && window.isPlayerOnPitch(match, player);
+        if (onPitch) inne.push(match);
+        else ute.push(match);
+    });
+    const wins = (list) => list.reduce((sum, match) => sum + (playerProfileMatchIsWin(match) ? 1 : 0), 0);
+    const cleanSheets = (list) => list.reduce((sum, match) => {
+        const score = typeof window.getMatchRegularScore === 'function'
+            ? window.getMatchRegularScore(match)
+            : null;
+        return sum + (score && Number(score.opponent) === 0 ? 1 : 0);
+    }, 0);
+    const inneWins = wins(inne);
+    const uteWins = wins(ute);
+    const inneClean = cleanSheets(inne);
+    return {
+        inne: {
+            n: inne.length,
+            w: inneWins,
+            pct: inne.length ? Math.round((inneWins / inne.length) * 100) : null,
+            clean: inneClean,
+            cleanPct: inne.length ? Math.round((inneClean / inne.length) * 100) : null
+        },
+        ute: {
+            n: ute.length,
+            w: uteWins,
+            pct: ute.length ? Math.round((uteWins / ute.length) * 100) : null
+        }
+    };
+}
+
+function getPlayerProfileRadarAxes(line, yearFilter) {
+    const winSplits = new Map();
+    const winSplitFor = (stat) => {
+        const name = stat?.navn || '';
+        if (!name) return null;
+        if (!winSplits.has(name)) {
+            const person = (window.activePlayers || []).find(item => item.navn === name) || null;
+            winSplits.set(name, person ? getPlayerProfileWinSplit(person, yearFilter) : null);
+        }
+        return winSplits.get(name);
+    };
+    const axes = [
+        {
+            id: 'bors',
+            label: 'Børs',
+            read: (stat) => (Number(stat?.snittBors) || 0) > 0 ? Number(stat.snittBors) : null,
+            format: (stat) => (Number(stat?.snittBors) || 0) > 0
+                ? (Math.round(Number(stat.snittBors) * 10) / 10).toFixed(1)
+                : '–',
+            absolute: (value) => Math.max(0, Math.min(100, Number(value) * 10))
+        },
+        {
+            id: 'produksjon',
+            label: 'Produksjon',
+            read: (stat) => (Number(stat?.kamper) || 0) > 0 && stat?.expectedMalpoeng != null
+                ? Number(stat.expectedMalpoeng)
+                : null,
+            format: (stat) => (Number(stat?.kamper) || 0) > 0 && stat?.expectedMalpoeng != null
+                ? Number(stat.expectedMalpoeng).toFixed(1)
+                : '–',
+            absolute: (value) => Math.max(0, Math.min(100, (Number(value) || 0) / 1.2 * 100))
+        },
+        {
+            id: 'minuttandel',
+            label: 'Minuttandel',
+            read: (stat) => (Number(stat?.minutesPossible) || 0) > 0 && stat?.minutesSharePct != null
+                ? Number(stat.minutesSharePct)
+                : null,
+            format: (stat) => (Number(stat?.minutesPossible) || 0) > 0 && stat?.minutesSharePct != null
+                ? `${Math.round(Number(stat.minutesSharePct))}%`
+                : '–',
+            absolute: (value) => Math.max(0, Math.min(100, Number(value) || 0))
+        },
+        {
+            id: 'oppmote',
+            label: 'Oppmøte',
+            read: (stat) => (Number(stat?.oppmotePossible) || 0) > 0 ? Number(stat.oppmotePct) || 0 : null,
+            format: (stat) => (Number(stat?.oppmotePossible) || 0) > 0
+                ? `${Math.round(Number(stat.oppmotePct) || 0)}%`
+                : '–',
+            absolute: (value) => Math.max(0, Math.min(100, Number(value) || 0))
+        },
+        {
+            id: 'disiplin',
+            label: 'Disiplin',
+            read: (stat) => (Number(stat?.attendedMatches) || 0) > 0 ? Number(stat.disiplinScore) || 0 : null,
+            format: (stat) => {
+                if (!((Number(stat?.attendedMatches) || 0) > 0)) return '–';
+                const yellow = Number(stat.gule) || 0;
+                const red = Number(stat.rode) || 0;
+                if (yellow === 0 && red === 0) return '0 kort';
+                const parts = [];
+                if (yellow > 0) parts.push(yellow === 1 ? '1 gult' : `${yellow} gule`);
+                if (red > 0) parts.push(red === 1 ? '1 rødt' : `${red} røde`);
+                return parts.join(', ');
+            },
+            absolute: (value) => Math.max(0, Math.min(100, Number(value) || 0))
+        }
+    ];
+    const withoutMinutes = axes.filter(axis => axis.id !== 'minuttandel');
+    const seierAxis = {
+        id: 'seier',
+        label: 'Seier',
+        read: (stat) => {
+            const split = winSplitFor(stat);
+            return split && split.inne.n > 0 ? split.inne.pct : null;
+        },
+        format: (stat) => {
+            const split = winSplitFor(stat);
+            return split && split.inne.n > 0 ? `${split.inne.pct}%` : '–';
+        },
+        absolute: (value) => Math.max(0, Math.min(100, Number(value) || 0))
+    };
+    const cleanAxis = {
+        id: 'rent-null',
+        label: 'Rent null',
+        read: (stat) => {
+            const split = winSplitFor(stat);
+            return split && split.inne.n > 0 ? split.inne.cleanPct : null;
+        },
+        format: (stat) => {
+            const split = winSplitFor(stat);
+            return split && split.inne.n > 0 ? `${split.inne.cleanPct}%` : '–';
+        },
+        absolute: (value) => Math.max(0, Math.min(100, Number(value) || 0))
+    };
+    if (line === 'keeper') {
+        const keeperAxes = withoutMinutes.filter(axis => axis.id !== 'produksjon');
+        keeperAxes.splice(1, 0, cleanAxis);
+        return keeperAxes;
+    }
+    if (line === 'forsvar') {
+        const defenseAxes = withoutMinutes.map(axis => (axis.id === 'produksjon' ? seierAxis : axis));
+        const seierIndex = defenseAxes.findIndex(axis => axis.id === 'seier');
+        defenseAxes.splice(seierIndex + 1, 0, cleanAxis);
+        return defenseAxes;
+    }
+    const outfieldAxes = withoutMinutes.slice();
+    const produksjonIndex = outfieldAxes.findIndex(axis => axis.id === 'produksjon');
+    outfieldAxes.splice(produksjonIndex + 1, 0, seierAxis);
+    return outfieldAxes;
+}
+
+function getPlayerProfileRadarValueScore(value, peerValues, absoluteScore) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return 0;
+    const peers = (Array.isArray(peerValues) ? peerValues : []).filter(item => Number.isFinite(item));
+    const best = peers.length ? Math.max(...peers) : 0;
+    if (!(best > 0)) return absoluteScore(numeric);
+    return Math.max(0, Math.min(100, (numeric / best) * 100));
+}
+
+function buildPlayerProfileRadarHtml(player, yearFilter, yearLabel) {
+    const rows = getPlayerProfileStatRows(player, yearFilter);
+    const stat = rows.find(row => row.navn === player?.navn) || null;
+    const line = typeof window.getStatsAwardPositionGroup === 'function'
+        ? window.getStatsAwardPositionGroup(player?.pos1 || stat?.pos1 || '')
+        : '';
+    const axes = getPlayerProfileRadarAxes(line, yearFilter);
+    const hasAny = stat && axes.some(axis => axis.read(stat) != null);
+    const lineLabel = getPlayerProfileRadarLineLabel(line);
+    const sameLine = rows.filter(row => {
+        if (typeof window.getStatsAwardPositionGroup !== 'function') return true;
+        const group = window.getStatsAwardPositionGroup(row.pos1);
+        return line ? group === line : Boolean(group);
+    });
+    const qualified = sameLine.filter(row => (
+        typeof window.playerMeetsKampShareThreshold === 'function'
+            ? window.playerMeetsKampShareThreshold(row)
+            : (Number(row.kampSharePct) || 0) >= 50
+    ));
+    const usePercentile = qualified.length >= 3;
+    const played = Number(stat?.kamper) || 0;
+    const teamMatches = Number(stat?.teamKampCount) || 0;
+    const share = Number(stat?.kampSharePct) || 0;
+    const subtitle = yearLabel;
+    const winSplit = getPlayerProfileWinSplit(player, yearFilter);
+    let note = teamMatches > 0
+        ? `${played} av ${teamMatches} kamper på banen.`
+        : 'Ingen kamper i perioden.';
+    if (line !== 'keeper' && winSplit.inne.n > 0) {
+        note += ` Seier i ${winSplit.inne.w} av de ${winSplit.inne.n}.`;
+        if (winSplit.ute.n > 0) {
+            note += ` Laget vant ${winSplit.ute.w} av de ${winSplit.ute.n} han ikke spilte.`;
+        }
+    }
+    if ((line === 'forsvar' || line === 'keeper') && winSplit.inne.n > 0) {
+        note += ` Rent null i ${winSplit.inne.clean} av de ${winSplit.inne.n}.`;
+    }
+    if (usePercentile && teamMatches > 0 && share < 50) {
+        note += ' Under halvparten, så skalaen settes av de andre.';
+    }
+
+    const header = `
+        <div class="player-profile-panel-header">
+            <div class="min-w-0">
+                <h2 class="player-profile-panel-title">Profil</h2>
+                <p class="player-profile-panel-subtitle">${escapeRosterHtml(subtitle)}</p>
+            </div>
+        </div>
+    `;
+
+    if (!hasAny) {
+        return `
+            <section class="match-detail-card player-profile-panel relative">
+                ${header}
+                <p class="player-profile-empty">Ikke nok data til å vise profilen.</p>
+            </section>
+        `;
+    }
+
+    const axisPeers = axes.map(axis => qualified
+        .map(row => axis.read(row))
+        .filter(item => item != null && Number.isFinite(Number(item)))
+        .map(Number));
+    const showAverage = axisPeers.some(peers => peers.length >= 2);
+    const scoreOnAxis = (axis, peers, value) => {
+        if (value == null || !Number.isFinite(Number(value))) return 0;
+        if (!usePercentile) return axis.absolute(value);
+        return getPlayerProfileRadarValueScore(value, peers, axis.absolute);
+    };
+    const scores = axes.map((axis, index) => scoreOnAxis(axis, axisPeers[index], axis.read(stat)));
+    const averageScores = axes.map((axis, index) => {
+        const peers = axisPeers[index];
+        if (peers.length < 2) return null;
+        const average = peers.reduce((sum, item) => sum + item, 0) / peers.length;
+        return scoreOnAxis(axis, peers, average);
+    });
+    const readText = showAverage
+        ? (usePercentile
+            ? `Ytterste ring er best blant ${lineLabel} med minst halvparten av kampene. Grå strek er snittet deres. Tallet ved aksen er sesongtallet.`
+            : `Få ${lineLabel} med minst halvparten av kampene, så ytterste ring er topp på skalaen. Grå strek er snittet. Tallet ved aksen er sesongtallet.`)
+        : (usePercentile
+            ? `Ytterste ring er best blant ${lineLabel} med minst halvparten av kampene. Tallet ved aksen er sesongtallet.`
+            : `Få ${lineLabel} med minst halvparten av kampene, så ytterste ring er topp på skalaen. Tallet ved aksen er sesongtallet.`);
+    const summary = axes.map(axis => `${axis.label} ${axis.format(stat)}`).join(', ');
+    const count = axes.length;
+    const cx = 210;
+    const cy = 176;
+    const radius = 96;
+    const labelRadius = 128;
+    const pointAt = (index, score) => {
+        const angle = (-Math.PI / 2) + ((Math.PI * 2 * index) / count);
+        const distance = radius * (Math.max(0, Math.min(100, score)) / 100);
+        return [
+            cx + (distance * Math.cos(angle)),
+            cy + (distance * Math.sin(angle))
+        ];
+    };
+    const ringPoints = (level) => axes.map((_, index) => {
+        const [x, y] = pointAt(index, level);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    const shape = scores.map((score, index) => {
+        const [x, y] = pointAt(index, score);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    const averageShape = showAverage
+        ? averageScores.map((score, index) => {
+            const [x, y] = pointAt(index, score || 0);
+            return `${x.toFixed(1)},${y.toFixed(1)}`;
+        }).join(' ')
+        : '';
+    const rings = [25, 50, 75, 100].map(level => `
+        <polygon class="player-profile-radar-ring" points="${ringPoints(level)}"></polygon>
+    `).join('');
+    const spokes = axes.map((_, index) => {
+        const [x, y] = pointAt(index, 100);
+        return `<line class="player-profile-radar-spoke" x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"></line>`;
+    }).join('');
+    const dots = scores.map((score, index) => {
+        const [x, y] = pointAt(index, score);
+        return `<circle class="player-profile-radar-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2"></circle>`;
+    }).join('');
+    const labels = axes.map((axis, index) => {
+        const angle = (-Math.PI / 2) + ((Math.PI * 2 * index) / count);
+        const x = cx + (labelRadius * Math.cos(angle));
+        const y = cy + (labelRadius * Math.sin(angle));
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        const anchor = cos > 0.42 ? 'start' : cos < -0.42 ? 'end' : 'middle';
+        const yShift = sin > 0.45 ? 8 : sin < -0.45 ? -8 : 0;
+        const nameY = (y + yShift - 6).toFixed(1);
+        const valueY = (y + yShift + 10).toFixed(1);
+        return `
+            <text class="player-profile-radar-label" x="${x.toFixed(1)}" y="${nameY}" text-anchor="${anchor}">${escapeRosterHtml(axis.label)}</text>
+            <text class="player-profile-radar-value" x="${x.toFixed(1)}" y="${valueY}" text-anchor="${anchor}">${escapeRosterHtml(axis.format(stat))}</text>
+        `;
+    }).join('');
+
+    return `
+        <section class="match-detail-card player-profile-panel relative">
+            ${header}
+            <p class="player-profile-radar-read">${escapeRosterHtml(readText)}</p>
+            <div class="player-profile-radar">
+                <svg viewBox="0 0 420 360" role="img" aria-label="${escapeRosterHtml(`Profil. ${summary}`)}">
+                    ${rings}
+                    ${spokes}
+                    ${averageShape ? `<polygon class="player-profile-radar-average" points="${averageShape}"></polygon>` : ''}
+                    <polygon class="player-profile-radar-shape" points="${shape}"></polygon>
+                    ${dots}
+                    ${labels}
+                </svg>
+                ${showAverage ? `
+                    <div class="player-profile-radar-legend" aria-hidden="true">
+                        <span class="player-profile-radar-legend-item is-player"><i></i> Spilleren</span>
+                        <span class="player-profile-radar-legend-item is-average"><i></i> Snitt på linjen</span>
+                    </div>
+                ` : ''}
+            </div>
+            <p class="player-profile-radar-note">${escapeRosterHtml(note)}</p>
+        </section>
+    `;
+}
+
 function getPlayerProfileStats(player, yearFilter = 'alle') {
     if (!player || typeof window.buildPlayerStatsData !== 'function') return null;
     const options = yearFilter === 'alle'
         ? {}
         : { applyYearFilter: true, yearFilter };
     return window.buildPlayerStatsData(options).find(stat => stat.navn === player.navn) || null;
+}
+
+const PLAYER_PROFILE_LINE_ORDER = ['keeper', 'forsvar', 'midtbane', 'angrep'];
+
+const PLAYER_PROFILE_LINE_LABELS = {
+    keeper: 'Keeper',
+    forsvar: 'Forsvar',
+    midtbane: 'Midtbane',
+    angrep: 'Angrep'
+};
+
+function getPlayerProfilePositionLine(posId) {
+    const id = String(posId || '').trim().toUpperCase();
+    if (id === 'GK') return 'keeper';
+    if (['VB', 'VMS', 'VS', 'MS', 'HMS', 'HS', 'HB'].includes(id)) return 'forsvar';
+    if (['DM', 'OM', 'PM'].includes(id)) return 'midtbane';
+    if (['VK', 'HK', 'SP', 'SP2', 'SV', 'SH'].includes(id)) return 'angrep';
+    return '';
+}
+
+function formatPlayerProfilePositionStatCells(row) {
+    const matches = Number(row?.matches) || 0;
+    const snittBidrag = matches > 0
+        ? (Math.round((Number(row.points) / matches) * 10) / 10)
+        : 0;
+    const goals = Number(row?.goals) || 0;
+    const assists = Number(row?.assists) || 0;
+    const maText = (goals > 0 || assists > 0) ? `${goals}/${assists}` : '—';
+    const xpText = typeof window.formatMatchGamePlanXp === 'function'
+        ? window.formatMatchGamePlanXp(goals, assists, matches)
+        : '—';
+    const formText = Number(row?.formValue) > 0 ? String(row.formValue) : '—';
+    const seasonText = Number(row?.seasonValue) > 0
+        ? (Math.round(Number(row.seasonValue) * 10) / 10).toFixed(1)
+        : '—';
+    const minutes = Number(row?.minutes) || 0;
+    const minutesPerMatch = matches > 0 && minutes > 0
+        ? Math.round((minutes / matches) * 10) / 10
+        : null;
+    const minutesText = minutesPerMatch != null
+        ? (Number.isInteger(minutesPerMatch) ? String(minutesPerMatch) : minutesPerMatch.toFixed(1))
+        : '—';
+    const ratingsCount = Number(row?.ratingsCount) || 0;
+    const borsText = ratingsCount > 0
+        ? (Math.round((Number(row.ratingsSum) / ratingsCount) * 10) / 10).toFixed(1)
+        : '—';
+    return {
+        matchesText: matches > 0 ? String(matches) : '—',
+        bidragText: matches > 0 ? String(snittBidrag) : '—',
+        maText,
+        xpText,
+        formText,
+        seasonText,
+        minutesText,
+        minutesTitle: minutes > 0 && matches > 0 ? `${minutes}' totalt / ${matches} kamper` : '',
+        borsText
+    };
+}
+
+function buildPlayerProfilePositionLineRows(rows, seasonStat) {
+    const grouped = new Map();
+    rows.forEach((row) => {
+        const line = getPlayerProfilePositionLine(row.posId);
+        if (!line) return;
+        if (!grouped.has(line)) {
+            grouped.set(line, {
+                line,
+                label: PLAYER_PROFILE_LINE_LABELS[line] || line,
+                matches: 0,
+                points: 0,
+                goals: 0,
+                assists: 0,
+                minutes: 0,
+                ratingsSum: 0,
+                ratingsCount: 0,
+                entries: []
+            });
+        }
+        const target = grouped.get(line);
+        target.matches += Number(row.matches) || 0;
+        target.points += Number(row.points) || 0;
+        target.goals += Number(row.goals) || 0;
+        target.assists += Number(row.assists) || 0;
+        target.minutes += Number(row.minutes) || 0;
+        target.ratingsSum += Number(row.ratingsSum) || 0;
+        target.ratingsCount += Number(row.ratingsCount) || 0;
+        if (Array.isArray(row.entries)) target.entries.push(...row.entries);
+    });
+
+    return PLAYER_PROFILE_LINE_ORDER
+        .filter(line => grouped.has(line))
+        .map((line) => {
+            const row = grouped.get(line);
+            const formValue = typeof window.computeMatchGamePlanPositionForm === 'function'
+                ? window.computeMatchGamePlanPositionForm(row.entries)
+                : 0;
+            const seasonValue = typeof window.computeMatchGamePlanPositionSeason === 'function'
+                ? window.computeMatchGamePlanPositionSeason(row, seasonStat)
+                : 0;
+            return { ...row, formValue, seasonValue };
+        })
+        .sort((a, b) => (
+            b.formValue - a.formValue
+            || b.matches - a.matches
+            || PLAYER_PROFILE_LINE_ORDER.indexOf(a.line) - PLAYER_PROFILE_LINE_ORDER.indexOf(b.line)
+        ));
 }
 
 function buildPlayerProfilePositionStatsHtml(player, yearFilter = 'alle') {
@@ -599,7 +1059,7 @@ function buildPlayerProfilePositionStatsHtml(player, yearFilter = 'alle') {
             };
         })
         .sort((a, b) => (
-            b.seasonValue - a.seasonValue
+            b.formValue - a.formValue
             || b.matches - a.matches
             || b.minutes - a.minutes
             || a.label.localeCompare(b.label, 'nb')
@@ -611,29 +1071,21 @@ function buildPlayerProfilePositionStatsHtml(player, yearFilter = 'alle') {
         `;
     }
 
+    const positionHead = `
+        <tr>
+            <th scope="col">Pos</th>
+            <th scope="col" title="Antall kamper som hovedposisjon">K</th>
+            <th scope="col" title="Snitt kampbidrag">Bidrag</th>
+            <th scope="col" title="Mål / Assist">M/A</th>
+            <th scope="col" title="Mål+assist per kamp">XP</th>
+            <th scope="col" title="Form fra snitt på posisjonen (siste 5)">Form</th>
+            <th scope="col" title="Sesongscore fra snitt på posisjonen">Sesong</th>
+            <th scope="col" title="Snitt spilleminutter per kamp på posisjonen">Min/90</th>
+            <th scope="col" title="Snittbørs på posisjonen">Børs</th>
+        </tr>
+    `;
     const bodyRows = rows.map((row) => {
-        const snittBidrag = row.matches > 0
-            ? (Math.round((row.points / row.matches) * 10) / 10)
-            : 0;
-        const maText = (row.goals > 0 || row.assists > 0)
-            ? `${row.goals}/${row.assists}`
-            : '—';
-        const xpText = typeof window.formatMatchGamePlanXp === 'function'
-            ? window.formatMatchGamePlanXp(row.goals, row.assists, row.matches)
-            : '—';
-        const formText = row.formValue > 0 ? String(row.formValue) : '—';
-        const seasonText = row.seasonValue > 0
-            ? (Math.round(row.seasonValue * 10) / 10).toFixed(1)
-            : '—';
-        const minutesPerMatch = row.matches > 0 && row.minutes > 0
-            ? Math.round((row.minutes / row.matches) * 10) / 10
-            : null;
-        const minutesText = minutesPerMatch != null
-            ? (Number.isInteger(minutesPerMatch) ? String(minutesPerMatch) : minutesPerMatch.toFixed(1))
-            : '—';
-        const borsText = row.ratingsCount > 0
-            ? (Math.round((row.ratingsSum / row.ratingsCount) * 10) / 10).toFixed(1)
-            : '—';
+        const cells = formatPlayerProfilePositionStatCells(row);
         const posCode = typeof window.getMatchGamePlanPositionBadgeLabel === 'function'
             ? window.getMatchGamePlanPositionBadgeLabel(row.posId)
             : row.posId;
@@ -644,37 +1096,69 @@ function buildPlayerProfilePositionStatsHtml(player, yearFilter = 'alle') {
                 <td class="player-profile-position-pos" title="${escapeRosterHtml(posTitle)}">
                     <span class="player-profile-position-code">${escapeRosterHtml(posCode)}</span>
                 </td>
-                <td>${row.matches || '—'}</td>
-                <td>${row.matches > 0 ? snittBidrag : '—'}</td>
-                <td>${escapeRosterHtml(maText)}</td>
-                <td>${escapeRosterHtml(xpText)}</td>
-                <td>${escapeRosterHtml(formText)}</td>
-                <td>${escapeRosterHtml(seasonText)}</td>
-                <td title="${row.minutes > 0 && row.matches > 0 ? `${row.minutes}' totalt / ${row.matches} kamper` : ''}">${escapeRosterHtml(minutesText)}</td>
-                <td>${escapeRosterHtml(borsText)}</td>
+                <td>${escapeRosterHtml(cells.matchesText)}</td>
+                <td>${escapeRosterHtml(cells.bidragText)}</td>
+                <td>${escapeRosterHtml(cells.maText)}</td>
+                <td>${escapeRosterHtml(cells.xpText)}</td>
+                <td>${escapeRosterHtml(cells.formText)}</td>
+                <td>${escapeRosterHtml(cells.seasonText)}</td>
+                <td title="${escapeRosterHtml(cells.minutesTitle)}">${escapeRosterHtml(cells.minutesText)}</td>
+                <td>${escapeRosterHtml(cells.borsText)}</td>
             </tr>
         `;
     }).join('');
+    const lineRows = buildPlayerProfilePositionLineRows(rows, seasonStat).map((row) => {
+        const cells = formatPlayerProfilePositionStatCells(row);
+        return `
+            <tr>
+                <td class="player-profile-position-pos">
+                    <span class="player-profile-line-name">${escapeRosterHtml(row.label)}</span>
+                </td>
+                <td>${escapeRosterHtml(cells.matchesText)}</td>
+                <td>${escapeRosterHtml(cells.bidragText)}</td>
+                <td>${escapeRosterHtml(cells.maText)}</td>
+                <td>${escapeRosterHtml(cells.xpText)}</td>
+                <td>${escapeRosterHtml(cells.formText)}</td>
+                <td>${escapeRosterHtml(cells.seasonText)}</td>
+                <td title="${escapeRosterHtml(cells.minutesTitle)}">${escapeRosterHtml(cells.minutesText)}</td>
+                <td>${escapeRosterHtml(cells.borsText)}</td>
+            </tr>
+        `;
+    }).join('');
+    const lineTable = lineRows
+        ? `
+            <div class="player-profile-line-block">
+                <h3 class="player-profile-line-heading">Linje</h3>
+                <div class="player-profile-position-table-wrap">
+                    <table class="player-profile-position-table" aria-label="Linjestatistikk">
+                        <thead>
+                            <tr>
+                                <th scope="col">Linje</th>
+                                <th scope="col" title="Kamper på linjen">K</th>
+                                <th scope="col" title="Snitt kampbidrag på linjen">Bidrag</th>
+                                <th scope="col" title="Mål / Assist på linjen">M/A</th>
+                                <th scope="col" title="Mål+assist per kamp på linjen">XP</th>
+                                <th scope="col" title="Form fra siste kamper på linjen">Form</th>
+                                <th scope="col" title="Sesongscore fra snitt på linjen">Sesong</th>
+                                <th scope="col" title="Snitt spilleminutter per kamp på linjen">Min/90</th>
+                                <th scope="col" title="Snittbørs på linjen">Børs</th>
+                            </tr>
+                        </thead>
+                        <tbody>${lineRows}</tbody>
+                    </table>
+                </div>
+            </div>
+        `
+        : '';
 
     return `
         <div class="player-profile-position-table-wrap">
             <table class="player-profile-position-table" aria-label="Posisjonsstatistikk">
-                <thead>
-                    <tr>
-                        <th scope="col">Pos</th>
-                        <th scope="col" title="Antall kamper som hovedposisjon">K</th>
-                        <th scope="col" title="Snitt kampbidrag">Bidrag</th>
-                        <th scope="col" title="Mål / Assist">M/A</th>
-                        <th scope="col" title="Mål+assist per kamp">XP</th>
-                        <th scope="col" title="Form fra snitt på posisjonen (siste 5)">Form</th>
-                        <th scope="col" title="Sesongscore fra snitt på posisjonen">Sesong</th>
-                        <th scope="col" title="Snitt spilleminutter per kamp på posisjonen">Min/90</th>
-                        <th scope="col" title="Snittbørs på posisjonen">Børs</th>
-                    </tr>
-                </thead>
+                <thead>${positionHead}</thead>
                 <tbody>${bodyRows}</tbody>
             </table>
         </div>
+        ${lineTable}
     `;
 }
 
@@ -1013,11 +1497,6 @@ function bindPlayerProfilePageEvents() {
 
         if (action === 'delete' && playerId) {
             window.promptDeletePlayer(playerId);
-            return;
-        }
-
-        if (action === 'open-form-info' && typeof window.openStatsFormInfoModal === 'function') {
-            window.openStatsFormInfoModal();
         }
     });
 }
@@ -1291,11 +1770,13 @@ window.renderPlayerProfilePage = function(playerId) {
             <div class="player-profile-panel-header">
                 <div class="min-w-0">
                     <h2 class="player-profile-panel-title">Posisjon</h2>
-                    <p class="player-profile-panel-subtitle">${escapeRosterHtml(yearLabel)} · Sortert etter sesongscore på posisjonen</p>
+                    <p class="player-profile-panel-subtitle">${escapeRosterHtml(yearLabel)} · Sortert etter form</p>
                 </div>
             </div>
             ${buildPlayerProfilePositionStatsHtml(player, yearFilter)}
         </section>
+
+        ${buildPlayerProfileRadarHtml(player, yearFilter, yearLabel)}
 
         <section class="match-detail-card player-profile-panel relative">
             <div class="player-profile-panel-header">
@@ -1303,9 +1784,6 @@ window.renderPlayerProfilePage = function(playerId) {
                     <h2 class="player-profile-panel-title">Utvikling</h2>
                     <p class="player-profile-panel-subtitle">Spillerutvikling vs troppens utvikling. Nyeste kamp til høyre.</p>
                 </div>
-                <button type="button" class="training-session-groups-info-btn player-profile-info-btn" data-player-profile-action="open-form-info" title="Statsforklaring" aria-label="Statsforklaring">
-                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                </button>
             </div>
             <div class="player-profile-chart-wrap">${trendHtml}</div>
             <div class="stats-chart-legend player-profile-chart-legend" aria-hidden="true">
