@@ -574,8 +574,7 @@ function getPlayerProfileSeasonMatches(player, yearFilter) {
         if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(match)) return false;
         if (typeof window.matchHasPlayedResult === 'function' && !window.matchHasPlayedResult(match)) return false;
         if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return false;
-        if (yearFilter !== 'alle'
-            && typeof window.activityBelongsToStatsYear === 'function'
+        if (typeof window.activityBelongsToStatsYear === 'function'
             && !window.activityBelongsToStatsYear(match, yearFilter)) return false;
         return true;
     });
@@ -787,10 +786,11 @@ function buildPlayerProfileRadarHtml(player, yearFilter) {
             : (Number(row.kampSharePct) || 0) >= 50
     ));
     const usePercentile = qualified.length >= 3;
-    const played = Number(stat?.kamper) || 0;
-    const teamMatches = Number(stat?.teamKampCount) || 0;
     const share = Number(stat?.kampSharePct) || 0;
     const winSplit = getPlayerProfileWinSplit(player, yearFilter);
+    const played = winSplit.inne.n;
+    const missed = winSplit.ute.n;
+    const teamMatches = played + missed;
     let note = teamMatches > 0
         ? `${played} av ${teamMatches} kamper på banen.`
         : 'Ingen kamper i perioden.';
