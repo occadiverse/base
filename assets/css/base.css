@@ -8995,6 +8995,17 @@
                 overflow: hidden;
                 width: 100%;
             }
+            #view-oppmote.portal-view-mobile-peek .calendar-shell-panel::before {
+                content: none;
+            }
+            #view-oppmote.portal-view-mobile-peek .calendar-board-watermark {
+                opacity: 0.08;
+                right: -1.25rem;
+                top: -2.4rem;
+            }
+            #view-oppmote.portal-view-mobile-peek .calendar-section-top::after {
+                box-shadow: 0 0 6px rgba(245, 197, 66, 0.22);
+            }
             #view-oppmote.portal-view-mobile-peek .calendar-mobile-chrome {
                 background: transparent;
                 border-bottom: 0 !important;
@@ -9003,8 +9014,10 @@
             }
             #view-oppmote.portal-view-mobile-peek .calendar-mobile-main {
                 flex: 1 1 auto;
+                margin-top: -1px;
                 min-height: 0;
                 overflow: hidden;
+                padding-top: 1px;
             }
         }
         @media (min-width: 768px) and (max-width: 1023px) {
