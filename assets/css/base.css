@@ -11549,7 +11549,7 @@
         }
         .player-profile-shell-details {
             display: grid;
-            gap: 0.95rem;
+            gap: 1rem;
             margin-top: 1.15rem;
         }
         .player-profile-shell-details .player-profile-section + .player-profile-section {
@@ -11558,21 +11558,84 @@
         .player-profile-shell-details .player-profile-section {
             display: flex;
             flex-direction: column;
-            gap: 0.85rem;
+            gap: 0.5rem;
         }
-        .player-profile-shell .player-profile-moment-text .player-profile-injury-history-list,
-        .player-profile-shell .player-profile-moment-text .player-profile-injury-history-empty {
+        .player-profile-facts-sheet {
+            display: grid;
+            gap: 0.75rem;
+        }
+        .player-profile-facts {
+            display: grid;
+            gap: 0.7rem 1rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin: 0;
+        }
+        .player-profile-facts-state {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 0.75rem;
+        }
+        .player-profile-fact {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            min-width: 0;
+        }
+        .player-profile-fact dt {
+            color: rgba(255, 253, 245, 0.48);
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.07em;
+            line-height: 1;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .player-profile-fact-value {
+            color: #ffffff;
+            font-size: 0.92rem;
+            font-weight: 800;
+            line-height: 1.25;
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+        .player-profile-fact-value.is-active {
+            color: #86efac;
+        }
+        .player-profile-fact-value.is-recruit {
+            color: #8ed4ff;
+        }
+        .player-profile-fact-value.is-muted {
+            color: rgba(255, 253, 245, 0.72);
+        }
+        .player-profile-fact-value.is-hurt {
+            color: #fb7185;
+        }
+        .player-profile-shell .player-profile-note {
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 0.84rem;
+            font-weight: 650;
+            line-height: 1.45;
+            margin: 0;
+        }
+        .player-profile-shell .player-profile-note.is-empty,
+        .player-profile-shell .player-profile-injury-history-empty {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.82rem;
+            font-weight: 650;
+            margin: 0;
+        }
+        .player-profile-shell .player-profile-injury-history-list,
+        .player-profile-shell .player-profile-injury-history-empty {
             list-style: none;
             margin: 0;
             padding: 0;
         }
-        .player-profile-shell .player-profile-moment-text .player-profile-injury-history-row {
+        .player-profile-shell .player-profile-injury-history-row {
             background: transparent;
             border: 0;
             border-radius: 0;
             padding: 0;
         }
-        .player-profile-shell .player-profile-moment-text .player-profile-injury-history-row + .player-profile-injury-history-row {
+        .player-profile-shell .player-profile-injury-history-row + .player-profile-injury-history-row {
             border-top: 1px solid rgba(255, 255, 255, 0.08);
             margin-top: 0.55rem;
             padding-top: 0.55rem;

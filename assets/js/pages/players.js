@@ -1343,6 +1343,16 @@ function buildPlayerProfileMetricHtml(label, value) {
     `;
 }
 
+function buildPlayerProfileFactHtml(label, value, valueClass = '') {
+    const tone = valueClass ? ` ${valueClass}` : '';
+    return `
+        <div class="player-profile-fact">
+            <dt>${escapeRosterHtml(label)}</dt>
+            <dd class="player-profile-fact-value${tone}">${escapeRosterHtml(value)}</dd>
+        </div>
+    `;
+}
+
 function buildPlayerProfileAvatarHtml(player) {
     const photoUrl = getRosterPlayerPhotoUrl(player);
 
@@ -1747,6 +1757,15 @@ window.renderPlayerProfilePage = function(playerId) {
     const posLabel = buildPlayerPositionLabel(player);
     const foot = player.fot ? `${player.fot} fot` : 'Ukjent fot';
     const ageLabel = age != null && birthYear ? `${age} år (${birthYear})` : (birthYear || '-');
+    const statusLabel = getPlayerDisplayStatus(player);
+    const statusTone = statusLabel === 'Aktiv'
+        ? 'is-active'
+        : statusLabel === 'Rekrutt'
+            ? 'is-recruit'
+            : 'is-muted';
+    const injuryValue = injuryInfo.isInjured ? (injuryInfo.label || 'Skadet') : 'Frisk';
+    const injuryTone = injuryInfo.isInjured ? 'is-hurt' : 'is-ok';
+    const moment = getPlayerUtviklingsmoment(player);
     const captainMark = player.isCaptain ? '<span class="player-profile-captain" title="Kaptein">⚓</span>' : '';
     const oppmote = stats
         ? (typeof window.formatOppmoteDisplay === 'function'
@@ -1819,32 +1838,27 @@ window.renderPlayerProfilePage = function(playerId) {
             </div>
 
             <div class="player-profile-shell-details relative z-10">
-                <div class="player-profile-section">
-                    <div class="player-profile-grid">
-                        ${buildPlayerProfileMetricHtml('Fot', foot)}
-                        ${buildPlayerProfileMetricHtml('Tilknyttet', formatPlayerJoinedFromLabel(player))}
-                        ${buildPlayerProfileMetricHtml('Alder', ageLabel)}
-                    </div>
-                </div>
-
-                <div class="player-profile-section">
-                    <p class="player-profile-section-title">Status</p>
-                    <p class="player-profile-moment-text">${escapeRosterHtml(getPlayerDisplayStatus(player))}</p>
-                </div>
-
-                <div class="player-profile-section ${injuryInfo.isInjured ? 'player-profile-section-injury' : ''}">
-                    <p class="player-profile-section-title">Skade</p>
-                    <p class="player-profile-moment-text${injuryInfo.isInjured ? '' : ' is-empty'}">${escapeRosterHtml(injuryInfo.isInjured ? (injuryInfo.label || 'Skadet') : 'Frisk')}</p>
+                <div class="player-profile-facts-sheet">
+                    <dl class="player-profile-facts">
+                        ${buildPlayerProfileFactHtml('Fot', foot)}
+                        ${buildPlayerProfileFactHtml('Alder', ageLabel)}
+                        ${buildPlayerProfileFactHtml('Tilknyttet', formatPlayerJoinedFromLabel(player))}
+                    </dl>
+                    <dl class="player-profile-facts player-profile-facts-state">
+                        ${buildPlayerProfileFactHtml('Status', statusLabel, statusTone)}
+                        ${buildPlayerProfileFactHtml('Skade', injuryValue, injuryTone)}
+                    </dl>
                 </div>
 
                 <div class="player-profile-section">
                     <p class="player-profile-section-title">Historikk</p>
-                    <div class="player-profile-moment-text${getPlayerInjuryHistoryEntries(player).length ? '' : ' is-empty'}">
-                        ${buildPlayerInjuryHistoryHtml(player)}
-                    </div>
+                    ${buildPlayerInjuryHistoryHtml(player)}
                 </div>
 
-                ${buildPlayerUtviklingsmomentSectionHtml(player)}
+                <div class="player-profile-section">
+                    <p class="player-profile-section-title">Utviklingsmoment</p>
+                    <p class="player-profile-note${moment ? '' : ' is-empty'}">${escapeRosterHtml(moment || 'Ikke satt')}</p>
+                </div>
             </div>
 
             <div class="player-profile-page-actions relative z-10">
