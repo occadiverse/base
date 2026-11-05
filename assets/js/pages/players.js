@@ -150,12 +150,8 @@ function getPlayerInjuryHistoryEntries(player) {
         });
 }
 
-function buildPlayerInjuryHistoryHtml(player, injuryInfo) {
+function buildPlayerInjuryHistoryHtml(player) {
     const history = getPlayerInjuryHistoryEntries(player);
-    const currentLabel = injuryInfo?.isInjured
-        ? (injuryInfo.label || 'Skadet')
-        : 'Frisk';
-
     const historyRows = history.length
         ? history.map(entry => {
             const typeLabel = entry.skadeType || entry.skadeStatus || 'Skade';
@@ -174,16 +170,10 @@ function buildPlayerInjuryHistoryHtml(player, injuryInfo) {
         }).join('')
         : '';
 
-    return `
-        <p class="player-profile-injury-text">${escapeRosterHtml(currentLabel)}</p>
-        <div class="player-profile-injury-history">
-            <p class="player-profile-injury-history-title">Historikk</p>
-            ${history.length
-                ? `<ul class="player-profile-injury-history-list">${historyRows}</ul>`
-                : `<p class="player-profile-injury-history-empty">Ingen tidligere skader registrert.</p>`
-            }
-        </div>
-    `;
+    if (!history.length) {
+        return `<p class="player-profile-injury-history-empty">Ingen tidligere skader registrert.</p>`;
+    }
+    return `<ul class="player-profile-injury-history-list">${historyRows}</ul>`;
 }
 
 function isPlayerCurrentlyInjured(player) {
@@ -777,7 +767,7 @@ function getPlayerProfileRadarValueScore(value, peerValues, absoluteScore) {
     return Math.max(0, Math.min(100, (numeric / best) * 100));
 }
 
-function buildPlayerProfileRadarHtml(player, yearFilter, yearLabel) {
+function buildPlayerProfileRadarHtml(player, yearFilter) {
     const rows = getPlayerProfileStatRows(player, yearFilter);
     const stat = rows.find(row => row.navn === player?.navn) || null;
     const line = typeof window.getStatsAwardPositionGroup === 'function'
@@ -800,7 +790,6 @@ function buildPlayerProfileRadarHtml(player, yearFilter, yearLabel) {
     const played = Number(stat?.kamper) || 0;
     const teamMatches = Number(stat?.teamKampCount) || 0;
     const share = Number(stat?.kampSharePct) || 0;
-    const subtitle = yearLabel;
     const winSplit = getPlayerProfileWinSplit(player, yearFilter);
     let note = teamMatches > 0
         ? `${played} av ${teamMatches} kamper på banen.`
@@ -818,20 +807,18 @@ function buildPlayerProfileRadarHtml(player, yearFilter, yearLabel) {
         note += ' Under halvparten, så skalaen settes av de andre.';
     }
 
-    const header = `
-        <div class="player-profile-panel-header">
-            <div class="min-w-0">
-                <h2 class="player-profile-panel-title">Profil</h2>
-                <p class="player-profile-panel-subtitle">${escapeRosterHtml(subtitle)}</p>
-            </div>
-        </div>
-    `;
+    const header = buildPlayerProfileClashHeaderHtml({
+        title: 'Profil',
+        icon: 'fa-bullseye'
+    });
 
     if (!hasAny) {
         return `
-            <section class="match-detail-card player-profile-panel relative">
+            <section class="${playerProfilePanelClass('profil')}" data-profile-panel="profil" aria-expanded="${isPlayerProfilePanelOpen('profil') ? 'true' : 'false'}">
                 ${header}
-                <p class="player-profile-empty">Ikke nok data til å vise profilen.</p>
+                <div class="player-profile-collapsible-content">
+                    <p class="player-profile-empty">Ikke nok data til å vise profilen.</p>
+                </div>
             </section>
         `;
     }
@@ -916,8 +903,9 @@ function buildPlayerProfileRadarHtml(player, yearFilter, yearLabel) {
     }).join('');
 
     return `
-        <section class="match-detail-card player-profile-panel relative">
+        <section class="${playerProfilePanelClass('profil')}" data-profile-panel="profil" aria-expanded="${isPlayerProfilePanelOpen('profil') ? 'true' : 'false'}">
             ${header}
+            <div class="player-profile-collapsible-content">
             <p class="player-profile-radar-read">${escapeRosterHtml(readText)}</p>
             <div class="player-profile-radar">
                 <svg viewBox="0 0 420 360" role="img" aria-label="${escapeRosterHtml(`Profil. ${summary}`)}">
@@ -936,6 +924,7 @@ function buildPlayerProfileRadarHtml(player, yearFilter, yearLabel) {
                 ` : ''}
             </div>
             <p class="player-profile-radar-note">${escapeRosterHtml(note)}</p>
+            </div>
         </section>
     `;
 }
@@ -953,27 +942,88 @@ function formatPlayerProfilePresenceSigned(value) {
     return rounded > 0 ? `+${text}` : text;
 }
 
-function buildPlayerProfilePresenceHeaderHtml(yearLabel) {
+function getPlayerProfilePanelState() {
+    const defaults = {
+        meduten: false,
+        sesong: false,
+        posisjon: false,
+        profil: false,
+        utvikling: false,
+        kampforkamp: false,
+        trening: false
+    };
+    window.playerProfilePanelState = window.playerProfilePanelState || {};
+    Object.keys(defaults).forEach((key) => {
+        if (typeof window.playerProfilePanelState[key] !== 'boolean') {
+            window.playerProfilePanelState[key] = defaults[key];
+        }
+    });
+    return window.playerProfilePanelState;
+}
+
+function isPlayerProfilePanelOpen(panelId) {
+    return getPlayerProfilePanelState()[panelId] === true;
+}
+
+function playerProfilePanelClass(panelId, extra = '') {
+    return [
+        'match-detail-card',
+        'player-profile-panel',
+        'player-profile-presence-card',
+        'player-profile-collapsible',
+        extra,
+        isPlayerProfilePanelOpen(panelId) ? '' : 'is-collapsed',
+        'relative'
+    ].filter(Boolean).join(' ');
+}
+
+function togglePlayerProfilePanel(panelId) {
+    const state = getPlayerProfilePanelState();
+    if (typeof state[panelId] !== 'boolean') return;
+    state[panelId] = !state[panelId];
+    const panel = document.querySelector(`#spillerprofil-content [data-profile-panel="${panelId}"]`);
+    if (!panel) return;
+    panel.classList.toggle('is-collapsed', !state[panelId]);
+    panel.setAttribute('aria-expanded', state[panelId] ? 'true' : 'false');
+}
+
+function buildPlayerProfileClashHeaderHtml({ title, icon, asideHtml = '', subtitle = '' }) {
+    const iconName = String(icon || 'fa-user').replace(/[^\w-]/g, '');
+    const subtitleHtml = subtitle
+        ? `<p class="player-profile-clash-subtitle">${escapeRosterHtml(subtitle)}</p>`
+        : '';
     return `
         <div class="player-profile-presence-topline">
             <div class="player-profile-presence-heading">
-                <span class="player-profile-presence-mark" aria-hidden="true"><i class="fa-solid fa-right-left"></i></span>
-                <h2 class="player-profile-panel-title">Med og uten</h2>
+                <span class="player-profile-presence-mark" aria-hidden="true"><i class="fa-solid ${iconName}"></i></span>
+                <div class="player-profile-presence-heading-copy">
+                    <h2 class="player-profile-panel-title">${title}</h2>
+                    ${subtitleHtml}
+                </div>
             </div>
-            <span class="player-profile-presence-year">${escapeRosterHtml(yearLabel)}</span>
+            ${asideHtml}
         </div>
     `;
 }
 
-function buildPlayerProfilePresenceHtml(player, yearFilter, yearLabel) {
+function buildPlayerProfilePresenceHeaderHtml() {
+    return buildPlayerProfileClashHeaderHtml({
+        title: 'Med og uten',
+        icon: 'fa-right-left'
+    });
+}
+
+function buildPlayerProfilePresenceHtml(player, yearFilter) {
     const split = getPlayerProfileWinSplit(player, yearFilter);
     const med = split.inne;
     const uten = split.ute;
     if (!med.n && !uten.n) {
         return `
-            <section class="match-detail-card player-profile-panel player-profile-presence-card relative">
-                ${buildPlayerProfilePresenceHeaderHtml(yearLabel)}
-                <p class="player-profile-empty">Ingen kamper i perioden.</p>
+            <section class="${playerProfilePanelClass('meduten')}" data-profile-panel="meduten" aria-expanded="${isPlayerProfilePanelOpen('meduten') ? 'true' : 'false'}">
+                ${buildPlayerProfilePresenceHeaderHtml()}
+                <div class="player-profile-collapsible-content">
+                    <p class="player-profile-empty">Ingen kamper i perioden.</p>
+                </div>
             </section>
         `;
     }
@@ -990,8 +1040,9 @@ function buildPlayerProfilePresenceHtml(player, yearFilter, yearLabel) {
     else lead += ' Han spilte alle kampene.';
 
     return `
-        <section class="match-detail-card player-profile-panel player-profile-presence-card relative">
-            ${buildPlayerProfilePresenceHeaderHtml(yearLabel)}
+        <section class="${playerProfilePanelClass('meduten')}" data-profile-panel="meduten" aria-expanded="${isPlayerProfilePanelOpen('meduten') ? 'true' : 'false'}">
+            ${buildPlayerProfilePresenceHeaderHtml()}
+            <div class="player-profile-collapsible-content">
             <p class="player-profile-radar-read">${escapeRosterHtml(lead)}</p>
             <div class="player-profile-presence-wrap">
                 <table class="player-profile-presence-table">
@@ -1035,6 +1086,7 @@ function buildPlayerProfilePresenceHtml(player, yearFilter, yearLabel) {
                         </tr>
                     </tbody>
                 </table>
+            </div>
             </div>
         </section>
     `;
@@ -1591,6 +1643,16 @@ function bindPlayerProfilePageEvents() {
     root.dataset.eventsBound = 'true';
 
     root.addEventListener('click', (event) => {
+        const topline = event.target.closest('.player-profile-collapsible .player-profile-presence-topline');
+        if (topline && root.contains(topline)) {
+            const interactive = event.target.closest('a, button, input, select, textarea, label');
+            if (!interactive) {
+                const panelId = topline.closest('[data-profile-panel]')?.dataset.profilePanel;
+                togglePlayerProfilePanel(panelId);
+                return;
+            }
+        }
+
         const actionEl = event.target.closest('[data-player-profile-action]');
         if (!actionEl || !root.contains(actionEl)) return;
 
@@ -1686,8 +1748,6 @@ window.renderPlayerProfilePage = function(playerId) {
     const foot = player.fot ? `${player.fot} fot` : 'Ukjent fot';
     const ageLabel = age != null && birthYear ? `${age} år (${birthYear})` : (birthYear || '-');
     const captainMark = player.isCaptain ? '<span class="player-profile-captain" title="Kaptein">⚓</span>' : '';
-    const yearLabel = yearFilter === 'alle' ? 'Alle år' : String(yearFilter);
-
     const oppmote = stats
         ? (typeof window.formatOppmoteDisplay === 'function'
             ? window.formatOppmoteDisplay(stats)
@@ -1758,6 +1818,35 @@ window.renderPlayerProfilePage = function(playerId) {
                 </div>
             </div>
 
+            <div class="player-profile-shell-details relative z-10">
+                <div class="player-profile-section">
+                    <div class="player-profile-grid">
+                        ${buildPlayerProfileMetricHtml('Fot', foot)}
+                        ${buildPlayerProfileMetricHtml('Tilknyttet', formatPlayerJoinedFromLabel(player))}
+                        ${buildPlayerProfileMetricHtml('Alder', ageLabel)}
+                    </div>
+                </div>
+
+                <div class="player-profile-section">
+                    <p class="player-profile-section-title">Status</p>
+                    <p class="player-profile-moment-text">${escapeRosterHtml(getPlayerDisplayStatus(player))}</p>
+                </div>
+
+                <div class="player-profile-section ${injuryInfo.isInjured ? 'player-profile-section-injury' : ''}">
+                    <p class="player-profile-section-title">Skade</p>
+                    <p class="player-profile-moment-text${injuryInfo.isInjured ? '' : ' is-empty'}">${escapeRosterHtml(injuryInfo.isInjured ? (injuryInfo.label || 'Skadet') : 'Frisk')}</p>
+                </div>
+
+                <div class="player-profile-section">
+                    <p class="player-profile-section-title">Historikk</p>
+                    <div class="player-profile-moment-text${getPlayerInjuryHistoryEntries(player).length ? '' : ' is-empty'}">
+                        ${buildPlayerInjuryHistoryHtml(player)}
+                    </div>
+                </div>
+
+                ${buildPlayerUtviklingsmomentSectionHtml(player)}
+            </div>
+
             <div class="player-profile-page-actions relative z-10">
                 <button type="button" class="bsk-btn bsk-btn-secondary player-profile-back-btn" data-player-profile-action="go-back" title="Tilbake" aria-label="Tilbake til tropp">
                     <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
@@ -1774,37 +1863,20 @@ window.renderPlayerProfilePage = function(playerId) {
             </div>
         </section>
 
-        <section class="match-detail-card player-profile-panel relative">
-            <div class="player-profile-section">
-                <p class="player-profile-section-title">Spillerinfo</p>
-                <div class="player-profile-grid">
-                    ${buildPlayerProfileMetricHtml('Lag', player.spillerLag || window.getPrimaryTeamName())}
-                    ${buildPlayerProfileMetricHtml('Posisjon', posLabel)}
-                    ${buildPlayerProfileMetricHtml('Fot', foot)}
-                    ${buildPlayerProfileMetricHtml('Status', getPlayerDisplayStatus(player))}
-                    ${buildPlayerProfileMetricHtml('Tilknyttet', formatPlayerJoinedFromLabel(player))}
-                    ${buildPlayerProfileMetricHtml('Alder', ageLabel)}
-                </div>
-            </div>
+        <div class="player-profile-year-bar">
+            ${buildPlayerProfileYearFilterHtml(player)}
+        </div>
 
-            <div class="player-profile-section ${injuryInfo.isInjured ? 'player-profile-section-injury' : ''}">
-                <p class="player-profile-section-title">Skade</p>
-                ${buildPlayerInjuryHistoryHtml(player, injuryInfo)}
-            </div>
+        ${buildPlayerProfilePresenceHtml(player, yearFilter)}
 
-            ${buildPlayerUtviklingsmomentSectionHtml(player)}
-        </section>
-
-        ${buildPlayerProfilePresenceHtml(player, yearFilter, yearLabel)}
-
-        <section class="match-detail-card player-profile-panel player-profile-presence-card player-profile-season-card relative">
+        <section class="${playerProfilePanelClass('sesong', 'player-profile-season-card')}" data-profile-panel="sesong" aria-expanded="${isPlayerProfilePanelOpen('sesong') ? 'true' : 'false'}">
             <div class="player-profile-presence-topline">
                 <div class="player-profile-presence-heading">
                     <span class="player-profile-presence-mark" aria-hidden="true"><i class="fa-solid fa-ranking-star"></i></span>
                     <h2 class="player-profile-panel-title">Sesong i tall</h2>
                 </div>
-                ${buildPlayerProfileYearFilterHtml(player)}
             </div>
+            <div class="player-profile-collapsible-content">
             <div class="player-profile-season-wrap">
                 <table class="player-profile-season-table">
                     <thead>
@@ -1883,54 +1955,56 @@ window.renderPlayerProfilePage = function(playerId) {
                     </tbody>
                 </table>
             </div>
+            </div>
         </section>
 
-        <section class="match-detail-card player-profile-panel relative">
-            <div class="player-profile-panel-header">
-                <div class="min-w-0">
-                    <h2 class="player-profile-panel-title">Posisjon</h2>
-                    <p class="player-profile-panel-subtitle">${escapeRosterHtml(yearLabel)} · Sortert etter form</p>
-                </div>
-            </div>
+        <section class="${playerProfilePanelClass('posisjon')}" data-profile-panel="posisjon" aria-expanded="${isPlayerProfilePanelOpen('posisjon') ? 'true' : 'false'}">
+            ${buildPlayerProfileClashHeaderHtml({
+                title: 'Posisjon og linje',
+                icon: 'fa-shirt',
+                subtitle: 'Sortert etter form'
+            })}
+            <div class="player-profile-collapsible-content">
             ${buildPlayerProfilePositionStatsHtml(player, yearFilter)}
+            </div>
         </section>
 
-        ${buildPlayerProfileRadarHtml(player, yearFilter, yearLabel)}
+        ${buildPlayerProfileRadarHtml(player, yearFilter)}
 
-        <section class="match-detail-card player-profile-panel relative">
-            <div class="player-profile-panel-header">
-                <div class="min-w-0">
-                    <h2 class="player-profile-panel-title">Utvikling</h2>
-                    <p class="player-profile-panel-subtitle">Spillerutvikling vs troppens utvikling. Nyeste kamp til høyre.</p>
-                </div>
-            </div>
+        <section class="${playerProfilePanelClass('utvikling')}" data-profile-panel="utvikling" aria-expanded="${isPlayerProfilePanelOpen('utvikling') ? 'true' : 'false'}">
+            ${buildPlayerProfileClashHeaderHtml({
+                title: 'Utvikling',
+                icon: 'fa-chart-line',
+                subtitle: 'Spillerutvikling mot troppens utvikling. Nyeste kamp til høyre.'
+            })}
+            <div class="player-profile-collapsible-content">
             <div class="player-profile-chart-wrap">${trendHtml}</div>
             <div class="stats-chart-legend player-profile-chart-legend" aria-hidden="true">
                 <span class="stats-chart-legend-item is-kampbidrag"><i></i> Spiller utvikling</span>
                 <span class="stats-chart-legend-item is-team-median"><i></i> Lagsmedian</span>
             </div>
+            </div>
         </section>
 
-        <section class="match-detail-card player-profile-panel relative">
-            <div class="player-profile-panel-header">
-                <div class="min-w-0 player-profile-panel-heading">
-                    <h2 class="player-profile-panel-title">
-                        Kamp for Kamp
-                        <span class="player-profile-year-chip">${escapeRosterHtml(yearLabel)}</span>
-                    </h2>
-                </div>
-            </div>
+        <section class="${playerProfilePanelClass('kampforkamp')}" data-profile-panel="kampforkamp" aria-expanded="${isPlayerProfilePanelOpen('kampforkamp') ? 'true' : 'false'}">
+            ${buildPlayerProfileClashHeaderHtml({
+                title: 'Kamp for kamp',
+                icon: 'fa-futbol'
+            })}
+            <div class="player-profile-collapsible-content">
             <div class="player-profile-history-wrap">${matchHistoryHtml}</div>
+            </div>
         </section>
 
-        <section class="match-detail-card player-profile-panel relative">
-            <div class="player-profile-panel-header">
-                <div class="min-w-0">
-                    <h2 class="player-profile-panel-title">Trening / oppmøte</h2>
-                    <p class="player-profile-panel-subtitle">Siste aktiviteter spilleren kunne møtt på</p>
-                </div>
-            </div>
+        <section class="${playerProfilePanelClass('trening')}" data-profile-panel="trening" aria-expanded="${isPlayerProfilePanelOpen('trening') ? 'true' : 'false'}">
+            ${buildPlayerProfileClashHeaderHtml({
+                title: 'Trening / oppmøte',
+                icon: 'fa-user-check',
+                subtitle: 'Siste aktiviteter spilleren kunne møtt på'
+            })}
+            <div class="player-profile-collapsible-content">
             ${buildPlayerProfileTrainingHtml(player)}
+            </div>
         </section>
     `;
 };

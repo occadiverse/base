@@ -909,7 +909,7 @@ window.checkIndividualChemistry = function() {
             };
             const mark = markHtml || window.renderStatsClashMarkHtml(icon || icons[id]);
             const badgeHtml = badge !== '' && badge != null
-                ? `<span class="stats-clash-year">${badge}</span>`
+                ? `<span class="stats-clash-count">${badge}</span>`
                 : '';
             return `
                 <section class="match-game-plan-panel match-collapsible-panel stats-kamp-collapsible-panel is-game-card stats-clash-panel ${isOpen ? '' : 'is-collapsed'}" data-stats-panel="${id}">
@@ -1416,9 +1416,8 @@ window.checkIndividualChemistry = function() {
         };
 
         window.paintStatsOpeningShell = function(tabId = 'lag') {
-            const heroTab = tabId === 'spillere' ? 'spillere' : 'lag';
-            if (typeof window.paintStatsChrome === 'function' && typeof window.renderStatsChromeTabsOnly === 'function') {
-                window.paintStatsChrome(window.renderStatsChromeTabsOnly(window.renderStatsHeroTabsHtml(heroTab)));
+            if (typeof window.clearStatsTabHero === 'function') {
+                window.clearStatsTabHero();
             }
             if (typeof window.updateStatsLagSectionVisibility === 'function') {
                 window.updateStatsLagSectionVisibility();
@@ -7102,8 +7101,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const hero = document.getElementById('stats-tab-hero');
             if (!hero) return;
 
-            const heroTabsHtml = window.renderStatsHeroTabsHtml(tabId);
-
             if (tabId === 'lag') {
                 const data = window._statsLagData;
                 if (!data) {
@@ -7115,19 +7112,19 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     return;
                 }
 
-                window.paintStatsChrome(window.renderStatsChromeTabsOnly(heroTabsHtml));
+                window.clearStatsTabHero();
                 window.renderStatsLagSummary();
                 return;
             }
 
             if (tabId === 'spillere') {
-                window.paintStatsChrome(window.renderStatsChromeTabsOnly(heroTabsHtml));
+                window.clearStatsTabHero();
                 window.renderStatsSpillereSummary();
                 return;
             }
 
             if (tabId === 'kampstat') {
-                window.paintStatsChrome(window.renderStatsChromeTabsOnly(window.renderStatsHeroTabsHtml('lag')));
+                window.clearStatsTabHero();
                 window.statsLagSection = 'kampdata';
                 window.renderStatsLagSummary();
             }
@@ -7775,9 +7772,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             window.statsLagSection = 'spillerdata';
             // Chrome/tabs only — diagrams are rendered once inside utvikling-panelet below.
-            const hero = document.getElementById('stats-tab-hero');
-            if (hero && typeof window.paintStatsChrome === 'function' && typeof window.renderStatsChromeTabsOnly === 'function') {
-                window.paintStatsChrome(window.renderStatsChromeTabsOnly(window.renderStatsHeroTabsHtml('spillere')));
+            if (typeof window.clearStatsTabHero === 'function') {
+                window.clearStatsTabHero();
             }
             const awardsSlot = document.getElementById('stats-awards-slot');
             if (awardsSlot) {

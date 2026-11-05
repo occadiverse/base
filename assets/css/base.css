@@ -6230,9 +6230,6 @@
         #view-statistikk [data-stats-panel="sesongkaaringer"] .match-print-sheet-btn span {
             display: none;
         }
-        #view-statistikk [data-stats-panel="sesongkaaringer"] .match-print-sheet-btn {
-            padding-inline: 0.55rem;
-        }
         #view-statistikk .stats-kamp-collapsible-panel.is-game-card {
             background:
                 radial-gradient(ellipse 110% 65% at 50% -18%, rgba(255, 214, 102, 0.5), transparent 52%),
@@ -6300,25 +6297,94 @@
                 0 0 0 5px rgba(196, 146, 20, 0.55),
                 0 20px 40px rgba(2, 6, 23, 0.42);
         }
-        #view-statistikk .stats-clash-panel .stats-clash-year {
+        #view-statistikk .stats-clash-panel .match-bench-topline :is(.stats-clash-year, .stats-clash-count) {
             align-items: center;
-            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
-            border: 1.5px solid rgba(255, 224, 138, 0.42);
+            border: 0;
             border-radius: 999px;
-            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
-            color: #fffdf5;
             display: inline-flex;
             flex: 0 0 auto;
-            font-size: 0.68rem;
+            font-size: 0.72rem;
             font-weight: 900;
-            letter-spacing: 0.06em;
+            height: 1.85rem;
+            justify-content: center;
+            letter-spacing: 0.04em;
             line-height: 1;
             margin-left: auto;
-            min-height: 1.7rem;
-            padding: 0.28rem 0.7rem;
+            min-height: 1.85rem;
+            min-width: 1.85rem;
+            padding: 0 0.72rem;
             position: relative;
-            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
+            text-shadow: none;
             z-index: 2;
+        }
+        #view-statistikk .stats-clash-panel .stats-clash-year {
+            background: #f0c85a;
+            box-shadow: 0 2px 0 #8a6a16;
+            color: #3d2a08;
+        }
+        #view-statistikk .stats-clash-panel .stats-clash-count {
+            background: #c4b5fd;
+            box-shadow: 0 2px 0 #5b21b6;
+            color: #2e1065;
+        }
+        #view-statistikk .stats-clash-panel .match-bench-topline .match-print-sheet-btn {
+            background: #8ed4b8;
+            border: 0;
+            border-radius: 999px;
+            box-shadow: 0 2px 0 #1d6b4e;
+            color: #10261c;
+            height: 1.85rem;
+            min-height: 1.85rem;
+            min-width: 1.85rem;
+            padding: 0;
+            width: 1.85rem;
+        }
+        #view-statistikk .stats-clash-panel .match-bench-topline .match-print-sheet-btn i {
+            color: #10261c;
+            font-size: 0.78rem;
+        }
+        #view-statistikk .stats-clash-panel .match-bench-topline .match-print-sheet-btn:hover {
+            background: #b6ead4;
+            box-shadow: 0 3px 0 #1d6b4e;
+            transform: translateY(-1px);
+        }
+        #view-statistikk .stats-clash-panel .match-bench-topline .match-print-sheet-btn:focus-visible {
+            box-shadow: 0 0 0 3px rgba(142, 212, 184, 0.55), 0 2px 0 #1d6b4e;
+        }
+        #view-statistikk .stats-clash-panel .match-bench-topline .training-session-groups-info-btn,
+        #view-statistikk .stats-board-top .stats-chrome-info-btn.training-session-groups-info-btn {
+            background: #8ed4ff;
+            border: 0;
+            box-shadow: 0 2px 0 #1a6a96;
+            color: #0c3558;
+            height: 1.85rem;
+            min-height: 1.85rem;
+            min-width: 1.85rem;
+            width: 1.85rem;
+        }
+        #view-statistikk .stats-clash-panel .match-bench-topline .training-session-groups-info-btn i,
+        #view-statistikk .stats-board-top .stats-chrome-info-btn.training-session-groups-info-btn i {
+            color: #0c3558;
+            font-size: 0.82rem;
+        }
+        #view-statistikk .stats-clash-panel .match-bench-topline .training-session-groups-info-btn:hover,
+        #view-statistikk .stats-clash-panel .match-bench-topline .training-session-groups-info-btn.is-active,
+        #view-statistikk .stats-board-top .stats-chrome-info-btn.training-session-groups-info-btn:hover,
+        #view-statistikk .stats-board-top .stats-chrome-info-btn.training-session-groups-info-btn.is-active {
+            background: #c5ebff;
+            border-color: transparent;
+            box-shadow: 0 3px 0 #1a6a96;
+            color: #0c3558;
+        }
+        #view-statistikk .stats-clash-panel .match-bench-topline .training-session-groups-info-btn:hover i,
+        #view-statistikk .stats-clash-panel .match-bench-topline .training-session-groups-info-btn.is-active i,
+        #view-statistikk .stats-board-top .stats-chrome-info-btn.training-session-groups-info-btn:hover i,
+        #view-statistikk .stats-board-top .stats-chrome-info-btn.training-session-groups-info-btn.is-active i {
+            color: #0c3558;
+        }
+        #view-statistikk .stats-clash-panel .match-bench-topline .training-session-groups-info-btn:focus-visible,
+        #view-statistikk .stats-board-top .stats-chrome-info-btn.training-session-groups-info-btn:focus-visible {
+            box-shadow: 0 0 0 3px rgba(142, 212, 255, 0.55), 0 2px 0 #1a6a96;
         }
         .hall-of-fame-hall {
             container: hall-of-fame / inline-size;
@@ -11221,6 +11287,81 @@
             justify-content: center;
             min-width: 0;
         }
+        .player-profile-shell .player-profile-page-actions :is(.player-profile-back-btn, .player-profile-action-btn) {
+            background: #12345c;
+            border: 0.5px solid #8ed4ff;
+            border-radius: 0.55rem;
+            box-shadow:
+                inset 0 0 0 1px rgba(10, 36, 74, 0.45),
+                inset 0 2px 3px rgba(8, 28, 60, 0.2);
+            color: #ffffff;
+            font-size: 0.84rem;
+            font-weight: 950;
+            gap: 0.32rem;
+            height: auto;
+            isolation: isolate;
+            letter-spacing: 0;
+            line-height: 1;
+            min-height: 2.35rem;
+            overflow: hidden;
+            padding: 0.4rem 0.35rem 0.48rem;
+            paint-order: stroke fill;
+            position: relative;
+            -webkit-text-stroke: 0.6px #111;
+            text-shadow:
+                0 1.5px 0 #111,
+                1px 1px 0 #111,
+                -1px 1px 0 #111,
+                1px -1px 0 #111,
+                -1px -1px 0 #111;
+            text-transform: none;
+        }
+        .player-profile-shell .player-profile-page-actions :is(.player-profile-back-btn, .player-profile-action-btn)::before {
+            background: linear-gradient(180deg, #2a5a80 0%, #214c70 100%);
+            border-radius: calc(0.55rem - 2.5px);
+            content: "";
+            height: 58%;
+            left: 2px;
+            pointer-events: none;
+            position: absolute;
+            right: 2px;
+            top: 2px;
+            z-index: 0;
+        }
+        .player-profile-shell .player-profile-page-actions :is(.player-profile-back-btn, .player-profile-action-btn) > * {
+            position: relative;
+            z-index: 1;
+        }
+        .player-profile-shell .player-profile-page-actions :is(.player-profile-back-btn, .player-profile-action-btn) i {
+            color: #ffffff;
+            flex: 0 0 auto;
+            font-size: 0.82rem;
+            paint-order: stroke fill;
+            -webkit-text-stroke: 0.45px #111;
+            text-shadow: 0 1px 0 #111;
+        }
+        .player-profile-shell .player-profile-page-actions :is(.player-profile-back-btn, .player-profile-action-btn):hover:not(:disabled),
+        .player-profile-shell .player-profile-page-actions :is(.player-profile-back-btn, .player-profile-action-btn):focus-visible {
+            background: #12345c;
+            border-color: #c7ecff;
+            box-shadow:
+                inset 0 0 0 1px rgba(10, 36, 74, 0.45),
+                inset 0 2px 3px rgba(8, 28, 60, 0.2);
+            color: #ffffff;
+            transform: none;
+        }
+        .player-profile-shell .player-profile-page-actions :is(.player-profile-back-btn, .player-profile-action-btn):hover:not(:disabled)::before,
+        .player-profile-shell .player-profile-page-actions :is(.player-profile-back-btn, .player-profile-action-btn):focus-visible::before {
+            background: linear-gradient(180deg, #346c94 0%, #285c80 100%);
+        }
+        .player-profile-shell .player-profile-page-actions :is(.player-profile-back-btn, .player-profile-action-btn):hover:not(:disabled) i,
+        .player-profile-shell .player-profile-page-actions :is(.player-profile-back-btn, .player-profile-action-btn):focus-visible i {
+            color: #ffffff;
+        }
+        .player-profile-shell .player-profile-page-actions :is(.player-profile-back-btn, .player-profile-action-btn):focus-visible {
+            outline: 2px solid #8ed4ff;
+            outline-offset: 2px;
+        }
         .player-profile-page-hero {
             align-items: start;
             display: grid;
@@ -11365,8 +11506,22 @@
         .player-profile-presence-heading {
             align-items: center;
             display: flex;
+            flex: 1 1 auto;
             gap: 0.4rem;
             min-width: 0;
+        }
+        .player-profile-presence-heading-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 0.22rem;
+            min-width: 0;
+        }
+        .player-profile-clash-subtitle {
+            color: rgba(255, 253, 245, 0.62);
+            font-size: 0.72rem;
+            font-weight: 700;
+            line-height: 1.3;
+            margin: 0;
         }
         .player-profile-presence-mark {
             align-items: center;
@@ -11392,12 +11547,42 @@
                 0 -1px 0 #fffdf5,
                 0 1px 0 #fffdf5;
         }
+        .player-profile-shell-details {
+            display: grid;
+            gap: 0.95rem;
+            margin-top: 1.15rem;
+        }
+        .player-profile-shell-details .player-profile-section + .player-profile-section {
+            margin-top: 0;
+        }
+        .player-profile-shell-details .player-profile-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+        .player-profile-shell .player-profile-moment-text .player-profile-injury-history-list,
+        .player-profile-shell .player-profile-moment-text .player-profile-injury-history-empty {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .player-profile-shell .player-profile-moment-text .player-profile-injury-history-row {
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            padding: 0;
+        }
+        .player-profile-shell .player-profile-moment-text .player-profile-injury-history-row + .player-profile-injury-history-row {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin-top: 0.55rem;
+            padding-top: 0.55rem;
+        }
         .player-profile-presence-card .player-profile-panel-title {
             color: #ffe9a8;
-            font-size: clamp(1.2rem, 3.4vw, 1.45rem);
+            font-size: clamp(1.05rem, 4.4vw, 1.45rem);
             font-weight: 950;
-            letter-spacing: 0.06em;
-            line-height: 1;
+            letter-spacing: 0.04em;
+            line-height: 1.05;
             margin: 0;
             text-shadow:
                 0 1px 0 rgba(255, 253, 245, 0.28),
@@ -11410,22 +11595,38 @@
             flex: 0 0 auto;
             margin-left: auto;
         }
+        .player-profile-collapsible .player-profile-presence-topline {
+            cursor: pointer;
+        }
+        .player-profile-collapsible.is-collapsed .player-profile-collapsible-content {
+            display: none;
+        }
+        .player-profile-collapsible.is-collapsed .player-profile-presence-topline {
+            margin-bottom: 0;
+        }
+        .player-profile-collapsible.is-collapsed {
+            padding-bottom: 0.35rem;
+        }
         .player-profile-presence-year {
             align-items: center;
-            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
-            border: 1.5px solid rgba(255, 224, 138, 0.42);
+            background: #f0c85a;
+            border: 0;
             border-radius: 999px;
-            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
-            color: #fffdf5;
+            box-shadow: 0 2px 0 #8a6a16;
+            color: #3d2a08;
             display: inline-flex;
             flex: 0 0 auto;
             font-size: 0.72rem;
             font-weight: 900;
-            letter-spacing: 0.06em;
+            height: 1.85rem;
+            justify-content: center;
+            letter-spacing: 0.04em;
             line-height: 1;
             margin-left: auto;
-            min-height: 1.7rem;
-            padding: 0.28rem 0.7rem;
+            min-height: 1.85rem;
+            min-width: 1.85rem;
+            padding: 0 0.72rem;
+            text-shadow: none;
         }
         .player-profile-presence-wrap {
             border: 1px solid rgba(245, 197, 66, 0.18);
@@ -11584,10 +11785,34 @@
             margin: 0;
             text-align: center;
         }
+        .player-profile-year-bar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: -0.4rem;
+        }
         .player-profile-year-filter {
             display: flex;
             flex-wrap: wrap;
             gap: 0.35rem;
+        }
+        .player-profile-year-bar .player-profile-year-btn {
+            background: #12345c;
+            border: 0.5px solid #8ed4ff;
+            border-radius: 999px;
+            box-shadow: 0 2px 0 #0a1a30;
+            color: #ffffff;
+            font-size: 0.72rem;
+            font-weight: 900;
+            height: 1.85rem;
+            letter-spacing: 0.04em;
+            min-height: 1.85rem;
+            padding: 0 0.72rem;
+        }
+        .player-profile-year-bar .player-profile-year-btn.is-active {
+            background: #f0c85a;
+            border-color: transparent;
+            box-shadow: 0 2px 0 #8a6a16;
+            color: #3d2a08;
         }
         .player-profile-year-btn.is-active {
             background: linear-gradient(135deg, rgba(255, 243, 191, 0.96) 0%, rgba(245, 197, 66, 0.96) 100%);
@@ -11884,29 +12109,29 @@
             background: rgba(248, 113, 113, 0.16);
             color: #fecaca;
         }
-        .player-profile-panel .player-profile-section-title {
+        :is(.player-profile-panel, .player-profile-shell) .player-profile-section-title {
             color: rgba(245, 197, 66, 0.88);
         }
-        .player-profile-panel .player-profile-metric {
+        :is(.player-profile-panel, .player-profile-shell) .player-profile-metric {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 0.8rem;
             padding: 0.55rem 0.65rem;
         }
-        .player-profile-panel .player-profile-metric-label {
+        :is(.player-profile-panel, .player-profile-shell) .player-profile-metric-label {
             color: rgba(255, 255, 255, 0.5);
         }
-        .player-profile-panel .player-profile-metric-value {
+        :is(.player-profile-panel, .player-profile-shell) .player-profile-metric-value {
             color: #ffffff;
         }
-        .player-profile-panel .player-profile-injury-text,
-        .player-profile-panel .player-profile-empty {
+        :is(.player-profile-panel, .player-profile-shell) .player-profile-injury-text,
+        :is(.player-profile-panel, .player-profile-shell) .player-profile-empty {
             color: rgba(255, 255, 255, 0.72);
         }
-        .player-profile-panel .player-profile-moment-text {
+        :is(.player-profile-panel, .player-profile-shell) .player-profile-moment-text {
             color: rgba(255, 255, 255, 0.88);
         }
-        .player-profile-panel .player-profile-moment-text.is-empty {
+        :is(.player-profile-panel, .player-profile-shell) .player-profile-moment-text.is-empty {
             color: rgba(255, 255, 255, 0.5);
         }
         .player-profile-injury-history {
@@ -11919,6 +12144,26 @@
             letter-spacing: 0.08em;
             margin: 0 0 0.45rem;
             text-transform: uppercase;
+        }
+        .player-profile-shell :is(.player-profile-section-title, .player-profile-injury-history-title) {
+            align-items: center;
+            color: rgba(255, 253, 245, 0.72);
+            display: flex;
+            font-size: 0.68rem;
+            font-weight: 900;
+            gap: 0.65rem;
+            letter-spacing: 0.08em;
+            line-height: 1;
+            margin: 0;
+            padding: 0 0.1rem;
+            text-shadow: none;
+            text-transform: uppercase;
+        }
+        .player-profile-shell :is(.player-profile-section-title, .player-profile-injury-history-title)::after {
+            background: linear-gradient(90deg, rgba(245, 197, 66, 0.52), rgba(255, 255, 255, 0.1));
+            content: "";
+            flex: 1 1 auto;
+            height: 1px;
         }
         .player-profile-injury-history-list {
             display: grid;
@@ -11965,13 +12210,107 @@
             margin: 0;
         }
         .player-profile-history-wrap .stats-form-history-table {
+            background: transparent;
             border-radius: 0.85rem;
-            min-width: 100%;
-            width: max-content;
+            min-width: 26.5rem;
+            width: 100%;
+        }
+        .player-profile-history-wrap .stats-form-history-table-player {
+            min-width: 26.5rem;
         }
         .player-profile-history-wrap {
+            border: 1px solid rgba(245, 197, 66, 0.18);
+            border-radius: 0.9rem;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+        }
+        .player-profile-history-wrap .stats-form-history-table thead {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .player-profile-history-wrap .stats-form-history-table th {
+            border-bottom: 1px solid rgba(245, 197, 66, 0.28);
+            color: rgba(255, 253, 245, 0.55);
+            font-size: 0.58rem;
+            letter-spacing: 0.03em;
+            padding: 0.55rem 0.16rem;
+        }
+        .player-profile-history-wrap .stats-form-history-table th:nth-child(1),
+        .player-profile-history-wrap .stats-form-history-table td:nth-child(1) {
+            padding-left: 0.55rem;
+            width: 3.15rem;
+        }
+        .player-profile-history-wrap .stats-form-history-table th:nth-child(2),
+        .player-profile-history-wrap .stats-form-history-table td:nth-child(2) {
+            width: auto;
+        }
+        .player-profile-history-wrap .stats-form-history-table th:nth-child(n+3),
+        .player-profile-history-wrap .stats-form-history-table td:nth-child(n+3) {
+            padding-left: 0.1rem;
+            padding-right: 0.1rem;
+            width: 2.15rem;
+        }
+        .player-profile-history-wrap .stats-form-history-table th:nth-child(8),
+        .player-profile-history-wrap .stats-form-history-table td:nth-child(8),
+        .player-profile-history-wrap .stats-form-history-table th:nth-child(9),
+        .player-profile-history-wrap .stats-form-history-table td:nth-child(9) {
+            width: 2.45rem;
+        }
+        .player-profile-history-wrap .stats-form-history-table th:first-child,
+        .player-profile-history-wrap .stats-form-history-table td:first-child {
+            padding-left: 0.55rem;
+        }
+        .player-profile-history-wrap .stats-form-history-table th:last-child,
+        .player-profile-history-wrap .stats-form-history-table td:last-child {
+            padding-right: 0.45rem;
+        }
+        .player-profile-history-wrap .stats-form-history-table tbody {
+            background: transparent;
+        }
+        .player-profile-history-wrap .stats-form-history-table td {
+            color: rgba(255, 253, 245, 0.9);
+            font-size: 0.74rem;
+            padding: 0.5rem 0.16rem;
+        }
+        .player-profile-history-wrap .stats-form-history-row + .stats-form-history-row td {
+            border-top-color: rgba(255, 255, 255, 0.08);
+        }
+        .player-profile-history-wrap .stats-form-history-row:hover {
+            background: rgba(245, 197, 66, 0.08);
+        }
+        .player-profile-history-wrap .stats-form-history-date {
+            color: rgba(255, 253, 245, 0.62);
+        }
+        .player-profile-history-wrap .stats-form-history-opponent {
+            color: #ffffff;
+        }
+        .player-profile-history-wrap .stats-form-history-pos-code {
+            background: linear-gradient(180deg, #ff4fd8, #bd0a88);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            border-radius: 0.28rem;
+            color: #ffffff;
+            font-size: 0.62rem;
+            letter-spacing: 0.02em;
+            min-width: 1.45rem;
+            padding: 0.12rem 0.22rem;
+            text-shadow: 0 1px 0 rgba(74, 0, 53, 0.75);
+        }
+        .player-profile-history-wrap .stats-form-history-rating.is-high,
+        .player-profile-history-wrap .stats-form-history-points.is-high,
+        .player-profile-history-wrap .stats-form-history-sb.is-start {
+            color: #4ade80;
+        }
+        .player-profile-history-wrap .stats-form-history-rating.is-mid,
+        .player-profile-history-wrap .stats-form-history-points.is-mid {
+            color: #f5c542;
+        }
+        .player-profile-history-wrap .stats-form-history-rating.is-low,
+        .player-profile-history-wrap .stats-form-history-points.is-low {
+            color: #fb7185;
+        }
+        .player-profile-history-wrap .stats-form-history-rating.is-neutral,
+        .player-profile-history-wrap .stats-form-history-sb.is-bench,
+        .player-profile-history-wrap .stats-form-history-bench {
+            color: rgba(255, 253, 245, 0.5);
         }
         .player-profile-chart-wrap .stats-chart-empty,
         .player-profile-history-wrap .stats-form-history-empty {
@@ -16916,7 +17255,7 @@
             color: #ffffff;
         }
         .stats-kampdata-bb-mark {
-            color: #f5c542;
+            color: #c084fc;
             font-size: 0.78rem;
             font-weight: 950;
             margin-left: 0.15rem;
