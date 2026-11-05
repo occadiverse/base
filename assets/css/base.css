@@ -8642,8 +8642,10 @@
             }
             #view-kamper.portal-view-mobile-peek .match-list-mobile-main {
                 flex: 1 1 auto;
+                margin-top: -1px;
                 min-height: 0;
                 overflow: hidden;
+                padding-top: calc(0.45rem + 1px);
             }
             /* Overscroll / end of list stays navy, not portal white */
             html.is-kamper-list,
