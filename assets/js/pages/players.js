@@ -1881,8 +1881,6 @@ window.renderPlayerProfilePage = function(playerId) {
             ${buildPlayerProfileYearFilterHtml(player)}
         </div>
 
-        ${buildPlayerProfilePresenceHtml(player, yearFilter)}
-
         <section class="${playerProfilePanelClass('sesong', 'player-profile-season-card')}" data-profile-panel="sesong" aria-expanded="${isPlayerProfilePanelOpen('sesong') ? 'true' : 'false'}">
             <div class="player-profile-presence-topline">
                 <div class="player-profile-presence-heading">
@@ -1982,6 +1980,8 @@ window.renderPlayerProfilePage = function(playerId) {
             ${buildPlayerProfilePositionStatsHtml(player, yearFilter)}
             </div>
         </section>
+
+        ${buildPlayerProfilePresenceHtml(player, yearFilter)}
 
         ${buildPlayerProfileRadarHtml(player, yearFilter)}
 
