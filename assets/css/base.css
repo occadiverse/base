@@ -8182,63 +8182,118 @@
             position: relative;
             z-index: 2;
         }
-        /* Kamper: chips = hero battle-chip blå (ikke gullfylt aktiv) */
+        /* Kamper: Kommende, Tidligere og Legg til = samme blå plate som stats og profil */
         .match-list-page .match-filter-btn:not(.match-list-add-btn),
-        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn) {
-            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
-            border: 1.5px solid rgba(255, 224, 138, 0.42);
-            border-radius: 0.7rem;
-            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
-            color: rgba(255, 253, 245, 0.92);
-            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
-            transform: none;
-        }
-        .match-list-page .match-filter-btn:not(.match-list-add-btn):hover:not(.is-active),
-        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn):hover:not(.is-active) {
-            background: linear-gradient(180deg, rgba(40, 95, 150, 0.85) 0%, rgba(12, 36, 68, 0.95) 100%);
-            border-color: rgba(255, 224, 138, 0.7);
-            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.5);
-            color: #fffdf5;
-            transform: none;
-        }
-        /* Aktiv filter = samme gullplate som bunnmeny (mørk tekst på gull) */
-        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active,
-        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active {
-            background: linear-gradient(180deg, #ffe08a 0%, #f5c542 48%, #c4921a 100%);
-            border-color: #fff6d6;
-            box-shadow:
-                0 2px 0 #6b4a0c,
-                inset 0 1px 0 rgba(255, 253, 245, 0.5);
-            color: #1a1204;
-            text-shadow: 0 1px 0 rgba(255, 253, 245, 0.4);
-        }
-        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active i,
-        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active i {
-            color: inherit;
-        }
-        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active:hover,
-        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active:hover {
-            background: linear-gradient(180deg, #fff0b0 0%, #f7d05a 48%, #d4a017 100%);
-            border-color: #fff9e0;
-            box-shadow:
-                0 2px 0 #7a5610,
-                inset 0 1px 0 rgba(255, 253, 245, 0.55);
-            color: #1a1204;
-            transform: none;
-        }
-        .match-list-page .match-filter-btn:not(.match-list-add-btn):focus-visible {
-            box-shadow: 0 0 0 3px rgba(94, 176, 255, 0.35), 0 2px 0 rgba(2, 6, 23, 0.45);
-            outline: none;
-        }
-        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active:focus-visible {
-            box-shadow:
-                0 0 0 3px rgba(245, 197, 66, 0.4),
-                0 2px 0 #6b4a0c,
-                inset 0 1px 0 rgba(255, 253, 245, 0.5);
-        }
+        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn),
         .match-list-page .match-list-add-btn,
         .match-list-page .match-list-add-btn.bsk-btn-chip,
-        .match-list-page .match-list-add-btn.match-filter-btn,
+        .match-list-page .match-list-add-btn.match-filter-btn {
+            align-items: center;
+            background: #12345c;
+            border: 0.5px solid #8ed4ff;
+            border-radius: 0.55rem;
+            box-shadow:
+                inset 0 0 0 1px rgba(10, 36, 74, 0.45),
+                inset 0 2px 3px rgba(8, 28, 60, 0.2);
+            color: #ffffff;
+            display: inline-flex;
+            flex-shrink: 0;
+            font-size: 0.84rem;
+            font-weight: 950;
+            gap: 0.32rem;
+            height: auto;
+            isolation: isolate;
+            justify-content: center;
+            letter-spacing: 0;
+            line-height: 1;
+            max-height: none;
+            min-height: 2.35rem;
+            overflow: hidden;
+            padding: 0.4rem 0.35rem 0.48rem;
+            paint-order: stroke fill;
+            position: relative;
+            text-shadow:
+                0 1.5px 0 #111,
+                1px 1px 0 #111,
+                -1px 1px 0 #111,
+                1px -1px 0 #111,
+                -1px -1px 0 #111;
+            -webkit-text-stroke: 0.6px #111;
+            text-transform: none;
+            transform: none;
+            white-space: nowrap;
+        }
+        .match-list-page .match-filter-btn:not(.match-list-add-btn)::before,
+        .match-list-page .match-list-add-btn::before {
+            background: linear-gradient(180deg, #2a5a80 0%, #214c70 100%);
+            border-radius: calc(0.55rem - 2.5px);
+            content: "";
+            height: 58%;
+            left: 2px;
+            pointer-events: none;
+            position: absolute;
+            right: 2px;
+            top: 2px;
+            z-index: 0;
+        }
+        .match-list-page .match-filter-btn:not(.match-list-add-btn) > *,
+        .match-list-page .match-list-add-btn > * {
+            position: relative;
+            z-index: 1;
+        }
+        .match-list-page .match-filter-btn:not(.match-list-add-btn) i,
+        .match-list-page .match-list-add-btn i {
+            color: #ffffff;
+            flex: 0 0 auto;
+            font-size: 0.82rem;
+            paint-order: stroke fill;
+            text-shadow: 0 1px 0 #111;
+            -webkit-text-stroke: 0.45px #111;
+        }
+        .match-list-page .match-filter-btn:not(.match-list-add-btn):hover:not(.is-active),
+        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn):hover:not(.is-active),
+        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active,
+        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active,
+        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active:hover,
+        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active:hover,
+        .match-list-page .match-list-add-btn:hover,
+        .match-list-page .match-list-add-btn.bsk-btn-chip:hover,
+        .match-list-page .match-list-add-btn.match-filter-btn:hover {
+            background: #12345c;
+            border-color: #c7ecff;
+            box-shadow:
+                inset 0 0 0 1px rgba(10, 36, 74, 0.45),
+                inset 0 2px 3px rgba(8, 28, 60, 0.2);
+            color: #ffffff;
+            transform: none;
+        }
+        .match-list-page .match-filter-btn:not(.match-list-add-btn):hover:not(.is-active)::before,
+        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active::before,
+        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active:hover::before,
+        .match-list-page .match-list-add-btn:hover::before {
+            background: linear-gradient(180deg, #346c94 0%, #285c80 100%);
+        }
+        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active i,
+        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active i,
+        .match-list-page .match-list-add-btn:hover i {
+            color: #ffffff;
+        }
+        .match-list-page .match-filter-btn:not(.match-list-add-btn):focus-visible,
+        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active:focus-visible,
+        .match-list-page .match-list-add-btn:focus-visible {
+            box-shadow:
+                inset 0 0 0 1px rgba(10, 36, 74, 0.45),
+                inset 0 2px 3px rgba(8, 28, 60, 0.2);
+            outline: 2px solid #8ed4ff;
+            outline-offset: 2px;
+        }
+        .match-list-page .match-list-add-btn:active,
+        .match-list-page .match-list-add-btn.bsk-btn-chip:active {
+            box-shadow:
+                inset 0 0 0 1px rgba(10, 36, 74, 0.45),
+                inset 0 2px 3px rgba(8, 28, 60, 0.2);
+            transform: translateY(1px);
+        }
         .hjem-page .match-list-add-btn,
         .hjem-page .match-list-add-btn.bsk-btn-chip,
         .calendar-page .calendar-add-btn.match-list-add-btn {
@@ -8258,16 +8313,12 @@
             transform: none;
             white-space: nowrap;
         }
-        .match-list-page .match-list-add-btn i,
         .hjem-page .match-list-add-btn i,
         .calendar-page .calendar-add-btn i {
             color: #ffe08a;
             font-size: 0.82rem;
             text-shadow: inherit;
         }
-        .match-list-page .match-list-add-btn:hover,
-        .match-list-page .match-list-add-btn.bsk-btn-chip:hover,
-        .match-list-page .match-list-add-btn.match-filter-btn:hover,
         .hjem-page .match-list-add-btn:hover,
         .hjem-page .match-list-add-btn.bsk-btn-chip:hover,
         .calendar-page .calendar-add-btn:hover {
@@ -8277,15 +8328,12 @@
             color: #fffdf5;
             transform: none;
         }
-        .match-list-page .match-list-add-btn:active,
-        .match-list-page .match-list-add-btn.bsk-btn-chip:active,
         .hjem-page .match-list-add-btn:active,
         .hjem-page .match-list-add-btn.bsk-btn-chip:active,
         .calendar-page .calendar-add-btn:active {
             box-shadow: 0 1px 0 rgba(2, 6, 23, 0.55);
             transform: translateY(1px);
         }
-        .match-list-page .match-list-add-btn:focus-visible,
         .hjem-page .match-list-add-btn:focus-visible,
         .calendar-page .calendar-add-btn:focus-visible {
             box-shadow:
@@ -9094,13 +9142,10 @@
             flex: 0 0 auto;
             flex-shrink: 0;
         }
-        /* Kamper B: desktop — Legg til mer synlig i kommende-header */
-        .match-list-column-header .match-list-add-btn {
-            font-size: 0.72rem;
-            height: 2.45rem;
-            max-height: 2.45rem;
-            min-height: 2.45rem;
-            padding: 0 0.85rem;
+        .match-list-page .match-list-column-header .match-list-add-btn.bsk-btn-chip {
+            font-size: 0.84rem;
+            min-width: 7.25rem;
+            padding: 0.4rem 0.95rem 0.48rem;
         }
         .match-list-mobile-top .match-list-column-title,
         .match-list-mobile-top .match-list-mobile-heading {
@@ -9215,32 +9260,35 @@
             padding: 0;
             width: 100%;
         }
-        .match-list-mobile-toolbar .match-filter-btn,
-        .match-list-mobile-toolbar .match-filter-btn.bsk-btn-chip {
-            border-radius: 0.7rem;
-            font-size: 0.72rem;
-            height: 2.15rem;
-            letter-spacing: 0.02em;
-            max-height: 2.15rem;
-            min-height: 2.15rem;
-            padding: 0 0.4rem;
-        }
-        .match-list-mobile-toolbar .match-filter-btn i {
-            font-size: 0.7rem;
-        }
-        .match-list-mobile-toolbar .match-list-add-btn {
+        .match-list-page .match-list-mobile-toolbar .match-filter-btn,
+        .match-list-page .match-list-mobile-toolbar .match-filter-btn.bsk-btn-chip,
+        .match-list-page .match-list-mobile-toolbar .match-list-add-btn,
+        .match-list-page .match-list-mobile-toolbar .match-list-add-btn.bsk-btn-chip {
             align-self: center;
-            border-radius: 0.7rem;
-            font-size: 0.62rem;
-            height: 2.15rem;
-            max-height: 2.15rem;
-            min-height: 2.15rem;
-            min-width: 5rem;
-            padding: 0 0.65rem;
+            border-radius: 0.55rem;
+            font-size: 0.72rem;
+            height: auto;
+            letter-spacing: 0;
+            max-height: none;
+            min-height: 2.35rem;
+            padding: 0.4rem 0.28rem 0.48rem;
             width: auto;
         }
-        .match-list-mobile-toolbar .match-list-add-btn i {
+        .match-list-page .match-list-mobile-toolbar .match-filter-btn,
+        .match-list-page .match-list-mobile-toolbar .match-filter-btn.bsk-btn-chip {
+            width: 100%;
+        }
+        .match-list-page .match-list-mobile-toolbar .match-filter-btn i {
             font-size: 0.72rem;
+        }
+        .match-list-page .match-list-mobile-toolbar .match-list-add-btn,
+        .match-list-page .match-list-mobile-toolbar .match-list-add-btn.bsk-btn-chip {
+            font-size: 0.84rem;
+            min-width: 7.25rem;
+            padding: 0.4rem 0.9rem 0.48rem;
+        }
+        .match-list-page .match-list-mobile-toolbar .match-list-add-btn i {
+            font-size: 0.82rem;
         }
         .match-list-mobile-top {
             background: rgba(255, 255, 255, 0.07);
@@ -9795,11 +9843,11 @@
             width: auto;
         }
         .match-list-page .match-list-empty-cta.match-list-add-btn {
-            font-size: 0.72rem;
-            height: 2.45rem;
-            max-height: 2.45rem;
-            min-height: 2.45rem;
-            padding: 0 0.95rem;
+            font-size: 0.84rem;
+            height: auto;
+            max-height: none;
+            min-height: 2.35rem;
+            padding: 0.4rem 0.85rem 0.48rem;
         }
         @media (min-width: 1024px) {
             .match-list-desktop-columns {

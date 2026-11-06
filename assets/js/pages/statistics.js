@@ -3570,8 +3570,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'tropp', label: 'Tropp' },
             { id: 'tillit', label: 'Tillit' },
             { id: 'produksjon', label: 'Produksjon' },
-            { id: 'trening', label: 'Trening' }
+            { id: 'trening', label: 'Trening' },
+            { id: 'utfall', label: 'Med/uten' }
         ];
+        window.STATS_RESULT_DIAGRAM_MIN_MATCHES = 5;
         window.statsLineDiagramKind = window.statsLineDiagramKind || 'forsvar';
         window.STATS_LINE_DIAGRAM_KINDS = [
             { id: 'forsvar', label: 'Forsvar' },
@@ -3643,6 +3645,17 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     </ul>
                 `;
             }
+            if (kind === 'utfall') {
+                const minMatches = window.STATS_RESULT_DIAGRAM_MIN_MATCHES || 5;
+                return `
+                    <p class="training-session-groups-info-title">Med/uten</p>
+                    <ul class="training-session-groups-info-list">
+                        <li>Høyre er seiersprosent i kampene han spilte. Opp er tapsprosent i kampene han ikke spilte.</li>
+                        <li>Krysset er 50 prosent. Øverst til høyre vant laget mer enn halvparten med ham, og tapte mer enn halvparten uten ham. Grønn boble ligger i den ruten.</li>
+                        <li>Bare spillere med minst ${minMatches} kamper på hver side. Større boble betyr flere kamper han spilte. Trykk for seire med og tap uten.</li>
+                    </ul>
+                `;
+            }
             const kindCopy = {
                 tropp: isTotal ? `
                     <li><strong>Troppkart · Sesong:</strong> Høyre er høyt kampbidrag. Opp er høy snittbørs.</li>
@@ -3677,7 +3690,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 tropp: 'Troppkart',
                 tillit: 'Tillitskart',
                 produksjon: 'Produksjonskart',
-                trening: 'Treningskart'
+                trening: 'Treningskart',
+                utfall: 'Med/uten'
             };
             return `
                 <p class="training-session-groups-info-title">${titles[kind] || 'Troppkart'}</p>
@@ -4205,6 +4219,55 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }).filter(Boolean);
         };
 
+        window.buildStatsResultatDiagramData = function() {
+            const yearFilter = window.getStatsDiagramYearFilter();
+            const minMatches = window.STATS_RESULT_DIAGRAM_MIN_MATCHES || 5;
+            return window.getStatsDiagramScopedPlayers().map(player => {
+                const matches = (window.activeMatches || []).filter(match => {
+                    if (match.matchGroup !== player.spillerLag) return false;
+                    if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(match)) return false;
+                    if (typeof window.matchHasPlayedResult === 'function' && !window.matchHasPlayedResult(match)) return false;
+                    if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return false;
+                    if (typeof window.activityBelongsToStatsYear === 'function'
+                        && !window.activityBelongsToStatsYear(match, yearFilter)) return false;
+                    return true;
+                });
+                let inN = 0;
+                let inW = 0;
+                let outN = 0;
+                let outL = 0;
+                matches.forEach(match => {
+                    const onPitch = typeof window.isPlayerAttending === 'function'
+                        && window.isPlayerAttending(match.attendance, player)
+                        && typeof window.isPlayerOnPitch === 'function'
+                        && window.isPlayerOnPitch(match, player);
+                    const outcome = typeof window.getMatchOutcomeScore === 'function'
+                        ? window.getMatchOutcomeScore(match)
+                        : null;
+                    const won = Boolean(outcome && outcome.bsk > outcome.opponent);
+                    const lost = Boolean(outcome && outcome.bsk < outcome.opponent);
+                    if (onPitch) {
+                        inN += 1;
+                        if (won) inW += 1;
+                    } else {
+                        outN += 1;
+                        if (lost) outL += 1;
+                    }
+                });
+                if (inN < minMatches || outN < minMatches) return null;
+                return {
+                    name: player.navn,
+                    x: Math.round((inW / inN) * 100),
+                    y: Math.round((outL / outN) * 100),
+                    score: inN,
+                    inN,
+                    inW,
+                    outN,
+                    outL
+                };
+            }).filter(Boolean);
+        };
+
         window.buildStatsFormDiagramData = function() {
             const recentByName = new Map(
                 (window.buildStatsFiveScoreDiagramData() || []).map(row => [row.name, row])
@@ -4476,10 +4539,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 <button type="button" onclick="window.setStatsScoreDiagramKind('${kind.id}')" class="team-score-diagram-tab ${activeKind === kind.id ? 'is-active' : ''}" aria-selected="${activeKind === kind.id ? 'true' : 'false'}">${kind.label}</button>
                             `).join('')}
                         </div>
+                        ${activeKind === 'utfall' ? '' : `
                         <div class="team-score-diagram-tabs" role="tablist" aria-label="Periode">
                             <button type="button" onclick="window.setStatsScoreDiagramMode('total')" class="team-score-diagram-tab ${isTotal ? 'is-active' : ''}" aria-selected="${isTotal ? 'true' : 'false'}">Sesong</button>
                             <button type="button" onclick="window.setStatsScoreDiagramMode('five')" class="team-score-diagram-tab ${!isTotal ? 'is-active' : ''}" aria-selected="${!isTotal ? 'true' : 'false'}">Nå</button>
                         </div>
+                        `}
                     </div>
                     ${window.renderStatsDiagramInfoButtonHtml('main')}
                 </div>
@@ -4658,9 +4723,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 tropp: isTotal ? window.buildStatsTotalScoreDiagramData() : window.buildStatsFiveScoreDiagramData(),
                 tillit: isTotal ? window.buildStatsTillitTotalDiagramData() : window.buildStatsTillitFiveDiagramData(),
                 produksjon: isTotal ? window.buildStatsProduksjonTotalDiagramData() : window.buildStatsProduksjonFiveDiagramData(),
-                trening: isTotal ? window.buildStatsTreningTotalDiagramData() : window.buildStatsTreningFiveDiagramData()
+                trening: isTotal ? window.buildStatsTreningTotalDiagramData() : window.buildStatsTreningFiveDiagramData(),
+                utfall: window.buildStatsResultatDiagramData()
             };
             const percentGrid = isCompact ? [0, 25, 50, 75, 100] : [0, 20, 40, 50, 60, 80, 100];
+            const minResultMatches = window.STATS_RESULT_DIAGRAM_MIN_MATCHES || 5;
             const contribGrid = isTotal
                 ? (isCompact ? [8, 12, 16, 20, 24] : [8, 10, 12, 14, 16, 18, 20, 22, 24])
                 : (isCompact ? [8, 12, 16, 20, 24, 28] : [8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28]);
@@ -4720,12 +4787,43 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     yAxisLabel: isCompact ? 'Kampbidrag' : (isTotal ? 'Kampbidrag (sesongsnitt)' : 'Kampbidrag siste 5'),
                     emptyMessage: 'Mangler treningsoppmøte å vise.',
                     kindLabel: 'Treningskart'
+                },
+                utfall: {
+                    xMin: 0,
+                    xMax: 100,
+                    yMin: 0,
+                    yMax: 100,
+                    splitX: 50,
+                    splitY: 50,
+                    gridX: percentGrid,
+                    gridY: percentGrid,
+                    formatTick: tick => `${tick}`,
+                    xAxisLabel: isCompact ? 'Seier med' : 'Seier med på banen',
+                    yAxisLabel: isCompact ? 'Tap uten' : 'Tap uten på banen',
+                    emptyMessage: `Ingen spillere med minst ${minResultMatches} kamper med og ${minResultMatches} uten.`,
+                    kindLabel: 'Med/uten',
+                    tooltipWidth: isCompact ? 210 : 248
                 }
             };
             const plot = plots[kind] || plots.tropp;
             const formatProduction = value => (Math.round((Number(value) || 0) * 10) / 10).toFixed(1);
             const prepareRow = (row) => {
                 const radius = 4 + ((row.score - 20) / 65) * 3;
+                if (kind === 'utfall') {
+                    const inBestSquare = row.x > 50 && row.y > 50;
+                    const played = Number(row.inN) || 0;
+                    return {
+                        radius: 4.5 + Math.min(4, Math.max(0, played - 5) * 0.22),
+                        fill: inBestSquare ? '#00c853' : '#0b2b4c',
+                        displayValue: `${Math.round(row.x)}% · ${Math.round(row.y)}%`,
+                        tooltipValueClass: inBestSquare ? 'is-up' : 'is-season',
+                        tooltipRows: [
+                            { name: row.name, displayValue: `${Math.round(row.x)}% · ${Math.round(row.y)}%` },
+                            { name: `${row.inN} med`, displayValue: `${row.inW} seire` },
+                            { name: `${row.outN} uten`, displayValue: `${row.outL} tap` }
+                        ]
+                    };
+                }
                 if (kind === 'tillit' || kind === 'trening') {
                     const delta = Math.round(row.x - (Number(row.seasonX) || 0));
                     const tone = isTotal ? { fill: '#0b2b4c', className: 'is-season' } : window.getStatsScoreDiagramTone(delta >= 0);

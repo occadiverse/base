@@ -17,7 +17,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20261105-swipe-calendar">
+    <link rel="stylesheet" href="assets/css/base.css?v=20261105-add-btn">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -126,9 +126,11 @@
                         <div class="match-list-toolbar match-list-mobile-toolbar">
                             <div class="match-filter-segmented" role="tablist" aria-label="Filtrer kamper">
                                 <button type="button" role="tab" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="bsk-btn bsk-btn-chip match-filter-btn is-active" aria-selected="true">
+                                    <i class="fa-regular fa-calendar-days" aria-hidden="true"></i>
                                     <span>Kommende</span>
                                 </button>
                                 <button type="button" role="tab" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="bsk-btn bsk-btn-chip match-filter-btn" aria-selected="false">
+                                    <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
                                     <span>Tidligere</span>
                                 </button>
                             </div>
@@ -1646,7 +1648,7 @@
     <script src="assets/js/pages/players.js?v=20261105-win-split-year"></script>
     <script src="assets/js/pages/matches.js?v=20261101-penalty-line"></script>
     <script src="assets/js/pages/attendance.js?v=20261025-kalender-live"></script>
-    <script src="assets/js/pages/statistics.js?v=20261105-form-info-spillerstats"></script>
+    <script src="assets/js/pages/statistics.js?v=20261106-med-uten"></script>
     <script src="assets/js/pages/tactics.js?v=20261028-live-samspill-off"></script>
     <script src="assets/js/pages/dashboard.js?v=20261101-award-values"></script>
     <script src="assets/js/pages/training-session.js?v=20261026-group-line"></script>
