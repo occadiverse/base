@@ -2606,9 +2606,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 return {
                     ...stat,
                     seierMedPct: split?.inne?.pct ?? null,
-                    seierMedKamper: split?.inne?.n || 0,
+                    seierMedKamper: split?.inne?.decisive || 0,
                     seierUtenPct: split?.ute?.pct ?? null,
-                    seierUtenKamper: split?.ute?.n || 0
+                    seierUtenKamper: split?.ute?.decisive || 0
                 };
             });
         };
@@ -3571,10 +3571,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'tillit', label: 'Tillit' },
             { id: 'produksjon', label: 'Produksjon' },
             { id: 'trening', label: 'Trening' },
-            { id: 'utfall', label: 'Med/uten' }
+            { id: 'utfall', label: 'Med/uten' },
+            { id: 'balanse', label: 'Balanse indeks' }
         ];
         window.STATS_RESULT_DIAGRAM_MIN_MATCHES = 5;
         window.STATS_RESULT_DIAGRAM_MIN_MINUTES = 45;
+        window.STATS_BALANCE_DIAGRAM_MIN_MATCHES = 5;
         window.statsLineDiagramKind = window.statsLineDiagramKind || 'forsvar';
         window.STATS_LINE_DIAGRAM_KINDS = [
             { id: 'forsvar', label: 'Forsvar' },
@@ -3654,7 +3656,19 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <ul class="training-session-groups-info-list">
                         <li>Opp er hvor mange prosentpoeng oftere laget vant i kampene han spilte minst ${minMinutes} minutter, enn i kampene han ikke spilte.</li>
                         <li>Den vannrette streken er ingen forskjell. Over den vant laget oftere med ham. Den loddrette streken er børs 6. Grønn boble ligger over streken og til høyre for den.</li>
-                        <li>Minst ${minMatches} kamper på hver side. Større boble er flere kamper med minst ${minMinutes} minutter.</li>
+                        <li>Uavgjort er ikke med i kampantallet. Minst ${minMatches} avgjorte kamper på hver side. Større boble er flere kamper med minst ${minMinutes} minutter.</li>
+                    </ul>
+                `;
+            }
+            if (kind === 'balanse') {
+                const minMatches = window.STATS_BALANCE_DIAGRAM_MIN_MATCHES || 5;
+                return `
+                    <p class="training-session-groups-info-title">Balanse indeks</p>
+                    <ul class="training-session-groups-info-list">
+                        <li>Scoren er den samme som under Med og uten på profilen, fra 0 til 100. 40 kommer fra seiersprosenten av kampene som ble avgjort. Uavgjort er ikke med i det antallet. 25 kommer fra mål scoret, 25 fra mål imot og 10 fra rent null.</li>
+                        <li>Opp er hvordan kampene så ut da han var på banen. Bortover er hvordan de så ut da han ikke spilte, snudd slik at 100 står til venstre og 0 til høyre. Høyre betyr at kampene uten ham så dårligere ut.</li>
+                        <li>Krysset er 50. Over streken så kampene med ham bra ut. Til høyre for streken så kampene uten ham svake ut. Oppe til høyre er begge deler: bra med ham, svakt uten ham. Oppe til venstre så kampene bra ut uansett. Nede til venstre så de bedre ut uten ham.</li>
+                        <li>Grønn boble har høyere score med enn uten, også når begge tallene ligger under 50. Større boble er flere kamper på banen. Minst ${minMatches} kamper på hver side. Alle minutter på banen teller.</li>
                     </ul>
                 `;
             }
@@ -4253,6 +4267,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         ? window.getMatchOutcomeScore(match)
                         : null;
                     const won = Boolean(outcome && outcome.bsk > outcome.opponent);
+                    const draw = Boolean(outcome && outcome.bsk === outcome.opponent);
+                    if (draw) return;
                     if (!onPitch) {
                         outN += 1;
                         if (won) outW += 1;
@@ -4283,6 +4299,33 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     winMed,
                     winUten,
                     snittBors
+                };
+            }).filter(Boolean);
+        };
+
+        window.buildStatsBalanseDiagramData = function() {
+            const yearFilter = window.getStatsDiagramYearFilter();
+            const minMatches = window.STATS_BALANCE_DIAGRAM_MIN_MATCHES || 5;
+            if (typeof getPlayerProfileWinSplit !== 'function' || typeof formatPlayerProfilePresenceScore !== 'function') {
+                return [];
+            }
+            return window.getStatsDiagramScopedPlayers().map(player => {
+                const split = getPlayerProfileWinSplit(player, yearFilter);
+                const med = split?.inne;
+                const uten = split?.ute;
+                if (!med || !uten || med.n < minMatches || uten.n < minMatches) return null;
+                const medScore = Number(formatPlayerProfilePresenceScore(med));
+                const utenScore = Number(formatPlayerProfilePresenceScore(uten));
+                if (!Number.isFinite(medScore) || !Number.isFinite(utenScore)) return null;
+                return {
+                    name: player.navn,
+                    x: 100 - utenScore,
+                    y: medScore,
+                    score: med.n,
+                    medScore,
+                    utenScore,
+                    medN: med.n,
+                    utenN: uten.n
                 };
             }).filter(Boolean);
         };
@@ -4558,7 +4601,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 <button type="button" onclick="window.setStatsScoreDiagramKind('${kind.id}')" class="team-score-diagram-tab ${activeKind === kind.id ? 'is-active' : ''}" aria-selected="${activeKind === kind.id ? 'true' : 'false'}">${kind.label}</button>
                             `).join('')}
                         </div>
-                        ${activeKind === 'utfall' ? '' : `
+                        ${activeKind === 'utfall' || activeKind === 'balanse' ? '' : `
                         <div class="team-score-diagram-tabs" role="tablist" aria-label="Periode">
                             <button type="button" onclick="window.setStatsScoreDiagramMode('total')" class="team-score-diagram-tab ${isTotal ? 'is-active' : ''}" aria-selected="${isTotal ? 'true' : 'false'}">Sesong</button>
                             <button type="button" onclick="window.setStatsScoreDiagramMode('five')" class="team-score-diagram-tab ${!isTotal ? 'is-active' : ''}" aria-selected="${!isTotal ? 'true' : 'false'}">Nå</button>
@@ -4749,8 +4792,10 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 tillit: isTotal ? window.buildStatsTillitTotalDiagramData() : window.buildStatsTillitFiveDiagramData(),
                 produksjon: isTotal ? window.buildStatsProduksjonTotalDiagramData() : window.buildStatsProduksjonFiveDiagramData(),
                 trening: isTotal ? window.buildStatsTreningTotalDiagramData() : window.buildStatsTreningFiveDiagramData(),
-                utfall: window.buildStatsResultatDiagramData()
+                utfall: window.buildStatsResultatDiagramData(),
+                balanse: window.buildStatsBalanseDiagramData()
             };
+            const minBalanceMatches = window.STATS_BALANCE_DIAGRAM_MIN_MATCHES || 5;
             const percentGrid = isCompact ? [0, 25, 50, 75, 100] : [0, 20, 40, 50, 60, 80, 100];
             const minResultMatches = window.STATS_RESULT_DIAGRAM_MIN_MATCHES || 5;
             const contribGrid = isTotal
@@ -4828,6 +4873,22 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     emptyMessage: `Ingen spillere med minst ${minResultMatches} kamper på minst 45 minutter og ${minResultMatches} uten.`,
                     kindLabel: 'Med/uten',
                     tooltipWidth: isCompact ? 220 : 260
+                },
+                balanse: {
+                    xMin: 0,
+                    xMax: 100,
+                    yMin: 0,
+                    yMax: 100,
+                    splitX: 50,
+                    splitY: 50,
+                    gridX: isCompact ? [0, 50, 100] : [0, 25, 50, 75, 100],
+                    gridY: isCompact ? [0, 50, 100] : [0, 25, 50, 75, 100],
+                    formatTickX: (tick) => String(100 - tick),
+                    xAxisLabel: isCompact ? 'Uten' : 'Score uten',
+                    yAxisLabel: isCompact ? 'Med' : 'Score med',
+                    emptyMessage: `Ingen spillere med minst ${minBalanceMatches} kamper med og ${minBalanceMatches} uten.`,
+                    kindLabel: 'Balanse indeks',
+                    tooltipWidth: isCompact ? 230 : 280
                 }
             };
             const plot = plots[kind] || plots.tropp;
@@ -4852,6 +4913,24 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             { name: `${row.inN} med`, displayValue: `${row.winMed}% · ${winsIn} ${winWord(winsIn)}` },
                             { name: `${row.outN} uten`, displayValue: `${row.winUten}% · ${winsOut} ${winWord(winsOut)}` },
                             { name: 'Børs', displayValue: (Math.round(Number(row.snittBors) * 10) / 10).toFixed(1) }
+                        ]
+                    };
+                }
+                if (kind === 'balanse') {
+                    const played = Number(row.medN) || 0;
+                    const gap = (Number(row.medScore) || 0) - (Number(row.utenScore) || 0);
+                    const gapText = `${gap > 0 ? '+' : ''}${gap}`;
+                    const above = gap > 0;
+                    const matchWord = (count) => (count === 1 ? 'kamp' : 'kamper');
+                    return {
+                        radius: 4.5 + Math.min(4, Math.max(0, played - 5) * 0.22),
+                        fill: above ? '#00c853' : '#0b2b4c',
+                        displayValue: gapText,
+                        tooltipValueClass: above ? 'is-up' : 'is-season',
+                        tooltipRows: [
+                            { name: row.name, displayValue: gapText },
+                            { name: 'Med', displayValue: `${row.medScore} · ${row.medN} ${matchWord(row.medN)}` },
+                            { name: 'Uten', displayValue: `${row.utenScore} · ${row.utenN} ${matchWord(row.utenN)}` }
                         ]
                     };
                 }
@@ -5722,7 +5801,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 if (!Number.isFinite(pct)) return '—';
                                 return `${Math.round(pct)}% · ${count} ${count === 1 ? 'kamp' : 'kamper'}`;
                             },
-                            explain: 'Lagets seiersprosent i kampene spilleren sto på banen. De med minst halvparten av lagets kamper rangeres først.'
+                            explain: 'Lagets seiersprosent i kampene som ble avgjort mens spilleren sto på banen. Uavgjort er ikke med. De med minst halvparten av lagets kamper rangeres først.'
                         },
                         {
                             id: 'seier-uten',
@@ -5737,7 +5816,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 if (!Number.isFinite(pct)) return '—';
                                 return `${Math.round(pct)}% · ${count} ${count === 1 ? 'kamp' : 'kamper'}`;
                             },
-                            explain: 'Lagets seiersprosent i kampene spilleren ikke sto på banen. Lavest prosent ligger øverst. Minst 3 slike kamper for å ligge over streken.'
+                            explain: 'Lagets seiersprosent i kampene som ble avgjort uten at spilleren sto på banen. Uavgjort er ikke med. Lavest prosent ligger øverst. Minst 3 slike kamper for å ligge over streken.'
                         }
                     ]
                 },
@@ -7549,8 +7628,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'bb', label: 'Banens beste', icon: 'fa-crown' },
             { id: 'oppmotePct', label: 'Oppmøte', icon: 'fa-user-check', title: 'Treningsoppmøte: møtt / mulige økter med registrert oppmøte' },
             { id: 'kamper', label: 'Kamper', icon: 'fa-shield-halved' },
-            { id: 'seierMedPct', label: 'Seier med', icon: 'fa-user-plus', title: 'Høyest seiersprosent i kampene spilleren sto på banen' },
-            { id: 'seierUtenPct', label: 'Seier uten', icon: 'fa-user-minus', title: 'Lavest seiersprosent i kampene spilleren ikke sto på banen' },
+            { id: 'seierMedPct', label: 'Seier med', icon: 'fa-user-plus', title: 'Høyest seiersprosent i avgjorte kamper der spilleren sto på banen. Uavgjort er ikke med' },
+            { id: 'seierUtenPct', label: 'Seier uten', icon: 'fa-user-minus', title: 'Lavest seiersprosent i avgjorte kamper der spilleren ikke sto på banen. Uavgjort er ikke med' },
             { id: 'minutesTotal', label: 'Minutter', icon: 'fa-stopwatch', title: 'Total / snitt per kamp' },
             { id: 'minutesSharePct', label: 'Minuttandel', icon: 'fa-chart-pie' }
         ];
@@ -7754,8 +7833,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 title: 'Spillerstats · Seier med',
                 buttonLabel: 'Slik regnes seier med',
                 items: [
-                    '<strong>Seier med</strong> er lagets seiersprosent i kampene spilleren sto på banen.',
-                    'Tallet ved siden av er antall kamper han spilte.',
+                    '<strong>Seier med</strong> er lagets seiersprosent i kampene som ble avgjort mens spilleren sto på banen. Uavgjort er ikke med.',
+                    'Tallet ved siden av er antall avgjorte kamper han spilte.',
                     'Krever minst 50 % av lagets kamper for å ligge øverst. Under den streken deles listen ved 30 %.'
                 ]
             },
@@ -7763,8 +7842,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 title: 'Spillerstats · Seier uten',
                 buttonLabel: 'Slik regnes seier uten',
                 items: [
-                    '<strong>Seier uten</strong> er lagets seiersprosent i kampene spilleren ikke sto på banen.',
-                    'Lavest prosent ligger øverst. Tallet ved siden av er antall kamper han ikke spilte.',
+                    '<strong>Seier uten</strong> er lagets seiersprosent i kampene som ble avgjort uten at spilleren sto på banen. Uavgjort er ikke med.',
+                    'Lavest prosent ligger øverst. Tallet ved siden av er antall avgjorte kamper han ikke spilte.',
                     'Krever minst 3 slike kamper for å ligge øverst. Færre kamper ligger under streken.'
                 ]
             }

@@ -622,13 +622,15 @@ function getPlayerProfileWinSplit(player, yearFilter) {
             if (regular && Number(regular.opponent) === 0) clean += 1;
         });
         const n = list.length;
+        const decisive = w + l;
         const per = (value) => (n ? Math.round((value / n) * 10) / 10 : null);
         return {
             n,
             w,
             d,
             l,
-            pct: n ? Math.round((w / n) * 100) : null,
+            decisive,
+            pct: decisive ? Math.round((w / decisive) * 100) : null,
             gf,
             ga,
             gfPer: per(gf),
@@ -942,6 +944,16 @@ function formatPlayerProfilePresenceSigned(value) {
     return rounded > 0 ? `+${text}` : text;
 }
 
+function formatPlayerProfilePresenceScore(side) {
+    if (!side?.n || side.pct == null) return '—';
+    const clamp = (value) => Math.max(0, Math.min(1, value));
+    const winPoints = (Number(side.pct) || 0) / 100 * 40;
+    const goalPoints = clamp((Number(side.gfPer) || 0) / 4) * 25;
+    const concededPoints = clamp(1 - ((Number(side.gaPer) || 0) / 5)) * 25;
+    const cleanPoints = (Number(side.cleanPct) || 0) / 100 * 10;
+    return String(Math.round(Math.max(0, Math.min(100, winPoints + goalPoints + concededPoints + cleanPoints))));
+}
+
 function getPlayerProfilePanelState() {
     const defaults = {
         meduten: false,
@@ -1006,10 +1018,52 @@ function buildPlayerProfileClashHeaderHtml({ title, icon, asideHtml = '', subtit
     `;
 }
 
+function isPlayerProfilePresenceInfoOpen() {
+    return window.playerProfilePresenceInfoOpen === true;
+}
+
+function buildPlayerProfilePresenceInfoButtonHtml() {
+    const open = isPlayerProfilePresenceInfoOpen();
+    return `
+        <button
+            type="button"
+            class="training-session-groups-info-btn player-profile-presence-info-btn${open ? ' is-active' : ''}"
+            data-player-profile-action="toggle-presence-info"
+            aria-expanded="${open ? 'true' : 'false'}"
+            aria-controls="player-profile-presence-info"
+            title="Slik regnes scoren"
+            aria-label="Slik regnes scoren"
+        >
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+        </button>
+    `;
+}
+
+function buildPlayerProfilePresenceInfoHtml() {
+    const open = isPlayerProfilePresenceInfoOpen();
+    return `
+        <div
+            id="player-profile-presence-info"
+            class="training-session-groups-info player-profile-presence-info${open ? '' : ' is-hidden'}"
+            ${open ? '' : 'hidden'}
+        >
+            <p class="training-session-groups-info-title">Score</p>
+            <ul class="training-session-groups-info-list">
+                <li>Scoren går fra 0 til 100 og regnes hver for seg for Med og Uten.</li>
+                <li>40 poeng kommer fra seiersprosenten av kampene som ble avgjort. Uavgjort er ikke med i antallet. 100 % seier gir 40.</li>
+                <li>25 poeng kommer fra mål scoret per kamp. 4 mål per kamp gir 25.</li>
+                <li>25 poeng kommer fra mål imot per kamp. 0 imot gir 25. 5 imot per kamp gir 0.</li>
+                <li>10 poeng kommer fra rent null, som andel av kampene. Raden viser antall, scoren bruker prosenten.</li>
+            </ul>
+        </div>
+    `;
+}
+
 function buildPlayerProfilePresenceHeaderHtml() {
     return buildPlayerProfileClashHeaderHtml({
         title: 'Med og uten',
-        icon: 'fa-right-left'
+        icon: 'fa-right-left',
+        asideHtml: buildPlayerProfilePresenceInfoButtonHtml()
     });
 }
 
@@ -1022,6 +1076,7 @@ function buildPlayerProfilePresenceHtml(player, yearFilter) {
             <section class="${playerProfilePanelClass('meduten')}" data-profile-panel="meduten" aria-expanded="${isPlayerProfilePanelOpen('meduten') ? 'true' : 'false'}">
                 ${buildPlayerProfilePresenceHeaderHtml()}
                 <div class="player-profile-collapsible-content">
+                    ${buildPlayerProfilePresenceInfoHtml()}
                     <p class="player-profile-empty">Ingen kamper i perioden.</p>
                 </div>
             </section>
@@ -1034,15 +1089,20 @@ function buildPlayerProfilePresenceHtml(player, yearFilter) {
     const recordText = (side) => cell(side, `${side.w}–${side.d}–${side.l}`);
     const winPctText = (side) => cell(side, side.pct == null ? '—' : `${side.pct}%`);
     const teamMatches = med.n + uten.n;
+    const medDecisive = med.w + med.l;
+    const utenDecisive = uten.w + uten.l;
     let lead = `${med.n} av ${teamMatches} kamper på banen.`;
-    if (med.n > 0) lead += ` Seier i ${med.w} av de ${med.n}.`;
-    if (uten.n > 0) lead += ` Laget vant ${uten.w} av de ${uten.n} han ikke spilte.`;
+    if (medDecisive > 0) lead += ` Seier i ${med.w} av ${medDecisive} avgjorte.`;
+    else if (med.n > 0) lead += ' Ingen av kampene med ham ble avgjort.';
+    if (utenDecisive > 0) lead += ` Laget vant ${uten.w} av ${utenDecisive} avgjorte han ikke spilte.`;
+    else if (uten.n > 0) lead += ' Kampene han ikke spilte ble uavgjort.';
     else lead += ' Han spilte alle kampene.';
 
     return `
         <section class="${playerProfilePanelClass('meduten')}" data-profile-panel="meduten" aria-expanded="${isPlayerProfilePanelOpen('meduten') ? 'true' : 'false'}">
             ${buildPlayerProfilePresenceHeaderHtml()}
             <div class="player-profile-collapsible-content">
+            ${buildPlayerProfilePresenceInfoHtml()}
             <p class="player-profile-radar-read">${escapeRosterHtml(lead)}</p>
             <div class="player-profile-presence-wrap">
                 <table class="player-profile-presence-table">
@@ -1083,6 +1143,11 @@ function buildPlayerProfilePresenceHtml(player, yearFilter) {
                             <th scope="row">Rent null</th>
                             <td>${escapeRosterHtml(cell(med, String(med.clean)))}</td>
                             <td>${escapeRosterHtml(cell(uten, String(uten.clean)))}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Score</th>
+                            <td>${escapeRosterHtml(formatPlayerProfilePresenceScore(med))}</td>
+                            <td>${escapeRosterHtml(formatPlayerProfilePresenceScore(uten))}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1668,6 +1733,26 @@ function bindPlayerProfilePageEvents() {
 
         const action = actionEl.dataset.playerProfileAction;
         const playerId = window.activePlayerProfileId;
+
+        if (action === 'toggle-presence-info') {
+            window.playerProfilePresenceInfoOpen = !isPlayerProfilePresenceInfoOpen();
+            const open = isPlayerProfilePresenceInfoOpen();
+            const panel = actionEl.closest('[data-profile-panel="meduten"]');
+            if (panel && open && panel.classList.contains('is-collapsed')) {
+                togglePlayerProfilePanel('meduten');
+            }
+            const info = panel?.querySelector('.player-profile-presence-info');
+            const button = panel?.querySelector('.player-profile-presence-info-btn');
+            if (info) {
+                info.classList.toggle('is-hidden', !open);
+                info.hidden = !open;
+            }
+            if (button) {
+                button.classList.toggle('is-active', open);
+                button.setAttribute('aria-expanded', open ? 'true' : 'false');
+            }
+            return;
+        }
 
         if (action === 'go-back') {
             if (typeof window.goBackToPreviousPortalPage === 'function' && window.goBackToPreviousPortalPage()) return;

@@ -11721,6 +11721,12 @@
             flex: 0 0 auto;
             margin-left: auto;
         }
+        .player-profile-presence-card .player-profile-presence-info {
+            margin: 0 0 0.85rem;
+        }
+        .player-profile-presence-card .player-profile-presence-info-btn {
+            margin-left: auto;
+        }
         .player-profile-collapsible .player-profile-presence-topline {
             cursor: pointer;
         }
