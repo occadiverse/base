@@ -3574,6 +3574,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'utfall', label: 'Med/uten' }
         ];
         window.STATS_RESULT_DIAGRAM_MIN_MATCHES = 5;
+        window.STATS_RESULT_DIAGRAM_MIN_MINUTES = 45;
         window.statsLineDiagramKind = window.statsLineDiagramKind || 'forsvar';
         window.STATS_LINE_DIAGRAM_KINDS = [
             { id: 'forsvar', label: 'Forsvar' },
@@ -3647,12 +3648,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }
             if (kind === 'utfall') {
                 const minMatches = window.STATS_RESULT_DIAGRAM_MIN_MATCHES || 5;
+                const minMinutes = window.STATS_RESULT_DIAGRAM_MIN_MINUTES || 45;
                 return `
                     <p class="training-session-groups-info-title">Med/uten</p>
                     <ul class="training-session-groups-info-list">
-                        <li>Høyre er seiersprosent i kampene han spilte. Opp er tapsprosent i kampene han ikke spilte.</li>
-                        <li>Krysset er 50 prosent. Øverst til høyre vant laget mer enn halvparten med ham, og tapte mer enn halvparten uten ham. Grønn boble ligger i den ruten.</li>
-                        <li>Bare spillere med minst ${minMatches} kamper på hver side. Større boble betyr flere kamper han spilte. Trykk for seire med og tap uten.</li>
+                        <li>Opp er hvor mange prosentpoeng oftere laget vant i kampene han spilte minst ${minMinutes} minutter, enn i kampene han ikke spilte.</li>
+                        <li>Den vannrette streken er ingen forskjell. Over den vant laget oftere med ham. Den loddrette streken er børs 6. Grønn boble ligger over streken og til høyre for den.</li>
+                        <li>Minst ${minMatches} kamper på hver side. Større boble er flere kamper med minst ${minMinutes} minutter.</li>
                     </ul>
                 `;
             }
@@ -4222,6 +4224,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.buildStatsResultatDiagramData = function() {
             const yearFilter = window.getStatsDiagramYearFilter();
             const minMatches = window.STATS_RESULT_DIAGRAM_MIN_MATCHES || 5;
+            const minMinutes = window.STATS_RESULT_DIAGRAM_MIN_MINUTES || 45;
+            const statsRows = typeof window.buildPlayerStatsData === 'function'
+                ? window.buildPlayerStatsData({ applyYearFilter: true })
+                : [];
+            const statsByName = new Map((statsRows || []).map(stat => [stat?.navn, stat]));
+            const round1 = (value) => Math.round(Number(value) * 10) / 10;
             return window.getStatsDiagramScopedPlayers().map(player => {
                 const matches = (window.activeMatches || []).filter(match => {
                     if (match.matchGroup !== player.spillerLag) return false;
@@ -4235,7 +4243,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 let inN = 0;
                 let inW = 0;
                 let outN = 0;
-                let outL = 0;
+                let outW = 0;
                 matches.forEach(match => {
                     const onPitch = typeof window.isPlayerAttending === 'function'
                         && window.isPlayerAttending(match.attendance, player)
@@ -4245,25 +4253,36 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         ? window.getMatchOutcomeScore(match)
                         : null;
                     const won = Boolean(outcome && outcome.bsk > outcome.opponent);
-                    const lost = Boolean(outcome && outcome.bsk < outcome.opponent);
-                    if (onPitch) {
-                        inN += 1;
-                        if (won) inW += 1;
-                    } else {
+                    if (!onPitch) {
                         outN += 1;
-                        if (lost) outL += 1;
+                        if (won) outW += 1;
+                        return;
                     }
+                    const minutes = typeof window.getPlayerMatchPlayingMinutes === 'function'
+                        ? Number(window.getPlayerMatchPlayingMinutes(match, player))
+                        : 0;
+                    if (!(minutes >= minMinutes)) return;
+                    inN += 1;
+                    if (won) inW += 1;
                 });
                 if (inN < minMatches || outN < minMatches) return null;
+                const stat = statsByName.get(player.navn);
+                const snittBors = round1(stat?.snittBors);
+                if (!(snittBors > 0)) return null;
+                const winMed = Math.round((inW / inN) * 100);
+                const winUten = Math.round((outW / outN) * 100);
                 return {
                     name: player.navn,
-                    x: Math.round((inW / inN) * 100),
-                    y: Math.round((outL / outN) * 100),
+                    x: snittBors,
+                    y: winMed - winUten,
                     score: inN,
                     inN,
                     inW,
                     outN,
-                    outL
+                    outW,
+                    winMed,
+                    winUten,
+                    snittBors
                 };
             }).filter(Boolean);
         };
@@ -4672,13 +4691,19 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 `;
             }).join('');
 
-            const splitHtml = config.splitDiagonal
+            const hasSplitX = Number.isFinite(Number(config.splitX));
+            const hasSplitY = Number.isFinite(Number(config.splitY));
+            const splitHtml = config.hideSplit
+                ? ''
+                : config.splitDiagonal
                 ? `<line x1="${x(xMin)}" x2="${x(xMax)}" y1="${y(yMin)}" y2="${y(yMax)}" class="team-score-diagram-split-line"></line>`
                 : `
-                    <line x1="${x(config.splitX)}" x2="${x(config.splitX)}" y1="${pad.top}" y2="${height - pad.bottom}" class="team-score-diagram-split-line"></line>
-                    <line x1="${pad.left}" x2="${width - pad.right}" y1="${y(config.splitY)}" y2="${y(config.splitY)}" class="team-score-diagram-split-line"></line>
+                    ${hasSplitX ? `<line x1="${x(config.splitX)}" x2="${x(config.splitX)}" y1="${pad.top}" y2="${height - pad.bottom}" class="team-score-diagram-split-line"></line>` : ''}
+                    ${hasSplitY ? `<line x1="${pad.left}" x2="${width - pad.right}" y1="${y(config.splitY)}" y2="${y(config.splitY)}" class="team-score-diagram-split-line"></line>` : ''}
                 `;
             const formatTick = typeof config.formatTick === 'function' ? config.formatTick : tick => tick;
+            const formatTickX = typeof config.formatTickX === 'function' ? config.formatTickX : formatTick;
+            const formatTickY = typeof config.formatTickY === 'function' ? config.formatTickY : formatTick;
 
             return `
                 <div class="team-score-diagram-card">
@@ -4690,13 +4715,13 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             ${(config.gridX || []).map(tick => `
                                 <g>
                                     <line x1="${x(tick)}" x2="${x(tick)}" y1="${pad.top}" y2="${height - pad.bottom}" class="team-score-diagram-grid"></line>
-                                    <text x="${x(tick)}" y="${height - 42}" text-anchor="middle" class="team-score-diagram-tick">${formatTick(tick)}</text>
+                                    <text x="${x(tick)}" y="${height - 42}" text-anchor="middle" class="team-score-diagram-tick">${formatTickX(tick)}</text>
                                 </g>
                             `).join('')}
                             ${(config.gridY || []).map(tick => `
                                 <g>
                                     <line x1="${pad.left}" x2="${width - pad.right}" y1="${y(tick)}" y2="${y(tick)}" class="team-score-diagram-grid"></line>
-                                    <text x="${isCompact ? 22 : 46}" y="${y(tick) + 4}" text-anchor="middle" class="team-score-diagram-tick">${formatTick(tick)}</text>
+                                    <text x="${isCompact ? 22 : 46}" y="${y(tick) + 4}" text-anchor="middle" class="team-score-diagram-tick">${formatTickY(tick)}</text>
                                 </g>
                             `).join('')}
                             <g class="team-score-diagram-split" aria-hidden="true">${splitHtml}</g>
@@ -4789,20 +4814,20 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     kindLabel: 'Treningskart'
                 },
                 utfall: {
-                    xMin: 0,
-                    xMax: 100,
-                    yMin: 0,
-                    yMax: 100,
-                    splitX: 50,
-                    splitY: 50,
-                    gridX: percentGrid,
-                    gridY: percentGrid,
-                    formatTick: tick => `${tick}`,
-                    xAxisLabel: isCompact ? 'Seier med' : 'Seier med på banen',
-                    yAxisLabel: isCompact ? 'Tap uten' : 'Tap uten på banen',
-                    emptyMessage: `Ingen spillere med minst ${minResultMatches} kamper med og ${minResultMatches} uten.`,
+                    xMin: 4,
+                    xMax: 8,
+                    yMin: -80,
+                    yMax: 80,
+                    splitX: 6,
+                    splitY: 0,
+                    gridX: [4, 5, 6, 7, 8],
+                    gridY: isCompact ? [-60, 0, 60] : [-60, -40, -20, 0, 20, 40, 60],
+                    formatTickY: (tick) => (tick > 0 ? `+${tick}` : String(tick)),
+                    xAxisLabel: 'Børs',
+                    yAxisLabel: isCompact ? 'Mer seier med' : 'Mer seier med ham',
+                    emptyMessage: `Ingen spillere med minst ${minResultMatches} kamper på minst 45 minutter og ${minResultMatches} uten.`,
                     kindLabel: 'Med/uten',
-                    tooltipWidth: isCompact ? 210 : 248
+                    tooltipWidth: isCompact ? 220 : 260
                 }
             };
             const plot = plots[kind] || plots.tropp;
@@ -4810,17 +4835,23 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const prepareRow = (row) => {
                 const radius = 4 + ((row.score - 20) / 65) * 3;
                 if (kind === 'utfall') {
-                    const inBestSquare = row.x > 50 && row.y > 50;
                     const played = Number(row.inN) || 0;
+                    const winsIn = Number(row.inW) || 0;
+                    const winsOut = Number(row.outW) || 0;
+                    const winWord = (count) => (count === 1 ? 'seier' : 'seire');
+                    const gap = Number(row.y) || 0;
+                    const gapText = `${gap > 0 ? '+' : ''}${gap}`;
+                    const inBestSquare = gap > 0 && Number(row.x) > 6;
                     return {
                         radius: 4.5 + Math.min(4, Math.max(0, played - 5) * 0.22),
                         fill: inBestSquare ? '#00c853' : '#0b2b4c',
-                        displayValue: `${Math.round(row.x)}% · ${Math.round(row.y)}%`,
+                        displayValue: gapText,
                         tooltipValueClass: inBestSquare ? 'is-up' : 'is-season',
                         tooltipRows: [
-                            { name: row.name, displayValue: `${Math.round(row.x)}% · ${Math.round(row.y)}%` },
-                            { name: `${row.inN} med`, displayValue: `${row.inW} seire` },
-                            { name: `${row.outN} uten`, displayValue: `${row.outL} tap` }
+                            { name: row.name, displayValue: gapText },
+                            { name: `${row.inN} med`, displayValue: `${row.winMed}% · ${winsIn} ${winWord(winsIn)}` },
+                            { name: `${row.outN} uten`, displayValue: `${row.winUten}% · ${winsOut} ${winWord(winsOut)}` },
+                            { name: 'Børs', displayValue: (Math.round(Number(row.snittBors) * 10) / 10).toFixed(1) }
                         ]
                     };
                 }
