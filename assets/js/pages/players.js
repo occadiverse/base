@@ -1838,11 +1838,12 @@ function insightFormatDelta(season, recent, digits) {
     return insightFormatSigned(right - left, digits);
 }
 
-function insightDelta(season, recent, digits) {
-    const left = insightRound(season, digits);
-    const right = insightRound(recent, digits);
-    if (left == null || right == null) return null;
-    return insightRound(right - left, digits);
+function insightRawDelta(season, recent) {
+    if (season == null || season === '' || recent == null || recent === '') return null;
+    const left = Number(season);
+    const right = Number(recent);
+    if (!Number.isFinite(left) || !Number.isFinite(right)) return null;
+    return right - left;
 }
 
 function insightRecentLabel(count) {
@@ -2078,14 +2079,21 @@ function buildPlayerInsightModel(player, yearFilter) {
         })
         .filter(Boolean);
 
-    const borsMove = insightDelta(seasonBors, recentBors, 1);
-    const relativeMove = insightDelta(seasonRelative, recentRelative, 2);
-    const bidragMove = insightDelta(seasonBidrag, recentBidrag, 1);
-    const votes = [
-        borsMove == null || recentBorsCount < 3 ? null : (borsMove >= 0.3 ? 'up' : borsMove <= -0.3 ? 'down' : 'flat'),
-        relativeMove == null || recentRelatives.length < 3 ? null : (relativeMove >= 0.2 ? 'up' : relativeMove <= -0.2 ? 'down' : 'flat'),
-        bidragMove == null || recentMatches.length < 3 ? null : (bidragMove >= 2 ? 'up' : bidragMove <= -2 ? 'down' : 'flat')
-    ].filter(Boolean);
+    const borsMove = insightRawDelta(seasonBors, recentBors);
+    const relativeMove = insightRawDelta(seasonRelative, recentRelative);
+    const bidragMove = insightRawDelta(seasonBidrag, recentBidrag);
+    const insightMove = (delta, count, threshold) => {
+        if (delta == null || count < 3) return null;
+        if (delta >= threshold) return 'up';
+        if (delta <= -threshold) return 'down';
+        return 'flat';
+    };
+    const moves = {
+        bors: insightMove(borsMove, recentBorsCount, 0.3),
+        relative: insightMove(relativeMove, recentRelatives.length, 0.2),
+        bidrag: insightMove(bidragMove, recentMatches.length, 2)
+    };
+    const votes = [moves.bors, moves.relative, moves.bidrag].filter(Boolean);
     const ups = votes.filter(vote => vote === 'up').length;
     const downs = votes.filter(vote => vote === 'down').length;
     const trend = ups >= 2 && downs === 0 ? 'up' : downs >= 2 && ups === 0 ? 'down' : null;
@@ -2101,6 +2109,25 @@ function buildPlayerInsightModel(player, yearFilter) {
             roleGapText = `Prestasjonstallene varierer mellom rollene. Spilleren har så langt levert sterkere som ${high.label} (${insightFormatNumber(high.bors, 1)}, ${high.matches} kamper) enn som ${low.label} (${insightFormatNumber(low.bors, 1)}, ${low.matches} kamper).`;
         }
     }
+
+    const recentRoleCounts = new Map();
+    recentMatches.forEach(match => {
+        if (!match?.date) return;
+        const owners = dateOwners.get(match.date) || [];
+        if (owners.length !== 1) return;
+        const row = positionRows.find(item => item.posId === owners[0]);
+        const label = row?.label || row?.posId || '';
+        if (!label) return;
+        recentRoleCounts.set(label, (recentRoleCounts.get(label) || 0) + 1);
+    });
+    const recentRoleRanked = [...recentRoleCounts.entries()].sort((a, b) => b[1] - a[1]);
+    const recentRoleTop = recentRoleRanked[0];
+    const recentRoleLabel = recentRoleTop
+        && recentRoleTop[1] >= 2
+        && recentRoleTop[1] >= Math.ceil(recentMatches.length / 2)
+        && (recentRoleRanked.length === 1 || recentRoleTop[1] > recentRoleRanked[1][1])
+        ? `${recentRoleTop[0]} · ${recentRoleTop[1]} av ${recentMatches.length}`
+        : '';
 
     const relativeRounded = insightRound(seasonRelative, 2);
     const relativeClear = relativeRounded != null && validRelatives.length >= 5 && Math.abs(relativeRounded) >= 0.25;
@@ -2159,6 +2186,8 @@ function buildPlayerInsightModel(player, yearFilter) {
         },
         roles,
         roleGapText,
+        recentRoleLabel,
+        moves,
         trend,
         stable,
         relativeClear,
@@ -2178,9 +2207,9 @@ function buildPlayerInsightObservations(model) {
 
     const items = [];
     if (model.trend === 'up') {
-        items.push('Prestasjonen har vært sterkere i den siste perioden enn over sesongen totalt. Det kan være verdt å følge om utviklingen fortsetter.');
+        items.push('Følg om den positive utviklingen holder seg over flere kamper.');
     } else if (model.trend === 'down') {
-        items.push('Flere prestasjonsmål ligger lavere i den siste perioden enn sesongsnittet. Se nærmere på hvilke kamper og roller som ligger bak endringen.');
+        items.push('Følg om nedgangen holder seg over de neste kampene.');
     }
     if (model.roleGapText) items.push(model.roleGapText);
 
@@ -2204,7 +2233,7 @@ function buildPlayerInsightObservations(model) {
         items.push(`Målpoeng per kamp ligger ${direction} i ${period} kamper på banen (${insightFormatNumber(model.recent.production.rate, 1)}) enn sesongsnittet (${insightFormatNumber(model.production.rate, 1)}). Se om produksjonen følger med børs og rolle.`);
     }
     if (model.stable) {
-        items.push('Prestasjonstallene er relativt stabile gjennom sesongen, uten store utslag i siste periode.');
+        items.push('Følg om den stabile perioden holder seg over flere kamper.');
     }
 
     const limited = model.played < 5;
@@ -2282,6 +2311,147 @@ function buildPlayerInsightSectionHtml(title, body) {
             ${body}
         </section>
     `;
+}
+
+function insightJoinPhrases(parts) {
+    if (!parts.length) return '';
+    if (parts.length === 1) return parts[0];
+    if (parts.length === 2) return `${parts[0]} og ${parts[1]}`;
+    return `${parts.slice(0, -1).join(', ')} og ${parts[parts.length - 1]}`;
+}
+
+function insightNowStatus(model) {
+    const moves = model.moves || {};
+    const votes = [moves.bors, moves.relative, moves.bidrag].filter(Boolean);
+    const ups = votes.filter(vote => vote === 'up').length;
+    const downs = votes.filter(vote => vote === 'down').length;
+    const thin = (model.played || 0) <= 2
+        || (model.recent?.windowCount || 0) < 3
+        || model.sameWindow
+        || votes.length < 2;
+    if (thin) return 'limited';
+    if (ups >= 2 && downs === 0) return 'up';
+    if (downs >= 2 && ups === 0) return 'down';
+    if (ups === 0 && downs === 0) return 'stable';
+    return 'mixed';
+}
+
+function insightNowSplitSentence(moves) {
+    const phrase = {
+        bors: { up: 'trenerbørsen har økt', down: 'trenerbørsen har falt', flat: 'børsen er omtrent stabil' },
+        relative: { up: 'relativ prestasjon har økt', down: 'relativ prestasjon har falt', flat: 'relativ prestasjon er omtrent stabil' },
+        bidrag: { up: 'kampbidraget har økt', down: 'kampbidraget har falt', flat: 'kampbidraget er omtrent stabilt' }
+    };
+    const up = [];
+    const down = [];
+    const flat = [];
+    ['bidrag', 'bors', 'relative'].forEach(key => {
+        const direction = moves?.[key];
+        if (!direction || !phrase[key][direction]) return;
+        if (direction === 'up') up.push(phrase[key][direction]);
+        else if (direction === 'down') down.push(phrase[key][direction]);
+        else flat.push(phrase[key][direction]);
+    });
+    const moving = [...up, ...down];
+    if (!moving.length && !flat.length) return '';
+    const lead = insightJoinPhrases(moving.length ? moving : flat);
+    const rest = moving.length && flat.length ? `, mens ${insightJoinPhrases(flat)}` : '';
+    return `${lead.charAt(0).toUpperCase()}${lead.slice(1)}${rest}.`;
+}
+
+function insightNowRelativeSentence(model, status) {
+    const value = insightRound(model.relative?.value, 2);
+    const count = model.relative?.count || 0;
+    if (value == null || count < 5) return '';
+    if (status === 'mixed' && value <= -0.25) {
+        return 'Relativ prestasjon ligger fortsatt under lagkameratene i de samme kampene, så det er verdt å undersøke rolle og kampforløp nærmere.';
+    }
+    if (value >= 0.25) return 'Spilleren ligger over lagkameratene i de samme kampene.';
+    if (value <= -0.25) return 'Spilleren ligger under lagkameratene i de samme kampene.';
+    return 'Spilleren ligger omtrent på nivå med lagkameratene i de samme kampene.';
+}
+
+function insightNowProductionSentence(model, status) {
+    if (!model.productionShift || status === 'limited' || status === 'mixed') return '';
+    if (status === 'stable' && model.productionShift === 'up') {
+        return 'Prestasjonen har vært stabil, mens målpoengproduksjonen har økt.';
+    }
+    if (status === 'stable' && model.productionShift === 'down') {
+        return 'Prestasjonen har vært stabil, mens målpoengproduksjonen har falt.';
+    }
+    if (status === 'up' && model.productionShift === 'up') {
+        return 'Målpoengproduksjonen har også økt i den siste perioden.';
+    }
+    if (status === 'down' && model.productionShift === 'down') {
+        return 'Målpoengproduksjonen har også falt i den siste perioden.';
+    }
+    return '';
+}
+
+function buildPlayerInsightNowCopy(model) {
+    const status = insightNowStatus(model);
+    const labels = {
+        up: 'Sterkere periode',
+        down: 'Svakere periode',
+        stable: 'Stabil periode',
+        mixed: 'Blandet bilde',
+        limited: 'Begrenset datagrunnlag'
+    };
+    const sentences = [];
+    if (status === 'limited') {
+        sentences.push((model.played || 0) <= 2
+            ? 'Det er foreløpig for få kamper til å beskrive spillerens utvikling på en robust måte.'
+            : 'Datagrunnlaget i den siste perioden er foreløpig for lite til å beskrive en tydelig utvikling.');
+    } else if (status === 'up') {
+        sentences.push('Prestasjonstallene har vært sterkere i den siste perioden enn gjennom sesongen totalt.');
+    } else if (status === 'down') {
+        sentences.push('Flere prestasjonsmål ligger lavere i den siste perioden enn sesongsnittet.');
+        sentences.push('Se nærmere på hvilke kamper og roller som ligger bak endringen.');
+    } else if (status === 'mixed') {
+        sentences.push('Prestasjonstallene i den siste perioden peker i ulike retninger.');
+        const split = insightNowSplitSentence(model.moves);
+        if (split) sentences.push(split);
+    } else if (!insightNowProductionSentence(model, status)) {
+        sentences.push('Prestasjonstallene er omtrent uendret i den siste perioden sammenlignet med sesongen.');
+    }
+
+    const relativeSentence = status === 'limited' ? '' : insightNowRelativeSentence(model, status);
+    const productionSentence = insightNowProductionSentence(model, status);
+    [relativeSentence, productionSentence].forEach(sentence => {
+        if (sentence && sentences.length < 3) sentences.push(sentence);
+    });
+    if (status === 'up' && sentences.length < 3) {
+        const risen = [
+            model.moves?.bors === 'up' ? 'trenerbørs' : '',
+            model.moves?.relative === 'up' ? 'relativ prestasjon' : '',
+            model.moves?.bidrag === 'up' ? 'kampbidrag' : ''
+        ].filter(Boolean);
+        if (risen.length >= 2) sentences.push(`Både ${insightJoinPhrases(risen)} har økt.`);
+    }
+
+    return {
+        status,
+        label: labels[status],
+        sentences: sentences.slice(0, 3),
+        recentRoleLabel: status === 'limited' ? '' : (model.recentRoleLabel || '')
+    };
+}
+
+function buildPlayerInsightNowCardHtml(label, nowText, seasonText, deltaText, basis) {
+    return `
+        <article class="player-insight-now-card">
+            <p class="player-insight-kicker">${escapeRosterHtml(label)}</p>
+            <p class="player-insight-now-value">${escapeRosterHtml(nowText)}</p>
+            <p class="player-insight-now-vs">vs ${escapeRosterHtml(seasonText)}</p>
+            <p class="player-insight-now-delta">${escapeRosterHtml(deltaText)}</p>
+            ${basis ? `<p class="player-insight-basis">${escapeRosterHtml(basis)}</p>` : ''}
+        </article>
+    `;
+}
+
+function insightNowCountBasis(count, singular, plural) {
+    if (!count) return '';
+    return `${count} ${count === 1 ? singular : plural}`;
 }
 
 function buildPlayerInsightCardHtml(player, yearFilter) {
@@ -2485,6 +2655,23 @@ function buildPlayerInsightCardHtml(player, yearFilter) {
         `;
     }
 
+    const nowCopy = buildPlayerInsightNowCopy(model);
+    const nowDelta = (season, recent, digits) => (
+        season.value != null && recent.value != null && recent.count >= 2
+            ? insightFormatDelta(season.value, recent.value, digits)
+            : '—'
+    );
+    const formatNow = (metric, digits, signed) => {
+        const format = signed ? insightFormatSigned : insightFormatNumber;
+        return {
+            now: metric.recent.value == null ? '—' : format(metric.recent.value, digits),
+            season: metric.season.value == null ? '—' : format(metric.season.value, digits),
+            delta: nowDelta(metric.season, metric.recent, digits)
+        };
+    };
+    const borsNow = formatNow({ season: model.bors, recent: model.recent.bors }, 1, false);
+    const relativeNow = formatNow({ season: model.relative, recent: model.recent.relative }, 2, true);
+    const bidragNow = formatNow({ season: model.bidrag, recent: model.recent.bidrag }, 1, false);
     const infoOpen = isPlayerProfileInsightInfoOpen();
     return `
         <section class="${playerProfilePanelClass('innsikt', 'player-insight')}" data-profile-panel="innsikt" aria-expanded="${isPlayerProfilePanelOpen('innsikt') ? 'true' : 'false'}">
@@ -2510,6 +2697,19 @@ function buildPlayerInsightCardHtml(player, yearFilter) {
                 <div id="player-profile-insight-info" class="training-session-groups-info player-profile-insight-info${infoOpen ? '' : ' is-hidden'}" ${infoOpen ? '' : 'hidden'}>
                     <p>Spillerinnsikt samler registrerte prestasjons-, trenings-, rolle- og produksjonsdata. Observasjonene peker på mønstre som kan være verdt å undersøke nærmere, men forklarer ikke hvorfor de oppstår.</p>
                 </div>
+                ${buildPlayerInsightSectionHtml('Akkurat nå', `
+                    <p class="player-insight-status">${escapeRosterHtml(nowCopy.label)}</p>
+                    <p class="player-insight-now-copy">${escapeRosterHtml(nowCopy.sentences.join(' '))}</p>
+                    ${nowCopy.recentRoleLabel ? `<p class="player-insight-now-meta">Mest brukt nå: ${escapeRosterHtml(nowCopy.recentRoleLabel)}</p>` : ''}
+                `)}
+                ${buildPlayerInsightSectionHtml('Nå vs sesong', `
+                    <p class="player-insight-note">${escapeRosterHtml(recentLabel)} mot sesongsnittet. Grunnlaget kan være ulikt for hvert mål.</p>
+                    <div class="player-insight-now-grid">
+                        ${buildPlayerInsightNowCardHtml('Børs', borsNow.now, borsNow.season, borsNow.delta, insightNowCountBasis(model.recent.bors.count, 'vurdert kamp', 'vurderte kamper'))}
+                        ${buildPlayerInsightNowCardHtml('Relativ', relativeNow.now, relativeNow.season, relativeNow.delta, insightNowCountBasis(model.recent.relative.count, 'gyldig kamp', 'gyldige kamper'))}
+                        ${buildPlayerInsightNowCardHtml('Kampbidrag', bidragNow.now, bidragNow.season, bidragNow.delta, insightNowCountBasis(model.recent.bidrag.count, 'troppskamp', 'troppskamper'))}
+                    </div>
+                `)}
                 ${buildPlayerInsightSectionHtml('Oversikt', `
                     <div class="player-insight-metrics is-primary">${overview.join('')}</div>
                     <div class="player-insight-metrics">${secondary.join('')}</div>

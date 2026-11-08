@@ -11944,6 +11944,61 @@
             line-height: 1.4;
             margin: 0;
         }
+        .player-insight-status {
+            border: 1px solid rgba(245, 197, 66, 0.42);
+            border-radius: 999px;
+            color: #fde68a;
+            display: inline-flex;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            line-height: 1;
+            margin: 0 0 0.5rem;
+            padding: 0.32rem 0.62rem;
+        }
+        .player-insight-now-copy {
+            color: rgba(255, 253, 245, 0.92);
+            font-size: 0.9rem;
+            font-weight: 700;
+            line-height: 1.4;
+            margin: 0;
+        }
+        .player-insight-now-meta {
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin: 0.45rem 0 0;
+        }
+        .player-insight-now-grid {
+            display: grid;
+            gap: 0.45rem;
+            grid-template-columns: 1fr;
+        }
+        .player-insight-now-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.8rem;
+            min-width: 0;
+            padding: 0.55rem 0.65rem;
+        }
+        .player-insight-now-value,
+        .player-insight-now-delta {
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin: 0;
+        }
+        .player-insight-now-delta {
+            font-size: 0.95rem;
+            margin-top: 0.15rem;
+        }
+        .player-insight-now-vs {
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin: 0.2rem 0 0;
+        }
         @media (min-width: 720px) {
             .player-insight-metrics.is-primary {
                 grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -11953,6 +12008,9 @@
             }
             .player-insight-roles {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .player-insight-now-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
             }
         }
         .player-profile-radar-read {
