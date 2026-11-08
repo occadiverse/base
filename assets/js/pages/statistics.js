@@ -3571,12 +3571,15 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'tillit', label: 'Tillit' },
             { id: 'produksjon', label: 'Produksjon' },
             { id: 'trening', label: 'Trening' },
-            { id: 'utfall', label: 'Med/uten' },
-            { id: 'balanse', label: 'Balanse indeks' }
+            { id: 'resultatkobling', label: 'Resultatkobling' },
+            { id: 'relativ', label: 'Relativ prestasjon' }
         ];
         window.STATS_RESULT_DIAGRAM_MIN_MATCHES = 5;
         window.STATS_RESULT_DIAGRAM_MIN_MINUTES = 45;
         window.STATS_BALANCE_DIAGRAM_MIN_MATCHES = 5;
+        window.STATS_RESULTATKOBLING_MIN_MATCHES = 8;
+        window.STATS_RELATIV_MIN_MATCHES = 6;
+        window.STATS_RELATIV_MIN_OTHERS = 5;
         window.statsLineDiagramKind = window.statsLineDiagramKind || 'forsvar';
         window.STATS_LINE_DIAGRAM_KINDS = [
             { id: 'forsvar', label: 'Forsvar' },
@@ -3648,27 +3651,24 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     </ul>
                 `;
             }
-            if (kind === 'utfall') {
-                const minMatches = window.STATS_RESULT_DIAGRAM_MIN_MATCHES || 5;
-                const minMinutes = window.STATS_RESULT_DIAGRAM_MIN_MINUTES || 45;
+            if (kind === 'resultatkobling') {
+                const minMatches = window.STATS_RESULTATKOBLING_MIN_MATCHES || 8;
                 return `
-                    <p class="training-session-groups-info-title">Med/uten</p>
+                    <p class="training-session-groups-info-title">Resultatkobling</p>
                     <ul class="training-session-groups-info-list">
-                        <li>Opp er hvor mange prosentpoeng oftere laget vant i kampene han spilte minst ${minMinutes} minutter, enn i kampene han ikke spilte.</li>
-                        <li>Den vannrette streken er ingen forskjell. Over den vant laget oftere med ham. Den loddrette streken er børs 6. Grønn boble ligger over streken og til høyre for den.</li>
-                        <li>Uavgjort er ikke med i kampantallet. Minst ${minMatches} avgjorte kamper på hver side. Større boble er flere kamper med minst ${minMinutes} minutter.</li>
+                        <li>Viser hvor tett spillerens trenerbørs følger BSKs kampresultater. Høy positiv verdi betyr at spillerens beste prestasjoner oftere sammenfaller med gode lagresultater. En verdi nær 0 er ikke nødvendigvis negativ – den kan også bety at spilleren holder nivået når laget sliter.</li>
+                        <li>Opp er resultatkobling fra −1 til +1. Streken er 0. Bortover er snittbørs, streken er 6. Minst ${minMatches} kamper med børs. Større boble er flere kamper.</li>
                     </ul>
                 `;
             }
-            if (kind === 'balanse') {
-                const minMatches = window.STATS_BALANCE_DIAGRAM_MIN_MATCHES || 5;
+            if (kind === 'relativ') {
+                const minMatches = window.STATS_RELATIV_MIN_MATCHES || 6;
+                const minOthers = window.STATS_RELATIV_MIN_OTHERS || 5;
                 return `
-                    <p class="training-session-groups-info-title">Balanse indeks</p>
+                    <p class="training-session-groups-info-title">Relativ prestasjon</p>
                     <ul class="training-session-groups-info-list">
-                        <li>Scoren er den samme som under Med og uten på profilen, fra 0 til 100. 40 kommer fra seiersprosenten av kampene som ble avgjort. Uavgjort er ikke med i det antallet. 25 kommer fra mål scoret, 25 fra mål imot og 10 fra rent null.</li>
-                        <li>Opp er hvordan kampene så ut da han var på banen. Bortover er hvordan de så ut da han ikke spilte, snudd slik at 100 står til venstre og 0 til høyre. Høyre betyr at kampene uten ham så dårligere ut.</li>
-                        <li>Krysset er 50. Over streken så kampene med ham bra ut. Til høyre for streken så kampene uten ham svake ut. Oppe til høyre er begge deler: bra med ham, svakt uten ham. Oppe til venstre så kampene bra ut uansett. Nede til venstre så de bedre ut uten ham.</li>
-                        <li>Grønn boble har høyere score med enn uten, også når begge tallene ligger under 50. Større boble er flere kamper på banen. Minst ${minMatches} kamper på hver side. Alle minutter på banen teller.</li>
+                        <li>Viser hvordan spillerens trenerbørs ligger i forhold til de andre vurderte BSK-spillerne i de samme kampene. +1,0 betyr at spilleren i gjennomsnitt vurderes ett børspoeng høyere enn lagkameratene rundt seg.</li>
+                        <li>Opp er relativ prestasjon. Streken er 0. Bortover er snittbørs, streken er 6. Minst ${minMatches} kamper med minst ${minOthers} andre børser. Større boble er flere gyldige kamper.</li>
                     </ul>
                 `;
             }
@@ -4306,11 +4306,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.buildStatsBalanseDiagramData = function() {
             const yearFilter = window.getStatsDiagramYearFilter();
             const minMatches = window.STATS_BALANCE_DIAGRAM_MIN_MATCHES || 5;
+            const minMinutes = window.STATS_RESULT_DIAGRAM_MIN_MINUTES || 45;
             if (typeof getPlayerProfileWinSplit !== 'function' || typeof formatPlayerProfilePresenceScore !== 'function') {
                 return [];
             }
             return window.getStatsDiagramScopedPlayers().map(player => {
-                const split = getPlayerProfileWinSplit(player, yearFilter);
+                const split = getPlayerProfileWinSplit(player, yearFilter, { minMinutes });
                 const med = split?.inne;
                 const uten = split?.ute;
                 if (!med || !uten || med.n < minMatches || uten.n < minMatches) return null;
@@ -4326,6 +4327,126 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     utenScore,
                     medN: med.n,
                     utenN: uten.n
+                };
+            }).filter(Boolean);
+        };
+
+        function getStatsRatingResultSamples(player) {
+            const yearFilter = window.getStatsDiagramYearFilter();
+            const teamPlayers = (window.activePlayers || []).filter(person => person && person.spillerLag === player.spillerLag);
+            const ratingOf = (match, person) => {
+                const value = Number(window.getPlayerRefMapValue?.(match.ratings, person, 0)) || 0;
+                return value > 0 ? value : null;
+            };
+            const pointsOf = (match) => {
+                const outcome = typeof window.getMatchOutcomeScore === 'function'
+                    ? window.getMatchOutcomeScore(match)
+                    : null;
+                if (!outcome || !Number.isFinite(Number(outcome.bsk)) || !Number.isFinite(Number(outcome.opponent))) return null;
+                if (outcome.bsk > outcome.opponent) return 3;
+                if (outcome.bsk === outcome.opponent) return 1;
+                return 0;
+            };
+            const isSamePlayer = (person) => person === player
+                || (person?.id && player?.id && person.id === player.id)
+                || (person?.navn && person.navn === player.navn);
+            return (window.activeMatches || []).map(match => {
+                if (match.matchGroup !== player.spillerLag) return null;
+                if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(match)) return null;
+                if (typeof window.matchHasPlayedResult === 'function' && !window.matchHasPlayedResult(match)) return null;
+                if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return null;
+                if (typeof window.activityBelongsToStatsYear === 'function'
+                    && !window.activityBelongsToStatsYear(match, yearFilter)) return null;
+                const rating = ratingOf(match, player);
+                const points = pointsOf(match);
+                if (rating == null || points == null) return null;
+                const others = [];
+                teamPlayers.forEach(person => {
+                    if (isSamePlayer(person)) return;
+                    const otherRating = ratingOf(match, person);
+                    if (otherRating != null) others.push(otherRating);
+                });
+                return { rating, points, others };
+            }).filter(Boolean);
+        }
+
+        function statsMean(values) {
+            if (!values.length) return null;
+            return values.reduce((sum, value) => sum + value, 0) / values.length;
+        }
+
+        function statsPearsonCorrelation(xs, ys) {
+            const count = xs.length;
+            if (count < 2 || count !== ys.length) return null;
+            const meanX = statsMean(xs);
+            const meanY = statsMean(ys);
+            let numerator = 0;
+            let squareX = 0;
+            let squareY = 0;
+            for (let index = 0; index < count; index += 1) {
+                const dx = xs[index] - meanX;
+                const dy = ys[index] - meanY;
+                numerator += dx * dy;
+                squareX += dx * dx;
+                squareY += dy * dy;
+            }
+            if (squareX === 0 || squareY === 0) return null;
+            return numerator / Math.sqrt(squareX * squareY);
+        }
+
+        function statsRound2(value) {
+            if (value == null || !Number.isFinite(Number(value))) return null;
+            return Math.round(Number(value) * 100) / 100;
+        }
+
+        window.buildStatsResultatkoblingDiagramData = function() {
+            const minMatches = window.STATS_RESULTATKOBLING_MIN_MATCHES || 8;
+            return window.getStatsDiagramScopedPlayers().map(player => {
+                const samples = getStatsRatingResultSamples(player);
+                if (samples.length < minMatches) return null;
+                const ratings = samples.map(sample => sample.rating);
+                const points = samples.map(sample => sample.points);
+                const correlation = statsPearsonCorrelation(ratings, points);
+                if (correlation == null) return null;
+                const ratingsFor = (value) => ratings.filter((_, index) => points[index] === value);
+                return {
+                    name: player.navn,
+                    x: statsMean(ratings),
+                    y: correlation,
+                    score: samples.length,
+                    matches: samples.length,
+                    snittBors: statsRound2(statsMean(ratings)),
+                    kobling: statsRound2(correlation),
+                    borsSeier: statsRound2(statsMean(ratingsFor(3))),
+                    borsUavgjort: statsRound2(statsMean(ratingsFor(1))),
+                    borsTap: statsRound2(statsMean(ratingsFor(0)))
+                };
+            }).filter(Boolean);
+        };
+
+        window.buildStatsRelativDiagramData = function() {
+            const minMatches = window.STATS_RELATIV_MIN_MATCHES || 6;
+            const minOthers = window.STATS_RELATIV_MIN_OTHERS || 5;
+            return window.getStatsDiagramScopedPlayers().map(player => {
+                const samples = getStatsRatingResultSamples(player);
+                const valid = samples.filter(sample => sample.others.length >= minOthers);
+                if (valid.length < minMatches) return null;
+                const relative = valid.map(sample => {
+                    const otherAvg = sample.others.reduce((sum, value) => sum + value, 0) / sample.others.length;
+                    return sample.rating - otherAvg;
+                });
+                const relativeFor = (value) => relative.filter((_, index) => valid[index].points === value);
+                return {
+                    name: player.navn,
+                    x: statsMean(samples.map(sample => sample.rating)),
+                    y: statsMean(relative),
+                    score: valid.length,
+                    matches: valid.length,
+                    snittBors: statsRound2(statsMean(samples.map(sample => sample.rating))),
+                    relativ: statsRound2(statsMean(relative)),
+                    relSeier: statsRound2(statsMean(relativeFor(3))),
+                    relUavgjort: statsRound2(statsMean(relativeFor(1))),
+                    relTap: statsRound2(statsMean(relativeFor(0)))
                 };
             }).filter(Boolean);
         };
@@ -4601,7 +4722,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                                 <button type="button" onclick="window.setStatsScoreDiagramKind('${kind.id}')" class="team-score-diagram-tab ${activeKind === kind.id ? 'is-active' : ''}" aria-selected="${activeKind === kind.id ? 'true' : 'false'}">${kind.label}</button>
                             `).join('')}
                         </div>
-                        ${activeKind === 'utfall' || activeKind === 'balanse' ? '' : `
+                        ${activeKind === 'resultatkobling' || activeKind === 'relativ' ? '' : `
                         <div class="team-score-diagram-tabs" role="tablist" aria-label="Periode">
                             <button type="button" onclick="window.setStatsScoreDiagramMode('total')" class="team-score-diagram-tab ${isTotal ? 'is-active' : ''}" aria-selected="${isTotal ? 'true' : 'false'}">Sesong</button>
                             <button type="button" onclick="window.setStatsScoreDiagramMode('five')" class="team-score-diagram-tab ${!isTotal ? 'is-active' : ''}" aria-selected="${!isTotal ? 'true' : 'false'}">Nå</button>
@@ -4675,7 +4796,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const tooltipPadY = 14;
                 const tooltipMembers = (!isGroup && Array.isArray(lead.tooltipRows) && lead.tooltipRows.length)
                     ? lead.tooltipRows
-                    : members;
+                    : members.flatMap(member => (
+                        Array.isArray(member.tooltipRows) && member.tooltipRows.length
+                            ? member.tooltipRows
+                            : [member]
+                    ));
                 const tooltipWidth = Number(config.tooltipWidth) > 0
                     ? Number(config.tooltipWidth)
                     : (isCompact ? 178 : 220);
@@ -4792,12 +4917,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 tillit: isTotal ? window.buildStatsTillitTotalDiagramData() : window.buildStatsTillitFiveDiagramData(),
                 produksjon: isTotal ? window.buildStatsProduksjonTotalDiagramData() : window.buildStatsProduksjonFiveDiagramData(),
                 trening: isTotal ? window.buildStatsTreningTotalDiagramData() : window.buildStatsTreningFiveDiagramData(),
-                utfall: window.buildStatsResultatDiagramData(),
-                balanse: window.buildStatsBalanseDiagramData()
+                resultatkobling: window.buildStatsResultatkoblingDiagramData(),
+                relativ: window.buildStatsRelativDiagramData()
             };
-            const minBalanceMatches = window.STATS_BALANCE_DIAGRAM_MIN_MATCHES || 5;
             const percentGrid = isCompact ? [0, 25, 50, 75, 100] : [0, 20, 40, 50, 60, 80, 100];
-            const minResultMatches = window.STATS_RESULT_DIAGRAM_MIN_MATCHES || 5;
+            const minKoblingMatches = window.STATS_RESULTATKOBLING_MIN_MATCHES || 8;
+            const minRelativMatches = window.STATS_RELATIV_MIN_MATCHES || 6;
             const contribGrid = isTotal
                 ? (isCompact ? [8, 12, 16, 20, 24] : [8, 10, 12, 14, 16, 18, 20, 22, 24])
                 : (isCompact ? [8, 12, 16, 20, 24, 28] : [8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28]);
@@ -4858,80 +4983,75 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     emptyMessage: 'Mangler treningsoppmøte å vise.',
                     kindLabel: 'Treningskart'
                 },
-                utfall: {
+                resultatkobling: {
                     xMin: 4,
                     xMax: 8,
-                    yMin: -80,
-                    yMax: 80,
+                    yMin: -1,
+                    yMax: 1,
                     splitX: 6,
                     splitY: 0,
                     gridX: [4, 5, 6, 7, 8],
-                    gridY: isCompact ? [-60, 0, 60] : [-60, -40, -20, 0, 20, 40, 60],
+                    gridY: isCompact ? [-1, 0, 1] : [-1, -0.5, 0, 0.5, 1],
                     formatTickY: (tick) => (tick > 0 ? `+${tick}` : String(tick)),
                     xAxisLabel: 'Børs',
-                    yAxisLabel: isCompact ? 'Mer seier med' : 'Mer seier med ham',
-                    emptyMessage: `Ingen spillere med minst ${minResultMatches} kamper på minst 45 minutter og ${minResultMatches} uten.`,
-                    kindLabel: 'Med/uten',
-                    tooltipWidth: isCompact ? 220 : 260
-                },
-                balanse: {
-                    xMin: 0,
-                    xMax: 100,
-                    yMin: 0,
-                    yMax: 100,
-                    splitX: 50,
-                    splitY: 50,
-                    gridX: isCompact ? [0, 50, 100] : [0, 25, 50, 75, 100],
-                    gridY: isCompact ? [0, 50, 100] : [0, 25, 50, 75, 100],
-                    formatTickX: (tick) => String(100 - tick),
-                    xAxisLabel: isCompact ? 'Uten' : 'Score uten',
-                    yAxisLabel: isCompact ? 'Med' : 'Score med',
-                    emptyMessage: `Ingen spillere med minst ${minBalanceMatches} kamper med og ${minBalanceMatches} uten.`,
-                    kindLabel: 'Balanse indeks',
+                    yAxisLabel: isCompact ? 'Kobling' : 'Resultatkobling',
+                    emptyMessage: `Ingen spillere med minst ${minKoblingMatches} kamper med børs.`,
+                    kindLabel: 'Resultatkobling',
                     tooltipWidth: isCompact ? 230 : 280
+                },
+                relativ: {
+                    xMin: 4,
+                    xMax: 8,
+                    yMin: -2,
+                    yMax: 2,
+                    splitX: 6,
+                    splitY: 0,
+                    gridX: [4, 5, 6, 7, 8],
+                    gridY: isCompact ? [-2, 0, 2] : [-2, -1, 0, 1, 2],
+                    formatTickY: (tick) => (tick > 0 ? `+${tick}` : String(tick)),
+                    xAxisLabel: 'Børs',
+                    yAxisLabel: isCompact ? 'Relativ' : 'Relativ prestasjon',
+                    emptyMessage: `Ingen spillere med minst ${minRelativMatches} gyldige kamper.`,
+                    kindLabel: 'Relativ prestasjon',
+                    tooltipWidth: isCompact ? 240 : 300
                 }
             };
             const plot = plots[kind] || plots.tropp;
             const formatProduction = value => (Math.round((Number(value) || 0) * 10) / 10).toFixed(1);
             const prepareRow = (row) => {
                 const radius = 4 + ((row.score - 20) / 65) * 3;
-                if (kind === 'utfall') {
-                    const played = Number(row.inN) || 0;
-                    const winsIn = Number(row.inW) || 0;
-                    const winsOut = Number(row.outW) || 0;
-                    const winWord = (count) => (count === 1 ? 'seier' : 'seire');
-                    const gap = Number(row.y) || 0;
-                    const gapText = `${gap > 0 ? '+' : ''}${gap}`;
-                    const inBestSquare = gap > 0 && Number(row.x) > 6;
-                    return {
-                        radius: 4.5 + Math.min(4, Math.max(0, played - 5) * 0.22),
-                        fill: inBestSquare ? '#00c853' : '#0b2b4c',
-                        displayValue: gapText,
-                        tooltipValueClass: inBestSquare ? 'is-up' : 'is-season',
-                        tooltipRows: [
-                            { name: row.name, displayValue: gapText },
-                            { name: `${row.inN} med`, displayValue: `${row.winMed}% · ${winsIn} ${winWord(winsIn)}` },
-                            { name: `${row.outN} uten`, displayValue: `${row.winUten}% · ${winsOut} ${winWord(winsOut)}` },
-                            { name: 'Børs', displayValue: (Math.round(Number(row.snittBors) * 10) / 10).toFixed(1) }
-                        ]
+                if (kind === 'resultatkobling' || kind === 'relativ') {
+                    const played = Number(row.matches) || 0;
+                    const formatBors = (value) => (value == null ? '—' : Number(value).toFixed(2));
+                    const formatSigned = (value) => {
+                        if (value == null || !Number.isFinite(Number(value))) return '—';
+                        const text = Number(value).toFixed(2);
+                        return Number(value) > 0 ? `+${text}` : text;
                     };
-                }
-                if (kind === 'balanse') {
-                    const played = Number(row.medN) || 0;
-                    const gap = (Number(row.medScore) || 0) - (Number(row.utenScore) || 0);
-                    const gapText = `${gap > 0 ? '+' : ''}${gap}`;
-                    const above = gap > 0;
-                    const matchWord = (count) => (count === 1 ? 'kamp' : 'kamper');
+                    const matchWord = played === 1 ? 'kamp' : 'kamper';
+                    const valueText = kind === 'relativ' ? formatSigned(row.relativ) : formatBors(row.kobling);
                     return {
                         radius: 4.5 + Math.min(4, Math.max(0, played - 5) * 0.22),
-                        fill: above ? '#00c853' : '#0b2b4c',
-                        displayValue: gapText,
-                        tooltipValueClass: above ? 'is-up' : 'is-season',
-                        tooltipRows: [
-                            { name: row.name, displayValue: gapText },
-                            { name: 'Med', displayValue: `${row.medScore} · ${row.medN} ${matchWord(row.medN)}` },
-                            { name: 'Uten', displayValue: `${row.utenScore} · ${row.utenN} ${matchWord(row.utenN)}` }
-                        ]
+                        fill: '#0b2b4c',
+                        displayValue: valueText,
+                        tooltipValueClass: 'is-season',
+                        tooltipRows: kind === 'relativ'
+                            ? [
+                                { name: row.name, displayValue: valueText },
+                                { name: 'Snittbørs', displayValue: formatBors(row.snittBors) },
+                                { name: 'Gyldige kamper', displayValue: `${played} ${matchWord}` },
+                                { name: 'I seier', displayValue: formatSigned(row.relSeier) },
+                                { name: 'I uavgjort', displayValue: formatSigned(row.relUavgjort) },
+                                { name: 'I tap', displayValue: formatSigned(row.relTap) }
+                            ]
+                            : [
+                                { name: row.name, displayValue: valueText },
+                                { name: 'Snittbørs', displayValue: formatBors(row.snittBors) },
+                                { name: 'Kamper', displayValue: `${played} ${matchWord}` },
+                                { name: 'Børs seier', displayValue: formatBors(row.borsSeier) },
+                                { name: 'Børs uavgjort', displayValue: formatBors(row.borsUavgjort) },
+                                { name: 'Børs tap', displayValue: formatBors(row.borsTap) }
+                            ]
                     };
                 }
                 if (kind === 'tillit' || kind === 'trening') {
@@ -7360,6 +7480,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderPlayerStatsList = function() {
             const list = document.getElementById('stats-player-list');
             if (!list) return;
+            if (currentStatSortCol === 'seierMedPct' || currentStatSortCol === 'seierUtenPct') {
+                currentStatSortCol = 'totalScore';
+            }
             currentStatSortDesc = true;
 
             let statsData = typeof window.getStatsSpillerListData === 'function'
@@ -7628,8 +7751,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             { id: 'bb', label: 'Banens beste', icon: 'fa-crown' },
             { id: 'oppmotePct', label: 'Oppmøte', icon: 'fa-user-check', title: 'Treningsoppmøte: møtt / mulige økter med registrert oppmøte' },
             { id: 'kamper', label: 'Kamper', icon: 'fa-shield-halved' },
-            { id: 'seierMedPct', label: 'Seier med', icon: 'fa-user-plus', title: 'Høyest seiersprosent i avgjorte kamper der spilleren sto på banen. Uavgjort er ikke med' },
-            { id: 'seierUtenPct', label: 'Seier uten', icon: 'fa-user-minus', title: 'Lavest seiersprosent i avgjorte kamper der spilleren ikke sto på banen. Uavgjort er ikke med' },
             { id: 'minutesTotal', label: 'Minutter', icon: 'fa-stopwatch', title: 'Total / snitt per kamp' },
             { id: 'minutesSharePct', label: 'Minuttandel', icon: 'fa-chart-pie' }
         ];
