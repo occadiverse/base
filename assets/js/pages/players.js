@@ -962,7 +962,8 @@ function getPlayerProfilePanelState() {
         profil: false,
         utvikling: false,
         kampforkamp: false,
-        trening: false
+        trening: false,
+        innsikt: true
     };
     window.playerProfilePanelState = window.playerProfilePanelState || {};
     Object.keys(defaults).forEach((key) => {
@@ -1754,6 +1755,26 @@ function bindPlayerProfilePageEvents() {
             return;
         }
 
+        if (action === 'toggle-insight-info') {
+            window.playerProfileInsightInfoOpen = !isPlayerProfileInsightInfoOpen();
+            const open = isPlayerProfileInsightInfoOpen();
+            const panel = actionEl.closest('[data-profile-panel="innsikt"]');
+            if (panel && open && panel.classList.contains('is-collapsed')) {
+                togglePlayerProfilePanel('innsikt');
+            }
+            const info = panel?.querySelector('.player-profile-insight-info');
+            const button = panel?.querySelector('.player-profile-insight-info-btn');
+            if (info) {
+                info.classList.toggle('is-hidden', !open);
+                info.hidden = !open;
+            }
+            if (button) {
+                button.classList.toggle('is-active', open);
+                button.setAttribute('aria-expanded', open ? 'true' : 'false');
+            }
+            return;
+        }
+
         if (action === 'go-back') {
             if (typeof window.goBackToPreviousPortalPage === 'function' && window.goBackToPreviousPortalPage()) return;
             if (typeof window.switchTab === 'function') window.switchTab('tropp', { skipHistory: true });
@@ -1776,6 +1797,759 @@ function bindPlayerProfilePageEvents() {
             window.promptDeletePlayer(playerId);
         }
     });
+}
+
+function isPlayerProfileInsightInfoOpen() {
+    return window.playerProfileInsightInfoOpen === true;
+}
+
+function insightRound(value, digits) {
+    if (value == null || value === '') return null;
+    const number = Number(value);
+    if (!Number.isFinite(number)) return null;
+    const factor = 10 ** digits;
+    return Math.round(number * factor) / factor;
+}
+
+function insightMean(values) {
+    if (!values || !values.length) return null;
+    return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function insightFormatNumber(value, digits) {
+    const rounded = insightRound(value, digits);
+    if (rounded == null) return '—';
+    return rounded.toFixed(digits).replace('.', ',');
+}
+
+function insightFormatSigned(value, digits) {
+    const rounded = insightRound(value, digits);
+    if (rounded == null) return '—';
+    const text = Math.abs(rounded).toFixed(digits).replace('.', ',');
+    if (rounded > 0) return `+${text}`;
+    if (rounded < 0) return `−${text}`;
+    return insightFormatNumber(0, digits);
+}
+
+function insightFormatDelta(season, recent, digits) {
+    const left = insightRound(season, digits);
+    const right = insightRound(recent, digits);
+    if (left == null || right == null) return '—';
+    return insightFormatSigned(right - left, digits);
+}
+
+function insightDelta(season, recent, digits) {
+    const left = insightRound(season, digits);
+    const right = insightRound(recent, digits);
+    if (left == null || right == null) return null;
+    return insightRound(right - left, digits);
+}
+
+function insightRecentLabel(count) {
+    return count > 0 ? `Siste ${count}` : 'Siste periode';
+}
+
+function insightMatchBasis(count, thinNote) {
+    if (!count) return '';
+    const word = count === 1 ? 'kamp' : 'kamper';
+    if (thinNote && count < 3) return `${count} ${word} – lite grunnlag`;
+    return `${count} ${word}`;
+}
+
+function insightRatingValue(match, player) {
+    const rating = Number(window.getPlayerRefMapValue?.(match?.ratings, player, 0)) || 0;
+    return rating > 0 ? rating : null;
+}
+
+function insightRelativeValue(sample, minOthers) {
+    if (!sample || !Array.isArray(sample.others) || sample.others.length < minOthers) return null;
+    const otherAverage = sample.others.reduce((sum, value) => sum + value, 0) / sample.others.length;
+    return sample.rating - otherAverage;
+}
+
+function insightSamplesForMatches(samples, matches, minOthers) {
+    const ids = new Set((matches || []).map(match => match?.id).filter(Boolean));
+    const dates = new Set((matches || []).map(match => match?.date).filter(Boolean));
+    return (samples || [])
+        .filter(sample => (sample.matchId && ids.has(sample.matchId)) || (!sample.matchId && dates.has(sample.date)))
+        .map(sample => insightRelativeValue(sample, minOthers))
+        .filter(value => value != null);
+}
+
+function getPlayerInsightAttendedMatches(player, yearFilter) {
+    return getPlayerProfileSeasonMatches(player, yearFilter)
+        .filter(match => typeof window.isPlayerAttending === 'function' && window.isPlayerAttending(match.attendance, player))
+        .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+}
+
+function getPlayerInsightRecentMatches(player, yearFilter, attendedMatches) {
+    if (typeof window.getStatsDiagramRecentPlayerWindow === 'function') {
+        const recent = window.getStatsDiagramRecentPlayerWindow(player, yearFilter);
+        return Array.isArray(recent?.playerMatches) ? recent.playerMatches : [];
+    }
+    return attendedMatches.slice(-5).reverse();
+}
+
+function buildPlayerInsightRatingChartSvg(points) {
+    if (!points || points.length < 2) return '';
+    const width = 320;
+    const height = 92;
+    const pad = { left: 26, right: 8, top: 12, bottom: 16 };
+    const ratings = points.map(point => point.rating);
+    let yMin = Math.floor(Math.min(...ratings, 6) - 0.4);
+    let yMax = Math.ceil(Math.max(...ratings, 6) + 0.4);
+    if (yMax - yMin < 2) {
+        yMin -= 1;
+        yMax += 1;
+    }
+    yMin = Math.max(1, yMin);
+    yMax = Math.min(10, Math.max(yMin + 1, yMax));
+    const innerWidth = width - pad.left - pad.right;
+    const innerHeight = height - pad.top - pad.bottom;
+    const xAt = index => pad.left + (index / (points.length - 1)) * innerWidth;
+    const yAt = rating => pad.top + ((yMax - rating) / (yMax - yMin)) * innerHeight;
+    const line = points.map((point, index) => `${xAt(index).toFixed(1)},${yAt(point.rating).toFixed(1)}`).join(' ');
+    const referenceY = yAt(6);
+    const dots = points.map((point, index) => (
+        `<circle cx="${xAt(index).toFixed(1)}" cy="${yAt(point.rating).toFixed(1)}" r="2.4" fill="#f5c542"></circle>`
+    )).join('');
+    return `
+        <div class="player-insight-chart">
+            <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Trenerbørs gjennom sesongen">
+                <line x1="${pad.left}" y1="${referenceY.toFixed(1)}" x2="${width - pad.right}" y2="${referenceY.toFixed(1)}" stroke="rgba(245,197,66,0.45)" stroke-dasharray="3 3"></line>
+                <text x="2" y="${(referenceY + 3).toFixed(1)}" fill="rgba(255,255,255,0.5)" font-size="9" font-weight="700">6</text>
+                <polyline points="${line}" fill="none" stroke="#f8fafc" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"></polyline>
+                ${dots}
+            </svg>
+            <p class="player-insight-chart-caption">Trenerbørs kamp for kamp. Stiplet linje er 6. Kamper uten børs er ikke med.</p>
+        </div>
+    `;
+}
+
+function buildPlayerInsightModel(player, yearFilter) {
+    const stats = getPlayerProfileStats(player, yearFilter);
+    const minOthers = window.STATS_RELATIV_MIN_OTHERS || 5;
+    const attendedMatches = getPlayerInsightAttendedMatches(player, yearFilter);
+    const recentMatches = getPlayerInsightRecentMatches(player, yearFilter, attendedMatches);
+    const samples = typeof window.getStatsRatingResultSamples === 'function'
+        ? (window.getStatsRatingResultSamples(player, yearFilter) || [])
+        : [];
+    const validRelatives = samples
+        .map(sample => insightRelativeValue(sample, minOthers))
+        .filter(value => value != null);
+
+    const played = Number(stats?.kamper) || 0;
+    const attended = Number(stats?.attendedMatches) || attendedMatches.length;
+    const seasonBors = Number(stats?.snittBors) > 0 ? Number(stats.snittBors) : null;
+    const seasonBorsCount = attendedMatches.reduce((count, match) => (
+        count + (typeof window.isPlayerOnPitch === 'function' && window.isPlayerOnPitch(match, player) && insightRatingValue(match, player) != null ? 1 : 0)
+    ), 0);
+    const seasonBidrag = attended > 0 ? Number(stats?.kampbonus) || 0 : null;
+    const seasonRelative = validRelatives.length ? insightMean(validRelatives) : null;
+
+    const recentBorsCount = recentMatches.reduce((count, match) => (
+        count + (typeof window.isPlayerOnPitch === 'function' && window.isPlayerOnPitch(match, player) && insightRatingValue(match, player) != null ? 1 : 0)
+    ), 0);
+    const recentBorsRaw = typeof window.getStatsDiagramRecentSnittBors === 'function'
+        ? window.getStatsDiagramRecentSnittBors(player, recentMatches)
+        : 0;
+    const recentBors = recentBorsRaw > 0 ? recentBorsRaw : null;
+    const recentRelatives = insightSamplesForMatches(samples, recentMatches, minOthers);
+    const recentRelative = recentRelatives.length ? insightMean(recentRelatives) : null;
+    const recentBidrag = recentMatches.length && typeof window.calculatePlayerMatchPoints === 'function'
+        ? recentMatches.reduce((sum, match) => sum + (Number(window.calculatePlayerMatchPoints(match, player)) || 0), 0) / recentMatches.length
+        : null;
+
+    const goals = played > 0 ? Number(stats?.mal) || 0 : null;
+    const assists = played > 0 ? Number(stats?.assist) || 0 : null;
+    const goalPoints = played > 0 ? (goals + assists) : null;
+    const seasonRate = played > 0 && stats?.expectedMalpoeng != null ? Number(stats.expectedMalpoeng) : null;
+    let recentGoals = 0;
+    let recentAssists = 0;
+    let recentPlayed = 0;
+    recentMatches.forEach(match => {
+        if (typeof window.isPlayerOnPitch === 'function' && !window.isPlayerOnPitch(match, player)) return;
+        recentPlayed += 1;
+        recentGoals += Number(window.getPlayerRefMapValue?.(match.scorers, player, 0)) || 0;
+        recentAssists += Number(window.getPlayerRefMapValue?.(match.assists, player, 0)) || 0;
+    });
+    const recentGoalPoints = recentPlayed > 0 ? recentGoals + recentAssists : null;
+    const recentRate = recentPlayed > 0
+        ? Math.round(((recentGoals + recentAssists) / recentPlayed) * 10) / 10
+        : null;
+
+    const trainingPossible = Number(stats?.oppmotePossible) || 0;
+    const trainingAttended = Number(stats?.oppmoteAttended) || 0;
+    const trainingPct = trainingPossible > 0 ? Number(stats?.oppmotePct) || 0 : null;
+    const recentTraining = typeof window.getStatsDiagramRecentTrainings === 'function'
+        ? window.getStatsDiagramRecentTrainings(player, yearFilter)
+        : { possible: 0, attended: 0, pct: null };
+
+    const positionRows = typeof window.buildPlayerPositionMatchStats === 'function'
+        ? (window.buildPlayerPositionMatchStats(player, { yearFilter }) || [])
+        : [];
+    const datesByRole = new Map();
+    positionRows.forEach(row => {
+        const dates = new Set((row.entries || []).map(entry => entry?.date).filter(Boolean));
+        datesByRole.set(row.posId, dates);
+    });
+    const dateOwners = new Map();
+    datesByRole.forEach((dates, posId) => {
+        dates.forEach(date => {
+            const owners = dateOwners.get(date) || [];
+            owners.push(posId);
+            dateOwners.set(date, owners);
+        });
+    });
+    const relativesByRole = new Map();
+    samples.forEach(sample => {
+        const relative = insightRelativeValue(sample, minOthers);
+        if (relative == null || !sample.date) return;
+        const owners = dateOwners.get(sample.date) || [];
+        if (owners.length !== 1) return;
+        const list = relativesByRole.get(owners[0]) || [];
+        list.push(relative);
+        relativesByRole.set(owners[0], list);
+    });
+    const roles = positionRows.map(row => {
+        const ratingsCount = Number(row.ratingsCount) || 0;
+        const bors = ratingsCount > 0 ? Number(row.ratingsSum) / ratingsCount : null;
+        const relatives = relativesByRole.get(row.posId) || [];
+        return {
+            label: row.label || row.posId || 'Ukjent rolle',
+            matches: Number(row.matches) || 0,
+            bors,
+            borsRounded: insightRound(bors, 1),
+            relative: relatives.length ? insightMean(relatives) : null,
+            relativeCount: relatives.length
+        };
+    }).filter(role => role.matches > 0);
+
+    const starters = [];
+    const subs = [];
+    let knownXi = 0;
+    attendedMatches.forEach(match => {
+        if (typeof window.matchHasStartingXi !== 'function' || !window.matchHasStartingXi(match)) return;
+        knownXi += 1;
+        if (typeof window.isPlayerOnPitch !== 'function' || !window.isPlayerOnPitch(match, player)) return;
+        const status = typeof window.getPlayerMatchStartStatus === 'function'
+            ? window.getPlayerMatchStartStatus(match, player)
+            : '';
+        if (status === 'S') starters.push(match);
+        else if (status === 'B') subs.push(match);
+    });
+
+    const summarizeSide = matches => {
+        const ratings = matches.map(match => insightRatingValue(match, player)).filter(value => value != null);
+        const relatives = insightSamplesForMatches(samples, matches, minOthers);
+        const bidrag = matches.length && typeof window.calculatePlayerMatchPoints === 'function'
+            ? matches.reduce((sum, match) => sum + (Number(window.calculatePlayerMatchPoints(match, player)) || 0), 0) / matches.length
+            : null;
+        return {
+            count: matches.length,
+            bors: ratings.length ? insightMean(ratings) : null,
+            relative: relatives.length ? insightMean(relatives) : null,
+            bidrag
+        };
+    };
+
+    const resultGroups = [
+        { key: 'seier', label: 'Seier', points: 3 },
+        { key: 'uavgjort', label: 'Uavgjort', points: 1 },
+        { key: 'tap', label: 'Tap', points: 0 }
+    ].map(group => {
+        const groupSamples = samples.filter(sample => sample.points === group.points);
+        const relatives = groupSamples
+            .map(sample => insightRelativeValue(sample, minOthers))
+            .filter(value => value != null);
+        return {
+            ...group,
+            count: groupSamples.length,
+            bors: groupSamples.length ? insightMean(groupSamples.map(sample => sample.rating)) : null,
+            relative: relatives.length ? insightMean(relatives) : null
+        };
+    }).filter(group => group.count > 0);
+
+    const chartPoints = attendedMatches
+        .filter(match => typeof window.isPlayerOnPitch !== 'function' || window.isPlayerOnPitch(match, player))
+        .map(match => {
+            const rating = insightRatingValue(match, player);
+            return rating == null ? null : { date: match.date, rating };
+        })
+        .filter(Boolean);
+
+    const borsMove = insightDelta(seasonBors, recentBors, 1);
+    const relativeMove = insightDelta(seasonRelative, recentRelative, 2);
+    const bidragMove = insightDelta(seasonBidrag, recentBidrag, 1);
+    const votes = [
+        borsMove == null || recentBorsCount < 3 ? null : (borsMove >= 0.3 ? 'up' : borsMove <= -0.3 ? 'down' : 'flat'),
+        relativeMove == null || recentRelatives.length < 3 ? null : (relativeMove >= 0.2 ? 'up' : relativeMove <= -0.2 ? 'down' : 'flat'),
+        bidragMove == null || recentMatches.length < 3 ? null : (bidragMove >= 2 ? 'up' : bidragMove <= -2 ? 'down' : 'flat')
+    ].filter(Boolean);
+    const ups = votes.filter(vote => vote === 'up').length;
+    const downs = votes.filter(vote => vote === 'down').length;
+    const trend = ups >= 2 && downs === 0 ? 'up' : downs >= 2 && ups === 0 ? 'down' : null;
+    const stable = !trend && votes.length >= 2 && ups === 0 && downs === 0 && played >= 5 && recentMatches.length >= 3;
+
+    const eligibleRoles = roles.filter(role => role.matches >= 3 && role.borsRounded != null);
+    let roleGapText = '';
+    if (eligibleRoles.length >= 2) {
+        const ranked = [...eligibleRoles].sort((a, b) => b.borsRounded - a.borsRounded || b.matches - a.matches);
+        const high = ranked[0];
+        const low = ranked[ranked.length - 1];
+        if (high.borsRounded - low.borsRounded >= 0.4) {
+            roleGapText = `Prestasjonstallene varierer mellom rollene. Spilleren har så langt levert sterkere som ${high.label} (${insightFormatNumber(high.bors, 1)}, ${high.matches} kamper) enn som ${low.label} (${insightFormatNumber(low.bors, 1)}, ${low.matches} kamper).`;
+        }
+    }
+
+    const relativeRounded = insightRound(seasonRelative, 2);
+    const relativeClear = relativeRounded != null && validRelatives.length >= 5 && Math.abs(relativeRounded) >= 0.25;
+    const trainingEnough = trainingPct != null && trainingPossible >= 8;
+    let trainingPattern = null;
+    if (trainingEnough && trainingPct >= 65 && relativeRounded != null && relativeRounded <= -0.25 && validRelatives.length >= 5) {
+        trainingPattern = 'high-low';
+    }
+    const strongSignals = [
+        relativeRounded != null && relativeRounded >= 0.25 && validRelatives.length >= 5,
+        seasonBidrag != null && insightRound(seasonBidrag, 1) >= 20 && attended >= 5 && played >= 5,
+        seasonRate != null && seasonRate >= 0.4 && goalPoints >= 4 && played >= 5,
+        seasonBors != null && insightRound(seasonBors, 1) >= 6.3 && seasonBorsCount >= 5
+    ].filter(Boolean).length;
+    if (!trainingPattern && trainingEnough && trainingPct <= 40 && strongSignals >= 1) {
+        trainingPattern = 'low-high';
+    }
+
+    let productionShift = null;
+    if (seasonRate != null && recentRate != null && played >= 3 && recentPlayed >= 3) {
+        const productionDelta = insightRound(recentRate - seasonRate, 1);
+        if (productionDelta >= 0.3) productionShift = 'up';
+        else if (productionDelta <= -0.3) productionShift = 'down';
+    }
+
+    return {
+        played,
+        attended,
+        knownXi,
+        bors: { value: seasonBors, count: seasonBorsCount },
+        relative: { value: seasonRelative, count: validRelatives.length },
+        bidrag: { value: seasonBidrag, count: attended },
+        training: { pct: trainingPct, attended: trainingAttended, possible: trainingPossible },
+        recentTraining: {
+            pct: recentTraining?.pct == null ? null : Number(recentTraining.pct),
+            attended: Number(recentTraining?.attended) || 0,
+            possible: Number(recentTraining?.possible) || 0
+        },
+        recent: {
+            windowCount: recentMatches.length,
+            bors: { value: recentBors, count: recentBorsCount },
+            relative: { value: recentRelative, count: recentRelatives.length },
+            bidrag: { value: recentBidrag, count: recentMatches.length },
+            production: {
+                played: recentPlayed,
+                points: recentGoalPoints,
+                rate: recentRate
+            }
+        },
+        production: {
+            goals,
+            assists,
+            points: goalPoints,
+            played,
+            rate: seasonRate
+        },
+        roles,
+        roleGapText,
+        trend,
+        stable,
+        relativeClear,
+        trainingPattern,
+        productionShift,
+        starters: summarizeSide(starters),
+        subs: summarizeSide(subs),
+        results: resultGroups,
+        chartPoints,
+        sameWindow: recentMatches.length > 0 && recentMatches.length === attended && attended < 5
+    };
+}
+
+function buildPlayerInsightObservations(model) {
+    const caution = 'Datagrunnlaget er foreløpig begrenset. Tallene bør tolkes med forsiktighet.';
+    if ((model.played || 0) <= 2) return [caution];
+
+    const items = [];
+    if (model.trend === 'up') {
+        items.push('Prestasjonen har vært sterkere i den siste perioden enn over sesongen totalt. Det kan være verdt å følge om utviklingen fortsetter.');
+    } else if (model.trend === 'down') {
+        items.push('Flere prestasjonsmål ligger lavere i den siste perioden enn sesongsnittet. Se nærmere på hvilke kamper og roller som ligger bak endringen.');
+    }
+    if (model.roleGapText) items.push(model.roleGapText);
+
+    const relativeValue = model.relative?.value;
+    const suppressRelative = model.trainingPattern === 'high-low'
+        || (model.trainingPattern === 'low-high' && relativeValue != null && relativeValue > 0);
+    if (model.relativeClear && !suppressRelative) {
+        const side = relativeValue < 0 ? 'under' : 'over';
+        items.push(`Spilleren ligger ${insightFormatSigned(relativeValue, 2)} i relativ prestasjon, ${side} lagkameratene i de samme kampene (${model.relative.count} gyldige kamper). Verdt å se nærmere på om det varierer med rolle eller periode.`);
+    }
+    if (model.trainingPattern === 'high-low') {
+        items.push('Høyt treningsoppmøte, samtidig som relativ prestasjon ligger under lagkameratene i de samme kampene. Undersøk om dette varierer med rolle, posisjon, utvikling eller kampfase.');
+    } else if (model.trainingPattern === 'low-high') {
+        items.push('Lavt treningsoppmøte, men sterke kamp- og produksjonsverdier. Undersøk hvor stabil prestasjonen er over tid og om lavt oppmøte påvirker tilgjengelighet eller samspill.');
+    }
+    const sameProductionDirection = (model.trend === 'up' && model.productionShift === 'up')
+        || (model.trend === 'down' && model.productionShift === 'down');
+    if (model.productionShift && !sameProductionDirection && model.recent?.production?.played) {
+        const direction = model.productionShift === 'up' ? 'høyere' : 'lavere';
+        const period = insightRecentLabel(model.recent.production.played).toLowerCase();
+        items.push(`Målpoeng per kamp ligger ${direction} i ${period} kamper på banen (${insightFormatNumber(model.recent.production.rate, 1)}) enn sesongsnittet (${insightFormatNumber(model.production.rate, 1)}). Se om produksjonen følger med børs og rolle.`);
+    }
+    if (model.stable) {
+        items.push('Prestasjonstallene er relativt stabile gjennom sesongen, uten store utslag i siste periode.');
+    }
+
+    const limited = model.played < 5;
+    const selected = items.slice(0, limited ? 2 : 3);
+    if (limited) selected.push(caution);
+    if (!selected.length) {
+        selected.push('Ingen tydelig sammensatt avvik i de registrerte tallene.');
+    }
+    return selected.slice(0, 3);
+}
+
+function buildPlayerInsightMetricHtml(label, value, basis, title) {
+    const titleAttr = title ? ` title="${escapeRosterHtml(title)}"` : '';
+    const basisHtml = basis
+        ? `<span class="player-insight-basis">${escapeRosterHtml(basis)}</span>`
+        : '';
+    return `
+        <div class="player-profile-metric player-insight-metric"${titleAttr}>
+            <span class="player-profile-metric-label">${escapeRosterHtml(label)}</span>
+            <span class="player-profile-metric-value">${escapeRosterHtml(value)}</span>
+            ${basisHtml}
+        </div>
+    `;
+}
+
+function buildPlayerInsightCompareHtml(label, seasonValue, seasonBasis, recentLabel, recentValue, recentBasis, delta, showDelta) {
+    return `
+        <div class="player-insight-compare">
+            <p class="player-insight-kicker">${escapeRosterHtml(label)}</p>
+            <div class="player-insight-compare-line">
+                <span>Sesong</span>
+                <strong>${escapeRosterHtml(seasonValue)}</strong>
+                <span>${escapeRosterHtml(seasonBasis || '')}</span>
+            </div>
+            <div class="player-insight-compare-line">
+                <span>${escapeRosterHtml(recentLabel)}</span>
+                <strong>${escapeRosterHtml(recentValue)}</strong>
+                <span>${escapeRosterHtml(recentBasis || '')}</span>
+            </div>
+            ${showDelta ? `
+                <div class="player-insight-compare-line">
+                    <span>Endring</span>
+                    <strong>${escapeRosterHtml(delta)}</strong>
+                    <span></span>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+function buildPlayerInsightSideHtml(title, side) {
+    if (!side?.count) {
+        return `
+            <div class="player-insight-side">
+                <p class="player-insight-kicker">${escapeRosterHtml(title)}</p>
+                <p class="player-insight-note">Ikke nok data</p>
+            </div>
+        `;
+    }
+    return `
+        <div class="player-insight-side">
+            <p class="player-insight-kicker">${escapeRosterHtml(title)}</p>
+            <p class="player-insight-side-line"><span>Børs</span><strong>${escapeRosterHtml(insightFormatNumber(side.bors, 1))}</strong></p>
+            <p class="player-insight-side-line"><span>Relativ</span><strong>${escapeRosterHtml(insightFormatSigned(side.relative, 2))}</strong></p>
+            <p class="player-insight-side-line"><span>Kampbidrag</span><strong>${escapeRosterHtml(insightFormatNumber(side.bidrag, 1))}</strong></p>
+            <p class="player-insight-basis">${escapeRosterHtml(insightMatchBasis(side.count, true))}</p>
+        </div>
+    `;
+}
+
+function buildPlayerInsightSectionHtml(title, body) {
+    return `
+        <section class="player-insight-block">
+            <h3 class="player-profile-section-title">${escapeRosterHtml(title)}</h3>
+            ${body}
+        </section>
+    `;
+}
+
+function buildPlayerInsightCardHtml(player, yearFilter) {
+    const model = buildPlayerInsightModel(player, yearFilter);
+    const recentLabel = insightRecentLabel(model.recent.windowCount);
+    const observations = buildPlayerInsightObservations(model);
+    const trainingBasis = model.training.possible > 0
+        ? `${model.training.attended} av ${model.training.possible}`
+        : '';
+    const recentTrainingBasis = model.recentTraining.possible > 0
+        ? `${model.recentTraining.attended} av ${model.recentTraining.possible}`
+        : '';
+    const starterKnown = model.knownXi > 0;
+    const overview = [
+        buildPlayerInsightMetricHtml(
+            'Sesongbørs',
+            insightFormatNumber(model.bors.value, 1),
+            model.bors.count ? insightMatchBasis(model.bors.count) : '',
+            'Snitt av registrert trenerbørs på banen'
+        ),
+        buildPlayerInsightMetricHtml(
+            'Relativ prestasjon',
+            insightFormatSigned(model.relative.value, 2),
+            model.relative.count ? `${model.relative.count} gyldige kamper` : '',
+            'Trenerbørs minus snittet til de andre vurderte spillerne i samme kamp'
+        ),
+        buildPlayerInsightMetricHtml(
+            'Kampbidrag',
+            insightFormatNumber(model.bidrag.value, 1),
+            model.bidrag.count ? (model.attended === model.played ? insightMatchBasis(model.bidrag.count) : `${model.bidrag.count} kamper i troppen`) : '',
+            'Snitt kampbidrag for kamper spilleren var i troppen'
+        ),
+        buildPlayerInsightMetricHtml(
+            'Trening',
+            model.training.pct == null ? '—' : `${model.training.pct} %`,
+            trainingBasis,
+            'Møtt av treninger der spilleren var registrert i troppen'
+        )
+    ];
+    const secondary = [
+        buildPlayerInsightMetricHtml('Kamper', model.played > 0 || model.attended > 0 ? String(model.played) : '—', model.played ? 'På banen' : '')
+    ];
+    if (starterKnown) {
+        secondary.push(buildPlayerInsightMetricHtml(
+            'Starter',
+            String(model.starters.count),
+            model.knownXi === model.attended
+                ? insightMatchBasis(model.starters.count)
+                : `${model.starters.count} av ${model.knownXi} med 11er`
+        ));
+    }
+    if (model.production.points != null) {
+        secondary.push(buildPlayerInsightMetricHtml(
+            'Målpoeng',
+            String(model.production.points),
+            model.production.played ? `${model.production.points} på ${model.production.played} kamper` : ''
+        ));
+    }
+
+    const developmentParts = [];
+    const developmentRows = [
+        ['Trenerbørs', model.bors, model.recent.bors, 1, false],
+        ['Relativ prestasjon', model.relative, model.recent.relative, 2, true],
+        ['Kampbidrag', model.bidrag, model.recent.bidrag, 1, false]
+    ];
+    developmentRows.forEach(([label, season, recent, digits, signed]) => {
+        if (season.value == null && recent.value == null) return;
+        const format = signed ? insightFormatSigned : insightFormatNumber;
+        const recentBasis = recent.count
+            ? (recent.count < model.recent.windowCount
+                ? `Basert på ${recent.count} ${recent.count === 1 ? 'kamp' : 'kamper'}`
+                : insightMatchBasis(recent.count, true))
+            : '';
+        developmentParts.push(buildPlayerInsightCompareHtml(
+            label,
+            format(season.value, digits),
+            season.count ? (label === 'Relativ prestasjon' ? `${season.count} gyldige kamper` : insightMatchBasis(season.count)) : '',
+            recentLabel,
+            recent.value == null ? 'Ikke nok data' : format(recent.value, digits),
+            recentBasis,
+            insightFormatDelta(season.value, recent.value, digits),
+            season.value != null && recent.value != null && recent.count >= 2
+        ));
+    });
+    let developmentBody = developmentParts.length
+        ? developmentParts.join('')
+        : '<p class="player-insight-note">Ikke nok data</p>';
+    if (model.sameWindow) {
+        developmentBody += '<p class="player-insight-note">Siste periode er de samme kampene som sesongen.</p>';
+    } else if (model.recent.windowCount > 0) {
+        developmentBody += `<p class="player-insight-note">${escapeRosterHtml(recentLabel)} er spillerens egne siste kamper i troppen.</p>`;
+    }
+    developmentBody += buildPlayerInsightRatingChartSvg(model.chartPoints);
+
+    let roleBody = '<p class="player-insight-note">Ikke nok data</p>';
+    if (model.roles.length) {
+        roleBody = `
+            <div class="player-insight-roles">
+                ${model.roles.map(role => `
+                    <article class="player-insight-role" title="${escapeRosterHtml(insightMatchBasis(role.matches, true))}">
+                        <h4>${escapeRosterHtml(role.label)}</h4>
+                        <p><span>Børs</span><strong>${escapeRosterHtml(insightFormatNumber(role.bors, 1))}</strong></p>
+                        ${role.relative == null ? '' : `<p><span>Relativ</span><strong>${escapeRosterHtml(insightFormatSigned(role.relative, 2))}</strong></p>`}
+                        <p class="player-insight-basis">${escapeRosterHtml(insightMatchBasis(role.matches, true))}</p>
+                    </article>
+                `).join('')}
+            </div>
+        `;
+        if (model.roles.length === 1) {
+            roleBody += '<p class="player-insight-note">Kun én registrert rolle, så det blir ingen sammenligning.</p>';
+        }
+    }
+
+    const relativeSentence = model.relative.value == null
+        ? ''
+        : (() => {
+            const amount = insightFormatNumber(Math.abs(model.relative.value), 2);
+            if (insightRound(model.relative.value, 2) > 0) {
+                return `Det betyr at spilleren i gjennomsnitt ligger ${amount} børspoeng over lagkameratene i de samme kampene.`;
+            }
+            if (insightRound(model.relative.value, 2) < 0) {
+                return `Det betyr at spilleren i gjennomsnitt ligger ${amount} børspoeng under lagkameratene i de samme kampene.`;
+            }
+            return 'Det betyr at spilleren i gjennomsnitt ligger på samme nivå som lagkameratene i de samme kampene.';
+        })();
+    let performanceBody = `
+        <div class="player-insight-relative">
+            <p class="player-insight-kicker">Relativ prestasjon</p>
+            <p class="player-insight-relative-value">${escapeRosterHtml(insightFormatSigned(model.relative.value, 2))}</p>
+            <p class="player-insight-note">Forskjellen mellom spillerens trenerbørs og gjennomsnittet til de andre vurderte spillerne i de samme kampene.</p>
+            ${relativeSentence ? `<p class="player-insight-note">${escapeRosterHtml(relativeSentence)} Dette er ikke et mål på årsak eller spillereffekt.</p>` : '<p class="player-insight-note">Dette er ikke et mål på årsak eller spillereffekt.</p>'}
+            ${model.relative.count ? `<p class="player-insight-basis">${model.relative.count} gyldige kamper</p>` : ''}
+        </div>
+    `;
+    if (!model.starters.count && !model.subs.count) {
+        performanceBody += '<p class="player-insight-note">Ikke nok data til å skille starter og innbytter.</p>';
+    } else if (!model.starters.count || !model.subs.count) {
+        const only = model.starters.count ? model.starters : model.subs;
+        const onlyTitle = model.starters.count ? 'Starter' : 'Innbytter';
+        performanceBody += buildPlayerInsightSideHtml(onlyTitle, only);
+        performanceBody += '<p class="player-insight-note">Ikke nok data til å sammenligne med den andre kategorien.</p>';
+    } else {
+        performanceBody += `
+            <div class="player-insight-split">
+                ${buildPlayerInsightSideHtml('Starter', model.starters)}
+                ${buildPlayerInsightSideHtml('Innbytter', model.subs)}
+            </div>
+        `;
+    }
+    if (!model.results.length) {
+        performanceBody += '<p class="player-insight-note">Ikke nok data til å dele på seier, uavgjort og tap.</p>';
+    } else {
+        performanceBody += `
+            <div class="player-insight-split">
+                ${model.results.map(result => `
+                    <div class="player-insight-side">
+                        <p class="player-insight-kicker">${escapeRosterHtml(result.label)}</p>
+                        <p class="player-insight-side-line"><span>Børs</span><strong>${escapeRosterHtml(insightFormatNumber(result.bors, 1))}</strong></p>
+                        <p class="player-insight-side-line"><span>Relativ</span><strong>${escapeRosterHtml(insightFormatSigned(result.relative, 2))}</strong></p>
+                        <p class="player-insight-basis">${escapeRosterHtml(insightMatchBasis(result.count, true))}</p>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    const trainingSeason = `
+        <div class="player-insight-side">
+            <p class="player-insight-kicker">Sesong</p>
+            <p class="player-insight-relative-value">${escapeRosterHtml(model.training.pct == null ? '—' : `${model.training.pct} %`)}</p>
+            <p class="player-insight-basis">${escapeRosterHtml(trainingBasis || 'Ikke nok data')}</p>
+        </div>
+        <div class="player-insight-side">
+            <p class="player-insight-kicker">${escapeRosterHtml(insightRecentLabel(model.recentTraining.possible))}</p>
+            <p class="player-insight-relative-value">${escapeRosterHtml(model.recentTraining.pct == null ? '—' : `${model.recentTraining.pct} %`)}</p>
+            <p class="player-insight-basis">${escapeRosterHtml(recentTrainingBasis || 'Ikke nok data')}</p>
+        </div>
+    `;
+
+    let productionBody = '<p class="player-insight-note">Ikke nok data</p>';
+    if (model.production.played > 0) {
+        const recentProductionBasis = model.recent.production.played
+            ? `${model.recent.production.points} målpoeng på ${model.recent.production.played} kamper`
+            : '';
+        productionBody = `
+            <div class="player-insight-metrics">
+                ${buildPlayerInsightMetricHtml('Mål', String(model.production.goals))}
+                ${buildPlayerInsightMetricHtml('Assist', String(model.production.assists))}
+                ${buildPlayerInsightMetricHtml('Målpoeng', String(model.production.points), `${model.production.points} på ${model.production.played} kamper`)}
+                ${buildPlayerInsightMetricHtml('Målpoeng/kamp', insightFormatNumber(model.production.rate, 1), `${model.production.played} kamper på banen`)}
+            </div>
+            <div class="player-insight-compare">
+                <p class="player-insight-kicker">${escapeRosterHtml(insightRecentLabel(model.recent.production.played))}</p>
+                <div class="player-insight-compare-line">
+                    <span>Målpoeng/kamp</span>
+                    <strong>${escapeRosterHtml(model.recent.production.rate == null ? 'Ikke nok data' : insightFormatNumber(model.recent.production.rate, 1))}</strong>
+                    <span>${escapeRosterHtml(recentProductionBasis)}</span>
+                </div>
+            </div>
+            <p class="player-insight-note">Registrert produksjon. Ikke et mål på offensiv kvalitet.</p>
+        `;
+    }
+
+    const infoOpen = isPlayerProfileInsightInfoOpen();
+    return `
+        <section class="${playerProfilePanelClass('innsikt', 'player-insight')}" data-profile-panel="innsikt" aria-expanded="${isPlayerProfilePanelOpen('innsikt') ? 'true' : 'false'}">
+            ${buildPlayerProfileClashHeaderHtml({
+                title: 'Spillerinnsikt',
+                icon: 'fa-magnifying-glass',
+                subtitle: 'Prestasjon, utvikling og observasjoner',
+                asideHtml: `
+                    <button
+                        type="button"
+                        class="training-session-groups-info-btn player-profile-insight-info-btn${infoOpen ? ' is-active' : ''}"
+                        data-player-profile-action="toggle-insight-info"
+                        aria-expanded="${infoOpen ? 'true' : 'false'}"
+                        aria-controls="player-profile-insight-info"
+                        title="Om Spillerinnsikt"
+                        aria-label="Om Spillerinnsikt"
+                    >
+                        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    </button>
+                `
+            })}
+            <div class="player-profile-collapsible-content">
+                <div id="player-profile-insight-info" class="training-session-groups-info player-profile-insight-info${infoOpen ? '' : ' is-hidden'}" ${infoOpen ? '' : 'hidden'}>
+                    <p>Spillerinnsikt samler registrerte prestasjons-, trenings-, rolle- og produksjonsdata. Observasjonene peker på mønstre som kan være verdt å undersøke nærmere, men forklarer ikke hvorfor de oppstår.</p>
+                </div>
+                ${buildPlayerInsightSectionHtml('Oversikt', `
+                    <div class="player-insight-metrics is-primary">${overview.join('')}</div>
+                    <div class="player-insight-metrics">${secondary.join('')}</div>
+                `)}
+                ${buildPlayerInsightSectionHtml('Utvikling', developmentBody)}
+                ${buildPlayerInsightSectionHtml('Rolle', roleBody)}
+                ${buildPlayerInsightSectionHtml('Prestasjon', performanceBody)}
+                ${buildPlayerInsightSectionHtml('Trening', `
+                    <div class="player-insight-split">${trainingSeason}</div>
+                    <p class="player-insight-note">Treningsoppmøte og kampprestasjon vises som separate observasjoner.</p>
+                `)}
+                ${buildPlayerInsightSectionHtml('Produksjon', productionBody)}
+                ${buildPlayerInsightSectionHtml('Hva bør vi se nærmere på?', `
+                    <ul class="player-insight-notes">
+                        ${observations.map(text => `<li>${escapeRosterHtml(text)}</li>`).join('')}
+                    </ul>
+                `)}
+            </div>
+        </section>
+    `;
+}
+
+function buildPlayerInsightHtml(player, yearFilter) {
+    try {
+        return buildPlayerInsightCardHtml(player, yearFilter);
+    } catch (error) {
+        console.error('Spillerinnsikt', error);
+        return `
+            <section class="${playerProfilePanelClass('innsikt', 'player-insight')}" data-profile-panel="innsikt">
+                ${buildPlayerProfileClashHeaderHtml({
+                    title: 'Spillerinnsikt',
+                    icon: 'fa-magnifying-glass',
+                    subtitle: 'Prestasjon, utvikling og observasjoner'
+                })}
+                <div class="player-profile-collapsible-content">
+                    <p class="player-insight-note">Ikke nok data</p>
+                </div>
+            </section>
+        `;
+    }
 }
 
 window.renderPlayerProfilePage = function(playerId) {
@@ -1965,6 +2739,8 @@ window.renderPlayerProfilePage = function(playerId) {
         <div class="player-profile-year-bar">
             ${buildPlayerProfileYearFilterHtml(player)}
         </div>
+
+        ${buildPlayerInsightHtml(player, yearFilter)}
 
         <section class="${playerProfilePanelClass('sesong', 'player-profile-season-card')}" data-profile-panel="sesong" aria-expanded="${isPlayerProfilePanelOpen('sesong') ? 'true' : 'false'}">
             <div class="player-profile-presence-topline">

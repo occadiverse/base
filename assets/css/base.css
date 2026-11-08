@@ -11824,6 +11824,137 @@
             font-weight: 700;
             margin: 0;
         }
+        .player-insight-metrics {
+            display: grid;
+            gap: 0.45rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .player-insight-metrics + .player-insight-metrics {
+            margin-top: 0.45rem;
+        }
+        .player-insight-metric {
+            min-height: 0;
+        }
+        .player-insight-basis,
+        .player-insight-note,
+        .player-insight-chart-caption {
+            color: rgba(255, 255, 255, 0.58);
+            font-size: 0.72rem;
+            font-weight: 700;
+            line-height: 1.35;
+            margin: 0.28rem 0 0;
+        }
+        .player-insight-block + .player-insight-block {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin-top: 0.85rem;
+            padding-top: 0.75rem;
+        }
+        .player-insight-kicker {
+            color: rgba(245, 197, 66, 0.88);
+            font-size: 0.62rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            margin: 0 0 0.28rem;
+            text-transform: uppercase;
+        }
+        .player-insight-compare + .player-insight-compare,
+        .player-insight-relative,
+        .player-insight-split,
+        .player-insight-roles {
+            margin-top: 0.7rem;
+        }
+        .player-insight-compare-line,
+        .player-insight-side-line,
+        .player-insight-role p {
+            align-items: baseline;
+            color: rgba(255, 255, 255, 0.72);
+            display: grid;
+            font-size: 0.78rem;
+            font-weight: 700;
+            gap: 0.35rem;
+            grid-template-columns: 5.4rem minmax(3rem, auto) minmax(0, 1fr);
+            margin: 0.12rem 0;
+        }
+        .player-insight-compare-line strong,
+        .player-insight-side-line strong,
+        .player-insight-role strong {
+            color: #ffffff;
+            font-weight: 800;
+        }
+        .player-insight-split,
+        .player-insight-roles {
+            display: grid;
+            gap: 0.45rem;
+            grid-template-columns: 1fr;
+        }
+        .player-insight-side,
+        .player-insight-role {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.8rem;
+            min-width: 0;
+            padding: 0.55rem 0.65rem;
+        }
+        .player-insight-role h4 {
+            color: #ffffff;
+            font-size: 0.86rem;
+            font-weight: 800;
+            margin: 0 0 0.25rem;
+        }
+        .player-insight-role p {
+            grid-template-columns: 4.4rem minmax(0, 1fr);
+        }
+        .player-insight-relative-value {
+            color: #ffffff;
+            font-size: 1.35rem;
+            font-weight: 900;
+            line-height: 1;
+            margin: 0;
+        }
+        .player-insight-chart svg {
+            display: block;
+            height: auto;
+            margin-top: 0.65rem;
+            width: 100%;
+        }
+        .player-insight-notes {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .player-insight-notes li {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.8rem;
+            color: rgba(255, 253, 245, 0.92);
+            font-size: 0.84rem;
+            font-weight: 650;
+            line-height: 1.4;
+            padding: 0.55rem 0.7rem;
+        }
+        .player-profile-insight-info {
+            margin-bottom: 0.75rem;
+        }
+        .player-profile-insight-info p {
+            font-size: 0.78rem;
+            font-weight: 700;
+            line-height: 1.4;
+            margin: 0;
+        }
+        @media (min-width: 720px) {
+            .player-insight-metrics.is-primary {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+            .player-insight-split {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .player-insight-roles {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
         .player-profile-radar-read {
             color: rgba(255, 253, 245, 0.88);
             font-size: 0.84rem;

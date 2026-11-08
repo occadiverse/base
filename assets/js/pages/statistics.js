@@ -3716,11 +3716,15 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     <li>Grønn betyr høyere målpoengrate enn sesong, rød lavere og nøytral uendret. Boblestørrelsen viser målpoeng i Nå-vinduet. På liten skjerm heter aksen Minuttandel*.</li>
                 `,
                 trening: isTotal ? `
-                    <li><strong>Treningskart · Sesong:</strong> Høyre er høyt treningsoppmøte. Opp er høyt kampbidrag.</li>
-                    <li>Høyt oppmøte og lavt bidrag er en samtale. Lavt oppmøte og høyt bidrag er en annen. Trykk på en boble for oppmøte.</li>
+                    <li>Treningskartet viser treningsoppmøte mot resultatpåvirket kampbidrag. Kartet viser hvordan de to størrelsene opptrer samtidig hos spillerne, men ikke at treningsoppmøte forårsaker høyere eller lavere kampbidrag.</li>
+                    <li>Kampbidrag påvirkes også av lagets resultater, mål for/imot, rent bur, trenerbørs og spilletid.</li>
+                    <li>Oppmøteprosenten kan bygge på ulikt antall treninger fra spiller til spiller.</li>
+                    <li>Kartet kan brukes til å oppdage spillere med interessant samsvar eller avvik mellom treningsoppmøte og kampbidrag. Slike avvik er utgangspunkt for videre analyse, ikke en konklusjon om årsak. På liten skjerm heter aksen Kampbidrag*.</li>
                 ` : `
-                    <li><strong>Treningskart · Nå:</strong> Oppmøte på de siste 5 treningene mot kampbidrag i de siste 5 kampene.</li>
-                    <li>Grønn boble trener mer enn egen sesong. Rød boble trener mindre. Trykk på en boble for oppmøte.</li>
+                    <li>I Nå bruker treningsoppmøte og kampbidrag ulike tidsvinduer. Trening viser de siste registrerte treningsøktene, mens kampbidrag viser spillerens egne siste inntil 5 troppskamper.</li>
+                    <li>Dette kan derfor ikke leses som at de aktuelle treningene forklarer de aktuelle kampene.</li>
+                    <li>Farge viser kun endring i treningsoppmøte. Grønn er mer enn 5 prosentpoeng høyere enn sesongen, rød er mer enn 5 lavere, og nøytral er omtrent uendret.</li>
+                    <li>Kampbidrag påvirkes også av lagets resultater, mål for/imot, rent bur, trenerbørs og spilletid. Avvik er utgangspunkt for videre analyse, ikke en konklusjon om årsak. På liten skjerm heter aksen Kampbidrag*.</li>
                 `
             };
             const titles = {
@@ -4334,14 +4338,24 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         && (Number(stat.oppmotePossible) || 0) > 0
                         && (player && window.isPlayerInCurrentSquadPool(player));
                 })
-                .map(stat => ({
-                    name: stat.navn,
-                    x: Math.max(0, Math.min(100, Number(stat.oppmotePct) || 0)),
-                    y: Number(stat.kampbonus) || 0,
-                    score: Number(stat.totalScore) || 0,
-                    totalScore: Number(stat.totalScore) || 0,
-                    seasonX: Math.max(0, Math.min(100, Number(stat.oppmotePct) || 0))
-                }));
+                .map(stat => {
+                    const trainingPossible = Number(stat.oppmotePossible) || 0;
+                    const trainingAttended = Number(stat.oppmoteAttended) || 0;
+                    const attendance = Math.max(0, Math.min(100, Number(stat.oppmotePct) || 0));
+                    return {
+                        name: stat.navn,
+                        x: attendance,
+                        y: Number(stat.kampbonus) || 0,
+                        score: Number(stat.totalScore) || 0,
+                        totalScore: Number(stat.totalScore) || 0,
+                        seasonX: attendance,
+                        rawX: trainingPossible > 0 ? (trainingAttended / trainingPossible) * 100 : attendance,
+                        trainingAttended,
+                        trainingPossible,
+                        attendedMatches: Number(stat.attendedMatches) || 0,
+                        playedMatches: Number(stat.kamper) || 0
+                    };
+                });
         };
 
         window.buildStatsTreningFiveDiagramData = function() {
@@ -4359,13 +4373,21 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 const recent = recentByName.get(player.navn);
                 if (!recent) return null;
                 const seasonRow = seasonByName.get(player.navn);
+                const rawX = training.possible > 0 ? (training.attended / training.possible) * 100 : training.pct;
+                const contributionMatches = (window.getStatsDiagramRecentPlayerWindow(player, yearFilter).playerMatches || []).length;
                 return {
                     name: player.navn,
                     x: training.pct,
                     y: recent.x,
                     score: training.pct,
                     totalScore: seasonRow?.totalScore || recent.totalScore || 0,
-                    seasonX: seasonRow ? seasonRow.x : training.pct
+                    seasonX: seasonRow ? seasonRow.x : training.pct,
+                    rawX,
+                    seasonRawX: seasonRow ? seasonRow.rawX : rawX,
+                    seasonY: seasonRow ? seasonRow.y : null,
+                    trainingAttended: training.attended,
+                    trainingPossible: training.possible,
+                    contributionMatches
                 };
             }).filter(Boolean);
         };
@@ -4466,8 +4488,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
             }).filter(Boolean);
         };
 
-        function getStatsRatingResultSamples(player) {
-            const yearFilter = window.getStatsDiagramYearFilter();
+        function getStatsRatingResultSamples(player, yearFilter) {
+            const resolvedYear = arguments.length > 1 ? yearFilter : window.getStatsDiagramYearFilter();
             const teamPlayers = (window.activePlayers || []).filter(person => person && person.spillerLag === player.spillerLag);
             const ratingOf = (match, person) => {
                 const value = Number(window.getPlayerRefMapValue?.(match.ratings, person, 0)) || 0;
@@ -4491,7 +4513,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 if (typeof window.matchHasPlayedResult === 'function' && !window.matchHasPlayedResult(match)) return null;
                 if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return null;
                 if (typeof window.activityBelongsToStatsYear === 'function'
-                    && !window.activityBelongsToStatsYear(match, yearFilter)) return null;
+                    && !window.activityBelongsToStatsYear(match, resolvedYear)) return null;
                 const rating = ratingOf(match, player);
                 const points = pointsOf(match);
                 if (rating == null || points == null) return null;
@@ -4501,9 +4523,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const otherRating = ratingOf(match, person);
                     if (otherRating != null) others.push(otherRating);
                 });
-                return { rating, points, others };
+                return { rating, points, others, date: match.date || '', matchId: match.id || '' };
             }).filter(Boolean);
         }
+
+        window.getStatsRatingResultSamples = getStatsRatingResultSamples;
 
         function statsMean(values) {
             if (!values.length) return null;
@@ -4819,7 +4843,8 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 || String(a.name || '').localeCompare(String(b.name || ''), 'no'));
         };
 
-        window.groupStatsDiagramOverlapPoints = function(points) {
+        window.groupStatsDiagramOverlapPoints = function(points, options) {
+            const padding = Number.isFinite(Number(options?.padding)) ? Number(options.padding) : 6;
             const items = Array.isArray(points) ? points : [];
             const parent = items.map((_, index) => index);
             const find = (index) => {
@@ -4838,7 +4863,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     const dx = items[i].pointX - items[j].pointX;
                     const dy = items[i].pointY - items[j].pointY;
                     const dist = Math.hypot(dx, dy);
-                    const limit = Math.max(items[i].radius, items[j].radius) + 6;
+                    const limit = Math.max(items[i].radius, items[j].radius) + padding;
                     if (dist <= limit) unite(i, j);
                 }
             }
@@ -4925,7 +4950,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
             const overlapGroups = config.skipOverlap
                 ? prepared.map(point => [point])
-                : window.groupStatsDiagramOverlapPoints(prepared);
+                : window.groupStatsDiagramOverlapPoints(prepared, { padding: config.overlapPadding });
             const pointsHtml = overlapGroups.map(group => {
                 const members = [...group].sort((a, b) =>
                     (Number(b.score) || 0) - (Number(a.score) || 0) || String(a.name || '').localeCompare(String(b.name || ''), 'no')
@@ -5125,10 +5150,12 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     splitY: isTotal ? 16 : 18,
                     gridX: percentGrid,
                     gridY: contribGrid,
-                    xAxisLabel: isCompact ? 'Oppmøte' : (isTotal ? 'Treningsoppmøte' : 'Oppmøte siste 5 treninger'),
-                    yAxisLabel: isCompact ? 'Kampbidrag' : (isTotal ? 'Kampbidrag (sesongsnitt)' : 'Kampbidrag siste 5'),
+                    xAxisLabel: isCompact ? 'Oppmøte (%)' : 'Treningsoppmøte (%)',
+                    yAxisLabel: isCompact ? 'Kampbidrag*' : 'Resultatpåvirket kampbidrag',
                     emptyMessage: 'Mangler treningsoppmøte å vise.',
-                    kindLabel: 'Treningskart'
+                    kindLabel: 'Treningskart',
+                    tooltipWidth: isCompact ? 320 : 400,
+                    overlapPadding: 0
                 },
                 resultatkobling: {
                     xMin: 4,
@@ -5240,6 +5267,26 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     plots.produksjon.gridY = extendProduksjonGrid(plots.produksjon.gridY, yMax);
                 }
             }
+            if (kind === 'trening') {
+                const treningRows = rowsByKind.trening || [];
+                const maxY = treningRows.reduce((max, row) => Math.max(max, Number(row.y) || 0), 0);
+                const baseMax = Number(plots.trening.yMax) || 0;
+                if (maxY > baseMax) {
+                    const grid = (plots.trening.gridY || []).slice();
+                    const step = grid.length > 1 ? grid[grid.length - 1] - grid[grid.length - 2] : 2;
+                    let yMax = baseMax;
+                    if (step > 0) {
+                        while (yMax < maxY + 2) yMax += step;
+                        while (grid.length > 1 && grid[grid.length - 1] + step <= yMax + 0.001) {
+                            grid.push(Math.round((grid[grid.length - 1] + step) * 10) / 10);
+                        }
+                    } else {
+                        yMax = Math.ceil(maxY + 2);
+                    }
+                    plots.trening.yMax = yMax;
+                    plots.trening.gridY = grid;
+                }
+            }
             const plot = plots[kind] || plots.tropp;
             const prepareRow = (row) => {
                 const radius = 4 + ((row.score - 20) / 65) * 3;
@@ -5339,13 +5386,57 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     };
                 }
                 if (kind === 'trening') {
-                    const delta = Math.round(row.x - (Number(row.seasonX) || 0));
-                    const tone = isTotal ? { fill: '#0b2b4c', className: 'is-season' } : window.getStatsScoreDiagramTone(delta >= 0);
+                    const format1 = (value) => (Math.round((Number(value) || 0) * 10) / 10).toFixed(1);
+                    const percent = (value) => `${Math.round(Number(value) || 0)}%`;
+                    const neutral = { fill: '#0b2b4c', className: 'is-season' };
+                    const rawDelta = (Number(row.rawX) || 0) - (Number(isTotal ? row.rawX : row.seasonRawX) || 0);
+                    let tone = neutral;
+                    if (!isTotal && row.seasonY != null) {
+                        if (rawDelta > 5) tone = window.getStatsScoreDiagramTone(true);
+                        else if (rawDelta < -5) tone = window.getStatsScoreDiagramTone(false);
+                    }
+                    const shownDelta = Math.round(Number(row.x) || 0) - Math.round(Number(row.seasonX) || 0);
+                    const diffText = `${shownDelta > 0 ? '+' : shownDelta < 0 ? '−' : ''}${Math.abs(shownDelta)} pp`;
+                    const trainingAttended = Number(row.trainingAttended) || 0;
+                    const trainingPossible = Number(row.trainingPossible) || 0;
+                    const contributionMatches = Number(isTotal ? row.attendedMatches : row.contributionMatches) || 0;
+                    const matchWord = contributionMatches === 1 ? 'kamp' : 'kamper';
+                    const contributionRows = isTotal
+                        ? [
+                            { name: 'Kampbidrag', displayValue: format1(row.y), tooltipValueClass: 'is-season' },
+                            { name: 'Kamper i troppen', displayValue: String(Number(row.attendedMatches) || 0), tooltipValueClass: 'is-season' },
+                            { name: 'Kamper på banen', displayValue: String(Number(row.playedMatches) || 0), tooltipValueClass: 'is-season' },
+                            ...(contributionMatches === 1
+                                ? [{ name: 'Kampbidrag basert på 1 kamp', displayValue: '', tooltipValueClass: 'is-season' }]
+                                : [])
+                        ]
+                        : [
+                            { name: 'Kampbidrag nå', displayValue: format1(row.y), tooltipValueClass: 'is-season' },
+                            { name: contributionMatches === 1 ? 'Kampbidrag basert på 1 kamp' : `Basert på ${contributionMatches} kamper`, displayValue: '', tooltipValueClass: 'is-season' },
+                            { name: 'Sesongbidrag', displayValue: row.seasonY == null ? '—' : format1(row.seasonY), tooltipValueClass: 'is-season' }
+                        ];
                     return {
-                        radius,
+                        radius: 5.5,
+                        pointOpacity: contributionMatches === 1 ? 0.5 : 0.92,
                         fill: tone.fill,
-                        displayValue: `${Math.round(row.x)}%`,
-                        tooltipValueClass: tone.className
+                        displayValue: percent(row.x),
+                        tooltipValueClass: tone.className,
+                        tooltipRows: isTotal
+                            ? [
+                                { name: row.name, displayValue: '', tooltipValueClass: 'is-season' },
+                                { name: 'Trening', displayValue: percent(row.x), tooltipValueClass: 'is-season' },
+                                { name: `${trainingAttended} av ${trainingPossible} treninger`, displayValue: '', tooltipValueClass: 'is-season' },
+                                ...contributionRows,
+                                { name: 'Oppmøte og kampbidrag er to separate sesongmål.', displayValue: '', tooltipValueClass: 'is-season' }
+                            ]
+                            : [
+                                { name: row.name, displayValue: '', tooltipValueClass: 'is-season' },
+                                { name: 'Trening nå', displayValue: percent(row.x), tooltipValueClass: tone.className },
+                                { name: `${trainingAttended} av ${trainingPossible}`, displayValue: '', tooltipValueClass: 'is-season' },
+                                { name: 'Sesongoppmøte', displayValue: percent(row.seasonX), tooltipValueClass: 'is-season' },
+                                { name: 'Forskjell', displayValue: diffText, tooltipValueClass: tone.className },
+                                ...contributionRows
+                            ]
                     };
                 }
                 if (kind === 'produksjon') {
