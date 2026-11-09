@@ -19,6 +19,98 @@ function getStatsPlayerIdForName(name) {
     return player && player.id != null ? String(player.id) : '';
 }
 
+window.FOLLOW_UP_INBOX_KEY = 'bsk_follow_up_inbox';
+
+function statsFollowUpTodayKey(date = new Date()) {
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function statsFollowUpAddDays(days) {
+    const date = new Date();
+    date.setHours(12, 0, 0, 0);
+    date.setDate(date.getDate() + days);
+    return statsFollowUpTodayKey(date);
+}
+
+function statsFollowUpFormatDate(value) {
+    const key = String(value || '').slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) return '';
+    return new Date(`${key}T12:00:00`).toLocaleDateString('nb-NO', {
+        day: 'numeric',
+        month: 'short'
+    }).replace(/\.$/, '');
+}
+
+function statsFollowUpRecordId(playerId, type, fingerprint) {
+    const raw = `${playerId}|${type}|${fingerprint}`;
+    let hash = 0;
+    for (let index = 0; index < raw.length; index += 1) {
+        hash = (Math.imul(hash, 31) + raw.charCodeAt(index)) | 0;
+    }
+    const slug = raw.replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 96);
+    return `r_${slug}_${(hash >>> 0).toString(36)}`;
+}
+
+window.readFollowUpInbox = function() {
+    if (window.followUpInboxRecords && typeof window.followUpInboxRecords === 'object') {
+        return window.followUpInboxRecords;
+    }
+    try {
+        const parsed = JSON.parse(window.localStorage.getItem(window.FOLLOW_UP_INBOX_KEY) || '{}');
+        window.followUpInboxRecords = parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (error) {
+        window.followUpInboxRecords = {};
+    }
+    return window.followUpInboxRecords;
+};
+
+window.applyFollowUpInbox = function(records, options = {}) {
+    window.followUpInboxRecords = records && typeof records === 'object' ? records : {};
+    try {
+        window.localStorage.setItem(window.FOLLOW_UP_INBOX_KEY, JSON.stringify(window.followUpInboxRecords));
+    } catch (error) {
+        console.warn('Kunne ikke lagre oppfølging lokalt.', error);
+    }
+    if (!options.silent && typeof window.refreshStatsFollowUpPanel === 'function') {
+        window.refreshStatsFollowUpPanel();
+    }
+};
+
+window.saveFollowUpRecord = function(record) {
+    if (!record?.recordId) return;
+    const records = { ...window.readFollowUpInbox(), [record.recordId]: record };
+    window.applyFollowUpInbox(records, { silent: true });
+    if (typeof window.saveFollowUpRecordToDatabase === 'function') {
+        Promise.resolve(window.saveFollowUpRecordToDatabase(record)).catch(error => {
+            console.warn('Kunne ikke lagre oppfølging i databasen. Den ligger lokalt.', error);
+        });
+    }
+    if (typeof window.refreshStatsFollowUpPanel === 'function') window.refreshStatsFollowUpPanel();
+};
+
+window.deleteFollowUpRecord = function(recordId) {
+    if (!recordId) return;
+    window._followUpPendingDeletes = window._followUpPendingDeletes || new Set();
+    window._followUpPendingDeletes.add(recordId);
+    const records = { ...window.readFollowUpInbox() };
+    delete records[recordId];
+    window.applyFollowUpInbox(records, { silent: true });
+    if (typeof window.deleteFollowUpRecordFromDatabase === 'function') {
+        Promise.resolve(window.deleteFollowUpRecordFromDatabase(recordId)).catch(error => {
+            console.warn('Kunne ikke fjerne oppfølging i databasen. Endringen ligger lokalt.', error);
+        });
+    }
+    if (typeof window.refreshStatsFollowUpPanel === 'function') window.refreshStatsFollowUpPanel();
+};
+
+function statsFollowUpCoachState(record, today) {
+    if (!record || (record.status !== 'handled' && record.status !== 'snoozed')) return 'new';
+    if (record.status === 'handled') return 'handled';
+    return String(record.snoozedUntil || '') > today ? 'snoozed' : 'returned';
+}
+
 function openStatsPlayerFromActionEl(actionEl) {
     const playerId = actionEl.dataset.playerId;
     if (playerId && typeof window.showPlayerProfile === 'function') {
@@ -75,6 +167,102 @@ function bindStatisticsEvents() {
         const action = actionEl.dataset.statAction;
         if (action === 'open-player') {
             openStatsPlayerFromActionEl(actionEl);
+            return;
+        }
+        if (action === 'open-follow-up') {
+            const playerId = actionEl.dataset.playerId;
+            const focus = actionEl.dataset.focus || '';
+            const yearFilter = typeof window.getStatsKampYearFilter === 'function'
+                ? window.getStatsKampYearFilter()
+                : '';
+            if (playerId && typeof window.showPlayerProfile === 'function') {
+                window.showPlayerProfile(playerId, { focus, yearFilter, backTarget: 'statistikk' });
+            }
+            return;
+        }
+        if (action === 'toggle-followup-type') {
+            event.preventDefault();
+            const type = actionEl.dataset.signalType || '';
+            window.statsFollowUpTypeOpen = window.statsFollowUpTypeOpen || {};
+            window.statsFollowUpTypeOpen[type] = window.statsFollowUpTypeOpen[type] !== true;
+            const slot = document.getElementById('stats-oppfolging-slot');
+            if (slot && typeof window.renderStatsOppfolgingPanelHtml === 'function') {
+                slot.innerHTML = window.renderStatsOppfolgingPanelHtml();
+            }
+            return;
+        }
+        if (action === 'toggle-followup-reasons' || action === 'toggle-followup-history' || action === 'toggle-followup-snooze' || action === 'followup-compose' || action === 'followup-cancel') {
+            event.preventDefault();
+            if (action === 'toggle-followup-reasons') {
+                const playerId = actionEl.dataset.playerId || '';
+                window.statsFollowUpExpanded = window.statsFollowUpExpanded || {};
+                window.statsFollowUpExpanded[playerId] = !window.statsFollowUpExpanded[playerId];
+            } else if (action === 'toggle-followup-history') {
+                window.statsFollowUpHistoryOpen = window.statsFollowUpHistoryOpen !== true;
+            } else if (action === 'toggle-followup-snooze') {
+                window.statsFollowUpSnoozeOpen = window.statsFollowUpSnoozeOpen !== true;
+            } else if (action === 'followup-compose') {
+                window.statsFollowUpComposer = {
+                    recordId: actionEl.dataset.recordId || '',
+                    mode: actionEl.dataset.mode === 'snoozed' ? 'snoozed' : 'handled'
+                };
+            } else {
+                window.statsFollowUpComposer = null;
+            }
+            if (typeof window.renderStatsOppfolgingPanelHtml === 'function') {
+                const slot = document.getElementById('stats-oppfolging-slot');
+                if (slot) slot.innerHTML = window.renderStatsOppfolgingPanelHtml();
+            }
+            return;
+        }
+        if (action === 'followup-snooze-pick') {
+            event.preventDefault();
+            const composer = actionEl.closest('.stats-followup-composer');
+            const input = composer?.querySelector('[data-followup-date]');
+            if (input) input.value = statsFollowUpAddDays(Number(actionEl.dataset.snoozeDays) || 1);
+            composer?.querySelectorAll('[data-stat-action="followup-snooze-pick"]').forEach(button => {
+                button.classList.toggle('is-selected', button === actionEl);
+            });
+            return;
+        }
+        if (action === 'followup-save') {
+            event.preventDefault();
+            const recordId = actionEl.dataset.recordId || '';
+            const signal = window._statsFollowUpMeta?.signalByRecordId?.[recordId];
+            const composer = actionEl.closest('.stats-followup-composer');
+            if (!signal) return;
+            const note = composer?.querySelector('[data-followup-note]')?.value.trim() || '';
+            const mode = actionEl.dataset.mode === 'snoozed' ? 'snoozed' : 'handled';
+            let snoozedUntil = '';
+            if (mode === 'snoozed') {
+                snoozedUntil = composer?.querySelector('[data-followup-date]')?.value || '';
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(snoozedUntil) || snoozedUntil <= statsFollowUpTodayKey()) {
+                    const error = composer?.querySelector('[data-followup-error]');
+                    if (error) error.textContent = 'Velg en dato fram i tid.';
+                    return;
+                }
+            }
+            window.statsFollowUpComposer = null;
+            window.saveFollowUpRecord({
+                recordId,
+                playerId: signal.playerId,
+                playerName: signal.playerName,
+                signalType: signal.type,
+                fingerprint: signal.fingerprint,
+                status: mode,
+                note,
+                updatedAt: new Date().toISOString(),
+                snoozedUntil,
+                badge: signal.badge,
+                title: signal.title,
+                detail: signal.detail
+            });
+            return;
+        }
+        if (action === 'followup-reopen') {
+            event.preventDefault();
+            window.statsFollowUpComposer = null;
+            window.deleteFollowUpRecord(actionEl.dataset.recordId || '');
             return;
         }
         if (action === 'back-overview') {
@@ -968,180 +1156,283 @@ window.checkIndividualChemistry = function() {
             });
         };
 
-        window.buildPlayerAnalysisStats = function(filterLag) {
-            const players = (window.activePlayers || []).filter(p => {
-                if (filterLag && filterLag !== 'Alle' && p.spillerLag !== filterLag) return false;
-                return true;
+        function statsFollowUpPlayerKey(player) {
+            if (typeof window.getPlayerStorageKey === 'function') return window.getPlayerStorageKey(player);
+            return player?.id || player?.navn || '';
+        }
+
+        function statsFollowUpInjuryDetail(player, injury) {
+            const note = String(player?.skadeNotat || '').trim();
+            const til = String(player?.skadeTilDato || '').trim();
+            if (injury?.type === 'dag-til-dag') return note || 'Registrert skadestatus';
+            const parts = [];
+            if (til) parts.push(`Forventet til ${til}`);
+            if (note) parts.push(note);
+            return parts.join(' · ') || 'Registrert skadestatus';
+        }
+
+        function statsFollowUpDisciplineByPlayer(players, yearFilter) {
+            const teams = [...new Set(players.map(player => player?.spillerLag).filter(Boolean))];
+            const result = new Map();
+            teams.forEach(teamName => {
+                const matches = (window.activeMatches || [])
+                    .filter(match => match.matchGroup === teamName && match.matchType === 'Serie')
+                    .filter(match => typeof window.isHistoricalActivity !== 'function' || window.isHistoricalActivity(match))
+                    .filter(match => typeof window.activityBelongsToStatsYear !== 'function' || window.activityBelongsToStatsYear(match, yearFilter))
+                    .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+                const state = new Map();
+                const teamPlayers = players.filter(player => player.spillerLag === teamName);
+                matches.forEach((match, index) => {
+                    teamPlayers.forEach(player => {
+                        if (!window.isPlayerAttending(match.attendance, player)) return;
+                        const key = statsFollowUpPlayerKey(player);
+                        const current = state.get(key) || { yellows: 0, lastSuspendIndex: -1, kind: '' };
+                        const gotYellow = window.playerRefListIncludes(match.guleKort, player);
+                        const gotRed = window.playerRefListIncludes(match.rodeKort, player);
+                        if (gotYellow) {
+                            current.yellows += 1;
+                            current.lastYellowMatchId = match.id || match.date || '';
+                        }
+                        const hint = typeof window.getSerieYellowDisciplineHint === 'function'
+                            ? window.getSerieYellowDisciplineHint(current.yellows)
+                            : { isSuspendedThreshold: false };
+                        if (gotRed || hint.isSuspendedThreshold) {
+                            current.lastSuspendIndex = index;
+                            current.kind = gotRed ? 'red' : 'yellow';
+                            current.lastSuspendMatchId = match.id || match.date || '';
+                        }
+                        state.set(key, current);
+                    });
+                });
+                state.forEach((current, key) => {
+                    const hint = typeof window.getSerieYellowDisciplineHint === 'function'
+                        ? window.getSerieYellowDisciplineHint(current.yellows)
+                        : { isAtRisk: false };
+                    const pending = current.lastSuspendIndex >= 0 && current.lastSuspendIndex === matches.length - 1;
+                    result.set(key, {
+                        pending,
+                        pendingDetail: current.kind === 'red'
+                            ? 'Rødt kort i siste registrerte seriekamp denne sesongen. Karantene kan ikke bekreftes ut fra kampene.'
+                            : `${current.yellows} gule i serie denne sesongen. Karantene kan ikke bekreftes ut fra kampene.`,
+                        atRisk: Boolean(hint.isAtRisk) && !pending,
+                        riskDetail: `${current.yellows} gule i serie denne sesongen. Neste gule gir karantene.`,
+                        yellows: current.yellows,
+                        kind: pending ? (current.kind || 'yellow') : 'risk',
+                        anchorMatchId: pending
+                            ? (current.lastSuspendMatchId || matches[matches.length - 1]?.id || matches[matches.length - 1]?.date || '')
+                            : (current.lastYellowMatchId || '')
+                    });
+                });
             });
-            const currentPlayers = players.filter(p => window.isPlayerInCurrentSquadPool(p));
+            return result;
+        }
+
+        function statsFollowUpFingerprint(type, player, context) {
+            if (type === 'attendance') {
+                return `training:${context.training?.latestId || context.training?.latestDate || ''}`;
+            }
+            if (type === 'performance') return `match:${context.latestMatchId || ''}`;
+            if (type === 'availability') {
+                return [
+                    'injury',
+                    context.injury?.type || '',
+                    player?.skadeFraDato || '',
+                    player?.skadeTilDato || '',
+                    String(player?.skadeNotat || '').trim()
+                ].join(':');
+            }
+            return `cards:${context.discipline?.kind || ''}:${context.discipline?.yellows || 0}:${context.discipline?.anchorMatchId || ''}`;
+        }
+
+        window.buildStatsFollowUps = function(filterLag) {
             const yearFilter = typeof window.getStatsKampYearFilter === 'function'
                 ? window.getStatsKampYearFilter()
                 : (typeof window.getStatsActiveSeasonYear === 'function'
                     ? window.getStatsActiveSeasonYear()
                     : new Date().getFullYear());
-
-            const matches = (window.activeMatches || [])
-                .filter(m => {
-                    if (!m.result || !m.result.includes('-')) return false;
-                    if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(m)) return false;
-                    if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return false;
-                    if (filterLag && filterLag !== 'Alle' && m.matchGroup !== filterLag) return false;
-                    if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(m, yearFilter)) return false;
-                    return true;
-                })
-                .sort((a, b) => new Date(b.date) - new Date(a.date));
-            const allEvents = [...(window.activeEvents || []), ...(window.activeMatches || []).map(m => ({ ...m, type: 'Kamp', team: m.matchGroup }))]
-                .filter(e => {
-                    if (filterLag && filterLag !== 'Alle' && e.team !== filterLag) return false;
-                    if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(e)) return false;
-                    if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(e, yearFilter)) return false;
-                    return Boolean(e.attendance);
-                })
-                .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-
-            const playerStats = players.map(player => {
-                const name = player.navn || player.name || player.fullName || player.spiller || '';
-                if (!name) return null;
-
-                const playerMatches = matches.filter(m => window.isPlayerAttending(m.attendance, player));
-                let totalPoints = 0;
-                let goals = 0;
-                let assists = 0;
-                let bb = 0;
-                let yellowSerie = 0;
-                let redSerie = 0;
-                let ratings = [];
-
-                playerMatches.forEach(m => {
-                    totalPoints += typeof window.calculatePlayerMatchPoints === 'function'
-                        ? window.calculatePlayerMatchPoints(m, name)
-                        : 0;
-                    if (window.getPlayerRefMapValue(m.scorers, player, 0)) goals += Number(window.getPlayerRefMapValue(m.scorers, player, 0)) || 0;
-                    if (window.getPlayerRefMapValue(m.assists, player, 0)) assists += Number(window.getPlayerRefMapValue(m.assists, player, 0)) || 0;
-                    if (window.motmMatchesPlayer(m.motm, player)) bb += 1;
-                    if (m.matchType === 'Serie' && window.playerRefListIncludes(m.guleKort, player)) yellowSerie += 1;
-                    if (m.matchType === 'Serie' && window.playerRefListIncludes(m.rodeKort, player)) redSerie += 1;
-
-                    const playerRating = window.getPlayerRefMapValue(m.ratings, player, 0);
-                    if (playerRating) {
-                        ratings.push({
-                            date: m.date,
-                            rating: Number(playerRating) || 0
-                        });
-                    }
-                });
-
-                const lastFiveRatings = ratings
-                    .sort((a, b) => new Date(b.date) - new Date(a.date))
-                    .slice(0, 5);
-
-                const formLastFive = lastFiveRatings.length
-                    ? lastFiveRatings.reduce((sum, r) => sum + r.rating, 0) / lastFiveRatings.length
-                    : 0;
-
-                const pointsPerMatch = playerMatches.length > 0 ? totalPoints / playerMatches.length : 0;
-
-                return {
-                    name,
-                    status: player.status || '',
-                    spillerLag: player.spillerLag || '',
-                    matches: playerMatches.length || 0,
-                    totalPoints: totalPoints || 0,
-                    pointsPerMatch: pointsPerMatch || 0,
-                    goals: goals || 0,
-                    assists: assists || 0,
-                    bb: bb || 0,
-                    yellowSerie: yellowSerie || 0,
-                    redSerie: redSerie || 0,
-                    formLastFive: formLastFive || 0,
-                    formScore: typeof window.calculatePlayerPerformanceChemistry === 'function'
-                        ? window.calculatePlayerPerformanceChemistry(name)
-                        : 0
-                };
-            }).filter(Boolean);
-
-            const activeStats = playerStats.filter(p => p.matches > 0);
-
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const disciplineUpToDate = tomorrow.toISOString().slice(0, 10);
-            const relevantTeams = filterLag && filterLag !== 'Alle'
-                ? [filterLag]
-                : [...new Set(currentPlayers.map(p => p.spillerLag).filter(Boolean))];
-            const disciplineByPlayerKey = new Map();
-
-            relevantTeams.forEach(teamName => {
-                const discipline = typeof window.getDisciplineStatusForTeam === 'function'
-                    ? window.getDisciplineStatusForTeam(teamName, disciplineUpToDate)
-                    : {};
-                Object.entries(discipline).forEach(([key, status]) => {
-                    disciplineByPlayerKey.set(key, status);
-                });
+            const disciplineYear = yearFilter === 'alle'
+                ? (typeof window.getStatsActiveSeasonYear === 'function'
+                    ? window.getStatsActiveSeasonYear()
+                    : new Date().getFullYear())
+                : yearFilter;
+            const players = (window.activePlayers || [])
+                .filter(player => window.isPlayerInCurrentSquadPool(player))
+                .filter(player => !filterLag || filterLag === 'Alle' || player.spillerLag === filterLag);
+            const disciplineByKey = statsFollowUpDisciplineByPlayer(players, disciplineYear);
+            const today = statsFollowUpTodayKey();
+            const records = window.readFollowUpInbox();
+            const recordsByPlayerType = new Map();
+            Object.values(records).forEach(record => {
+                if (!record?.playerId || !record.signalType) return;
+                const key = `${record.playerId}|${record.signalType}`;
+                const list = recordsByPlayerType.get(key) || [];
+                list.push(record);
+                recordsByPlayerType.set(key, list);
             });
-
-            const getDisciplineForPlayerName = (name) => {
-                const player = currentPlayers.find(pl => {
-                    const playerName = pl.navn || pl.name || pl.fullName || pl.spiller || '';
-                    return playerName === name;
-                });
-                if (!player) return null;
-                const key = typeof window.getPlayerStorageKey === 'function'
-                    ? window.getPlayerStorageKey(player)
-                    : (player.id || name);
-                return disciplineByPlayerKey.get(key) || null;
-            };
-
-            const followUpMap = new Map();
-            activeStats.filter(p => window.isPlayerInCurrentSquadPool(p)).forEach(p => {
-                const discipline = getDisciplineForPlayerName(p.name);
-                const hasRedSuspension = Boolean(discipline?.isSuspended && discipline?.cardType === 'red');
-                const hasYellowSuspension = Boolean(discipline?.isSuspended && discipline?.cardType === 'yellow');
-                const hasYellowRisk = Boolean(discipline?.isAtRisk && !discipline?.isSuspended);
-
-                if (!(hasRedSuspension || hasYellowSuspension || hasYellowRisk || (p.formLastFive > 0 && p.formLastFive < 5.5) || p.matches <= 2)) return;
-
-                const reason = [];
-                if (hasRedSuspension) reason.push('Rødt kort i serie – karantene');
-                if (hasYellowSuspension) {
-                    reason.push(`${discipline.yellows || discipline.displayNum || 0} gule kort – karantene`);
-                } else if (hasYellowRisk) {
-                    reason.push(`${discipline.yellows} gule i serie – karantene ved ${discipline.nextKaranteneAt || 4}`);
-                }
-                if (p.formLastFive > 0 && p.formLastFive < 5.5) reason.push('Lav form siste kamper');
-                if (p.matches <= 2) reason.push('Få kamper registrert');
-                if (reason.length) followUpMap.set(p.name, reason);
-            });
-
-            currentPlayers.forEach(player => {
-                const name = player.navn || player.name || player.fullName || player.spiller || '';
-                if (!name) return;
-
-                const reason = followUpMap.get(name) || [];
-                const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
+            const signalByRecordId = {};
+            const rows = players.map((player, order) => {
+                const signals = [];
+                const playerId = player.id != null ? String(player.id) : '';
+                const injury = typeof window.getPlayerInjuryInfo === 'function'
                     ? window.getPlayerInjuryInfo(player)
                     : { isInjured: false };
-                if (injuryInfo.isInjured) reason.push(injuryInfo.label || 'Skadestatus');
-
-                const relevantRecentEvents = allEvents
-                    .filter(e => !e.team || e.team === player.spillerLag)
-                    .filter(e => typeof window.isPlayerOnRosterForActivity !== 'function' || window.isPlayerOnRosterForActivity(player, e))
-                    .slice(0, 5);
-                if (relevantRecentEvents.length >= 3) {
-                    const attended = relevantRecentEvents.filter(e => window.isPlayerAttending(e.attendance, player)).length;
-                    if (attended === 0) reason.push('Ingen nylig oppmøte registrert');
+                if (injury.isInjured) {
+                    const dayToDay = injury.type === 'dag-til-dag';
+                    signals.push({
+                        type: 'availability',
+                        priority: dayToDay ? 1 : 3,
+                        badge: 'Tilgjengelighet',
+                        title: dayToDay ? 'Dag-til-dag' : 'Langvarig skade',
+                        detail: statsFollowUpInjuryDetail(player, injury),
+                        focus: 'skade',
+                        fingerprint: statsFollowUpFingerprint('availability', player, { injury })
+                    });
                 }
-
-                if (reason.length) followUpMap.set(name, reason);
+                const discipline = disciplineByKey.get(statsFollowUpPlayerKey(player));
+                if (discipline?.pending) {
+                    signals.push({
+                        type: 'discipline',
+                        priority: 1,
+                        badge: 'Disiplin',
+                        title: 'Disiplin må kontrolleres',
+                        detail: discipline.pendingDetail,
+                        focus: 'profile',
+                        fingerprint: statsFollowUpFingerprint('discipline', player, { discipline })
+                    });
+                } else if (discipline?.atRisk) {
+                    signals.push({
+                        type: 'discipline',
+                        priority: 3,
+                        badge: 'Disiplin',
+                        title: 'Disiplin – faresone',
+                        detail: discipline.riskDetail,
+                        focus: 'profile',
+                        fingerprint: statsFollowUpFingerprint('discipline', player, { discipline })
+                    });
+                }
+                const training = typeof window.getStatsDiagramRecentTrainings === 'function'
+                    ? window.getStatsDiagramRecentTrainings(player, yearFilter)
+                    : { possible: 0, attended: 0 };
+                if ((Number(training.possible) || 0) >= 3 && (Number(training.attended) || 0) === 0) {
+                    signals.push({
+                        type: 'attendance',
+                        priority: 2,
+                        badge: 'Oppmøte',
+                        title: 'Ingen nylig trening registrert',
+                        detail: `0 av ${Number(training.possible) || 0} siste treninger`,
+                        focus: 'trening',
+                        fingerprint: statsFollowUpFingerprint('attendance', player, { training })
+                    });
+                }
+                const insight = typeof window.getPlayerInsightNowStatus === 'function'
+                    ? window.getPlayerInsightNowStatus(player, yearFilter)
+                    : null;
+                if (insight?.status === 'down') {
+                    const recent = typeof window.getStatsDiagramRecentPlayerWindow === 'function'
+                        ? window.getStatsDiagramRecentPlayerWindow(player, yearFilter)
+                        : { playerMatches: [] };
+                    const latestMatch = recent.playerMatches?.[0];
+                    signals.push({
+                        type: 'performance',
+                        priority: 2,
+                        badge: 'Prestasjon',
+                        title: 'Svakere periode',
+                        detail: 'Børs, relativ prestasjon og kampbidrag vurderes i Spillerinnsikt.',
+                        focus: 'innsikt',
+                        fingerprint: statsFollowUpFingerprint('performance', player, {
+                            latestMatchId: latestMatch?.id || latestMatch?.date || ''
+                        })
+                    });
+                }
+                if (!signals.length) return null;
+                signals.forEach(signal => {
+                    const recordId = statsFollowUpRecordId(playerId, signal.type, signal.fingerprint);
+                    const record = records[recordId] || null;
+                    const earlier = recordsByPlayerType.get(`${playerId}|${signal.type}`) || [];
+                    signal.playerId = playerId;
+                    signal.playerName = player.navn || '';
+                    signal.recordId = recordId;
+                    signal.coach = statsFollowUpCoachState(record, today);
+                    signal.note = record?.note || '';
+                    signal.updatedAt = record?.updatedAt || '';
+                    signal.snoozedUntil = record?.snoozedUntil || '';
+                    signal.renewed = (signal.coach === 'new' || signal.coach === 'returned')
+                        && earlier.some(item => item.status === 'handled' && item.fingerprint && item.fingerprint !== signal.fingerprint);
+                    signalByRecordId[recordId] = signal;
+                });
+                const active = signals.filter(signal => signal.coach === 'new' || signal.coach === 'returned');
+                const priority = active.length
+                    ? Math.min(...active.map(signal => signal.priority))
+                    : signals[0].priority;
+                const focus = (active.find(signal => signal.priority === priority) || signals[0]).focus;
+                signals.sort((a, b) => {
+                    const rank = coach => (coach === 'handled' ? 1 : coach === 'snoozed' ? 2 : 0);
+                    return rank(a.coach) - rank(b.coach) || a.priority - b.priority;
+                });
+                return {
+                    id: playerId,
+                    name: player.navn || '',
+                    order,
+                    priority,
+                    focus,
+                    hasActive: active.length > 0,
+                    signals
+                };
+            }).filter(Boolean);
+            const activeRows = rows.filter(row => row.hasActive);
+            activeRows.sort((a, b) => a.priority - b.priority || a.order - b.order);
+            const typeCounts = { availability: 0, attendance: 0, performance: 0, discipline: 0 };
+            activeRows.forEach(row => {
+                row.signals.forEach(signal => {
+                    if ((signal.coach === 'new' || signal.coach === 'returned') && typeCounts[signal.type] != null) {
+                        typeCounts[signal.type] += 1;
+                    }
+                });
             });
-
-            const followUps = [...followUpMap.entries()]
-                .map(([name, reason]) => ({ name, reason: reason.slice(0, 3).join(', ') }))
-                .slice(0, 8);
-
+            const squadIds = new Set(players.map(player => player.id != null ? String(player.id) : '').filter(Boolean));
+            const handledRecords = Object.values(records)
+                .filter(record => record?.status === 'handled' && squadIds.has(String(record.playerId || '')))
+                .sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
+            const snoozedSignals = rows.flatMap(row => row.signals
+                .filter(signal => signal.coach === 'snoozed')
+                .map(signal => ({ ...signal, playerName: row.name })))
+                .sort((a, b) => String(a.snoozedUntil).localeCompare(String(b.snoozedUntil)));
+            const newPlayerCount = activeRows.filter(row => row.signals.some(signal => signal.coach === 'new')).length;
             return {
-                matches,
-                activeStats,
-                followUps
+                rows: activeRows,
+                activeRows,
+                typeCounts,
+                activePlayerCount: activeRows.length,
+                newPlayerCount,
+                handledRecords,
+                snoozedSignals,
+                signalByRecordId,
+                yearFilter,
+                disciplineYear
+            };
+        };
+
+        window.refreshStatsFollowUpPanel = function() {
+            if (typeof window.buildStatsFollowUps !== 'function') return;
+            const filterLag = typeof window.getStatsTeamFilter === 'function'
+                ? window.getStatsTeamFilter()
+                : 'Alle';
+            const followUp = window.buildStatsFollowUps(filterLag);
+            window._statsFollowUps = followUp.rows;
+            window._statsFollowUpMeta = followUp;
+            const slot = document.getElementById('stats-oppfolging-slot');
+            if (slot && typeof window.renderStatsOppfolgingPanelHtml === 'function') {
+                slot.innerHTML = window.renderStatsOppfolgingPanelHtml();
+            }
+        };
+
+        window.buildPlayerAnalysisStats = function(filterLag) {
+            const followUp = window.buildStatsFollowUps(filterLag);
+            return {
+                matches: [],
+                activeStats: [],
+                followUps: followUp.rows,
+                followUpMeta: followUp
             };
         };
 
@@ -1366,33 +1657,206 @@ window.checkIndividualChemistry = function() {
         };
 
         window.renderStatsFollowUpsHtml = function(followUps) {
-            if (!followUps.length) {
+            const rows = Array.isArray(followUps) ? followUps : [];
+            const meta = window._statsFollowUpMeta || {};
+            const hint = 'Spillere med registrerte forhold eller signaler som kan kreve oppfølging.';
+            const icons = {
+                availability: 'fa-kit-medical',
+                attendance: 'fa-person-running',
+                performance: 'fa-chart-line',
+                discipline: 'fa-id-card'
+            };
+            const linkLabel = {
+                innsikt: 'Se Spillerinnsikt',
+                trening: 'Se spiller',
+                skade: 'Se spiller',
+                profile: 'Se spiller'
+            };
+            const composerFor = signal => (
+                window.statsFollowUpComposer?.recordId === signal.recordId
+                    ? window.statsFollowUpComposer
+                    : null
+            );
+            const noteHtml = note => note
+                ? `<p class="stats-followup-note">«${escapeStatsHtml(note)}»</p>`
+                : '';
+            const composerHtml = signal => {
+                const composer = composerFor(signal);
+                if (!composer) return '';
+                const snooze = composer.mode === 'snoozed';
+                const tomorrow = statsFollowUpAddDays(1);
                 return `
-                    <p class="stats-kamp-panel-hint">Handlingsliste for spillere, skade, disiplin og oppmøte.</p>
-                    <div class="stats-empty-state">
-                        <h3>Ingen tydelige oppfølgingspunkter</h3>
-                        <p>Det er ingen spillere som skiller seg ut på skade, disiplin eller oppmøte akkurat nå.</p>
+                    <div class="stats-followup-composer">
+                        <label class="stats-followup-note-label">
+                            Trenernotat
+                            <textarea data-followup-note maxlength="280" placeholder="Valgfritt notat"></textarea>
+                        </label>
+                        ${snooze ? `
+                            <div class="stats-followup-snooze-choices">
+                                <button type="button" class="stats-followup-chip" data-stat-action="followup-snooze-pick" data-snooze-days="1">I morgen</button>
+                                <button type="button" class="stats-followup-chip" data-stat-action="followup-snooze-pick" data-snooze-days="3">Om 3 dager</button>
+                                <button type="button" class="stats-followup-chip" data-stat-action="followup-snooze-pick" data-snooze-days="7">Om 7 dager</button>
+                            </div>
+                            <input type="date" data-followup-date min="${tomorrow}" aria-label="Velg dato">
+                        ` : ''}
+                        <p class="stats-followup-error" data-followup-error></p>
+                        <div class="stats-followup-composer-actions">
+                            <button type="button" class="stats-followup-action" data-stat-action="followup-save" data-mode="${composer.mode}" data-record-id="${escapeStatisticsHtml(signal.recordId)}">${snooze ? 'Utsett' : 'Fulgt opp'}</button>
+                            <button type="button" class="stats-followup-action" data-stat-action="followup-cancel">Avbryt</button>
+                        </div>
                     </div>
                 `;
-            }
-
-            return `
-                <p class="stats-kamp-panel-hint">Handlingsliste for spillere, skade, disiplin og oppmøte.</p>
-                <div class="stats-followup-list">
-                    ${followUps.map(p => `
-                        <button type="button" data-stat-action="open-player" data-player-id="${escapeStatisticsHtml(getStatsPlayerIdForName(p.name))}" data-player-name="${escapeStatisticsHtml(p.name)}" class="stats-followup-item w-full text-left">
-                            <div class="flex items-center gap-3">
-                                <div class="stats-metric-icon text-bsk-yellow">
-                                    <i class="fa-solid fa-triangle-exclamation text-sm"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <div class="font-black text-slate-800">${escapeStatsHtml(p.name)}</div>
-                                    <div class="text-xs text-slate-500 leading-snug">${escapeStatsHtml(p.reason)}</div>
-                                </div>
-                            </div>
+            };
+            const signalHtml = (signal, mixed) => {
+                const active = signal.coach === 'new' || signal.coach === 'returned';
+                const status = signal.coach === 'handled'
+                    ? `Fulgt opp${signal.updatedAt ? ` ${statsFollowUpFormatDate(signal.updatedAt)}` : ''}`
+                    : signal.coach === 'snoozed'
+                        ? `Utsatt til ${statsFollowUpFormatDate(signal.snoozedUntil)}`
+                        : signal.coach === 'returned'
+                            ? 'Tilbake etter utsettelse'
+                            : (mixed && signal.coach === 'new' && !signal.renewed ? 'Ny' : '');
+                const renewed = signal.renewed && signal.coach === 'new'
+                    ? '<p class="stats-followup-renewed">Nytt siden sist oppfølging</p>'
+                    : '';
+                const actions = active && !composerFor(signal)
+                    ? `<div class="stats-followup-actions">
+                            <button type="button" class="stats-followup-action" data-stat-action="followup-compose" data-mode="handled" data-record-id="${escapeStatisticsHtml(signal.recordId)}">Fulgt opp</button>
+                            <button type="button" class="stats-followup-action" data-stat-action="followup-compose" data-mode="snoozed" data-record-id="${escapeStatisticsHtml(signal.recordId)}">Utsett</button>
+                       </div>`
+                    : (!active
+                        ? `<button type="button" class="stats-followup-action" data-stat-action="followup-reopen" data-record-id="${escapeStatisticsHtml(signal.recordId)}">Gjenåpne</button>`
+                        : '');
+                return `
+                    <div class="stats-followup-signal">
+                        <span class="stats-followup-badge is-${escapeStatsHtml(signal.type)}">
+                            <i class="fa-solid ${icons[signal.type] || 'fa-circle'}" aria-hidden="true"></i>
+                            ${escapeStatsHtml(signal.badge)}
+                        </span>
+                        <p class="stats-followup-signal-title">${escapeStatsHtml(signal.title)}</p>
+                        ${signal.detail ? `<p class="stats-followup-signal-detail">${escapeStatsHtml(signal.detail)}</p>` : ''}
+                        ${status ? `<p class="stats-followup-status">${escapeStatsHtml(status)}</p>` : ''}
+                        ${renewed}
+                        ${noteHtml(signal.note)}
+                        ${composerHtml(signal)}
+                        ${actions}
+                    </div>
+                `;
+            };
+            const typeOrder = [
+                {
+                    type: 'availability',
+                    label: 'Tilgjengelighet',
+                    note: 'Registrert skade som kan påvirke spillerens tilgjengelighet.'
+                },
+                {
+                    type: 'attendance',
+                    label: 'Oppmøte',
+                    note: 'Ingen registrert deltakelse på minst tre nylige treninger.'
+                },
+                {
+                    type: 'performance',
+                    label: 'Prestasjon',
+                    note: 'Spillere med status «Svakere periode» i Spillerinnsikt.'
+                },
+                {
+                    type: 'discipline',
+                    label: 'Disiplin',
+                    note: 'Registrerte kortforhold som bør kontrolleres eller følges med på.'
+                }
+            ];
+            window.statsFollowUpTypeOpen = window.statsFollowUpTypeOpen || {};
+            const typeSections = typeOrder.map(({ type, label, note }) => {
+                const entries = rows
+                    .map(row => ({
+                        row,
+                        signal: row.signals.find(signal => signal.type === type && (signal.coach === 'new' || signal.coach === 'returned'))
+                    }))
+                    .filter(entry => entry.signal)
+                    .sort((a, b) => a.signal.priority - b.signal.priority || a.row.order - b.row.order);
+                if (!entries.length) return '';
+                const open = window.statsFollowUpTypeOpen[type] === true;
+                const checkCount = entries.filter(entry => entry.signal.priority === 1).length;
+                const items = entries.map(({ row, signal }) => `
+                    <article class="stats-followup-item">
+                        <button type="button" class="stats-followup-open" data-stat-action="open-follow-up" data-player-id="${escapeStatisticsHtml(row.id)}" data-focus="${escapeStatisticsHtml(signal.focus)}">
+                            <span class="stats-followup-name">${escapeStatsHtml(row.name)}</span>
+                            <span class="stats-followup-go">${escapeStatsHtml(linkLabel[signal.focus] || 'Se spiller')} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
                         </button>
-                    `).join('')}
-                </div>
+                        <div class="stats-followup-signals">
+                            ${signalHtml(signal, false)}
+                        </div>
+                    </article>
+                `).join('');
+                return `
+                    <section class="stats-followup-type-section">
+                        <button type="button" class="stats-followup-type" data-stat-action="toggle-followup-type" data-signal-type="${type}" aria-expanded="${open ? 'true' : 'false'}">
+                            <span class="stats-followup-type-copy">
+                                <span class="stats-followup-type-name">
+                                    <i class="fa-solid ${icons[type] || 'fa-circle'}" aria-hidden="true"></i>
+                                    ${label}
+                                    <span class="stats-followup-type-count">· ${entries.length}</span>
+                                </span>
+                                ${checkCount ? `<span class="stats-followup-check">${checkCount} må sjekkes</span>` : ''}
+                            </span>
+                            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                        </button>
+                        ${open ? `<p class="stats-followup-type-note">${note}</p><div class="stats-followup-list">${items}</div>` : ''}
+                    </section>
+                `;
+            }).join('');
+            const activeHtml = rows.length
+                ? `
+                    <p class="stats-kamp-panel-hint">${hint}</p>
+                    <div class="stats-followup-types">${typeSections}</div>
+                `
+                : `
+                    <div class="stats-empty-state">
+                        <h3>Ingen aktive oppfølgingspunkter</h3>
+                        <p>Du har ingen nye eller ubehandlede signaler akkurat nå.</p>
+                    </div>
+                `;
+            const handled = Array.isArray(meta.handledRecords) ? meta.handledRecords : [];
+            const snoozed = Array.isArray(meta.snoozedSignals) ? meta.snoozedSignals : [];
+            const historyOpen = window.statsFollowUpHistoryOpen === true;
+            const snoozeOpen = window.statsFollowUpSnoozeOpen === true;
+            const historyItems = handled.map(record => {
+                const live = meta.signalByRecordId?.[record.recordId];
+                const canReopen = live && live.coach === 'handled';
+                return `
+                    <article class="stats-followup-history-item">
+                        <p class="stats-followup-history-name">${escapeStatsHtml(record.playerName || '')}</p>
+                        <span class="stats-followup-badge is-${escapeStatsHtml(record.signalType || '')}">${escapeStatsHtml(record.badge || record.signalType || '')}</span>
+                        <p class="stats-followup-status">Fulgt opp ${escapeStatsHtml(statsFollowUpFormatDate(record.updatedAt))}</p>
+                        ${record.detail ? `<p class="stats-followup-signal-detail">${escapeStatsHtml(record.detail)}</p>` : ''}
+                        ${noteHtml(record.note)}
+                        ${canReopen ? `<button type="button" class="stats-followup-action" data-stat-action="followup-reopen" data-record-id="${escapeStatisticsHtml(record.recordId)}">Gjenåpne</button>` : ''}
+                    </article>
+                `;
+            }).join('');
+            const snoozeItems = snoozed.map(signal => `
+                <article class="stats-followup-history-item">
+                    <p class="stats-followup-history-name">${escapeStatsHtml(signal.playerName || '')}</p>
+                    <span class="stats-followup-badge is-${escapeStatsHtml(signal.type)}">${escapeStatsHtml(signal.badge || '')}</span>
+                    <p class="stats-followup-status">Kommer tilbake ${escapeStatsHtml(statsFollowUpFormatDate(signal.snoozedUntil))}</p>
+                    ${noteHtml(signal.note)}
+                    <button type="button" class="stats-followup-action" data-stat-action="followup-reopen" data-record-id="${escapeStatisticsHtml(signal.recordId)}">Gjenåpne</button>
+                </article>
+            `).join('');
+            return `
+                ${activeHtml}
+                ${handled.length ? `
+                    <section class="stats-followup-section">
+                        <button type="button" class="stats-followup-section-toggle" data-stat-action="toggle-followup-history" aria-expanded="${historyOpen ? 'true' : 'false'}">${historyOpen ? 'Skjul fulgt opp' : `Vis ${handled.length} fulgt opp`}</button>
+                        ${historyOpen ? `<div class="stats-followup-history">${historyItems}</div>` : ''}
+                    </section>
+                ` : ''}
+                ${snoozed.length ? `
+                    <section class="stats-followup-section">
+                        <button type="button" class="stats-followup-section-toggle" data-stat-action="toggle-followup-snooze" aria-expanded="${snoozeOpen ? 'true' : 'false'}">Utsatt · ${snoozed.length}</button>
+                        ${snoozeOpen ? `<div class="stats-followup-history">${snoozeItems}</div>` : ''}
+                    </section>
+                ` : ''}
             `;
         };
 
@@ -1531,6 +1995,7 @@ window.checkIndividualChemistry = function() {
                 ? window.buildPlayerAnalysisStats(filterLag)
                 : { followUps: [] };
             window._statsFollowUps = analysis.followUps || [];
+            window._statsFollowUpMeta = analysis.followUpMeta || { typeCounts: {} };
             window._statsTeamReportData = typeof window.buildTeamReportData === 'function'
                 ? window.buildTeamReportData(filterLag, window._statsLagData, analysis)
                 : null;
@@ -3562,10 +4027,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.statsScoreDiagramExplanationOpen = window.statsScoreDiagramExplanationOpen || false;
         window.statsDiagramInfoOpen = window.statsDiagramInfoOpen || {
             main: window.statsScoreDiagramExplanationOpen === true,
-            form: false,
             line: false
         };
-        window.STATS_DIAGRAM_INFO_KEYS = ['main', 'form', 'line'];
+        window.STATS_DIAGRAM_INFO_KEYS = ['main', 'line'];
         window.STATS_SCORE_DIAGRAM_KINDS = [
             { id: 'tropp', label: 'Tropp' },
             { id: 'tillit', label: 'Spilletidskart' },
@@ -3627,16 +4091,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.renderStatsDiagramExplanationHtml = function(which) {
             const isTotal = (window.statsScoreDiagramMode || 'total') !== 'five';
             const kind = window.getStatsScoreDiagramKind();
-            if (which === 'form') {
-                return `
-                    <p class="training-session-groups-info-title">Formkart</p>
-                    <ul class="training-session-groups-info-list">
-                        <li>Høyre er kampbidrag gjennom sesongen. Opp er kampbidrag nå (siste 5 kamper).</li>
-                        <li>Den gule diagonalen er «som vanlig». Over den er i form. Under den er på vei ned.</li>
-                        <li>Gul boble er som vanlig. Grønn er over egen sesong. Rød er under. Trykk på en boble for navn.</li>
-                    </ul>
-                `;
-            }
             if (which === 'line') {
                 const lineLabels = {
                     forsvar: 'Forsvar',
@@ -3778,12 +4232,11 @@ window.getFormScoreBorderClass = function(score, teamName) {
 
         window.toggleStatsDiagramInfo = function(which) {
             const key = window.getStatsDiagramInfoKey(which);
-            window.statsDiagramInfoOpen = window.statsDiagramInfoOpen || { main: false, form: false, line: false };
+            window.statsDiagramInfoOpen = window.statsDiagramInfoOpen || { main: false, line: false };
             window.statsDiagramInfoOpen[key] = !window.isStatsDiagramInfoOpen(key);
             window.statsScoreDiagramExplanationOpen = window.statsDiagramInfoOpen.main === true;
             const wraps = {
                 main: ['team-score-diagram-wrap', window.renderTeamScoreDiagramHtml],
-                form: ['stats-formkart-wrap', window.renderStatsFormDiagramHtml],
                 line: ['stats-linjekart-wrap', window.renderStatsLineDiagramHtml]
             };
             const [wrapId, renderFn] = wraps[key] || wraps.main;
@@ -4198,7 +4651,9 @@ window.getFormScoreBorderClass = function(score, teamName) {
             return {
                 possible: events.length,
                 attended,
-                pct: events.length > 0 ? Math.round((attended / events.length) * 100) : null
+                pct: events.length > 0 ? Math.round((attended / events.length) * 100) : null,
+                latestId: events[0]?.id || '',
+                latestDate: events[0]?.date || ''
             };
         };
 
@@ -4606,23 +5061,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     relSeier: statsRound2(statsMean(relativeFor(3))),
                     relUavgjort: statsRound2(statsMean(relativeFor(1))),
                     relTap: statsRound2(statsMean(relativeFor(0)))
-                };
-            }).filter(Boolean);
-        };
-
-        window.buildStatsFormDiagramData = function() {
-            const recentByName = new Map(
-                (window.buildStatsFiveScoreDiagramData() || []).map(row => [row.name, row])
-            );
-            return (window.buildStatsTotalScoreDiagramData() || []).map(row => {
-                const recent = recentByName.get(row.name);
-                if (!recent) return null;
-                return {
-                    name: row.name,
-                    x: row.x,
-                    y: recent.x,
-                    score: row.totalScore || row.score,
-                    totalScore: row.totalScore || row.score
                 };
             }).filter(Boolean);
         };
@@ -5574,47 +6012,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 ariaLabel: `${plot.kindLabel} ${isTotal ? 'Sesong' : 'Nå'}`,
                 ...plot,
                 prepareRow
-            });
-        };
-
-        window.renderStatsFormDiagramHtml = function() {
-            const isCompact = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
-            const grid = isCompact ? [8, 12, 16, 20, 24, 28] : [8, 12, 16, 20, 24, 28];
-            return window.renderStatsScatterDiagramCardHtml({
-                topbarHtml: `
-                    <div class="team-score-diagram-topbar">
-                        <p class="team-score-diagram-card-title">Formkart</p>
-                        ${window.renderStatsDiagramInfoButtonHtml('form')}
-                    </div>
-                `,
-                infoPanelHtml: window.renderStatsDiagramInfoPanelHtml('form'),
-                rows: window.buildStatsFormDiagramData(),
-                emptyMessage: 'Mangler form å vise.',
-                ariaLabel: 'Formkart sesong mot nå',
-                xMin: 8,
-                xMax: 28,
-                yMin: 8,
-                yMax: 28,
-                splitDiagonal: true,
-                gridX: grid,
-                gridY: grid,
-                xAxisLabel: isCompact ? 'Sesong' : 'Kampbidrag sesong',
-                yAxisLabel: isCompact ? 'Nå' : 'Kampbidrag nå',
-                prepareRow: (row) => {
-                    const delta = (Number(row.y) || 0) - (Number(row.x) || 0);
-                    const rounded = Math.round(delta * 10) / 10;
-                    const tone = rounded === 0
-                        ? { fill: '#f5c542', className: 'is-season' }
-                        : window.getStatsScoreDiagramTone(rounded > 0);
-                    return {
-                        radius: 4 + ((row.score - 20) / 65) * 3,
-                        fill: tone.fill,
-                        displayValue: rounded === 0
-                            ? '0.0'
-                            : `${rounded > 0 ? '+' : '-'}${Math.abs(rounded).toFixed(1)}`,
-                        tooltipValueClass: tone.className
-                    };
-                }
             });
         };
 
@@ -7806,10 +8203,16 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const followUps = Array.isArray(window._statsFollowUps)
                 ? window._statsFollowUps
                 : [];
+            const count = window._statsFollowUpMeta?.activePlayerCount ?? followUps.length;
+            const fresh = Number(window._statsFollowUpMeta?.newPlayerCount) || 0;
+            const freshHtml = fresh > 0 && fresh < count
+                ? `<span class="stats-followup-fresh">${fresh} nye</span>`
+                : '';
             return window.renderStatsCollapsiblePanelHtml({
                 id: 'oppfolging',
-                title: 'Oppfølging',
-                badge: followUps.length,
+                title: `Oppfølging · ${count}`,
+                headingExtraHtml: freshHtml,
+                badge: '',
                 showLabel: 'Vis oppfølging',
                 hideLabel: 'Skjul oppfølging',
                 content: window.renderStatsFollowUpsHtml(followUps)
@@ -7827,9 +8230,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         <div id="team-score-diagram-wrap" class="team-score-diagram-wrap">
                             ${window.renderTeamScoreDiagramHtml()}
                         </div>
-                        <div id="stats-formkart-wrap" class="team-score-diagram-wrap">
-                            ${window.renderStatsFormDiagramHtml()}
-                        </div>
                         <div id="stats-linjekart-wrap" class="team-score-diagram-wrap">
                             ${window.renderStatsLineDiagramHtml()}
                         </div>
@@ -7845,10 +8245,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const diagramWrap = document.getElementById('team-score-diagram-wrap');
             if (diagramWrap && typeof window.renderTeamScoreDiagramHtml === 'function') {
                 diagramWrap.innerHTML = window.renderTeamScoreDiagramHtml();
-            }
-            const formWrap = document.getElementById('stats-formkart-wrap');
-            if (formWrap && typeof window.renderStatsFormDiagramHtml === 'function') {
-                formWrap.innerHTML = window.renderStatsFormDiagramHtml();
             }
             const lineWrap = document.getElementById('stats-linjekart-wrap');
             if (lineWrap && typeof window.renderStatsLineDiagramHtml === 'function') {

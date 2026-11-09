@@ -14221,8 +14221,71 @@
         :is(.stats-board-card, .stats-page-slot) .team-report-match-row strong,
         :is(.stats-board-card, .stats-page-slot) .team-report-attendance-meta strong,
         :is(.stats-board-card, .stats-page-slot) .team-report-match-points,
-        :is(.stats-board-card, .stats-page-slot) .stats-followup-item .font-black {
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-item .font-black,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-name,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-signal-title {
             color: #ffffff !important;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-go,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-more,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-show-more,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-counts,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-priority,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-signal-detail,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-action,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-section-toggle,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-status,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-renewed,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-note,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-note-label {
+            color: rgba(255, 255, 255, 0.72);
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-history-name {
+            color: #ffffff;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-history-item,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-type-section + .stats-followup-type-section {
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-type-name,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-type-count {
+            color: #ffffff;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-type-meta,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-type .fa-chevron-down,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-type-note {
+            color: rgba(255, 255, 255, 0.62);
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-check {
+            background: rgba(245, 197, 66, 0.16);
+            color: #f5c542;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-chip {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.86);
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-chip.is-selected {
+            background: rgba(245, 197, 66, 0.28);
+            color: #f5c542;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-composer textarea,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-composer input[type="date"] {
+            background: rgba(7, 31, 56, 0.55);
+            border-color: rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-error {
+            color: #fdba74;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-badge.is-availability,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-badge.is-discipline {
+            background: rgba(245, 197, 66, 0.16);
+            color: #f5c542;
+        }
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-badge.is-attendance,
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-badge.is-performance {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.86);
         }
         :is(.stats-board-card, .stats-page-slot) .team-report-match-row span:not(.dashboard-series-form-pill),
         :is(.stats-board-card, .stats-page-slot) .team-report-attendance-meta span,
@@ -14887,6 +14950,290 @@
         }
         .stats-followup-item:hover {
             background: rgba(245, 197, 66, 0.08);
+        }
+        .stats-followup-counts,
+        .stats-followup-priority {
+            color: rgba(18, 63, 115, 0.62);
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            margin: 0 0 0.55rem;
+        }
+        .stats-followup-priority {
+            margin: 0.85rem 0 0.35rem;
+            text-transform: uppercase;
+        }
+        .stats-followup-open,
+        .stats-followup-more,
+        .stats-followup-show-more {
+            background: transparent;
+            border: 0;
+            color: inherit;
+            cursor: pointer;
+            font: inherit;
+            text-align: left;
+        }
+        .stats-followup-open {
+            align-items: center;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: space-between;
+            padding: 0;
+            width: 100%;
+        }
+        .stats-followup-name {
+            font-size: 0.98rem;
+            font-weight: 900;
+            min-width: 0;
+        }
+        .stats-followup-go {
+            align-items: center;
+            color: #123f73;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.72rem;
+            font-weight: 800;
+            gap: 0.35rem;
+        }
+        .stats-followup-signals {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            margin-top: 0.55rem;
+        }
+        .stats-followup-badge {
+            align-items: center;
+            border-radius: 999px;
+            display: inline-flex;
+            font-size: 0.62rem;
+            font-weight: 900;
+            gap: 0.35rem;
+            letter-spacing: 0.06em;
+            padding: 0.28rem 0.5rem;
+            text-transform: uppercase;
+        }
+        .stats-followup-badge.is-availability,
+        .stats-followup-badge.is-discipline {
+            background: rgba(245, 197, 66, 0.16);
+            color: #8a6410;
+        }
+        .stats-followup-badge.is-attendance,
+        .stats-followup-badge.is-performance {
+            background: rgba(18, 63, 115, 0.08);
+            color: #123f73;
+        }
+        .stats-followup-signal-title {
+            font-size: 0.92rem;
+            font-weight: 800;
+            margin: 0.28rem 0 0;
+        }
+        .stats-followup-signal-detail,
+        .stats-followup-more,
+        .stats-followup-show-more {
+            color: rgba(18, 63, 115, 0.72);
+            font-size: 0.78rem;
+            line-height: 1.35;
+            margin: 0.12rem 0 0;
+        }
+        .stats-followup-show-more {
+            margin-top: 0.75rem;
+            padding: 0;
+        }
+        .stats-followup-actions,
+        .stats-followup-composer-actions,
+        .stats-followup-snooze-choices {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem 0.9rem;
+        }
+        .stats-followup-actions,
+        .stats-followup-composer {
+            margin-top: 0.35rem;
+        }
+        .stats-followup-action,
+        .stats-followup-section-toggle,
+        .stats-followup-chip {
+            background: transparent;
+            border: 0;
+            color: rgba(18, 63, 115, 0.78);
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.75rem;
+            font-weight: 800;
+            min-height: 2.5rem;
+            padding: 0.35rem 0;
+            text-align: left;
+        }
+        .stats-followup-chip {
+            background: rgba(18, 63, 115, 0.06);
+            border-radius: 999px;
+            min-height: 2.25rem;
+            padding: 0.35rem 0.7rem;
+        }
+        .stats-followup-chip.is-selected {
+            background: rgba(245, 197, 66, 0.34);
+        }
+        .stats-followup-status,
+        .stats-followup-renewed,
+        .stats-followup-note-label {
+            color: rgba(18, 63, 115, 0.68);
+            font-size: 0.75rem;
+            font-weight: 800;
+            margin: 0.15rem 0 0;
+        }
+        .stats-followup-note {
+            color: rgba(18, 63, 115, 0.78);
+            font-size: 0.78rem;
+            font-style: italic;
+            line-height: 1.35;
+            margin: 0.12rem 0 0;
+            overflow-wrap: anywhere;
+        }
+        .stats-followup-composer {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            max-width: 28rem;
+        }
+        .stats-followup-note-label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .stats-followup-composer textarea,
+        .stats-followup-composer input[type="date"] {
+            background: #ffffff;
+            border: 1px solid rgba(18, 63, 115, 0.18);
+            border-radius: 0.55rem;
+            color: #0b2b4c;
+            font: inherit;
+            font-size: 0.82rem;
+            font-weight: 600;
+            max-width: 100%;
+            padding: 0.55rem 0.7rem;
+            width: 100%;
+        }
+        .stats-followup-composer textarea {
+            min-height: 4.5rem;
+            resize: vertical;
+        }
+        .stats-followup-error {
+            color: #9a3412;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin: 0;
+            min-height: 0;
+        }
+        .stats-followup-error:empty {
+            display: none;
+        }
+        .stats-followup-section {
+            margin-top: 0.35rem;
+        }
+        .stats-followup-type-section + .stats-followup-type-section {
+            border-top: 1px solid rgba(18, 63, 115, 0.08);
+        }
+        .stats-followup-type {
+            align-items: center;
+            background: transparent;
+            border: 0;
+            color: inherit;
+            cursor: pointer;
+            display: flex;
+            font: inherit;
+            gap: 0.75rem;
+            justify-content: space-between;
+            min-height: 2.75rem;
+            padding: 0.7rem 0.15rem;
+            text-align: left;
+            width: 100%;
+        }
+        .stats-followup-type-copy {
+            align-items: center;
+            display: flex;
+            flex: 1 1 auto;
+            flex-wrap: wrap;
+            gap: 0.3rem 0.65rem;
+            min-width: 0;
+        }
+        .stats-followup-type-name,
+        .stats-followup-type-meta {
+            align-items: center;
+            display: inline-flex;
+            gap: 0.55rem;
+        }
+        .stats-followup-type-name {
+            font-size: 0.95rem;
+            font-weight: 800;
+            min-width: 0;
+        }
+        .stats-followup-type-count {
+            font-size: 0.95rem;
+            font-weight: 900;
+        }
+        .stats-followup-check {
+            background: rgba(245, 197, 66, 0.16);
+            border-radius: 999px;
+            color: #8a6410;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            line-height: 1.2;
+            padding: 0.22rem 0.5rem;
+            white-space: nowrap;
+        }
+        .stats-followup-type-note {
+            color: rgba(18, 63, 115, 0.62);
+            font-size: 0.75rem;
+            line-height: 1.35;
+            margin: 0 0.15rem 0.45rem;
+            overflow-wrap: anywhere;
+        }
+        @media (max-width: 640px) {
+            .stats-followup-type-copy {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 0.28rem;
+            }
+        }
+        .stats-followup-type .fa-chevron-down {
+            flex: 0 0 auto;
+            font-size: 0.68rem;
+            transition: transform 150ms ease;
+        }
+        .stats-followup-type[aria-expanded="true"] .fa-chevron-down {
+            transform: rotate(180deg);
+        }
+        .stats-followup-type-section .stats-followup-list {
+            margin: 0 0 0.35rem;
+        }
+        .stats-followup-history-item {
+            border-top: 1px solid rgba(18, 63, 115, 0.08);
+            padding: 0.65rem 0 0.75rem;
+        }
+        .stats-followup-history-name {
+            font-size: 0.86rem;
+            font-weight: 800;
+            margin: 0 0 0.28rem;
+            overflow-wrap: anywhere;
+        }
+        .stats-followup-fresh {
+            color: rgba(255, 255, 255, 0.72);
+            flex: 0 0 auto;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        @media (max-width: 640px) {
+            .stats-followup-action,
+            .stats-followup-section-toggle,
+            .stats-followup-chip {
+                min-height: 2.75rem;
+            }
+            .stats-followup-composer {
+                max-width: none;
+            }
         }
         .team-report-panel {
             background:

@@ -2278,6 +2278,16 @@ function buildPlayerInsightNowCopy(model) {
     };
 }
 
+window.getPlayerInsightNowStatus = function(player, yearFilter) {
+    if (!player) return null;
+    const copy = buildPlayerInsightNowCopy(buildPlayerInsightModel(player, yearFilter));
+    return {
+        status: copy.status,
+        label: copy.label,
+        sentence: copy.sentences[0] || ''
+    };
+};
+
 function buildPlayerInsightNowCardHtml(label, nowText, seasonText, deltaText, basis, direction) {
     const tone = direction === 'up' || direction === 'down' || direction === 'flat' ? direction : '';
     const icon = direction === 'up' ? 'fa-arrow-up' : direction === 'down' ? 'fa-arrow-down' : '';
@@ -3024,10 +3034,15 @@ window.showPlayerProfile = function(playerId, options = {}) {
     if (!player) return;
 
     window.activePlayerProfileId = playerId;
-    if (window.playerProfileYearFilter == null) {
+    if (options.yearFilter != null && options.yearFilter !== '') {
+        window.playerProfileYearFilter = options.yearFilter;
+    } else if (window.playerProfileYearFilter == null) {
         window.playerProfileYearFilter = typeof window.getStatsSpillerYearFilter === 'function'
             ? window.getStatsSpillerYearFilter()
             : new Date().getFullYear();
+    }
+    if (options.focus === 'innsikt' || options.focus === 'trening') {
+        getPlayerProfilePanelState()[options.focus] = true;
     }
 
     window.renderPlayerProfilePage(playerId);
@@ -3040,6 +3055,17 @@ window.showPlayerProfile = function(playerId, options = {}) {
     if (typeof window.switchTab === 'function') {
         window.switchTab('spillerprofil', { backTarget });
     }
+    if (!options.focus) return;
+    const focusSelector = options.focus === 'trening'
+        ? '[data-profile-panel="trening"]'
+        : options.focus === 'innsikt'
+            ? '[data-profile-panel="innsikt"]'
+            : options.focus === 'skade'
+                ? '.player-profile-facts-state'
+                : '.player-profile-shell';
+    requestAnimationFrame(() => {
+        document.querySelector(`#spillerprofil-content ${focusSelector}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
 };
 
 window.setPlayerModalView = function(mode = 'profile') {

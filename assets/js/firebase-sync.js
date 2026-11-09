@@ -24,8 +24,10 @@
         let activePlayersCollectionRef = null;
         let activeEventsCollectionRef = null;
         let activeHallOfFameCollectionRef = null;
+        let activeFollowUpsCollectionRef = null;
         let firebaseEnabled = false;
         let hasHandledInitialHallSnapshot = false;
+        let hasHandledInitialFollowUpSnapshot = false;
         let hasHandledInitialPlayersSnapshot = false;
 
         // Paint cached data immediately so mobile/UI is not blocked on Firebase CDN + auth.
@@ -58,6 +60,7 @@
             activePlayersCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
             activeEventsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'events');
             activeHallOfFameCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'hallOfFame');
+            activeFollowUpsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'followUps');
             
             firebaseEnabled = true;
             console.log("Firebase lastet inn via firestore-config.js! 🎉");
@@ -436,6 +439,25 @@
                 if (typeof window.applyHallOfFameStore === 'function') window.applyHallOfFameStore(remote);
             }, (error) => {
                 console.warn('Database-tilgang avvist for hall of fame (beholder lokal lagring):', error.message);
+            });
+
+            onSnapshot(doc(activeFollowUpsCollectionRef, 'inbox'), (snapshot) => {
+                const remote = normalizeFollowUpRecords(snapshot.exists() ? snapshot.data() : {});
+                const local = typeof window.readFollowUpInbox === 'function'
+                    ? window.readFollowUpInbox()
+                    : {};
+                const { merged, uploads } = mergeFollowUpRecords(remote, local);
+                const isFirst = !hasHandledInitialFollowUpSnapshot;
+                hasHandledInitialFollowUpSnapshot = true;
+                if (typeof window.applyFollowUpInbox === 'function') window.applyFollowUpInbox(merged);
+                if (!isFirst) return;
+                uploads.forEach(record => {
+                    window.saveFollowUpRecordToDatabase(record).catch(error => {
+                        console.warn('Kunne ikke løfte lokal oppfølging til databasen:', error);
+                    });
+                });
+            }, (error) => {
+                console.warn('Database-tilgang avvist for oppfølging (beholder lokal lagring):', error.message);
             });
         } else {
             loadAllFromLocalStorage();
@@ -830,6 +852,85 @@
             } catch (error) {
                 console.error('Kunne ikke lagre hall of fame-lås i databasen:', error);
                 throw createFirebaseWriteError('lagre hall of fame-lås', error);
+            }
+        };
+
+        function normalizeFollowUpRecords(data) {
+            const records = {};
+            if (!data || typeof data !== 'object') return records;
+            Object.entries(data).forEach(([key, value]) => {
+                if (!value || typeof value !== 'object' || Array.isArray(value)) return;
+                if (!value.playerId || !value.fingerprint || !value.signalType) return;
+                if (value.status !== 'handled' && value.status !== 'snoozed') return;
+                const recordId = String(value.recordId || key);
+                records[recordId] = { ...value, recordId };
+            });
+            return records;
+        }
+
+        function mergeFollowUpRecords(remote, local) {
+            const merged = { ...(remote || {}) };
+            const uploads = [];
+            const pending = window._followUpPendingDeletes;
+            if (pending && typeof pending.forEach === 'function') {
+                pending.forEach(id => {
+                    if (!remote?.[id]) pending.delete(id);
+                    else delete merged[id];
+                });
+            }
+            Object.entries(local || {}).forEach(([id, record]) => {
+                if (!record?.recordId || (pending && pending.has && pending.has(id))) return;
+                const other = merged[id];
+                if (!other || String(record.updatedAt || '') > String(other.updatedAt || '')) {
+                    merged[id] = record;
+                    if (!remote?.[id] || String(record.updatedAt || '') > String(remote[id].updatedAt || '')) {
+                        uploads.push(record);
+                    }
+                }
+            });
+            return { merged, uploads };
+        }
+
+        function followUpRecordPayload(record) {
+            return {
+                recordId: String(record.recordId || ''),
+                playerId: String(record.playerId || ''),
+                playerName: String(record.playerName || ''),
+                signalType: String(record.signalType || ''),
+                fingerprint: String(record.fingerprint || ''),
+                status: record.status === 'snoozed' ? 'snoozed' : 'handled',
+                note: String(record.note || ''),
+                updatedAt: String(record.updatedAt || ''),
+                snoozedUntil: String(record.snoozedUntil || ''),
+                badge: String(record.badge || ''),
+                title: String(record.title || ''),
+                detail: String(record.detail || '')
+            };
+        }
+
+        window.saveFollowUpRecordToDatabase = async function(record) {
+            if (!record?.recordId || !isFirebaseWriteActive() || !activeFollowUpsCollectionRef || !deleteField) return false;
+            const payload = {};
+            payload[record.recordId] = followUpRecordPayload(record);
+            try {
+                await setDoc(doc(activeFollowUpsCollectionRef, 'inbox'), payload, { merge: true });
+                return true;
+            } catch (error) {
+                console.warn('Kunne ikke lagre oppfølging i databasen. Den ligger lokalt.', error);
+                return false;
+            }
+        };
+
+        window.deleteFollowUpRecordFromDatabase = async function(recordId) {
+            if (!recordId || !isFirebaseWriteActive() || !activeFollowUpsCollectionRef || !deleteField) return false;
+            const payload = {};
+            payload[recordId] = deleteField();
+            try {
+                await setDoc(doc(activeFollowUpsCollectionRef, 'inbox'), payload, { merge: true });
+                return true;
+            } catch (error) {
+                console.warn('Kunne ikke fjerne oppfølging i databasen. Endringen ligger lokalt.', error);
+                return false;
             }
         };
 
