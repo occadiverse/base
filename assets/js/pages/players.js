@@ -1755,6 +1755,20 @@ function bindPlayerProfilePageEvents() {
             return;
         }
 
+        if (action === 'toggle-insight-detail') {
+            const detail = actionEl.closest('.player-insight-detail');
+            const id = actionEl.dataset.insightDetail;
+            if (!detail || !id) return;
+            const willOpen = detail.classList.contains('is-collapsed');
+            detail.classList.toggle('is-collapsed', !willOpen);
+            actionEl.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            const verb = detail.querySelector('.player-insight-detail-action');
+            if (verb) verb.textContent = willOpen ? 'Skjul detaljer' : 'Vis detaljer';
+            window.playerInsightDetailOpen = window.playerInsightDetailOpen || {};
+            window.playerInsightDetailOpen[id] = willOpen;
+            return;
+        }
+
         if (action === 'toggle-insight-info') {
             window.playerProfileInsightInfoOpen = !isPlayerProfileInsightInfoOpen();
             const open = isPlayerProfileInsightInfoOpen();
@@ -2296,17 +2310,17 @@ function buildPlayerInsightSideHtml(title, side) {
     return `
         <div class="player-insight-side">
             <p class="player-insight-kicker">${escapeRosterHtml(title)}</p>
-            <p class="player-insight-side-line"><span>Børs</span><strong>${escapeRosterHtml(insightFormatNumber(side.bors, 1))}</strong></p>
+            <p class="player-insight-side-value">${escapeRosterHtml(insightFormatNumber(side.bors, 1))}</p>
+            <p class="player-insight-basis">${escapeRosterHtml(insightMatchBasis(side.count, true))}</p>
             <p class="player-insight-side-line"><span>Relativ</span><strong>${escapeRosterHtml(insightFormatSigned(side.relative, 2))}</strong></p>
             <p class="player-insight-side-line"><span>Kampbidrag</span><strong>${escapeRosterHtml(insightFormatNumber(side.bidrag, 1))}</strong></p>
-            <p class="player-insight-basis">${escapeRosterHtml(insightMatchBasis(side.count, true))}</p>
         </div>
     `;
 }
 
-function buildPlayerInsightSectionHtml(title, body) {
+function buildPlayerInsightSectionHtml(title, body, extraClass = '') {
     return `
-        <section class="player-insight-block">
+        <section class="player-insight-block${extraClass ? ` ${extraClass}` : ''}">
             <h3 class="player-profile-section-title">${escapeRosterHtml(title)}</h3>
             ${body}
         </section>
@@ -2437,13 +2451,24 @@ function buildPlayerInsightNowCopy(model) {
     };
 }
 
-function buildPlayerInsightNowCardHtml(label, nowText, seasonText, deltaText, basis) {
+function buildPlayerInsightNowCardHtml(label, nowText, seasonText, deltaText, basis, direction) {
+    const tone = direction === 'up' || direction === 'down' || direction === 'flat' ? direction : '';
+    const icon = direction === 'up' ? 'fa-arrow-up' : direction === 'down' ? 'fa-arrow-down' : '';
+    const mark = direction === 'flat'
+        ? '<span class="player-insight-flat" aria-hidden="true"></span>'
+        : icon ? `<i class="fa-solid ${icon}" aria-hidden="true"></i>` : '';
+    const deltaHtml = `
+        <p class="player-insight-now-delta${tone ? ` is-${tone}` : ''}">
+            ${mark}
+            <span>${escapeRosterHtml(deltaText)}</span>
+        </p>
+    `;
     return `
         <article class="player-insight-now-card">
             <p class="player-insight-kicker">${escapeRosterHtml(label)}</p>
             <p class="player-insight-now-value">${escapeRosterHtml(nowText)}</p>
-            <p class="player-insight-now-vs">vs ${escapeRosterHtml(seasonText)}</p>
-            <p class="player-insight-now-delta">${escapeRosterHtml(deltaText)}</p>
+            <p class="player-insight-now-season">Sesong ${escapeRosterHtml(seasonText)}</p>
+            ${deltaHtml}
             ${basis ? `<p class="player-insight-basis">${escapeRosterHtml(basis)}</p>` : ''}
         </article>
     `;
@@ -2454,8 +2479,38 @@ function insightNowCountBasis(count, singular, plural) {
     return `${count} ${count === 1 ? singular : plural}`;
 }
 
+function isPlayerInsightDetailOpen(id) {
+    return window.playerInsightDetailOpen?.[id] === true;
+}
+
+function buildPlayerInsightDetailHtml(id, title, summary, body) {
+    const plain = String(body || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!summary && (!plain || plain === 'Ikke nok data')) return '';
+    const open = isPlayerInsightDetailOpen(id);
+    return `
+        <section class="player-insight-detail${open ? '' : ' is-collapsed'}" data-insight-detail="${escapeRosterHtml(id)}">
+            <button
+                type="button"
+                class="player-insight-detail-toggle"
+                data-player-profile-action="toggle-insight-detail"
+                data-insight-detail="${escapeRosterHtml(id)}"
+                aria-expanded="${open ? 'true' : 'false'}"
+            >
+                <span class="player-insight-detail-copy">
+                    <span class="player-insight-detail-title">${escapeRosterHtml(title)}</span>
+                    ${summary ? `<span class="player-insight-detail-summary">${escapeRosterHtml(summary)}</span>` : ''}
+                </span>
+                <span class="player-insight-detail-action">${open ? 'Skjul detaljer' : 'Vis detaljer'}</span>
+                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            <div class="player-insight-detail-body">${body}</div>
+        </section>
+    `;
+}
+
 function buildPlayerInsightCardHtml(player, yearFilter) {
     const model = buildPlayerInsightModel(player, yearFilter);
+    const nowCopy = buildPlayerInsightNowCopy(model);
     const recentLabel = insightRecentLabel(model.recent.windowCount);
     const observations = buildPlayerInsightObservations(model);
     const trainingBasis = model.training.possible > 0
@@ -2537,7 +2592,7 @@ function buildPlayerInsightCardHtml(player, yearFilter) {
         ));
     });
     let developmentBody = developmentParts.length
-        ? developmentParts.join('')
+        ? `<div class="player-insight-trends">${developmentParts.join('')}</div>`
         : '<p class="player-insight-note">Ikke nok data</p>';
     if (model.sameWindow) {
         developmentBody += '<p class="player-insight-note">Siste periode er de samme kampene som sesongen.</p>';
@@ -2549,12 +2604,12 @@ function buildPlayerInsightCardHtml(player, yearFilter) {
     let roleBody = '<p class="player-insight-note">Ikke nok data</p>';
     if (model.roles.length) {
         roleBody = `
-            <div class="player-insight-roles">
+            <div class="player-insight-role-list">
                 ${model.roles.map(role => `
                     <article class="player-insight-role" title="${escapeRosterHtml(insightMatchBasis(role.matches, true))}">
                         <h4>${escapeRosterHtml(role.label)}</h4>
-                        <p><span>Børs</span><strong>${escapeRosterHtml(insightFormatNumber(role.bors, 1))}</strong></p>
-                        ${role.relative == null ? '' : `<p><span>Relativ</span><strong>${escapeRosterHtml(insightFormatSigned(role.relative, 2))}</strong></p>`}
+                        <p class="player-insight-role-stat"><strong>${escapeRosterHtml(insightFormatNumber(role.bors, 1))}</strong><span>børs</span></p>
+                        ${role.relative == null ? '' : `<p class="player-insight-role-stat"><strong>${escapeRosterHtml(insightFormatSigned(role.relative, 2))}</strong><span>relativ</span></p>`}
                         <p class="player-insight-basis">${escapeRosterHtml(insightMatchBasis(role.matches, true))}</p>
                     </article>
                 `).join('')}
@@ -2577,13 +2632,21 @@ function buildPlayerInsightCardHtml(player, yearFilter) {
             }
             return 'Det betyr at spilleren i gjennomsnitt ligger på samme nivå som lagkameratene i de samme kampene.';
         })();
+    const relativeLead = model.relative.value == null
+        ? ''
+        : insightRound(model.relative.value, 2) > 0
+            ? 'Over lagkameratene i de samme kampene'
+            : insightRound(model.relative.value, 2) < 0
+                ? 'Under lagkameratene i de samme kampene'
+                : 'På nivå med lagkameratene i de samme kampene';
     let performanceBody = `
         <div class="player-insight-relative">
             <p class="player-insight-kicker">Relativ prestasjon</p>
             <p class="player-insight-relative-value">${escapeRosterHtml(insightFormatSigned(model.relative.value, 2))}</p>
+            ${relativeLead ? `<p class="player-insight-lead">${escapeRosterHtml(relativeLead)}</p>` : ''}
+            ${model.relative.count ? `<p class="player-insight-basis">${model.relative.count} gyldige kamper</p>` : ''}
             <p class="player-insight-note">Forskjellen mellom spillerens trenerbørs og gjennomsnittet til de andre vurderte spillerne i de samme kampene.</p>
             ${relativeSentence ? `<p class="player-insight-note">${escapeRosterHtml(relativeSentence)} Dette er ikke et mål på årsak eller spillereffekt.</p>` : '<p class="player-insight-note">Dette er ikke et mål på årsak eller spillereffekt.</p>'}
-            ${model.relative.count ? `<p class="player-insight-basis">${model.relative.count} gyldige kamper</p>` : ''}
         </div>
     `;
     if (!model.starters.count && !model.subs.count) {
@@ -2605,11 +2668,11 @@ function buildPlayerInsightCardHtml(player, yearFilter) {
         performanceBody += '<p class="player-insight-note">Ikke nok data til å dele på seier, uavgjort og tap.</p>';
     } else {
         performanceBody += `
-            <div class="player-insight-split">
+            <div class="player-insight-results">
                 ${model.results.map(result => `
                     <div class="player-insight-side">
                         <p class="player-insight-kicker">${escapeRosterHtml(result.label)}</p>
-                        <p class="player-insight-side-line"><span>Børs</span><strong>${escapeRosterHtml(insightFormatNumber(result.bors, 1))}</strong></p>
+                        <p class="player-insight-side-value">${escapeRosterHtml(insightFormatNumber(result.bors, 1))}</p>
                         <p class="player-insight-side-line"><span>Relativ</span><strong>${escapeRosterHtml(insightFormatSigned(result.relative, 2))}</strong></p>
                         <p class="player-insight-basis">${escapeRosterHtml(insightMatchBasis(result.count, true))}</p>
                     </div>
@@ -2618,17 +2681,16 @@ function buildPlayerInsightCardHtml(player, yearFilter) {
         `;
     }
 
-    const trainingSeason = `
-        <div class="player-insight-side">
-            <p class="player-insight-kicker">Sesong</p>
-            <p class="player-insight-relative-value">${escapeRosterHtml(model.training.pct == null ? '—' : `${model.training.pct} %`)}</p>
-            <p class="player-insight-basis">${escapeRosterHtml(trainingBasis || 'Ikke nok data')}</p>
-        </div>
-        <div class="player-insight-side">
-            <p class="player-insight-kicker">${escapeRosterHtml(insightRecentLabel(model.recentTraining.possible))}</p>
-            <p class="player-insight-relative-value">${escapeRosterHtml(model.recentTraining.pct == null ? '—' : `${model.recentTraining.pct} %`)}</p>
-            <p class="player-insight-basis">${escapeRosterHtml(recentTrainingBasis || 'Ikke nok data')}</p>
-        </div>
+    const trainingMeter = model.training.pct == null
+        ? ''
+        : `<div class="player-insight-meter" aria-hidden="true"><span style="width: ${Math.max(0, Math.min(100, Number(model.training.pct) || 0))}%"></span></div>`;
+    const trainingBody = `
+        <p class="player-insight-relative-value">${escapeRosterHtml(model.training.pct == null ? '—' : `${model.training.pct} %`)}</p>
+        <p class="player-insight-basis">${escapeRosterHtml(trainingBasis ? `${trainingBasis} treninger` : 'Ikke nok data')}</p>
+        ${trainingMeter}
+        <p class="player-insight-kicker player-insight-subkicker">${escapeRosterHtml(insightRecentLabel(model.recentTraining.possible))}</p>
+        <p class="player-insight-inline">${escapeRosterHtml(model.recentTraining.pct == null ? '—' : `${model.recentTraining.pct} %`)} <span>${escapeRosterHtml(recentTrainingBasis || 'Ikke nok data')}</span></p>
+        <p class="player-insight-note">Treningsoppmøte og kampprestasjon vises som separate observasjoner.</p>
     `;
 
     let productionBody = '<p class="player-insight-note">Ikke nok data</p>';
@@ -2643,19 +2705,12 @@ function buildPlayerInsightCardHtml(player, yearFilter) {
                 ${buildPlayerInsightMetricHtml('Målpoeng', String(model.production.points), `${model.production.points} på ${model.production.played} kamper`)}
                 ${buildPlayerInsightMetricHtml('Målpoeng/kamp', insightFormatNumber(model.production.rate, 1), `${model.production.played} kamper på banen`)}
             </div>
-            <div class="player-insight-compare">
-                <p class="player-insight-kicker">${escapeRosterHtml(insightRecentLabel(model.recent.production.played))}</p>
-                <div class="player-insight-compare-line">
-                    <span>Målpoeng/kamp</span>
-                    <strong>${escapeRosterHtml(model.recent.production.rate == null ? 'Ikke nok data' : insightFormatNumber(model.recent.production.rate, 1))}</strong>
-                    <span>${escapeRosterHtml(recentProductionBasis)}</span>
-                </div>
-            </div>
+            <p class="player-insight-inline">${escapeRosterHtml(insightRecentLabel(model.recent.production.played))}: <strong>${escapeRosterHtml(model.recent.production.rate == null ? 'Ikke nok data' : `${insightFormatNumber(model.recent.production.rate, 1)} / kamp`)}</strong></p>
+            ${recentProductionBasis ? `<p class="player-insight-basis">${escapeRosterHtml(recentProductionBasis)}</p>` : ''}
             <p class="player-insight-note">Registrert produksjon. Ikke et mål på offensiv kvalitet.</p>
         `;
     }
 
-    const nowCopy = buildPlayerInsightNowCopy(model);
     const nowDelta = (season, recent, digits) => (
         season.value != null && recent.value != null && recent.count >= 2
             ? insightFormatDelta(season.value, recent.value, digits)
@@ -2672,6 +2727,64 @@ function buildPlayerInsightCardHtml(player, yearFilter) {
     const borsNow = formatNow({ season: model.bors, recent: model.recent.bors }, 1, false);
     const relativeNow = formatNow({ season: model.relative, recent: model.recent.relative }, 2, true);
     const bidragNow = formatNow({ season: model.bidrag, recent: model.recent.bidrag }, 1, false);
+    const roleParts = String(nowCopy.recentRoleLabel || '').split(' · ');
+    const relativeBit = model.relative.value == null ? '' : `relativ ${insightFormatSigned(model.relative.value, 2)}`;
+    const roleSummary = roleParts.length === 2
+        ? [`${roleParts[0]} mest brukt`, relativeBit].filter(Boolean).join(' · ')
+        : model.roles.length === 1
+            ? [model.roles[0].label, relativeBit].filter(Boolean).join(' · ')
+            : relativeBit || (model.roles.length ? `${model.roles.length} roller` : '');
+    const developmentSummary = model.sameWindow
+        ? 'Siste periode er sesongen'
+        : model.trend === 'up'
+            ? 'Sterkere siste periode'
+            : model.trend === 'down'
+                ? 'Svakere siste periode'
+                : model.stable
+                    ? 'Omtrent uendret siste periode'
+                    : [model.moves?.bors, model.moves?.relative, model.moves?.bidrag].some(Boolean)
+                        ? 'Ulik retning siste periode'
+                        : '';
+    const trainingSummary = (model.training.possible > 0 || model.recentTraining.possible > 0)
+        ? [
+            model.training.pct == null ? '' : `${model.training.pct} % sesong`,
+            model.recentTraining.possible > 0 ? `${model.recentTraining.attended}/${model.recentTraining.possible} siste` : ''
+        ].filter(Boolean).join(' · ')
+        : '';
+    const productionSummary = model.production.played > 0
+        ? [
+            `${model.production.points} målpoeng`,
+            model.recent.production.rate == null ? '' : `${insightFormatNumber(model.recent.production.rate, 1)}/kamp siste periode`
+        ].filter(Boolean).join(' · ')
+        : '';
+    const roleFacts = secondary.slice(0, starterKnown ? 2 : 1);
+    const rolePerformanceBody = `
+        <div class="player-insight-detail-group">
+            <p class="player-insight-kicker">Roller</p>
+            ${roleBody}
+        </div>
+        <div class="player-insight-detail-group">
+            <p class="player-insight-kicker">Prestasjon</p>
+            ${performanceBody}
+            ${roleFacts.length ? `<div class="player-insight-metrics">${roleFacts.join('')}</div>` : ''}
+        </div>
+    `;
+    if (overview.length) {
+        developmentBody += `
+            <div class="player-insight-detail-group">
+                <p class="player-insight-kicker">Sesongtall</p>
+                <div class="player-insight-metrics is-primary">${overview.join('')}</div>
+            </div>
+        `;
+    }
+    const developmentUseful = developmentParts.length > 0 || (model.chartPoints || []).length >= 2 || model.recent.windowCount > 0 || overview.length > 0;
+    const roleUseful = model.roles.length > 0 || model.relative.value != null || model.starters.count > 0 || model.subs.count > 0 || model.results.length > 0 || model.played > 0;
+    const detailHtml = [
+        developmentUseful ? buildPlayerInsightDetailHtml('utvikling', 'Utvikling', developmentSummary, developmentBody) : '',
+        roleUseful ? buildPlayerInsightDetailHtml('rolle', 'Rolle & prestasjon', roleSummary, rolePerformanceBody) : '',
+        trainingSummary ? buildPlayerInsightDetailHtml('trening', 'Trening', trainingSummary, trainingBody) : '',
+        productionSummary ? buildPlayerInsightDetailHtml('produksjon', 'Produksjon', productionSummary, productionBody) : ''
+    ].join('');
     const infoOpen = isPlayerProfileInsightInfoOpen();
     return `
         <section class="${playerProfilePanelClass('innsikt', 'player-insight')}" data-profile-panel="innsikt" aria-expanded="${isPlayerProfilePanelOpen('innsikt') ? 'true' : 'false'}">
@@ -2697,36 +2810,32 @@ function buildPlayerInsightCardHtml(player, yearFilter) {
                 <div id="player-profile-insight-info" class="training-session-groups-info player-profile-insight-info${infoOpen ? '' : ' is-hidden'}" ${infoOpen ? '' : 'hidden'}>
                     <p>Spillerinnsikt samler registrerte prestasjons-, trenings-, rolle- og produksjonsdata. Observasjonene peker på mønstre som kan være verdt å undersøke nærmere, men forklarer ikke hvorfor de oppstår.</p>
                 </div>
-                ${buildPlayerInsightSectionHtml('Akkurat nå', `
-                    <p class="player-insight-status">${escapeRosterHtml(nowCopy.label)}</p>
-                    <p class="player-insight-now-copy">${escapeRosterHtml(nowCopy.sentences.join(' '))}</p>
-                    ${nowCopy.recentRoleLabel ? `<p class="player-insight-now-meta">Mest brukt nå: ${escapeRosterHtml(nowCopy.recentRoleLabel)}</p>` : ''}
-                `)}
-                ${buildPlayerInsightSectionHtml('Nå vs sesong', `
-                    <p class="player-insight-note">${escapeRosterHtml(recentLabel)} mot sesongsnittet. Grunnlaget kan være ulikt for hvert mål.</p>
-                    <div class="player-insight-now-grid">
-                        ${buildPlayerInsightNowCardHtml('Børs', borsNow.now, borsNow.season, borsNow.delta, insightNowCountBasis(model.recent.bors.count, 'vurdert kamp', 'vurderte kamper'))}
-                        ${buildPlayerInsightNowCardHtml('Relativ', relativeNow.now, relativeNow.season, relativeNow.delta, insightNowCountBasis(model.recent.relative.count, 'gyldig kamp', 'gyldige kamper'))}
-                        ${buildPlayerInsightNowCardHtml('Kampbidrag', bidragNow.now, bidragNow.season, bidragNow.delta, insightNowCountBasis(model.recent.bidrag.count, 'troppskamp', 'troppskamper'))}
-                    </div>
-                `)}
-                ${buildPlayerInsightSectionHtml('Oversikt', `
-                    <div class="player-insight-metrics is-primary">${overview.join('')}</div>
-                    <div class="player-insight-metrics">${secondary.join('')}</div>
-                `)}
-                ${buildPlayerInsightSectionHtml('Utvikling', developmentBody)}
-                ${buildPlayerInsightSectionHtml('Rolle', roleBody)}
-                ${buildPlayerInsightSectionHtml('Prestasjon', performanceBody)}
-                ${buildPlayerInsightSectionHtml('Trening', `
-                    <div class="player-insight-split">${trainingSeason}</div>
-                    <p class="player-insight-note">Treningsoppmøte og kampprestasjon vises som separate observasjoner.</p>
-                `)}
-                ${buildPlayerInsightSectionHtml('Produksjon', productionBody)}
-                ${buildPlayerInsightSectionHtml('Hva bør vi se nærmere på?', `
-                    <ul class="player-insight-notes">
-                        ${observations.map(text => `<li>${escapeRosterHtml(text)}</li>`).join('')}
-                    </ul>
-                `)}
+                <div class="player-insight-main">
+                    ${buildPlayerInsightSectionHtml('Akkurat nå', `
+                        <p class="player-insight-status is-${escapeRosterHtml(nowCopy.status)}">${escapeRosterHtml(nowCopy.label)}</p>
+                        <p class="player-insight-now-copy">${escapeRosterHtml(nowCopy.sentences.join(' '))}</p>
+                        ${nowCopy.recentRoleLabel ? `<p class="player-insight-now-meta">Mest brukt nå: ${escapeRosterHtml(nowCopy.recentRoleLabel)}</p>` : ''}
+                    `, `player-insight-hero is-${nowCopy.status}`)}
+                    ${buildPlayerInsightSectionHtml('Nå vs sesong', `
+                        <p class="player-insight-note">${escapeRosterHtml(recentLabel)} mot sesongsnittet. Grunnlaget kan være ulikt for hvert mål.</p>
+                        <div class="player-insight-now-grid">
+                            ${buildPlayerInsightNowCardHtml('Børs', borsNow.now, borsNow.season, borsNow.delta, insightNowCountBasis(model.recent.bors.count, 'vurdert kamp', 'vurderte kamper'), model.moves?.bors)}
+                            ${buildPlayerInsightNowCardHtml('Relativ', relativeNow.now, relativeNow.season, relativeNow.delta, insightNowCountBasis(model.recent.relative.count, 'gyldig kamp', 'gyldige kamper'), model.moves?.relative)}
+                            ${buildPlayerInsightNowCardHtml('Kampbidrag', bidragNow.now, bidragNow.season, bidragNow.delta, insightNowCountBasis(model.recent.bidrag.count, 'troppskamp', 'troppskamper'), model.moves?.bidrag)}
+                        </div>
+                    `, 'player-insight-kpi')}
+                    ${buildPlayerInsightSectionHtml('Hva bør vi se nærmere på?', `
+                        <ul class="player-insight-notes">
+                            ${observations.map(text => `<li><i class="fa-solid fa-circle" aria-hidden="true"></i><span>${escapeRosterHtml(text)}</span></li>`).join('')}
+                        </ul>
+                    `, 'player-insight-watch')}
+                </div>
+                ${detailHtml ? `
+                    <section class="player-insight-details">
+                        <h3 class="player-insight-details-title">Detaljer</h3>
+                        ${detailHtml}
+                    </section>
+                ` : ''}
             </div>
         </section>
     `;
