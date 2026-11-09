@@ -1081,7 +1081,7 @@ window.checkIndividualChemistry = function() {
             return `<span class="stats-clash-heading-mark" aria-hidden="true"><i class="fa-solid ${name}"></i></span>`;
         };
 
-        window.renderStatsCollapsiblePanelHtml = function({ id, title, badge = '', showLabel, hideLabel, content, headerActionsHtml = '', headingExtraHtml = '', infoPanelHtml = '', markHtml = '', icon = '' }) {
+        window.renderStatsCollapsiblePanelHtml = function({ id, title, badge = '', showLabel, hideLabel, content, headerActionsHtml = '', headingExtraHtml = '', infoPanelHtml = '', markHtml = '', icon = '', teaser = '' }) {
             const isOpen = window.isStatsKampPanelOpen(id);
             const icons = {
                 oppmote: 'fa-user-check',
@@ -1104,7 +1104,9 @@ window.checkIndividualChemistry = function() {
                     <div class="match-bench-action-row match-bench-topline">
                         <div class="match-bench-heading">
                             ${mark}
-                            <h3>${title}</h3>
+                            ${teaser
+                                ? `<div class="stats-panel-heading-copy"><h3>${title}</h3><p class="match-game-card-teaser stats-panel-teaser">${escapeStatisticsHtml(teaser)}</p></div>`
+                                : `<h3>${title}</h3>`}
                             ${headingExtraHtml}
                         </div>
                         <button
@@ -1662,7 +1664,7 @@ window.checkIndividualChemistry = function() {
             const hint = 'Spillere med registrerte forhold eller signaler som kan kreve oppfølging.';
             const icons = {
                 availability: 'fa-kit-medical',
-                attendance: 'fa-person-running',
+                attendance: 'fa-user-check',
                 performance: 'fa-chart-line',
                 discipline: 'fa-id-card'
             };
@@ -1729,11 +1731,6 @@ window.checkIndividualChemistry = function() {
                         : '');
                 return `
                     <div class="stats-followup-signal">
-                        <span class="stats-followup-badge is-${escapeStatsHtml(signal.type)}">
-                            <i class="fa-solid ${icons[signal.type] || 'fa-circle'}" aria-hidden="true"></i>
-                            ${escapeStatsHtml(signal.badge)}
-                        </span>
-                        <p class="stats-followup-signal-title">${escapeStatsHtml(signal.title)}</p>
                         ${signal.detail ? `<p class="stats-followup-signal-detail">${escapeStatsHtml(signal.detail)}</p>` : ''}
                         ${status ? `<p class="stats-followup-status">${escapeStatsHtml(status)}</p>` : ''}
                         ${renewed}
@@ -1777,28 +1774,53 @@ window.checkIndividualChemistry = function() {
                 if (!entries.length) return '';
                 const open = window.statsFollowUpTypeOpen[type] === true;
                 const checkCount = entries.filter(entry => entry.signal.priority === 1).length;
-                const items = entries.map(({ row, signal }) => `
+                const items = entries.map(({ row, signal }) => {
+                    const player = (window.activePlayers || []).find(item => String(item.id) === String(row.id));
+                    const photoUrl = player && typeof window.getPlayerProfilePhotoUrl === 'function'
+                        ? (window.getPlayerProfilePhotoUrl(player) || '')
+                        : '';
+                    const photo = photoUrl
+                        ? `<img src="${escapeStatisticsHtml(photoUrl)}" alt="" loading="lazy" decoding="async">`
+                        : '<i class="fa-solid fa-user" aria-hidden="true"></i>';
+                    const injuryChip = signal.type === 'availability'
+                        ? 'stats-followup-injury-chip'
+                        : 'stats-followup-meta';
+                    return `
                     <article class="stats-followup-item">
-                        <button type="button" class="stats-followup-open" data-stat-action="open-follow-up" data-player-id="${escapeStatisticsHtml(row.id)}" data-focus="${escapeStatisticsHtml(signal.focus)}">
-                            <span class="stats-followup-name">${escapeStatsHtml(row.name)}</span>
-                            <span class="stats-followup-go">${escapeStatsHtml(linkLabel[signal.focus] || 'Se spiller')} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+                        <button type="button" class="stats-followup-open" data-stat-action="open-follow-up" data-player-id="${escapeStatisticsHtml(row.id)}" data-focus="${escapeStatisticsHtml(signal.focus)}" aria-label="${escapeStatisticsHtml(linkLabel[signal.focus] || 'Se spiller')}: ${escapeStatisticsHtml(row.name)}">
+                            <span class="stats-followup-photo">${photo}</span>
+                            <span class="stats-followup-copy">
+                                <span class="stats-followup-name">${escapeStatsHtml(row.name)}</span>
+                                <span class="${injuryChip}">${escapeStatsHtml(signal.title)}</span>
+                            </span>
+                            <span class="stats-followup-go" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
                         </button>
                         <div class="stats-followup-signals">
                             ${signalHtml(signal, false)}
                         </div>
                     </article>
-                `).join('');
+                `;
+                }).join('');
+                const noteCard = type === 'availability';
                 return `
-                    <section class="stats-followup-type-section">
+                    <section class="stats-followup-type-section${noteCard ? ' is-note-card' : ''}">
+                        ${noteCard ? `<span class="stats-followup-note-gem" aria-hidden="true"><i class="fa-solid ${icons[type] || 'fa-circle'}"></i></span>` : ''}
                         <button type="button" class="stats-followup-type" data-stat-action="toggle-followup-type" data-signal-type="${type}" aria-expanded="${open ? 'true' : 'false'}">
-                            <span class="stats-followup-type-copy">
-                                <span class="stats-followup-type-name">
-                                    <i class="fa-solid ${icons[type] || 'fa-circle'}" aria-hidden="true"></i>
-                                    ${label}
-                                    <span class="stats-followup-type-count">· ${entries.length}</span>
+                            ${noteCard ? `
+                                <span class="stats-followup-note-heading">
+                                    <span class="stats-followup-note-title">${label} <span class="stats-followup-type-count">· ${entries.length}</span></span>
+                                    ${checkCount ? `<span class="stats-followup-check">${checkCount} må sjekkes</span>` : ''}
                                 </span>
-                                ${checkCount ? `<span class="stats-followup-check">${checkCount} må sjekkes</span>` : ''}
-                            </span>
+                            ` : `
+                                <span class="stats-followup-type-copy">
+                                    <span class="stats-followup-type-name">
+                                        <span class="stats-followup-type-mark" aria-hidden="true"><i class="fa-solid ${icons[type] || 'fa-circle'}"></i></span>
+                                        ${label}
+                                        <span class="stats-followup-type-count">· ${entries.length}</span>
+                                    </span>
+                                    ${checkCount ? `<span class="stats-followup-check">${checkCount} må sjekkes</span>` : ''}
+                                </span>
+                            `}
                             <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
                         </button>
                         ${open ? `<p class="stats-followup-type-note">${note}</p><div class="stats-followup-list">${items}</div>` : ''}
@@ -8208,11 +8230,30 @@ window.getFormScoreBorderClass = function(score, teamName) {
             const freshHtml = fresh > 0 && fresh < count
                 ? `<span class="stats-followup-fresh">${fresh} nye</span>`
                 : '';
+            const typeLabels = [
+                ['availability', 'tilgjengelighet'],
+                ['attendance', 'oppmøte'],
+                ['performance', 'prestasjon'],
+                ['discipline', 'disiplin']
+            ];
+            const typeCounts = window._statsFollowUpMeta?.typeCounts || {};
+            const checkCount = followUps.reduce((sum, row) => (
+                sum + (row.signals || []).filter(signal => (
+                    signal.priority === 1 && (signal.coach === 'new' || signal.coach === 'returned')
+                )).length
+            ), 0);
+            const typeParts = typeLabels
+                .filter(([type]) => typeCounts[type])
+                .map(([type, label]) => `${typeCounts[type]} ${label}`);
+            const teaser = typeParts.length
+                ? `${checkCount ? `${checkCount} må sjekkes · ` : ''}${typeParts.join(' · ')}`
+                : 'Ingen aktive oppfølgingspunkter';
             return window.renderStatsCollapsiblePanelHtml({
                 id: 'oppfolging',
-                title: `Oppfølging · ${count}`,
+                title: 'Oppfølging',
+                teaser,
                 headingExtraHtml: freshHtml,
-                badge: '',
+                headerActionsHtml: `<span class="stats-clash-year">${escapeStatisticsHtml(String(count))}</span>`,
                 showLabel: 'Vis oppfølging',
                 hideLabel: 'Skjul oppfølging',
                 content: window.renderStatsFollowUpsHtml(followUps)
