@@ -14290,7 +14290,7 @@
             color: #ffffff;
         }
         :is(.stats-board-card, .stats-page-slot) .stats-followup-history-item,
-        :is(.stats-board-card, .stats-page-slot) .stats-followup-type-section + .stats-followup-type-section {
+        :is(.stats-board-card, .stats-page-slot) .stats-followup-type-section + .stats-followup-type-section:not(.is-note-card) {
             border-color: rgba(255, 255, 255, 0.08);
         }
         :is(.stats-board-card, .stats-page-slot) .stats-followup-type-name {
@@ -15357,11 +15357,49 @@
                 inset 0 -10px 20px rgba(0, 0, 0, 0.18);
             margin: 0.35rem 0.15rem 0.85rem;
             overflow: visible;
-            padding: 1.35rem 0.85rem 0.75rem;
+            padding: 0;
             position: relative;
         }
-        .stats-followup-type-section.is-note-card + .stats-followup-type-section {
+        .stats-followup-type-section.is-note-card:has(.stats-followup-list) {
+            padding-bottom: 0.75rem;
+        }
+        .stats-followup-type-section.is-note-card + .stats-followup-type-section:not(.is-note-card) {
             border-top: 0;
+        }
+        .stats-followup-type-section.is-note-card + .stats-followup-type-section.is-note-card {
+            margin-top: 1.2rem;
+        }
+        .stats-followup-type-section.is-note-card.is-availability {
+            --note-wash: rgba(248, 113, 113, 0.22);
+            --note-gem-hi: #fef2f2;
+            --note-gem-mid: #f87171;
+            --note-gem-lo: #b91c1c;
+            --note-ring: #7f1d1d;
+            --note-accent-glow: rgba(248, 113, 113, 0.4);
+        }
+        .stats-followup-type-section.is-note-card.is-attendance {
+            --note-wash: rgba(74, 222, 128, 0.22);
+            --note-gem-hi: #ecfdf5;
+            --note-gem-mid: #4ade80;
+            --note-gem-lo: #15803d;
+            --note-ring: #14532d;
+            --note-accent-glow: rgba(74, 222, 128, 0.4);
+        }
+        .stats-followup-type-section.is-note-card.is-performance {
+            --note-wash: rgba(96, 165, 250, 0.22);
+            --note-gem-hi: #eff6ff;
+            --note-gem-mid: #60a5fa;
+            --note-gem-lo: #1d4ed8;
+            --note-ring: #1e3a8a;
+            --note-accent-glow: rgba(96, 165, 250, 0.4);
+        }
+        .stats-followup-type-section.is-note-card.is-discipline {
+            --note-wash: rgba(251, 146, 60, 0.22);
+            --note-gem-hi: #fff7ed;
+            --note-gem-mid: #fb923c;
+            --note-gem-lo: #c2410c;
+            --note-ring: #7c2d12;
+            --note-accent-glow: rgba(251, 146, 60, 0.4);
         }
         .stats-followup-type-section.is-note-card .stats-followup-type {
             align-items: center;
@@ -15369,7 +15407,7 @@
             gap: 0.45rem;
             justify-content: center;
             min-height: 0;
-            padding: 0 1.4rem;
+            padding: 1.35rem 1.6rem 0.85rem;
             position: relative;
         }
         .stats-followup-note-gem {
@@ -15403,8 +15441,9 @@
         .stats-followup-note-heading {
             align-items: center;
             display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
+            flex-wrap: wrap;
+            gap: 0.4rem 0.45rem;
+            justify-content: center;
             min-width: 0;
         }
         .stats-followup-note-title {
@@ -15430,8 +15469,11 @@
             transform: translateY(-50%) rotate(180deg);
         }
         .stats-followup-type-section.is-note-card .stats-followup-type-note {
-            margin: 0.65rem 0 0.35rem;
+            margin: 0 0.85rem 0.35rem;
             text-align: center;
+        }
+        .stats-followup-type-section.is-note-card .stats-followup-list {
+            margin: 0 0.85rem 0.35rem;
         }
         .stats-followup-history-item {
             border-top: 1px solid rgba(18, 63, 115, 0.08);

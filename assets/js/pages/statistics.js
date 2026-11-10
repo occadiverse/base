@@ -1801,26 +1801,14 @@ window.checkIndividualChemistry = function() {
                     </article>
                 `;
                 }).join('');
-                const noteCard = type === 'availability';
                 return `
-                    <section class="stats-followup-type-section${noteCard ? ' is-note-card' : ''}">
-                        ${noteCard ? `<span class="stats-followup-note-gem" aria-hidden="true"><i class="fa-solid ${icons[type] || 'fa-circle'}"></i></span>` : ''}
+                    <section class="stats-followup-type-section is-note-card is-${type}">
+                        <span class="stats-followup-note-gem" aria-hidden="true"><i class="fa-solid ${icons[type] || 'fa-circle'}"></i></span>
                         <button type="button" class="stats-followup-type" data-stat-action="toggle-followup-type" data-signal-type="${type}" aria-expanded="${open ? 'true' : 'false'}">
-                            ${noteCard ? `
-                                <span class="stats-followup-note-heading">
-                                    <span class="stats-followup-note-title">${label} <span class="stats-followup-type-count">· ${entries.length}</span></span>
-                                    ${checkCount ? `<span class="stats-followup-check">${checkCount} må sjekkes</span>` : ''}
-                                </span>
-                            ` : `
-                                <span class="stats-followup-type-copy">
-                                    <span class="stats-followup-type-name">
-                                        <span class="stats-followup-type-mark" aria-hidden="true"><i class="fa-solid ${icons[type] || 'fa-circle'}"></i></span>
-                                        ${label}
-                                        <span class="stats-followup-type-count">· ${entries.length}</span>
-                                    </span>
-                                    ${checkCount ? `<span class="stats-followup-check">${checkCount} må sjekkes</span>` : ''}
-                                </span>
-                            `}
+                            <span class="stats-followup-note-heading">
+                                <span class="stats-followup-note-title">${label} <span class="stats-followup-type-count">· ${entries.length}</span></span>
+                                ${checkCount ? `<span class="stats-followup-check">${checkCount} må sjekkes</span>` : ''}
+                            </span>
                             <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
                         </button>
                         ${open ? `<p class="stats-followup-type-note">${note}</p><div class="stats-followup-list">${items}</div>` : ''}
