@@ -193,12 +193,20 @@ window.updateDashboard = function() {
                 });
             }
             const heroCard = heroContainer.querySelector('.match-detail-card');
-            if (heroCard && !heroCard.querySelector('.hjem-mark')) {
-                heroCard.querySelector('.hjem-card-pill')?.remove();
-                const mark = document.createElement('div');
-                mark.className = 'hjem-mark';
-                mark.innerHTML = '<span class="hjem-mark-icon is-gold" aria-hidden="true"><i class="fa-solid fa-futbol"></i></span><span class="hjem-mark-label">Neste kamp</span>';
-                heroCard.insertBefore(mark, heroCard.firstChild);
+            if (heroCard && !heroCard.querySelector('.hjem-result-gem')) {
+                heroCard.querySelector('.hjem-mark')?.remove();
+                heroCard.classList.add('hjem-has-plaque');
+                const plaque = document.createElement('span');
+                plaque.className = 'hjem-result-gem';
+                plaque.textContent = 'Neste kamp';
+                heroCard.insertBefore(plaque, heroCard.firstChild);
+            }
+            if (heroCard && !heroCard.querySelector('.hjem-action')) {
+                const cue = document.createElement('span');
+                cue.className = 'blknapp hjem-action is-cue';
+                cue.setAttribute('aria-hidden', 'true');
+                cue.innerHTML = '<i class="fa-solid fa-futbol"></i>';
+                heroCard.appendChild(cue);
             }
         } else if (upcoming.length > 0) {
             const nm = upcoming[0];
@@ -338,7 +346,7 @@ window.updateHjemWidget = function() {
             ? ' is-mandatory'
             : (sessionObligation === 'Frivillig' ? ' is-voluntary' : '');
         const obligationHtml = sessionObligation
-            ? `<span class="hjem-obligation${obligationClass}">${escapeDashboardHtml(sessionObligation)}</span>`
+            ? `<span class="hjem-status-chip${obligationClass}">${escapeDashboardHtml(sessionObligation)}</span>`
             : '';
         const sessionSeasonHtml = [sessionSeasonYear ? escapeDashboardHtml(String(sessionSeasonYear)) : '', obligationHtml].filter(Boolean).join(' · ');
 
@@ -352,20 +360,19 @@ window.updateHjemWidget = function() {
             ? `${sessionStats.møttOppAntall} påmeldt · ${['K', 'F', 'M', 'A'].map(letter => `${sessionStats.positionCounts[letter]}${letter}`).join(' - ')}`
             : 'Oppmøte ikke registrert';
         const injuryLine = sessionStats.injuredReady.length
-            ? `<button type="button" class="hjem-inline-note" data-dashboard-action="session-injury">${escapeDashboardHtml(sessionStats.injuredReady.length === 1 ? '1 skadet' : `${sessionStats.injuredReady.length} skadet`)}</button>`
+            ? `<p class="hjem-session-injury"><span>${escapeDashboardHtml(sessionStats.injuredReady.length === 1 ? '1 skadet' : `${sessionStats.injuredReady.length} skadet`)}</span><button type="button" class="blknapp hjem-action" data-dashboard-action="session-injury" aria-label="Vis skadede på økten"><i class="fa-solid fa-user-injured" aria-hidden="true"></i></button></p>`
             : '';
         sessionWidgetHtml = `
-            <article ${cardActionAttrs} role="button" tabindex="0" class="match-detail-card hjem-card hjem-card-mid dashboard-click-card h-full">
-                <div class="hjem-card-body">
-                    ${hjemSectionMark('fa-calendar-days', 'Neste økt')}
-                    <p class="hjem-lead">${escapeDashboardHtml(dateLabel)}</p>
-                    <p class="hjem-session-time">${escapeDashboardHtml(timeLabel)}</p>
-                    <p class="hjem-sub">${escapeDashboardHtml(eventTypeLabel)}</p>
-                    ${sessionSeasonHtml ? `<p class="hjem-quiet">${sessionSeasonHtml}</p>` : ''}
-                    <p class="hjem-quiet">${escapeDashboardHtml(attendanceLine)}</p>
-                    <p class="hjem-quiet">${escapeDashboardHtml(locationLabel)}</p>
-                    ${injuryLine}
-                </div>
+            <article class="hjem-session-board h-full">
+                <p class="hjem-note-kicker">Neste økt</p>
+                <p class="hjem-lead">${escapeDashboardHtml(dateLabel)}</p>
+                <p class="hjem-session-time">${escapeDashboardHtml(timeLabel)}</p>
+                <p class="hjem-sub">${escapeDashboardHtml(eventTypeLabel)}</p>
+                ${sessionSeasonHtml ? `<p class="hjem-quiet">${sessionSeasonHtml}</p>` : ''}
+                <p class="hjem-quiet">${escapeDashboardHtml(attendanceLine)}</p>
+                <p class="hjem-quiet">${escapeDashboardHtml(locationLabel)}</p>
+                ${injuryLine}
+                <button type="button" class="blknapp hjem-action" ${cardActionAttrs} aria-label="Åpne økt"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></button>
             </article>
         `;
     } else {
@@ -623,8 +630,12 @@ window.buildHjemFrontModel = function() {
     };
 };
 
-function hjemSectionMark(icon, label) {
-    return `<div class="hjem-mark"><span class="hjem-mark-icon is-gold" aria-hidden="true"><i class="fa-solid ${icon}"></i></span><span class="hjem-mark-label">${escapeDashboardHtml(label)}</span></div>`;
+function hjemActionButton(attrs, icon, label) {
+    return `<button type="button" class="blknapp hjem-action" ${attrs} aria-label="${escapeDashboardHtml(label)}"><i class="fa-solid ${icon}" aria-hidden="true"></i></button>`;
+}
+
+function hjemStatusChip(count, tone) {
+    return `<span class="hjem-status-chip is-${tone}">${escapeDashboardHtml(String(count))}</span>`;
 }
 
 function hjemPlanSecondaryLine(counts) {
@@ -646,21 +657,27 @@ window.renderHjemOperations = function() {
     if (nowSlot) {
         const planSecondary = model.showPlanInStatus ? hjemPlanSecondaryLine(model.plan.counts) : '';
         const planLine = model.showPlanInStatus ? `
-            <button type="button" class="hjem-now-line" data-dashboard-action="open-roster-plan">
-                <span>Troppsplan ${model.plan.year} · ${escapeDashboardHtml(hjemCountPhrase(model.plan.counts.Uavklart, 'uavklart', 'uavklart'))}</span>
-                ${planSecondary ? `<span class="hjem-now-line-sub">${escapeDashboardHtml(planSecondary)}</span>` : ''}
-            </button>` : '';
+            <div class="hjem-now-fact">
+                <p class="hjem-now-fact-text">
+                    <span>Troppsplan ${model.plan.year} · ${escapeDashboardHtml(hjemCountPhrase(model.plan.counts.Uavklart, 'uavklart', 'uavklart'))}</span>
+                    ${planSecondary ? `<span class="hjem-now-line-sub">${escapeDashboardHtml(planSecondary)}</span>` : ''}
+                </p>
+                ${hjemActionButton('data-dashboard-action="open-roster-plan"', 'fa-users', `Åpne troppsplan ${model.plan.year}`)}
+            </div>` : '';
         const startLine = model.trainingStart ? `
-            <button type="button" class="hjem-now-line" data-dashboard-action="open-training-start" data-season-year="${model.trainingStart.year}">
-                <span>Obligatorisk treningsstart · ${escapeDashboardHtml(model.trainingStart.label)}</span>
-            </button>` : '';
+            <div class="hjem-now-fact">
+                <p class="hjem-now-fact-text">
+                    <span>Obligatorisk treningsstart · ${escapeDashboardHtml(model.trainingStart.label)}</span>
+                </p>
+                ${hjemActionButton(`data-dashboard-action="open-training-start" data-season-year="${model.trainingStart.year}"`, 'fa-calendar-check', 'Åpne obligatorisk treningsstart')}
+            </div>` : '';
         nowSlot.innerHTML = `
             <section class="hjem-now" aria-label="Akkurat nå">
-                <article class="match-detail-card hjem-card hjem-card-strong">
-                    <div class="hjem-card-body">
-                        ${hjemSectionMark('fa-bolt', 'Akkurat nå')}
-                        <h2 class="hjem-now-phase">${escapeDashboardHtml(model.phase.title)}</h2>
-                        ${model.phase.detail ? `<p class="hjem-now-detail">${escapeDashboardHtml(model.phase.detail)}</p>` : ''}
+                <article class="hjem-result-board">
+                    <span class="hjem-result-gem">Akkurat nå</span>
+                    <h2 class="hjem-now-phase">${escapeDashboardHtml(model.phase.title)}</h2>
+                    ${model.phase.detail ? `<p class="hjem-now-detail">${escapeDashboardHtml(model.phase.detail)}</p>` : ''}
+                    <div class="hjem-now-facts">
                         ${planLine}
                         ${startLine}
                     </div>
@@ -669,47 +686,47 @@ window.renderHjemOperations = function() {
     }
 
     if (focusSlot) {
-        const followLabel = model.followUpCount == null
-            ? 'Ikke tilgjengelig'
-            : hjemCountPhrase(model.followUpCount, 'spiller', 'spillere');
+        const followCount = model.followUpCount;
         const rows = [`
-            <button type="button" class="hjem-focus-row" data-dashboard-action="open-followup" data-season-year="${year}">
-                <span class="hjem-mark-icon is-orange" aria-hidden="true"><i class="fa-solid fa-triangle-exclamation"></i></span>
-                <span class="hjem-focus-copy">
-                    <span class="hjem-focus-name">Oppfølging</span>
-                    <span class="hjem-focus-note">Signaler som kan kreve oppfølging</span>
-                </span>
-                <span class="hjem-focus-value">${escapeDashboardHtml(followLabel)}</span>
-            </button>`];
+            <article class="hjem-note-card is-orange">
+                <span class="hjem-note-gem is-orange" aria-hidden="true"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                <div class="hjem-note-copy">
+                    <span class="hjem-note-title">Oppfølging</span>
+                    <span class="hjem-note-sub">Signaler som kan kreve oppfølging</span>
+                    <span class="hjem-note-meta">${followCount == null ? '<span>Ikke tilgjengelig</span>' : `${hjemStatusChip(followCount, 'orange')}<span>${followCount === 1 ? 'spiller' : 'spillere'}</span>`}</span>
+                </div>
+                ${hjemActionButton(`data-dashboard-action="open-followup" data-season-year="${year}"`, 'fa-users', 'Åpne oppfølging')}
+            </article>`];
         if (model.plan.total > 0) {
             rows.push(`
-                <button type="button" class="hjem-focus-row" data-dashboard-action="open-roster-plan">
-                    <span class="hjem-mark-icon is-gold" aria-hidden="true"><i class="fa-solid fa-users"></i></span>
-                    <span class="hjem-focus-copy">
-                        <span class="hjem-focus-name">Troppsplan ${model.plan.year}</span>
-                    </span>
-                    <span class="hjem-focus-value">${escapeDashboardHtml(hjemCountPhrase(model.plan.counts.Uavklart, 'uavklart', 'uavklart'))}</span>
-                </button>`);
+                <article class="hjem-note-card is-plan">
+                    <span class="hjem-note-gem is-gold" aria-hidden="true"><i class="fa-solid fa-users"></i></span>
+                    <div class="hjem-note-copy">
+                        <span class="hjem-note-title">Troppsplan ${model.plan.year}</span>
+                        <span class="hjem-note-meta">${hjemStatusChip(model.plan.counts.Uavklart, 'gold')}<span>uavklart</span></span>
+                    </div>
+                    ${hjemActionButton('data-dashboard-action="open-roster-plan"', 'fa-clipboard-list', `Åpne troppsplan ${model.plan.year}`)}
+                </article>`);
         }
         rows.push(`
-            <button type="button" class="hjem-focus-row" data-dashboard-action="open-injured">
-                <span class="hjem-mark-icon is-injury" aria-hidden="true"><i class="fa-solid fa-user-injured"></i></span>
-                <span class="hjem-focus-copy">
-                    <span class="hjem-focus-name">Skadet</span>
-                    <span class="hjem-focus-note">Nåværende skade i troppen</span>
-                </span>
-                <span class="hjem-focus-value">${escapeDashboardHtml(hjemCountPhrase(model.injuredCount, 'spiller', 'spillere'))}</span>
-            </button>`);
+            <article class="hjem-note-card is-injury">
+                <span class="hjem-note-gem is-injury" aria-hidden="true"><i class="fa-solid fa-user-injured"></i></span>
+                <div class="hjem-note-copy">
+                    <span class="hjem-note-title">Skadet</span>
+                    <span class="hjem-note-sub">Nåværende skade i troppen</span>
+                    <span class="hjem-note-meta">${hjemStatusChip(model.injuredCount, 'injury')}<span>${model.injuredCount === 1 ? 'spiller' : 'spillere'}</span></span>
+                </div>
+                ${hjemActionButton('data-dashboard-action="open-injured"', 'fa-kit-medical', 'Åpne skadede')}
+            </article>`);
         focusSlot.innerHTML = `
             <section class="hjem-focus" aria-label="Trenerfokus">
-                <article class="match-detail-card hjem-card hjem-card-quiet">
-                    <div class="hjem-card-body">
-                        ${hjemSectionMark('fa-clipboard-list', 'Trenerfokus')}
-                        <div class="hjem-focus-rows">
-                            ${rows.join('')}
-                        </div>
-                    </div>
-                </article>
+                <header class="hjem-family-head">
+                    <span class="hjem-family-gem is-gold" aria-hidden="true"><i class="fa-solid fa-clipboard-list"></i></span>
+                    <h2>Trenerfokus</h2>
+                </header>
+                <div class="hjem-note-list">
+                    ${rows.join('')}
+                </div>
             </section>`;
     }
 
@@ -717,29 +734,30 @@ window.renderHjemOperations = function() {
         const pulse = model.pulse;
         const recordValue = `${pulse.wins} – ${pulse.draws} – ${pulse.losses}`;
         const facts = pulse.count ? `
-            <div class="hjem-pulse-spots">
-                <div class="hjem-pulse-spot">
-                    <span class="hjem-pulse-spot-value">${pulse.count}</span>
-                    <span class="hjem-pulse-spot-label">${pulse.count === 1 ? 'Kamp' : 'Kamper'}</span>
+            <div class="hjem-metric-grid">
+                <div class="hjem-metric">
+                    <strong class="hjem-metric-value">${pulse.count}</strong>
+                    <span class="hjem-metric-label">${pulse.count === 1 ? 'Kamp' : 'Kamper'}</span>
                 </div>
-                <div class="hjem-pulse-spot">
-                    <span class="hjem-pulse-spot-value">${escapeDashboardHtml(recordValue)}</span>
-                    <span class="hjem-pulse-spot-label">Seier · uavgjort · tap</span>
+                <div class="hjem-metric is-record">
+                    <strong class="hjem-metric-value">${escapeDashboardHtml(recordValue)}</strong>
+                    <span class="hjem-metric-label">Seier · uavgjort · tap</span>
                 </div>
-                <div class="hjem-pulse-spot">
-                    <span class="hjem-pulse-spot-value">${pulse.goalsFor}–${pulse.goalsAgainst}</span>
-                    <span class="hjem-pulse-spot-label">Mål</span>
+                <div class="hjem-metric">
+                    <strong class="hjem-metric-value">${pulse.goalsFor}–${pulse.goalsAgainst}</strong>
+                    <span class="hjem-metric-label">Mål</span>
                 </div>
             </div>
-            ${pulse.last.length ? `<div class="hjem-pulse-last"><span>Siste ${pulse.last.length === 5 ? 'fem' : pulse.last.length}</span><ol>${pulse.last.map(row => `<li class="is-${String(row.tone || 'U').toLowerCase()}" title="${escapeDashboardHtml(`${row.opponent} ${row.result}`)}">${row.tone}</li>`).join('')}</ol></div>` : ''}` : `
+            ${pulse.last.length ? `<div class="hjem-form"><span>Siste ${pulse.last.length === 5 ? 'fem' : pulse.last.length}</span><ol>${pulse.last.map(row => `<li class="is-${String(row.tone || 'U').toLowerCase()}" title="${escapeDashboardHtml(`${row.opponent} ${row.result}`)}">${row.tone}</li>`).join('')}</ol></div>` : ''}` : `
             <p class="hjem-pulse-empty">Ingen tellende kamper ennå</p>`;
         pulseSlot.innerHTML = `
             <section class="hjem-pulse" aria-label="Sesongpuls ${year}">
-                <article data-dashboard-action="open-season-pulse" data-season-year="${year}" role="button" tabindex="0" class="match-detail-card hjem-card hjem-card-mid dashboard-click-card">
-                    <div class="hjem-card-body">
-                        ${hjemSectionMark('fa-chart-simple', `Sesongpuls ${year}`)}
-                        ${facts}
-                    </div>
+                <article class="hjem-pulse-board">
+                    <header class="hjem-family-head">
+                        <h2>Sesongpuls ${year}</h2>
+                        ${hjemActionButton(`data-dashboard-action="open-season-pulse" data-season-year="${year}"`, 'fa-chart-simple', `Åpne statistikk ${year}`)}
+                    </header>
+                    ${facts}
                 </article>
             </section>`;
     }
