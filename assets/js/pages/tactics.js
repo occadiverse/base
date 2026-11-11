@@ -1825,7 +1825,13 @@
             const currentMatch = getSelectedTacticalMatch();
 
             if (currentMatch && currentMatch.matchGroup) {
-                return { teamName: currentMatch.matchGroup, historicalOnly: true };
+                return {
+                    teamName: currentMatch.matchGroup,
+                    historicalOnly: true,
+                    seasonYear: typeof window.getActivitySeasonYear === 'function'
+                        ? window.getActivitySeasonYear(currentMatch)
+                        : null
+                };
             }
 
             const filterLag = window.getPrimaryTeamName();
@@ -3045,15 +3051,20 @@
             const liveLocked = window.isLiveSessionLocked(match);
 
             const suspData = typeof window.getDisciplineStatusForTeam === 'function'
-                ? window.getDisciplineStatusForTeam(match.matchGroup, match.date)
+                ? window.getDisciplineStatusForTeam(
+                    match.matchGroup,
+                    match.date,
+                    typeof window.getActivitySeasonYear === 'function' ? window.getActivitySeasonYear(match) : null
+                )
                 : {};
 
-            const teamName = match.matchGroup;
             const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
 
-            let teamPlayers = players.filter(p => p.spillerLag === teamName && window.isPlayerInCurrentSquadPool(p));
-            if (teamPlayers.length === 0) teamPlayers = players.filter(p => window.isPlayerInCurrentSquadPool(p));
-            teamPlayers = teamPlayers.filter(p => typeof window.isPlayerOnRosterForActivity !== 'function' || window.isPlayerOnRosterForActivity(p, match));
+            const teamPlayers = players.filter(p => (
+                typeof window.isPlayerInMatchSeasonSquad === 'function'
+                    ? window.isPlayerInMatchSeasonSquad(p, match)
+                    : (p.spillerLag === match.matchGroup && window.isPlayerInCurrentSquadPool(p))
+            ));
 
             const startingPlayerNames = Object.values(window.tacticalLineup || {}).filter(p => p !== null).map(p => p.navn);
 
@@ -3087,9 +3098,12 @@
                 return;
             }
 
+            const benchYear = typeof window.getActivitySeasonYear === 'function'
+                ? window.getActivitySeasonYear(match)
+                : null;
             const getChem = (p) => (
                 typeof window.calculatePlayerPerformanceChemistry === 'function'
-                    ? window.calculatePlayerPerformanceChemistry(p.navn)
+                    ? window.calculatePlayerPerformanceChemistry(p.navn, benchYear != null ? { yearFilter: benchYear } : {})
                     : 0
             );
 
@@ -3543,8 +3557,11 @@
             const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
 
             let availablePlayers = [...(window.activePlayers || [])].filter(p => {
-                if (!window.isPlayerInCurrentSquadPool(p)) return false;
-                if (currentMatch && typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(p, currentMatch)) return false;
+                if (currentMatch && typeof window.isPlayerInMatchSeasonSquad === 'function') {
+                    if (!window.isPlayerInMatchSeasonSquad(p, currentMatch)) return false;
+                } else if (!window.isPlayerInCurrentSquadPool(p)) {
+                    return false;
+                }
                 if (currentMatch && !window.isPlayerEligibleForMatch(currentMatch.attendance, p)) return false;
                 return true;
             });
@@ -3572,12 +3589,29 @@
 
             const getKampbidrag = (pObj) => (
                 typeof window.getPlayerKampbidragSnitt === 'function'
-                    ? Number(window.getPlayerKampbidragSnitt(pObj)) || 0
+                    ? Number(window.getPlayerKampbidragSnitt(
+                        pObj,
+                        currentMatch?.matchGroup || pObj?.spillerLag,
+                        currentMatch && typeof window.getActivitySeasonYear === 'function'
+                            ? window.getActivitySeasonYear(currentMatch)
+                            : (typeof window.getActiveSeasonYear === 'function' ? window.getActiveSeasonYear() : null)
+                    )) || 0
                     : 0
+            );
+            const autofillYear = currentMatch && typeof window.getActivitySeasonYear === 'function'
+                ? window.getActivitySeasonYear(currentMatch)
+                : null;
+            const seasonPositions = (player) => (
+                currentMatch && typeof window.getMatchSeasonPlayerView === 'function'
+                    ? window.getMatchSeasonPlayerView(player, currentMatch)
+                    : { pos1: player?.pos1 || '', pos2: player?.pos2 || '' }
             );
             const getForm = (pObj) => (
                 typeof window.calculatePlayerPerformanceChemistry === 'function'
-                    ? Number(window.calculatePlayerPerformanceChemistry(pObj.navn)) || 0
+                    ? Number(window.calculatePlayerPerformanceChemistry(
+                        pObj.navn,
+                        autofillYear != null ? { yearFilter: autofillYear } : {}
+                    )) || 0
                     : 0
             );
             const getPosStatRows = (player, posIds) => {
@@ -3595,9 +3629,10 @@
                 const points = rows.reduce((sum, r) => sum + (Number(r.points) || 0), 0);
                 return points / matches;
             };
-            const hasAnyLabel = (player, labels) => (
-                labels.some((label) => player.pos1 === label || player.pos2 === label)
-            );
+            const hasAnyLabel = (player, labels) => {
+                const positions = seasonPositions(player);
+                return labels.some((label) => positions.pos1 === label || positions.pos2 === label);
+            };
             const footBonus = (player, foot) => (
                 foot && (player.fot === foot || player.fot === 'Begge') ? 4 : 0
             );
@@ -3777,43 +3812,72 @@ window.updateTacticalBoardStats = function() {
     let realTotalBonus = 0;
     let realTotalChem = 0;
     let currentOnBoardCount = 0;
+    const matchId = getTacticalMatchSelectValue() || null;
+    const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
+    const boardYear = currentMatch && typeof window.getActivitySeasonYear === 'function'
+        ? window.getActivitySeasonYear(currentMatch)
+        : null;
+    const boardFormOptions = boardYear != null ? { yearFilter: boardYear } : {};
     
     Object.values(window.tacticalLineup).forEach(playerObj => {
         if (playerObj && playerObj.navn) {
             currentOnBoardCount++;
             
             const playerFormSnitt = typeof window.getPlayerKampbidragSnitt === 'function'
-                ? window.getPlayerKampbidragSnitt(playerObj)
+                ? window.getPlayerKampbidragSnitt(
+                    playerObj,
+                    currentMatch?.matchGroup || playerObj?.spillerLag,
+                    currentMatch && typeof window.getActivitySeasonYear === 'function'
+                        ? window.getActivitySeasonYear(currentMatch)
+                        : (typeof window.getActiveSeasonYear === 'function' ? window.getActiveSeasonYear() : null)
+                )
                 : 0;
             
             realTotalBonus += playerFormSnitt;
             
             realTotalChem += typeof window.calculatePlayerPerformanceChemistry === 'function' 
-                ? window.calculatePlayerPerformanceChemistry(playerObj.navn) 
+                ? window.calculatePlayerPerformanceChemistry(playerObj.navn, boardFormOptions)
                 : 0;
         }
     });
 
     const realChemSnitt = currentOnBoardCount > 0 ? Math.round(realTotalChem / currentOnBoardCount) : 0;
 
-    const matchId = getTacticalMatchSelectValue() || null;
-    const currentMatch = matchId ? (window.activeMatches || []).find(m => m.id === matchId) : null;
-
     let availablePlayers = [...(window.activePlayers || [])].filter(p => {
-        if (!window.isPlayerInCurrentSquadPool(p)) return false;
-        if (currentMatch && typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(p, currentMatch)) return false;
+        if (currentMatch && typeof window.isPlayerInMatchSeasonSquad === 'function') {
+            if (!window.isPlayerInMatchSeasonSquad(p, currentMatch)) return false;
+        } else if (!window.isPlayerInCurrentSquadPool(p)) {
+            return false;
+        }
         if (currentMatch && !window.isPlayerEligibleForMatch(currentMatch.attendance, p)) return false;
         return true;
     });
+    const boardPositions = (player) => (
+        currentMatch && typeof window.getMatchSeasonPlayerView === 'function'
+            ? window.getMatchSeasonPlayerView(player, currentMatch)
+            : { pos1: player?.pos1 || '' }
+    );
 
     const getPlayerFormSnitt = (pObj) => (
         typeof window.getPlayerKampbidragSnitt === 'function'
-            ? window.getPlayerKampbidragSnitt(pObj)
+            ? window.getPlayerKampbidragSnitt(
+                pObj,
+                currentMatch?.matchGroup || pObj?.spillerLag,
+                currentMatch && typeof window.getActivitySeasonYear === 'function'
+                    ? window.getActivitySeasonYear(currentMatch)
+                    : (typeof window.getActiveSeasonYear === 'function' ? window.getActiveSeasonYear() : null)
+            )
             : 0
     );
 
-    let keepere = availablePlayers.filter(p => p.pos1 === 'Keeper' || (p.pos1 && p.pos1.toLowerCase().includes('keeper')));
-    let utespillere = availablePlayers.filter(p => p.pos1 !== 'Keeper' && !(p.pos1 && p.pos1.toLowerCase().includes('keeper')));
+    let keepere = availablePlayers.filter(p => {
+        const pos1 = boardPositions(p).pos1 || '';
+        return pos1 === 'Keeper' || pos1.toLowerCase().includes('keeper');
+    });
+    let utespillere = availablePlayers.filter(p => {
+        const pos1 = boardPositions(p).pos1 || '';
+        return pos1 !== 'Keeper' && !pos1.toLowerCase().includes('keeper');
+    });
 
     let maxBonusSumPool = 0;
     
@@ -3833,18 +3897,18 @@ window.updateTacticalBoardStats = function() {
     let chemCount = 0;
     
     if (keepere.length > 0 && typeof window.calculatePlayerPerformanceChemistry === 'function') {
-        const sortedKeepersByChem = [...keepere].sort((a, b) => window.calculatePlayerPerformanceChemistry(b.navn) - window.calculatePlayerPerformanceChemistry(a.navn));
-        maxChemSum += window.calculatePlayerPerformanceChemistry(sortedKeepersByChem[0].navn);
+        const sortedKeepersByChem = [...keepere].sort((a, b) => window.calculatePlayerPerformanceChemistry(b.navn, boardFormOptions) - window.calculatePlayerPerformanceChemistry(a.navn, boardFormOptions));
+        maxChemSum += window.calculatePlayerPerformanceChemistry(sortedKeepersByChem[0].navn, boardFormOptions);
         chemCount++;
     }
     
     if (typeof window.calculatePlayerPerformanceChemistry === 'function') {
-        const sortedOutfieldsByChem = [...utespillere].sort((a, b) => window.calculatePlayerPerformanceChemistry(b.navn) - window.calculatePlayerPerformanceChemistry(a.navn));
+        const sortedOutfieldsByChem = [...utespillere].sort((a, b) => window.calculatePlayerPerformanceChemistry(b.navn, boardFormOptions) - window.calculatePlayerPerformanceChemistry(a.navn, boardFormOptions));
         let totalTargetPlayers = Math.min(11, availablePlayers.length);
         const targetOutfieldChemCount = totalTargetPlayers - chemCount;
         
         sortedOutfieldsByChem.slice(0, targetOutfieldChemCount).forEach(p => {
-            maxChemSum += window.calculatePlayerPerformanceChemistry(p.navn);
+            maxChemSum += window.calculatePlayerPerformanceChemistry(p.navn, boardFormOptions);
             chemCount++;
         });
     }

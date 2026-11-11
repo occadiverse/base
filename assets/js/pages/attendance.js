@@ -153,7 +153,11 @@ window.openAttendanceModal = function(eventId) {
         ? window.getAttendanceModalTeamPlayers(ev)
         : (window.activePlayers || []).filter(p => window.isPlayerInCurrentSquadPool(p));
     const disciplineStatus = isMatchClick && typeof window.getDisciplineStatusForTeam === 'function'
-        ? window.getDisciplineStatusForTeam(ev.matchGroup, ev.date)
+        ? window.getDisciplineStatusForTeam(
+            ev.matchGroup,
+            ev.date,
+            typeof window.getActivitySeasonYear === 'function' ? window.getActivitySeasonYear(ev) : null
+        )
         : {};
 
     const appendPlayerRow = (player, { checked } = {}) => {

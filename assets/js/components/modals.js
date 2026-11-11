@@ -34,7 +34,11 @@ function bindSessionInjuryModalEvents() {
 window.buildMatchAlertData = function(match) {
     if (!match || typeof window.getDisciplineStatusForTeam !== 'function') return [];
 
-    const teamSuspensions = window.getDisciplineStatusForTeam(match.matchGroup, match.date) || {};
+    const teamSuspensions = window.getDisciplineStatusForTeam(
+        match.matchGroup,
+        match.date,
+        typeof window.getActivitySeasonYear === 'function' ? window.getActivitySeasonYear(match) : null
+    ) || {};
     const suspendedPlayers = Object.keys(teamSuspensions).filter(playerRef => teamSuspensions[playerRef].isSuspended);
     const atRiskPlayers = Object.keys(teamSuspensions).filter(playerRef => teamSuspensions[playerRef].isAtRisk && !teamSuspensions[playerRef].isSuspended);
     const cleanText = (value) => String(value || '').trim();

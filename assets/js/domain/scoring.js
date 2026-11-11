@@ -296,9 +296,24 @@ window.getSerieYellowDisciplineHint = function(serieYellowCount) {
     };
 };
 
-window.getDisciplineStatusForTeam = function(teamName, upToDateStr) {
+window.getDisciplineStatusForTeam = function(teamName, upToDateStr, seasonYear) {
+    const explicitYear = typeof window.resolvePlayerSeasonYear === 'function'
+        ? window.resolvePlayerSeasonYear(seasonYear)
+        : null;
+    const year = explicitYear != null
+        ? explicitYear
+        : (typeof window.getActivitySeasonYear === 'function'
+            ? window.getActivitySeasonYear({ date: upToDateStr })
+            : null);
     const pastMatches = (window.activeMatches || [])
-        .filter(m => m.matchGroup === teamName && m.matchType === 'Serie' && m.date < upToDateStr)
+        .filter(m => {
+            if (m.matchGroup !== teamName || m.matchType !== 'Serie' || !(m.date < upToDateStr)) return false;
+            if (year == null) return true;
+            const matchYear = typeof window.getActivitySeasonYear === 'function'
+                ? window.getActivitySeasonYear(m)
+                : null;
+            return matchYear === year;
+        })
         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const playerStats = {};
@@ -382,17 +397,23 @@ window.matchHasPlayedResult = function(match) {
     return result.includes('-');
 };
 
-window.getPlayerKampbidragSnitt = function(playerOrRef, teamName) {
+window.getPlayerKampbidragSnitt = function(playerOrRef, teamName, seasonYear) {
     const player = typeof playerOrRef === 'object' && playerOrRef !== null
         ? playerOrRef
         : (typeof window.findPlayerByRef === 'function' ? window.findPlayerByRef(playerOrRef) : null);
     const lag = teamName || player?.spillerLag;
     if (!player || !lag) return 0;
+    const explicitYear = typeof window.resolvePlayerSeasonYear === 'function'
+        ? window.resolvePlayerSeasonYear(seasonYear)
+        : null;
+    const year = explicitYear != null
+        ? explicitYear
+        : (typeof window.getActiveSeasonYear === 'function' ? window.getActiveSeasonYear() : null);
 
     const cache = typeof window.getDerivedStatsCache === 'function'
         ? window.getDerivedStatsCache('kampbidragSnitt')
         : null;
-    const cacheKey = `${player.id || player.navn}|${lag}`;
+    const cacheKey = `${player.id || player.navn}|${lag}|${year || 'alle'}`;
     if (cache?.has(cacheKey)) return cache.get(cacheKey);
 
     let kamper = 0;
@@ -403,6 +424,12 @@ window.getPlayerKampbidragSnitt = function(playerOrRef, teamName) {
         if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(m)) return;
         if (typeof window.matchHasPlayedResult === 'function' && !window.matchHasPlayedResult(m)) return;
         if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(m)) return;
+        if (year != null) {
+            const matchYear = typeof window.getActivitySeasonYear === 'function'
+                ? window.getActivitySeasonYear(m)
+                : null;
+            if (matchYear !== year) return;
+        }
         if (!window.isPlayerAttending(m.attendance, player)) return;
 
         kamper++;

@@ -678,32 +678,46 @@ function getTrainingSessionFocusForEvent(trainingEvent) {
     return buildTrainingSessionFocus(lastMatch);
 }
 
-function getTrainingTeamPlayers(teamName) {
+function getTrainingTeamPlayers(teamName, year) {
+    const seasonYear = resolveTrainingAttendanceYear(year);
     return (window.activePlayers || []).filter(player => {
-        if (teamName && player.spillerLag !== teamName) return false;
         if (player.isGuest) return false;
         if (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id)) return false;
-        // Keep Utregistrert in season attendance lists for their affiliation window;
-        // temporary Passiv without sluttdato stays out.
+        const season = typeof window.getPlayerSeasonData === 'function'
+            ? window.getPlayerSeasonData(player, seasonYear)
+            : null;
+        const lag = season?.hasSeason ? (season.spillerLag || '') : (player.spillerLag || '');
+        if (teamName && lag && lag !== teamName) return false;
+        if (season?.hasSeason) return season.status !== 'Passiv';
         if (window.isPlayerInCurrentSquadPool(player)) return true;
         return typeof window.isPlayerDeregistered === 'function' && window.isPlayerDeregistered(player);
     });
 }
 
-function getCurrentSeasonDateRange(asOf = new Date()) {
-    const end = new Date(asOf);
-    end.setHours(23, 59, 59, 999);
-    const start = new Date(end.getFullYear(), 0, 1);
-    start.setHours(0, 0, 0, 0);
-    return { start, end, year: end.getFullYear() };
+function resolveTrainingAttendanceYear(year) {
+    const explicit = typeof window.resolvePlayerSeasonYear === 'function'
+        ? window.resolvePlayerSeasonYear(year)
+        : null;
+    if (explicit != null) return explicit;
+    if (typeof window.getActiveSeasonYear === 'function') return window.getActiveSeasonYear();
+    return new Date().getFullYear();
 }
 
-function isTrainingEventInCurrentSeason(event, asOf = new Date()) {
+function getCurrentSeasonDateRange(year) {
+    const seasonYear = resolveTrainingAttendanceYear(year);
+    const start = new Date(seasonYear, 0, 1);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(seasonYear, 11, 31);
+    end.setHours(23, 59, 59, 999);
+    return { start, end, year: seasonYear };
+}
+
+function isTrainingEventInCurrentSeason(event, year) {
     if (!event?.date) return false;
     const eventDate = new Date(event.date);
     if (Number.isNaN(eventDate.getTime())) return false;
     eventDate.setHours(12, 0, 0, 0);
-    const { start, end } = getCurrentSeasonDateRange(asOf);
+    const { start, end } = getCurrentSeasonDateRange(year);
     return eventDate >= start && eventDate <= end;
 }
 
@@ -714,7 +728,7 @@ function getTrainingHistoricalAttendanceEvents(teamName, options = {}) {
             if (!event?.attendance) return false;
             if (teamName && event.team && event.team !== teamName) return false;
             if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(event)) return false;
-            if (!isTrainingEventInCurrentSeason(event)) return false;
+            if (!isTrainingEventInCurrentSeason(event, options.year)) return false;
             return true;
         })
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
@@ -745,7 +759,7 @@ function getTrainingEventAttendancePct(event, teamPlayers) {
 }
 
 function buildTrainingAttendanceSeasonStats(teamName, options = {}) {
-    const teamPlayers = getTrainingTeamPlayers(teamName);
+    const teamPlayers = getTrainingTeamPlayers(teamName, options.year);
     const events = getTrainingHistoricalAttendanceEvents(teamName, options);
     const filterNames = Array.isArray(options.playerNames) ? new Set(options.playerNames) : null;
     const playersForPct = filterNames
@@ -778,7 +792,7 @@ function buildTrainingAttendanceSeasonStats(teamName, options = {}) {
 }
 
 function buildTrainingPlayerAttendanceRanking(teamName, options = {}) {
-    const teamPlayers = getTrainingTeamPlayers(teamName);
+    const teamPlayers = getTrainingTeamPlayers(teamName, options.year);
     const events = getTrainingHistoricalAttendanceEvents(teamName, options);
     if (!events.length || !teamPlayers.length) return [];
 
@@ -867,8 +881,8 @@ function buildTrainingDataAttendanceHtml(teamName, options = {}) {
         ownAttendanceThreshold = null
     } = options;
     const eventOptions = Number.isFinite(Number(eventLimit)) && Number(eventLimit) > 0
-        ? { limit: Number(eventLimit) }
-        : {};
+        ? { limit: Number(eventLimit), year: options.year }
+        : { year: options.year };
     const ranking = buildTrainingPlayerAttendanceRanking(teamName, eventOptions);
     const threshold = Number(ownAttendanceThreshold);
     const useOwnThreshold = Number.isFinite(threshold);

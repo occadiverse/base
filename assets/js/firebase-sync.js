@@ -459,6 +459,15 @@
             }, (error) => {
                 console.warn('Database-tilgang avvist for oppfølging (beholder lokal lagring):', error.message);
             });
+
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'app'), (snapshot) => {
+                const parsed = window.resolvePlayerSeasonYear?.(snapshot.exists() ? snapshot.data()?.activeSeason : null);
+                if (parsed == null || typeof window.applyActiveSeasonYear !== 'function') return;
+                if (window._activeSeasonYear === parsed) return;
+                window.applyActiveSeasonYear(parsed);
+            }, (error) => {
+                console.warn('Database-tilgang avvist for aktiv sesong (beholder lokal verdi):', error.message);
+            });
         } else {
             loadAllFromLocalStorage();
         }
@@ -1146,6 +1155,130 @@
                 matchesUpdated,
                 eventsUpdated
             };
+        };
+
+        window.setActiveSeasonYear = async function(year) {
+            const parsed = typeof window.resolvePlayerSeasonYear === 'function'
+                ? window.resolvePlayerSeasonYear(year)
+                : null;
+            if (parsed == null) {
+                return { saved: false, reason: 'invalid_year', year: null };
+            }
+            if (typeof window.applyActiveSeasonYear === 'function') {
+                window.applyActiveSeasonYear(parsed);
+            }
+            if (!isFirebaseWriteActive()) {
+                return { saved: false, reason: 'no_auth', localOnly: true, year: parsed };
+            }
+            try {
+                await setDoc(
+                    doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'app'),
+                    { activeSeason: parsed },
+                    { merge: true }
+                );
+            } catch (error) {
+                console.error('Kunne ikke lagre aktiv sesong:', error);
+                return {
+                    saved: false,
+                    reason: 'database_save_failed',
+                    year: parsed,
+                    error: error.message || 'database_save_failed'
+                };
+            }
+            return { saved: true, year: parsed };
+        };
+
+        window.savePlayerSeasonSnapshot = async function(year = 2026) {
+            const plan = typeof window.planPlayerSeasonSnapshot === 'function'
+                ? window.planPlayerSeasonSnapshot(year)
+                : null;
+            if (!plan || plan.year == null) {
+                return { saved: false, reason: 'invalid_year', plan };
+            }
+            if (!plan.write.length) {
+                return { saved: false, reason: 'nothing_to_write', plan };
+            }
+            const seasonKey = String(plan.year);
+            const seasonById = new Map(plan.write.map(item => [item.id, item.season]));
+            const updatedPlayers = (window.activePlayers || []).map(player => {
+                const season = seasonById.get(player.id);
+                if (!season) return player;
+                if (typeof window.getPlayerSeasonRecord === 'function' && window.getPlayerSeasonRecord(player, plan.year)) {
+                    return player;
+                }
+                return {
+                    ...player,
+                    seasons: { ...(player.seasons || {}), [seasonKey]: season }
+                };
+            });
+            const changedPlayers = updatedPlayers.filter(player => seasonById.has(player.id));
+            syncPlayers(updatedPlayers);
+
+            if (!isFirebaseWriteActive()) {
+                return {
+                    saved: false,
+                    reason: 'no_auth',
+                    localOnly: true,
+                    written: changedPlayers.length,
+                    plan
+                };
+            }
+
+            try {
+                await Promise.all(changedPlayers.map(player => setDoc(
+                    doc(db, 'artifacts', appId, 'public', 'data', 'players', player.id),
+                    player
+                )));
+            } catch (error) {
+                console.error('Kunne ikke lagre sesongsnapshot i databasen:', error);
+                return {
+                    saved: false,
+                    reason: 'database_save_failed',
+                    localOnly: true,
+                    written: changedPlayers.length,
+                    plan,
+                    error: error.message || 'database_save_failed'
+                };
+            }
+
+            return { saved: true, written: changedPlayers.length, plan };
+        };
+
+        window.createSeasonRoster = async function(sourceYear, targetYear) {
+            if (typeof window.previewCreateSeasonRoster !== 'function' || typeof window.applyCreateSeasonRoster !== 'function') {
+                return { saved: false, reason: 'missing_preview' };
+            }
+            const current = window.activePlayers || [];
+            const applied = window.applyCreateSeasonRoster(current, sourceYear, targetYear);
+            const plan = applied.plan;
+            if (plan.sourceYear == null || plan.targetYear == null || plan.targetYear <= plan.sourceYear) {
+                return { saved: false, reason: 'invalid_year', plan };
+            }
+            const changedPlayers = applied.players.filter((player, index) => player !== current[index]);
+            if (!changedPlayers.length) {
+                return { saved: false, reason: 'nothing_to_write', written: 0, plan };
+            }
+            if (!isFirebaseWriteActive()) {
+                return { saved: false, reason: 'no_auth', localOnly: false, written: 0, plan };
+            }
+            try {
+                await Promise.all(changedPlayers.map(player => setDoc(
+                    doc(db, 'artifacts', appId, 'public', 'data', 'players', player.id),
+                    player
+                )));
+            } catch (error) {
+                console.error('Kunne ikke opprette neste sesongs tropp:', error);
+                return {
+                    saved: false,
+                    reason: 'database_save_failed',
+                    written: 0,
+                    plan,
+                    error: error.message || 'database_save_failed'
+                };
+            }
+            syncPlayers(applied.players);
+            if (typeof window.renderPlayerRoster === 'function') window.renderPlayerRoster();
+            return { saved: true, written: changedPlayers.length, plan };
         };
 
         window.maybeRunSingleTeamDataMigration = async function() {

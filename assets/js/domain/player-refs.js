@@ -208,6 +208,615 @@ window.isPlayerListedForActivity = function(player, activity) {
     return true;
 };
 
+window.PLAYER_SEASON_FIELDS = [
+    'spillerLag',
+    'draktnummer',
+    'pos1',
+    'pos2',
+    'status',
+    'tilknyttetFra',
+    'tilknyttetTil',
+    'utviklingsmoment'
+];
+
+window.resolvePlayerSeasonYear = function(year) {
+    if (year == null || year === '' || year === 'alle') return null;
+    const parsed = Number(year);
+    return Number.isInteger(parsed) && parsed >= 1990 && parsed <= 2100 ? parsed : null;
+};
+
+const ACTIVE_SEASON_STORAGE_KEY = 'bsk_local_active_season';
+
+window.readStoredActiveSeasonYear = function() {
+    try {
+        return window.resolvePlayerSeasonYear(window.localStorage.getItem(ACTIVE_SEASON_STORAGE_KEY));
+    } catch (error) {
+        return null;
+    }
+};
+
+window._activeSeasonYear = window.readStoredActiveSeasonYear();
+
+window.applyActiveSeasonYear = function(year) {
+    const parsed = window.resolvePlayerSeasonYear(year);
+    if (parsed == null) return null;
+    window._activeSeasonYear = parsed;
+    try {
+        window.localStorage.setItem(ACTIVE_SEASON_STORAGE_KEY, String(parsed));
+    } catch (error) {
+        console.warn('Kunne ikke mellomlagre aktiv sesong:', error);
+    }
+    return parsed;
+};
+
+window.getActiveSeasonYear = function() {
+    const explicit = window.resolvePlayerSeasonYear(window._activeSeasonYear);
+    if (explicit != null) return explicit;
+    const years = typeof window.getStatsKampYearOptions === 'function'
+        ? window.getStatsKampYearOptions()
+        : [];
+    if (years.length) return years[0];
+    return new Date().getFullYear();
+};
+
+window.getActivitySeasonYear = function(activity) {
+    if (activity && typeof window.getMatchStatsYear === 'function') {
+        const fromHelper = window.getMatchStatsYear(activity);
+        if (fromHelper) return fromHelper;
+    }
+    const prefix = Number(String(activity?.date || '').slice(0, 4));
+    if (Number.isInteger(prefix) && prefix >= 1990 && prefix <= 2100) return prefix;
+    return window.getActiveSeasonYear();
+};
+
+window.getPlayerSeasonRecord = function(player, year) {
+    const seasonYear = window.resolvePlayerSeasonYear(year);
+    if (!player || seasonYear == null || !player.seasons || typeof player.seasons !== 'object') return null;
+    const record = player.seasons[seasonYear] || player.seasons[String(seasonYear)];
+    return record && typeof record === 'object' && !Array.isArray(record) ? record : null;
+};
+
+window.getPlayerSeasonData = function(player, year) {
+    const record = window.getPlayerSeasonRecord(player, year);
+    const pick = (field) => {
+        if (record && Object.prototype.hasOwnProperty.call(record, field)) return record[field];
+        return player?.[field];
+    };
+    const from = window.normalizeActivityDateKey(pick('tilknyttetFra'));
+    const to = window.normalizeActivityDateKey(pick('tilknyttetTil'));
+    return {
+        year: window.resolvePlayerSeasonYear(year),
+        hasSeason: Boolean(record),
+        spillerLag: String(pick('spillerLag') || ''),
+        draktnummer: pick('draktnummer') ?? '',
+        pos1: String(pick('pos1') || ''),
+        pos2: String(pick('pos2') || ''),
+        status: String(pick('status') || ''),
+        tilknyttetFra: from,
+        tilknyttetTil: to,
+        utviklingsmoment: String(pick('utviklingsmoment') || '')
+    };
+};
+
+window.getPlayerTeamForYear = function(player, year) {
+    return window.getPlayerSeasonData(player, year).spillerLag;
+};
+
+window.getPlayerRosterPeriodForYear = function(player, year) {
+    const data = window.getPlayerSeasonData(player, year);
+    return { from: data.tilknyttetFra, to: data.tilknyttetTil, hasSeason: data.hasSeason };
+};
+
+window.isPlayerOnRosterForSeasonDate = function(player, dateValue, year) {
+    if (!window.getPlayerSeasonRecord(player, year)) return window.isPlayerOnRosterForDate(player, dateValue);
+    const dateKey = window.normalizeActivityDateKey(dateValue);
+    if (!dateKey) return true;
+    const period = window.getPlayerRosterPeriodForYear(player, year);
+    if (period.from && dateKey < period.from) return false;
+    if (period.to && dateKey > period.to) return false;
+    return true;
+};
+
+window.playerHasSeasonActivity = function(player, year) {
+    const seasonYear = window.resolvePlayerSeasonYear(year);
+    if (!player || player.isGuest || seasonYear == null) return false;
+    const team = window.getPlayerTeamForYear(player, seasonYear);
+    const inYear = (item) => {
+        if (!item) return false;
+        if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(item)) return false;
+        const itemYear = typeof window.getMatchStatsYear === 'function'
+            ? window.getMatchStatsYear(item)
+            : (item.date ? new Date(item.date).getFullYear() : null);
+        if (itemYear !== seasonYear) return false;
+        const itemTeam = item.matchGroup || item.team || '';
+        if (team && itemTeam && itemTeam !== team) return false;
+        if (typeof window.isPlayerAttending === 'function' && window.isPlayerAttending(item.attendance, player)) return true;
+        const maps = ['ratings', 'scorers', 'assists', 'minutesPlayed'];
+        for (let i = 0; i < maps.length; i += 1) {
+            const map = item[maps[i]];
+            if (!map || typeof map !== 'object') continue;
+            const value = map[player.id] ?? (player.navn ? map[player.navn] : undefined);
+            if (value !== undefined && value !== null && value !== '' && value !== 0 && value !== false) return true;
+        }
+        if (typeof window.playerRefListIncludes === 'function') {
+            if (window.playerRefListIncludes(item.guleKort, player)) return true;
+            if (window.playerRefListIncludes(item.rodeKort, player)) return true;
+        }
+        if (typeof window.motmMatchesPlayer === 'function' && window.motmMatchesPlayer(item.motm, player)) return true;
+        return false;
+    };
+    if ((window.activeMatches || []).some(inYear)) return true;
+    return (window.activeEvents || []).some(inYear);
+};
+
+window.playerBelongsToSeason = function(player, year) {
+    const seasonYear = window.resolvePlayerSeasonYear(year);
+    if (!player || seasonYear == null) return window.isPlayerInCurrentSquadPool(player);
+    if (window.getPlayerSeasonRecord(player, seasonYear)) return true;
+    return window.playerHasSeasonActivity(player, seasonYear);
+};
+
+window.isPlayerEligibleForStatsYear = function(player, year) {
+    const resolved = year !== undefined
+        ? year
+        : (typeof window.getStatsSpillerYearFilter === 'function' ? window.getStatsSpillerYearFilter() : null);
+    if (window.resolvePlayerSeasonYear(resolved) == null) return window.isPlayerInCurrentSquadPool(player);
+    return window.playerBelongsToSeason(player, resolved);
+};
+
+const PLAYER_SEASON_2026_SQUAD = {
+    include: [
+        { id: '964959ce-504e-4b61-baa3-8c70b1bdfc64', navn: 'Ty Grønlie' },
+        { id: '75aa7ade-641a-4bd8-bd9d-260d909dd915', navn: 'Rafael Nordseth' }
+    ],
+    exclude: [
+        { id: '8208f87f-f7fd-4302-8628-b001e5b6973f', navn: 'Falk Thomassen' },
+        { id: '4303b6e5-ac43-4852-b709-ed7ca7e2b42d', navn: 'Magnus Wolff' },
+        { id: 'f47b4338-a3e0-4e4c-9abf-8ee782b6990d', navn: 'Simen Blikeng' }
+    ]
+};
+
+const playerMatchesSeasonSquadEntry = function(player, entry) {
+    if (!player || !entry) return false;
+    if (entry.id && player.id === entry.id) return true;
+    return String(player.navn || '').trim().toLocaleLowerCase('nb') === String(entry.navn || '').trim().toLocaleLowerCase('nb');
+};
+
+const playerSeason2026SquadDecision = function(player, seasonYear) {
+    if (seasonYear !== 2026) return null;
+    if (PLAYER_SEASON_2026_SQUAD.exclude.some(entry => playerMatchesSeasonSquadEntry(player, entry))) return 'exclude';
+    if (PLAYER_SEASON_2026_SQUAD.include.some(entry => playerMatchesSeasonSquadEntry(player, entry))) return 'include';
+    return null;
+};
+
+window.planPlayerSeasonSnapshot = function(year = 2026) {
+    const seasonYear = window.resolvePlayerSeasonYear(year);
+    const plan = {
+        year: seasonYear,
+        write: [],
+        existing: [],
+        excluded: [],
+        skipped: [],
+        review: []
+    };
+    if (seasonYear == null) return plan;
+    const start = `${seasonYear}-01-01`;
+    const end = `${seasonYear}-12-31`;
+    (window.activePlayers || []).forEach(player => {
+        if (!player || player.isGuest || (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id))) {
+            return;
+        }
+        const squadDecision = playerSeason2026SquadDecision(player, seasonYear);
+        if (squadDecision === 'exclude') {
+            plan.excluded.push({
+                id: player.id,
+                navn: player.navn || '',
+                reason: 'Bevisst ekskludert fra 2026. Tilhørte ikke troppen.'
+            });
+            return;
+        }
+        if (window.getPlayerSeasonRecord(player, seasonYear)) {
+            plan.existing.push({ id: player.id, navn: player.navn || '' });
+            return;
+        }
+        const from = window.normalizeActivityDateKey(player.tilknyttetFra);
+        const to = window.normalizeActivityDateKey(player.tilknyttetTil);
+        const overlaps = (!from || from <= end) && (!to || to >= start);
+        const activity = window.playerHasSeasonActivity(player, seasonYear);
+        if (squadDecision !== 'include' && !overlaps && !activity) {
+            plan.skipped.push({ id: player.id, navn: player.navn || '', reason: 'Ingen tilknytning eller aktivitet i året' });
+            return;
+        }
+        if (squadDecision !== 'include' && !player.spillerLag && !activity) {
+            plan.skipped.push({ id: player.id, navn: player.navn || '', reason: 'Mangler lag og har ingen aktivitet i året' });
+            return;
+        }
+        const season = {};
+        window.PLAYER_SEASON_FIELDS.forEach(field => {
+            if (field === 'tilknyttetFra') season[field] = from;
+            else if (field === 'tilknyttetTil') season[field] = to;
+            else season[field] = player[field] ?? '';
+        });
+        const notes = [];
+        if (!activity && !from && !to) notes.push('Ingen tilknytningsdato og ingen registrert aktivitet. Snapshot bruker dagens globale felt.');
+        if (!player.spillerLag) notes.push('Mangler lag.');
+        if (player.draktnummer === '' || player.draktnummer == null) notes.push('Mangler draktnummer. Ingen verdi er antatt.');
+        if (!player.pos1 || player.pos1 === '-') notes.push('Mangler hovedposisjon. Ingen verdi er antatt.');
+        if (player.status === 'Passiv' || player.status === 'Utregistrert') {
+            notes.push(`Status er ${player.status} nå. Snapshot fryser denne statusen for ${seasonYear}.`);
+        }
+        plan.write.push({ id: player.id, navn: player.navn || '', season, notes });
+        if (notes.length) plan.review.push({ id: player.id, navn: player.navn || '', notes });
+    });
+    return plan;
+};
+
+window.previewPlayerSeasonSnapshot = function(year = 2026) {
+    return window.planPlayerSeasonSnapshot(year);
+};
+
+const SEASON_ROSTER_PLAN_INCLUDE = ['Fortsetter', 'Ny spiller'];
+
+const readSeasonRosterPlanStatus = function(player, targetYear) {
+    const plans = player?.seasonPlans;
+    if (!plans || typeof plans !== 'object' || Array.isArray(plans)) return '';
+    const plan = plans[targetYear] || plans[String(targetYear)];
+    if (!plan || typeof plan !== 'object' || Array.isArray(plan)) return '';
+    return String(plan.status || '');
+};
+
+const buildNextSeasonRecord = function(player, sourceYear) {
+    const source = window.getPlayerSeasonRecord(player, sourceYear);
+    const season = {};
+    window.PLAYER_SEASON_FIELDS.forEach(field => {
+        season[field] = source ? (source[field] ?? '') : (player?.[field] ?? '');
+    });
+    if (!source) season.status = 'Aktiv';
+    season.tilknyttetTil = '';
+    return season;
+};
+
+window.previewCreateSeasonRoster = function(sourceYear, targetYear, players) {
+    const source = window.resolvePlayerSeasonYear(sourceYear);
+    const target = window.resolvePlayerSeasonYear(targetYear);
+    const plan = {
+        sourceYear: source,
+        targetYear: target,
+        antall: {
+            fortsetter: 0,
+            nySpiller: 0,
+            uavklart: 0,
+            slutter: 0,
+            eksistererAllerede: 0,
+            skalSkrives: 0
+        },
+        write: [],
+        existing: [],
+        excluded: []
+    };
+    if (source == null || target == null || target <= source) return plan;
+    const list = Array.isArray(players) ? players : (window.activePlayers || []);
+    list.forEach(player => {
+        if (!player || player.isGuest || (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id))) {
+            return;
+        }
+        const hasSource = Boolean(window.getPlayerSeasonRecord(player, source));
+        const explicit = readSeasonRosterPlanStatus(player, target);
+        if (!hasSource && !explicit) return;
+        const status = explicit || 'Uavklart';
+        if (status === 'Fortsetter') plan.antall.fortsetter += 1;
+        else if (status === 'Ny spiller') plan.antall.nySpiller += 1;
+        else if (status === 'Slutter') plan.antall.slutter += 1;
+        else if (status === 'Uavklart') plan.antall.uavklart += 1;
+        const entry = {
+            id: player.id,
+            navn: player.navn || '',
+            status,
+            grunnlag: hasSource ? 'sesong' : 'global'
+        };
+        if (!SEASON_ROSTER_PLAN_INCLUDE.includes(status)) {
+            plan.excluded.push({
+                ...entry,
+                reason: status === 'Slutter' ? 'Slutter tas ikke med.' : 'Uavklart tas ikke med.'
+            });
+            return;
+        }
+        if (window.getPlayerSeasonRecord(player, target)) {
+            plan.antall.eksistererAllerede += 1;
+            plan.existing.push(entry);
+            return;
+        }
+        plan.antall.skalSkrives += 1;
+        plan.write.push({ ...entry, season: buildNextSeasonRecord(player, source) });
+    });
+    return plan;
+};
+
+window.applyCreateSeasonRoster = function(players, sourceYear, targetYear) {
+    const list = Array.isArray(players) ? players : [];
+    const plan = window.previewCreateSeasonRoster(sourceYear, targetYear, list);
+    const seasonById = new Map(plan.write.map(item => [item.id, item.season]));
+    const next = list.map(player => {
+        const season = seasonById.get(player.id);
+        if (!season || window.getPlayerSeasonRecord(player, plan.targetYear)) return player;
+        const sourceBefore = JSON.stringify(window.getPlayerSeasonRecord(player, plan.sourceYear) ?? null);
+        const updated = {
+            ...player,
+            seasons: { ...(player.seasons || {}), [String(plan.targetYear)]: season }
+        };
+        const sourceAfter = JSON.stringify(window.getPlayerSeasonRecord(updated, plan.sourceYear) ?? null);
+        if (sourceBefore !== sourceAfter) return player;
+        if (updated.status !== player.status || updated.spillerLag !== player.spillerLag) return player;
+        if (updated.draktnummer !== player.draktnummer || updated.pos1 !== player.pos1 || updated.pos2 !== player.pos2) return player;
+        return updated;
+    });
+    return { plan, players: next };
+};
+
+const seasonControlItemYear = function(item) {
+    if (typeof window.getMatchStatsYear === 'function') return window.getMatchStatsYear(item);
+    const key = window.normalizeActivityDateKey(item?.date);
+    const parsed = Number(String(key || '').slice(0, 4));
+    return Number.isInteger(parsed) ? parsed : null;
+};
+
+const seasonControlPlayerInvolved = function(player, item) {
+    if (!player || !item) return false;
+    if (typeof window.isPlayerAttending === 'function' && window.isPlayerAttending(item.attendance, player)) return true;
+    const maps = ['ratings', 'scorers', 'assists', 'minutesPlayed'];
+    for (let i = 0; i < maps.length; i += 1) {
+        const map = item[maps[i]];
+        if (!map || typeof map !== 'object') continue;
+        const value = map[player.id] ?? (player.navn ? map[player.navn] : undefined);
+        if (value !== undefined && value !== null && value !== '' && value !== 0 && value !== false) return true;
+    }
+    if (typeof window.playerRefListIncludes === 'function') {
+        if (window.playerRefListIncludes(item.guleKort, player)) return true;
+        if (window.playerRefListIncludes(item.rodeKort, player)) return true;
+    }
+    if (typeof window.motmMatchesPlayer === 'function' && window.motmMatchesPlayer(item.motm, player)) return true;
+    return false;
+};
+
+const inspectPlayerSeasonActivity = function(player, seasonYear) {
+    const matches = [];
+    const positionCounts = new Map();
+    let otherActivity = false;
+    const inYear = (item) => {
+        if (!item) return false;
+        if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(item)) return false;
+        return seasonControlItemYear(item) === seasonYear;
+    };
+    (window.activeMatches || []).forEach(match => {
+        if (!inYear(match) || !seasonControlPlayerInvolved(player, match)) return;
+        if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(match)) {
+            otherActivity = true;
+            return;
+        }
+        matches.push(match);
+        const posId = typeof window.getPlayerMatchPlayedPositionId === 'function'
+            ? window.getPlayerMatchPlayedPositionId(match, player)
+            : '';
+        if (!posId) return;
+        const label = typeof window.getMatchGamePlanPositionLabel === 'function'
+            ? window.getMatchGamePlanPositionLabel(posId)
+            : posId;
+        positionCounts.set(label, (positionCounts.get(label) || 0) + 1);
+    });
+    (window.activeEvents || []).forEach(event => {
+        if (inYear(event) && seasonControlPlayerInvolved(player, event)) otherActivity = true;
+    });
+    matches.sort((a, b) => String(window.normalizeActivityDateKey(a.date)).localeCompare(String(window.normalizeActivityDateKey(b.date))));
+    const grupper = {};
+    matches.forEach(match => {
+        const team = match.matchGroup || '(uten lag)';
+        grupper[team] = (grupper[team] || 0) + 1;
+    });
+    const posisjoner = [...positionCounts.entries()]
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'nb'))
+        .map(([label, count]) => `${label} ${count}`);
+    return {
+        kamper: matches.length,
+        forsteKamp: matches.length ? window.normalizeActivityDateKey(matches[0].date) : '',
+        sisteKamp: matches.length ? window.normalizeActivityDateKey(matches[matches.length - 1].date) : '',
+        grupper,
+        posisjoner,
+        aktivitet: matches.length > 0 || otherActivity
+    };
+};
+
+const seasonValueText = function(value) {
+    return value == null || value === '' ? 'tomt' : String(value);
+};
+
+window.reportPlayerSeasonSnapshot = function(year = 2026) {
+    const plan = window.planPlayerSeasonSnapshot(year);
+    const seasonYear = plan.year;
+    const byId = new Map((window.activePlayers || []).map(player => [player.id, player]));
+    const rows = [];
+    const addRow = (player, season, kilde) => {
+        const evidence = seasonYear == null
+            ? { kamper: 0, forsteKamp: '', sisteKamp: '', grupper: {}, posisjoner: [], aktivitet: false }
+            : inspectPlayerSeasonActivity(player, seasonYear);
+        const mangler = [];
+        const kontroller = [];
+        const lag = season.spillerLag || '';
+        const pos1 = season.pos1 || '';
+        const status = season.status || '';
+        if (season.draktnummer == null || season.draktnummer === '') {
+            mangler.push('Draktnummer mangler. Snapshot lagrer tomt felt.');
+        }
+        if (!season.pos2 || season.pos2 === '-') mangler.push('pos2 mangler.');
+        if (!pos1 || pos1 === '-') {
+            if (evidence.posisjoner.length) {
+                kontroller.push(`Hovedposisjon mangler. Registrerte kampposisjoner: ${evidence.posisjoner.join(', ')}.`);
+            } else {
+                mangler.push('Hovedposisjon mangler. Ingen kampposisjon er registrert.');
+            }
+        }
+        if (!evidence.aktivitet) {
+            kontroller.push('Mangler historisk grunnlag. Ingen registrert 2026-aktivitet, men snapshot vil fryse dagens globale felt.');
+        }
+        if (evidence.kamper > 0 && !lag) {
+            kontroller.push(`Spiller har ${evidence.kamper} kamper i ${seasonYear}, men mangler spillerLag.`);
+        }
+        Object.entries(evidence.grupper).forEach(([team, count]) => {
+            if (team !== lag) {
+                kontroller.push(`Snapshotlag = ${lag || 'tomt'}, men ${count} kamper er registrert på ${team}.`);
+            }
+        });
+        if (evidence.forsteKamp && season.tilknyttetFra && season.tilknyttetFra > evidence.forsteKamp) {
+            kontroller.push(`tilknyttetFra ${season.tilknyttetFra} ligger etter første 2026-kamp ${evidence.forsteKamp}.`);
+        }
+        if (evidence.sisteKamp && season.tilknyttetTil && season.tilknyttetTil < evidence.sisteKamp) {
+            kontroller.push(`tilknyttetTil ${season.tilknyttetTil} ligger før siste 2026-kamp ${evidence.sisteKamp}.`);
+        }
+        const unusualStatus = status === 'Passiv' || status === 'Utregistrert';
+        const manyMatches = evidence.kamper >= 5;
+        if (unusualStatus) {
+            kontroller.push(evidence.kamper > 0
+                ? `2026-status bør kontrolleres. Dagens status er ${status}, og spilleren har ${evidence.kamper} kamper i ${seasonYear}.`
+                : `2026-status bør kontrolleres. Dagens status er ${status}, uten registrerte 2026-kamper.`);
+        } else if (status === 'Rekrutt' && manyMatches) {
+            kontroller.push(`2026-status bør kontrolleres. Dagens status er Rekrutt, og spilleren har ${evidence.kamper} kamper i ${seasonYear}.`);
+        } else if (status && status !== 'Aktiv' && status !== 'Rekrutt' && evidence.kamper > 0) {
+            kontroller.push(`2026-status bør kontrolleres. Dagens status er ${status}, og spilleren har ${evidence.kamper} kamper i ${seasonYear}.`);
+        }
+        const klasse = kontroller.length ? 'kontroller' : (mangler.length ? 'mangler' : 'klar');
+        rows.push({
+            id: player.id,
+            navn: player.navn || '',
+            kilde,
+            spillerLag: lag,
+            draktnummer: season.draktnummer ?? '',
+            draktnummerTekst: `Snapshot vil lagre ${seasonValueText(season.draktnummer)}`,
+            pos1,
+            pos2: season.pos2 || '',
+            status,
+            tilknyttetFra: season.tilknyttetFra || '',
+            tilknyttetTil: season.tilknyttetTil || '',
+            utviklingsmoment: season.utviklingsmoment || '',
+            kamper: evidence.kamper,
+            aktivitet: evidence.aktivitet,
+            forsteKamp: evidence.forsteKamp,
+            sisteKamp: evidence.sisteKamp,
+            lagFordeling: evidence.grupper,
+            kampPosisjoner: evidence.posisjoner,
+            mangler,
+            kontroller,
+            klasse
+        });
+    };
+    (plan.write || []).forEach(item => {
+        const player = byId.get(item.id);
+        if (player) addRow(player, item.season, 'planlagt');
+    });
+    (plan.existing || []).forEach(item => {
+        const player = byId.get(item.id);
+        const stored = player ? window.getPlayerSeasonRecord(player, seasonYear) : null;
+        if (player && stored) addRow(player, stored, 'lagret');
+    });
+    rows.sort((a, b) => {
+        const order = { kontroller: 0, mangler: 1, klar: 2 };
+        return (order[a.klasse] - order[b.klasse]) || a.navn.localeCompare(b.navn, 'nb');
+    });
+    const oppsummering = {
+        spillere: (window.activePlayers || []).filter(player => player && !player.isGuest && !(typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id))).length,
+        klare: rows.filter(row => row.klasse === 'klar').length,
+        manglerInformasjon: rows.filter(row => row.klasse === 'mangler').length,
+        borKontrolleres: rows.filter(row => row.klasse === 'kontroller').length,
+        eksisterende: plan.existing.length,
+        planlagtSkrevet: plan.write.length,
+        hoppetOver: plan.skipped.length
+    };
+    const linje = (row) => {
+        const flags = [...row.kontroller, ...row.mangler].map(note => `  - ${note}`).join('\n');
+        return [
+            `${row.navn} | ${row.id} | ${row.spillerLag || 'tomt lag'} | ${row.draktnummerTekst} | pos1 ${row.pos1 || 'tom'} | pos2 ${row.pos2 || 'tom'} | ${row.status || 'tom status'} | fra ${row.tilknyttetFra || 'tom'} | til ${row.tilknyttetTil || 'tom'} | moment ${row.utviklingsmoment || 'tomt'} | ${row.kamper} kamper | aktivitet ${row.aktivitet ? 'ja' : 'nei'}`,
+            flags
+        ].filter(Boolean).join('\n');
+    };
+    const tekst = [
+        `${seasonYear} snapshot-kontroll`,
+        '',
+        `${oppsummering.spillere} spillere totalt`,
+        `${oppsummering.klare} klare`,
+        `${oppsummering.manglerInformasjon} mangler ikke-kritisk informasjon`,
+        `${oppsummering.borKontrolleres} bør kontrolleres`,
+        `${oppsummering.eksisterende} eksisterende snapshots`,
+        `${oppsummering.planlagtSkrevet} planlagt skrevet`,
+        oppsummering.hoppetOver ? `${oppsummering.hoppetOver} hoppet over` : '',
+        '',
+        ...rows.map(linje)
+    ].filter(line => line !== '').join('\n');
+    return { year: seasonYear, oppsummering, spillere: rows, tekst };
+};
+
+window.verifyPlayerSeasonSnapshot = function(year = 2026) {
+    const plan = window.planPlayerSeasonSnapshot(year);
+    const seasonYear = plan.year;
+    const manglerSnapshot = [];
+    const ufullstendige = [];
+    const avvikMotDagensGlobaleFelt = [];
+    const aktivitetUtenSesong = [];
+    let medSnapshot = 0;
+    (window.activePlayers || []).forEach(player => {
+        if (!player || player.isGuest || (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id))) return;
+        const record = seasonYear == null ? null : window.getPlayerSeasonRecord(player, seasonYear);
+        const evidence = seasonYear == null ? { aktivitet: false } : inspectPlayerSeasonActivity(player, seasonYear);
+        if ((plan.excluded || []).some(item => item.id === player.id)) return;
+        if (!record) {
+            if (plan.write.some(item => item.id === player.id)) {
+                manglerSnapshot.push({ id: player.id, navn: player.navn || '', grunn: 'Planlagt skrevet, men seasons mangler.' });
+            }
+            if (evidence.aktivitet) {
+                aktivitetUtenSesong.push({ id: player.id, navn: player.navn || '' });
+            }
+            return;
+        }
+        medSnapshot += 1;
+        const missingFields = window.PLAYER_SEASON_FIELDS.filter(field => !Object.prototype.hasOwnProperty.call(record, field));
+        if (missingFields.length) {
+            ufullstendige.push({ id: player.id, navn: player.navn || '', felt: missingFields });
+        }
+        const expected = {};
+        const from = window.normalizeActivityDateKey(player.tilknyttetFra);
+        const to = window.normalizeActivityDateKey(player.tilknyttetTil);
+        window.PLAYER_SEASON_FIELDS.forEach(field => {
+            if (field === 'tilknyttetFra') expected[field] = from;
+            else if (field === 'tilknyttetTil') expected[field] = to;
+            else expected[field] = player[field] ?? '';
+        });
+        const felt = window.PLAYER_SEASON_FIELDS.filter(field => String(record[field] ?? '') !== String(expected[field] ?? ''));
+        if (felt.length) {
+            avvikMotDagensGlobaleFelt.push({
+                id: player.id,
+                navn: player.navn || '',
+                felt: felt.map(field => ({
+                    felt: field,
+                    lagret: record[field] ?? '',
+                    globaltNaa: expected[field] ?? ''
+                }))
+            });
+        }
+    });
+    return {
+        year: seasonYear,
+        medSnapshot,
+        burdeHattSnapshot: plan.write.length + plan.existing.length,
+        bevisstEkskludert: plan.excluded || [],
+        manglerSnapshot,
+        ufullstendige,
+        avvikMotDagensGlobaleFelt,
+        aktivitetUtenSesong,
+        plan: {
+            write: plan.write.length,
+            existing: plan.existing.length,
+            skipped: plan.skipped.length
+        }
+    };
+};
+
 window.getMatchSquadEmptyMessage = function(_match) {
     return 'Ingen spillere i kamptroppen. Trykk oppmøte for å registrere.';
 };
@@ -424,6 +1033,9 @@ window.buildAttendanceMapFromModal = function(container, existingAttendance, tea
 };
 
 window.getAttendanceModalTeamPlayers = function(ev) {
+    if (typeof window.isPlayerInMatchSeasonSquad === 'function') {
+        return (window.activePlayers || []).filter(player => window.isPlayerInMatchSeasonSquad(player, ev));
+    }
     const teamName = ev?.team || ev?.matchGroup;
     let teamPlayers = (window.activePlayers || []).filter(p => !teamName || p.spillerLag === teamName);
     if (teamName && teamPlayers.length === 0) {

@@ -17,7 +17,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20261110-innboks-sjekk-linje">
+    <link rel="stylesheet" href="assets/css/base.css?v=20261111-troppsplan2">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -260,7 +260,7 @@
                             <span id="rosterBoardTitle">Aktive</span>
                         </div>
                         <div class="roster-board-top-right">
-                            <div class="roster-bottomline-legend roster-topline-legend" aria-label="Forklaring av spillerstatus">
+                            <div id="rosterNowLegend" class="roster-bottomline-legend roster-topline-legend" aria-label="Forklaring av spillerstatus">
                                 <span><i class="fa-solid fa-circle roster-legend-active"></i> Aktiv</span>
                                 <span><i class="fa-solid fa-circle roster-legend-recruit"></i> Rekrutt</span>
                                 <span><i class="fa-solid fa-circle roster-legend-muted"></i> Passiv</span>
@@ -271,20 +271,34 @@
                     </div>
 
                     <div class="roster-board-toolbar relative z-10">
+                        <div class="roster-status-filter roster-mode-switch" role="tablist" aria-label="Velg troppvisning">
+                            <button type="button" id="roster-mode-now" class="bsk-btn bsk-btn-chip roster-status-btn is-active" onclick="window.setRosterMode('now')">Tropp nå</button>
+                            <button type="button" id="roster-mode-plan" class="bsk-btn bsk-btn-chip roster-status-btn" onclick="window.setRosterMode('plan2027')">Troppsplan 2027</button>
+                        </div>
+                        <p id="rosterPlanIntro" class="roster-plan-intro hidden">Planlegg hvem som fortsetter, slutter eller kommer inn før 2027-troppen opprettes.</p>
+                        <button type="button" id="roster-create-season-btn" class="roster-create-season-btn hidden" onclick="window.openCreateSeasonRosterDialog()">Opprett 2027-tropp</button>
                         <div class="roster-toolbar-filters">
-                            <div class="roster-status-filter" role="tablist" aria-label="Filtrer etter status">
+                            <div id="roster-now-filters" class="roster-status-filter" role="tablist" aria-label="Filtrer etter status">
                                 <button type="button" onclick="setPlayerStatusFilter('Aktiv')" id="roster-filter-aktiv" class="bsk-btn bsk-btn-chip roster-status-btn is-active">Aktiv</button>
                                 <button type="button" onclick="setPlayerStatusFilter('Rekrutt')" id="roster-filter-rekrutt" class="bsk-btn bsk-btn-chip roster-status-btn">Rekrutt</button>
                                 <button type="button" onclick="setPlayerStatusFilter('skadet')" id="roster-filter-skadet" class="bsk-btn bsk-btn-chip roster-status-btn">Skadet</button>
                                 <button type="button" onclick="setPlayerStatusFilter('alle')" id="roster-filter-alle" class="bsk-btn bsk-btn-chip roster-status-btn">Alle</button>
                             </div>
+                            <div id="roster-plan-filters" class="roster-status-filter hidden" role="tablist" aria-label="Filtrer 2027-planen">
+                                <button type="button" onclick="window.setRosterPlanFilter('Uavklart')" id="roster-plan-filter-uavklart" class="bsk-btn bsk-btn-chip roster-status-btn is-active">Uavklart</button>
+                                <button type="button" onclick="window.setRosterPlanFilter('Fortsetter')" id="roster-plan-filter-fortsetter" class="bsk-btn bsk-btn-chip roster-status-btn">Fortsetter</button>
+                                <button type="button" onclick="window.setRosterPlanFilter('Slutter')" id="roster-plan-filter-slutter" class="bsk-btn bsk-btn-chip roster-status-btn">Slutter</button>
+                                <button type="button" onclick="window.setRosterPlanFilter('Ny spiller')" id="roster-plan-filter-ny" class="bsk-btn bsk-btn-chip roster-status-btn">Ny spiller</button>
+                                <button type="button" onclick="window.setRosterPlanFilter('alle')" id="roster-plan-filter-alle" class="bsk-btn bsk-btn-chip roster-status-btn">Alle</button>
+                            </div>
                             <button type="button"
-                                    onclick="window.openPlayerModal()"
+                                    id="roster-add-player-btn"
+                                    onclick="window.openRosterPlayerModal()"
                                     class="bsk-btn bsk-btn-chip match-filter-btn roster-add-player-btn"
                                     title="Legg til ny spiller"
                                     aria-label="Legg til ny spiller">
                                 <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                                <span>Legg til</span>
+                                <span id="roster-add-player-label">Legg til</span>
                             </button>
                         </div>
 
@@ -297,19 +311,19 @@
 
                     <div class="roster-stat-grid roster-board-stats relative z-10">
                         <div class="roster-stat-card">
-                            <span class="roster-stat-label">Spillere</span>
+                            <span class="roster-stat-label" id="roster-stat-label-players">Spillere</span>
                             <span class="roster-stat-value" id="stat-total-players">0</span>
                         </div>
                         <div class="roster-stat-card">
-                            <span class="roster-stat-label">Snittalder</span>
+                            <span class="roster-stat-label" id="roster-stat-label-age">Snittalder</span>
                             <span class="roster-stat-value" id="stat-avg-age">0 år</span>
                         </div>
                         <div class="roster-stat-card">
-                            <span class="roster-stat-label">Rekrutter</span>
+                            <span class="roster-stat-label" id="roster-stat-label-recruits">Rekrutter</span>
                             <span class="roster-stat-value" id="stat-total-rekrutt">0</span>
                         </div>
                         <div class="roster-stat-card">
-                            <span class="roster-stat-label">Skadede</span>
+                            <span class="roster-stat-label" id="roster-stat-label-injured">Skadede</span>
                             <span class="roster-stat-value" id="stat-total-injured">0</span>
                         </div>
                     </div>
@@ -329,8 +343,8 @@
                             <div class="roster-empty-icon">
                                 <i class="fa-solid fa-users"></i>
                             </div>
-                            <p class="roster-empty-title">Ingen spillere funnet</p>
-                            <p class="roster-empty-text">Prøv et annet filter, eller registrer en ny spiller i troppen.</p>
+                            <p id="roster-empty-title" class="roster-empty-title">Ingen spillere funnet</p>
+                            <p id="roster-empty-text" class="roster-empty-text">Prøv et annet filter, eller registrer en ny spiller i troppen.</p>
                             <button type="button" onclick="window.openPlayerModal()" class="bsk-btn bsk-btn-primary is-collapsible" title="Registrer spiller" aria-label="Registrer spiller">
                                 <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
                                 <span class="bsk-btn-label">Registrer spiller</span>
@@ -914,6 +928,17 @@
 
     <p id="portal-attendance-feedback" class="match-inline-status portal-attendance-feedback" aria-live="polite" hidden></p>
 
+    <div id="seasonRosterDialog" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4" onclick="if (event.target === this) window.closeCreateSeasonRosterDialog()">
+        <div class="season-roster-dialog" role="dialog" aria-modal="true" aria-labelledby="seasonRosterDialogTitle">
+            <h3 id="seasonRosterDialogTitle">Opprett 2027-tropp</h3>
+            <div id="seasonRosterDialogBody" class="season-roster-dialog-body"></div>
+            <div class="season-roster-dialog-actions">
+                <button type="button" class="bsk-btn bsk-btn-secondary" onclick="window.closeCreateSeasonRosterDialog()">Avbryt</button>
+                <button type="button" id="seasonRosterDialogConfirm" class="bsk-btn bsk-btn-primary" onclick="window.confirmCreateSeasonRoster()">Opprett 2027-tropp</button>
+            </div>
+        </div>
+    </div>
+
     <div id="playerModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
         <div class="match-detail-card player-modal-card w-full max-w-lg relative overflow-hidden max-h-[90vh] flex flex-col">
             <div class="dashboard-next-match-watermark player-modal-watermark">
@@ -980,6 +1005,7 @@
                         <option value="Passiv">Passiv</option>
                         <option value="Utregistrert">Utregistrert</option>
                     </select>
+                    <p id="playerPlanNewHint" class="player-modal-field-hint hidden">Spilleren opprettes som Passiv og ligger kun i Troppsplan 2027 inntil 2027-troppen opprettes.</p>
                 </div>
 
                 <div class="player-modal-grid">
@@ -1638,21 +1664,21 @@
     </div>
 
     <script src="assets/js/state.js?v=20260908-local-hydrate-v1"></script>
-    <script src="assets/js/components/modals.js?v=20261024-alert-quiet"></script>
+    <script src="assets/js/components/modals.js?v=20261111-sesongar"></script>
     <script src="assets/js/app-shell.js?v=20261025-oktside-lukk"></script>
-    <script src="assets/js/domain/player-refs.js?v=20261025-kalender-live"></script>
-    <script src="assets/js/domain/scoring.js?v=20261031-form-100"></script>
-    <script src="assets/js/domain/samspill.js?v=20261028-uspilt-ute"></script>
+    <script src="assets/js/domain/player-refs.js?v=20261111-kampflate"></script>
+    <script src="assets/js/domain/scoring.js?v=20261111-sesongar"></script>
+    <script src="assets/js/domain/samspill.js?v=20261111-kampflate"></script>
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20261024-crest-eager"></script>
-    <script src="assets/js/pages/players.js?v=20261109-oppfolging"></script>
-    <script src="assets/js/pages/matches.js?v=20261101-penalty-line"></script>
-    <script src="assets/js/pages/attendance.js?v=20261025-kalender-live"></script>
-    <script src="assets/js/pages/statistics.js?v=20261110-innboks-notekort"></script>
-    <script src="assets/js/pages/tactics.js?v=20261028-live-samspill-off"></script>
+    <script src="assets/js/pages/players.js?v=20261111-aktiv-sesong"></script>
+    <script src="assets/js/pages/matches.js?v=20261111-kampflate"></script>
+    <script src="assets/js/pages/attendance.js?v=20261111-sesongar"></script>
+    <script src="assets/js/pages/statistics.js?v=20261111-kampflate"></script>
+    <script src="assets/js/pages/tactics.js?v=20261111-kampflate"></script>
     <script src="assets/js/pages/dashboard.js?v=20261101-award-values"></script>
-    <script src="assets/js/pages/training-session.js?v=20261026-group-line"></script>
-    <script type="module" src="assets/js/firebase-sync.js?v=20261109-innboks"></script>
+    <script src="assets/js/pages/training-session.js?v=20261111-kampflate"></script>
+    <script type="module" src="assets/js/firebase-sync.js?v=20261111-aktiv-sesong"></script>
     <script src="assets/js/app.js?v=20260612-swipe-widgets2"></script>
 </body>
 </html>

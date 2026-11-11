@@ -2511,7 +2511,7 @@ function buildMatchGamePlanBenchPlacementOptionsHtml(match, player) {
         .sort(([posA], [posB]) => compareMatchGamePlanPositions(posA, posB))
         .map(([posId]) => {
             const targetPlayer = lineup[posId];
-            const score = getMatchGamePlanPositionScore(player, posId);
+            const score = getMatchGamePlanPositionScore(player, posId, match);
             const positionLabel = getMatchGamePlanPositionLabel(posId);
             const avatarHtml = targetPlayer
                 ? buildMatchGamePlanPlayerOptionAvatarHtml(targetPlayer)
@@ -2877,18 +2877,33 @@ function getMatchGamePlanBenchAssignment(match, playerRef) {
     };
 }
 
-function getMatchGamePlanPositionScore(player, posId) {
+function getMatchSuggestionPositions(player, match) {
+    if (match) {
+        const view = getMatchSeasonPlayerView(player, match);
+        return { pos1: view.pos1 || '', pos2: view.pos2 || '' };
+    }
+    return { pos1: player?.pos1 || '', pos2: player?.pos2 || '' };
+}
+
+function readSuggestionPositions(player, parts) {
+    if (parts?.match) return getMatchSuggestionPositions(player, parts.match);
+    return { pos1: player?.pos1 || '', pos2: player?.pos2 || '' };
+}
+
+function getMatchGamePlanPositionScore(player, posId, match) {
     const preferred = matchGamePlanPositionRequirements[posId] || [];
     const related = matchGamePlanRelatedPositions[posId] || [];
-    if (preferred.includes(player?.pos1)) return 0;
-    if (preferred.includes(player?.pos2)) return 1;
-    if (related.includes(player?.pos1) || related.includes(player?.pos2)) return 1;
+    const { pos1, pos2 } = getMatchSuggestionPositions(player, match);
+    if (preferred.includes(pos1)) return 0;
+    if (preferred.includes(pos2)) return 1;
+    if (related.includes(pos1) || related.includes(pos2)) return 1;
     return 2;
 }
 
-function playerHasSamspillPreferredFit(player, posId) {
+function playerHasSamspillPreferredFit(player, posId, match) {
     const preferred = matchGamePlanPositionRequirements[posId] || [];
-    return preferred.includes(player?.pos1) || preferred.includes(player?.pos2);
+    const { pos1, pos2 } = getMatchSuggestionPositions(player, match);
+    return preferred.includes(pos1) || preferred.includes(pos2);
 }
 
 function getMatchGamePlanLineSlotIds(match, slotIds, zoneId) {
@@ -2909,16 +2924,16 @@ function getMatchGamePlanSamspillDefenceSlots(match) {
     return getMatchGamePlanLineSlotIds(match, matchGamePlanDefenceSlotIds, 'forsvar');
 }
 
-function playerFitsSamspillLineSlots(player, posId, slots, roleSlotIds) {
+function playerFitsSamspillLineSlots(player, posId, slots, roleSlotIds, match) {
     if (!slots.includes(posId)) return false;
-    return (roleSlotIds || slots).some((slot) => playerHasSamspillPreferredFit(player, slot));
+    return (roleSlotIds || slots).some((slot) => playerHasSamspillPreferredFit(player, slot, match));
 }
 
 function playerFitsSamspillSlot(player, posId, match) {
-    if (playerHasSamspillPreferredFit(player, posId)) return true;
-    if (playerFitsSamspillLineSlots(player, posId, getMatchGamePlanSamspillAttackSlots(match), matchGamePlanAttackSlotIds)) return true;
-    if (playerFitsSamspillLineSlots(player, posId, getMatchGamePlanSamspillMidfieldSlots(match), matchGamePlanMidfieldSlotIds)) return true;
-    if (playerFitsSamspillLineSlots(player, posId, getMatchGamePlanSamspillDefenceSlots(match), matchGamePlanDefenceSlotIds)) return true;
+    if (playerHasSamspillPreferredFit(player, posId, match)) return true;
+    if (playerFitsSamspillLineSlots(player, posId, getMatchGamePlanSamspillAttackSlots(match), matchGamePlanAttackSlotIds, match)) return true;
+    if (playerFitsSamspillLineSlots(player, posId, getMatchGamePlanSamspillMidfieldSlots(match), matchGamePlanMidfieldSlotIds, match)) return true;
+    if (playerFitsSamspillLineSlots(player, posId, getMatchGamePlanSamspillDefenceSlots(match), matchGamePlanDefenceSlotIds, match)) return true;
     return false;
 }
 
@@ -2975,7 +2990,7 @@ function getMatchGamePlanPositionBadgeLabel(posId, formationId) {
 }
 
 function getMatchGamePlanPlayerPosAbbrev(player, match) {
-    const preferred = String(player?.pos1 || '').trim();
+    const preferred = String(getMatchSuggestionPositions(player, match).pos1 || '').trim();
     if (!preferred) return '';
     if (/^[A-Z0-9]{1,3}$/i.test(preferred)) {
         return getMatchGamePlanPositionBadgeLabel(
@@ -3061,29 +3076,81 @@ function getMatchDetailPitchPositionCategory(posId) {
     return null;
 }
 
+function getMatchSeasonPlayerView(player, match) {
+    const year = typeof window.getActivitySeasonYear === 'function'
+        ? window.getActivitySeasonYear(match)
+        : null;
+    const season = year != null && typeof window.getPlayerSeasonData === 'function'
+        ? window.getPlayerSeasonData(player, year)
+        : null;
+    if (season?.hasSeason) {
+        return {
+            pos1: season.pos1 || '',
+            pos2: season.pos2 || '',
+            draktnummer: season.draktnummer ?? '',
+            spillerLag: season.spillerLag || '',
+            status: season.status || '',
+            hasSeason: true
+        };
+    }
+    return {
+        pos1: player?.pos1 || '',
+        pos2: player?.pos2 || '',
+        draktnummer: player?.draktnummer ?? player?.drakt ?? '',
+        spillerLag: player?.spillerLag || '',
+        status: player?.status || '',
+        hasSeason: false
+    };
+}
+
+window.getMatchSeasonPlayerView = getMatchSeasonPlayerView;
+window.isPlayerInMatchSeasonSquad = isPlayerInMatchSeasonSquad;
+
+function matchSeasonJerseySort(player, match) {
+    const value = Number(getMatchSeasonPlayerView(player, match).draktnummer);
+    return Number.isFinite(value) && value > 0 ? value : 999;
+}
+
+function isPlayerInMatchSeasonSquad(player, match) {
+    if (!player) return false;
+    if (player.isGuest || (typeof window.isGuestPlayerRef === 'function' && window.isGuestPlayerRef(player.id))) {
+        return true;
+    }
+    const year = typeof window.getActivitySeasonYear === 'function'
+        ? window.getActivitySeasonYear(match)
+        : null;
+    const view = getMatchSeasonPlayerView(player, match);
+    const activityTeam = match?.matchGroup || match?.team || '';
+    if (activityTeam && view.spillerLag && view.spillerLag !== activityTeam) return false;
+    if (year != null && typeof window.isPlayerOnRosterForSeasonDate === 'function') {
+        if (!window.isPlayerOnRosterForSeasonDate(player, match?.date, year)) return false;
+    } else if (typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(player, match)) {
+        return false;
+    }
+    if (view.hasSeason) return view.status !== 'Passiv';
+    if (typeof window.isPlayerListedForActivity === 'function') return window.isPlayerListedForActivity(player, match);
+    return typeof window.isPlayerInCurrentSquadPool === 'function'
+        ? window.isPlayerInCurrentSquadPool(player)
+        : true;
+}
+
 function getMatchDetailSquadPlayerCategory(match, player) {
     const pitchPosId = getMatchGamePlanPlayerPitchPosId(match, player);
     const pitchCategory = getMatchDetailPitchPositionCategory(pitchPosId);
     if (pitchCategory) return pitchCategory;
-    return getMatchDetailPositionCategory(player?.pos1) || 'M';
+    return getMatchDetailPositionCategory(getMatchSeasonPlayerView(player, match).pos1) || 'M';
 }
 
 function getMatchDetailAttendingPlayers(match) {
     const teamPlayers = (window.activePlayers || [])
-        .filter(p => {
-            if (match.matchGroup && p.spillerLag !== match.matchGroup) return false;
-            if (typeof window.isPlayerListedForActivity === 'function') {
-                return window.isPlayerListedForActivity(p, match);
-            }
-            return window.isPlayerInCurrentSquadPool(p);
-        })
-        .sort((a, b) => (Number(a.drakt) || 999) - (Number(b.drakt) || 999) || a.navn.localeCompare(b.navn));
+        .filter(p => isPlayerInMatchSeasonSquad(p, match))
+        .sort((a, b) => matchSeasonJerseySort(a, match) - matchSeasonJerseySort(b, match) || a.navn.localeCompare(b.navn));
     const attendingRefs = typeof window.getMatchParticipantRefs === 'function'
         ? window.getMatchParticipantRefs(match)
         : window.getAttendingPlayerRefs(match.attendance);
     const benchPlayers = teamPlayers
         .filter(p => attendingRefs.some(ref => window.playerRefMatches(ref, p)))
-        .sort((a, b) => (Number(a.drakt) || 999) - (Number(b.drakt) || 999) || a.navn.localeCompare(b.navn));
+        .sort((a, b) => matchSeasonJerseySort(a, match) - matchSeasonJerseySort(b, match) || a.navn.localeCompare(b.navn));
     const fallbackBenchPlayers = attendingRefs
         .filter(ref => !benchPlayers.some(p => window.playerRefMatches(ref, p)))
         .sort((a, b) => window.getPlayerNameFromRef(a).localeCompare(window.getPlayerNameFromRef(b)))
@@ -3138,9 +3205,13 @@ function getMatchGamePlanDraftLineupPosIdsForPlayer(lineup, player) {
 }
 
 function getMatchGamePlanPlayerKampbidrag(player, match) {
-    const teamName = match?.matchGroup || player?.spillerLag || '';
+    const view = getMatchSeasonPlayerView(player, match);
+    const teamName = match?.matchGroup || view.spillerLag || '';
+    const year = typeof window.getActivitySeasonYear === 'function'
+        ? window.getActivitySeasonYear(match)
+        : null;
     return typeof window.getPlayerKampbidragSnitt === 'function'
-        ? window.getPlayerKampbidragSnitt(player, teamName)
+        ? window.getPlayerKampbidragSnitt(player, teamName, year)
         : 0;
 }
 
@@ -3153,9 +3224,15 @@ function buildMatchGamePlanBidragValueHtml(player, match) {
     return `<span class="match-game-plan-lineup-card-overlay match-game-plan-lineup-card-overlay-bidrag ${bidragTone}" title="${escapeMatchHtml(title)}">${escapeMatchHtml(bidragText)}</span>`;
 }
 
-function getMatchGamePlanPlayerForm(player) {
+function getMatchGamePlanPlayerForm(player, match) {
     if (!player?.navn || typeof window.calculatePlayerPerformanceChemistry !== 'function') return 0;
-    return window.calculatePlayerPerformanceChemistry(player.navn);
+    const year = match && typeof window.getActivitySeasonYear === 'function'
+        ? window.getActivitySeasonYear(match)
+        : null;
+    return window.calculatePlayerPerformanceChemistry(
+        player.navn,
+        year != null ? { yearFilter: year } : {}
+    );
 }
 
 function getMatchGamePlanFormToneClass(score, teamName) {
@@ -3245,7 +3322,7 @@ function getMatchGamePlanPitchXiAveragesFromPlayers(players, match, statsByName)
         const row = stats.get(player.navn) || null;
         sesong += Number(row?.totalScore) || 0;
         kampbidrag += Number(getMatchGamePlanPlayerKampbidrag(player, match)) || 0;
-        form += Number(getMatchGamePlanPlayerForm(player)) || 0;
+        form += Number(getMatchGamePlanPlayerForm(player, match)) || 0;
         snittBors += Number(row?.snittBors) || 0;
     });
 
@@ -3319,7 +3396,9 @@ function formatMatchGamePlanPitchXiPreviousLabel(previous, key, { decimals = 0 }
 
 function getMatchGamePlanPitchXiStatsByName(match) {
     if (typeof window.buildPlayerStatsData !== 'function') return new Map();
-    const year = new Date().getFullYear();
+    const year = typeof window.getActivitySeasonYear === 'function'
+        ? window.getActivitySeasonYear(match)
+        : null;
     const rows = window.buildPlayerStatsData({ applyYearFilter: true, yearFilter: year }) || [];
     const byName = new Map();
     rows.forEach(row => {
@@ -3337,8 +3416,8 @@ function getMatchGamePlanPitchXiReferencePlayers(match) {
     const teamName = match?.matchGroup || '';
     return (window.activePlayers || []).filter(player => (
         player?.navn
-        && window.isPlayerInCurrentSquadPool(player)
-        && (!teamName || player.spillerLag === teamName)
+        && isPlayerInMatchSeasonSquad(player, match)
+        && (!teamName || getMatchSeasonPlayerView(player, match).spillerLag === teamName)
     ));
 }
 
@@ -3369,7 +3448,7 @@ function getMatchGamePlanPitchXiMedians(match, statsByName) {
         const row = statsByName.get(player.navn) || null;
         const sesong = Number(row?.totalScore) || 0;
         const kampbidrag = Number(getMatchGamePlanPlayerKampbidrag(player, match)) || 0;
-        const form = Number(getMatchGamePlanPlayerForm(player)) || 0;
+        const form = Number(getMatchGamePlanPlayerForm(player, match)) || 0;
         const snittBors = Number(row?.snittBors) || 0;
         if (sesong > 0) sesongValues.push(sesong);
         if (kampbidrag > 0) kampbidragValues.push(kampbidrag);
@@ -3449,7 +3528,7 @@ function getMatchGamePlanPitchXiFormHint(match) {
             posId,
             posLabel: getMatchGamePlanPositionBadgeLabel(posId, formationId) || posId,
             player,
-            value: Number(getMatchGamePlanPlayerForm(player)) || 0
+            value: Number(getMatchGamePlanPlayerForm(player, match)) || 0
         }))
         .filter(entry => entry.value > 0);
 
@@ -3468,12 +3547,12 @@ function getMatchGamePlanPitchXiFormHint(match) {
             const key = player.id || player.navn || '';
             if (!key || onPitchIds.has(key)) return false;
             // Only suggest players who can realistically cover the weak slot.
-            return getMatchGamePlanPositionScore(player, worst.posId) <= 1;
+            return getMatchGamePlanPositionScore(player, worst.posId, match) <= 1;
         })
         .map(player => ({
             player,
-            value: Number(getMatchGamePlanPlayerForm(player)) || 0,
-            fit: getMatchGamePlanPositionScore(player, worst.posId)
+            value: Number(getMatchGamePlanPlayerForm(player, match)) || 0,
+            fit: getMatchGamePlanPositionScore(player, worst.posId, match)
         }))
         .filter(entry => entry.value > worst.value)
         .sort((left, right) => (
@@ -4087,9 +4166,7 @@ function scoreMatchGamePlanSuggestPlacement(player, posId, assignment, connectio
     });
     if (count > 0) return sum / count;
 
-    const form = typeof window.calculatePlayerPerformanceChemistry === 'function'
-        ? Number(window.calculatePlayerPerformanceChemistry(player.navn)) || 0
-        : 0;
+    const form = Number(getMatchGamePlanPlayerForm(player, match)) || 0;
     const kampbidrag = getMatchGamePlanPlayerKampbidrag(player, match);
     return (form * 0.6) + (Math.min(40, Number(kampbidrag) || 0) * 1.1);
 }
@@ -4352,11 +4429,11 @@ function getMatchGamePlanLineStatsSlotPlayerScore(player, posId, match, seasonSt
     }
 
     const posStat = getMatchGamePlanLineStatsPosStat(player, posId);
-    const seasonStatResolved = seasonStat || getMatchGamePlanPlayerSeasonStat(player);
+    const seasonStatResolved = seasonStat || getMatchGamePlanPlayerSeasonStat(player, match);
     const season = posStat?.matches > 0
         ? Number(computeMatchGamePlanPositionSeason(posStat, seasonStatResolved)) || 0
         : 0;
-    const form = Number(getMatchGamePlanPlayerForm(player)) || 0;
+    const form = Number(getMatchGamePlanPlayerForm(player, match)) || 0;
     const matches = Number(posStat?.matches) || 0;
     const snittBidrag = matches > 0 ? getMatchGamePlanSnittBidrag(posStat) : 0;
     const bestKampbonus = Number(seasonStatResolved?.bestKampbonus) || 0;
@@ -4395,6 +4472,7 @@ function getMatchGamePlanLineStatsSlotPlayerScore(player, posId, match, seasonSt
         // GK: kvalitet/form først. Kampandel-terskel treffer nye keepere feil (Smerud).
         // Treffer: Maximillian > Sebastian > (nødinnhopp som Skogstad sist).
         score = getMatchGamePlanGoalkeeperSlotScore(player, {
+            match,
             season,
             snittBidragScore,
             posForm,
@@ -4409,6 +4487,7 @@ function getMatchGamePlanLineStatsSlotPlayerScore(player, posId, match, seasonSt
         // PM: kvalitet først (bidrag/pos-form), myk √-sample, OM/DM-fyll + playmaker-bonus.
         // Treffer ønsket rekkefølge: Gundersen > Skonnord > Sixten > Hjelle > Laheld > Pizzaro > Dyrhof.
         score = getMatchGamePlanPlaymakerSlotScore(player, {
+            match,
             posStat,
             snittBidragScore,
             posForm,
@@ -4424,6 +4503,7 @@ function getMatchGamePlanLineStatsSlotPlayerScore(player, posId, match, seasonSt
         // OM: volum + kvalitet (minutter tungt), myk √-sample, OM-pref.
         // Treffer ønsket rekkefølge: Hjelle > Laheld > Dyrhof.
         score = getMatchGamePlanOffensiveMidSlotScore(player, {
+            match,
             snittBidragScore,
             posForm,
             borsScore,
@@ -4437,6 +4517,7 @@ function getMatchGamePlanLineStatsSlotPlayerScore(player, posId, match, seasonSt
         // DM: kvalitet + midt-XP, pos1-DM-bonus, myk √-sample.
         // Treffer: Hjelle > Laheld > Kahrs > Nyland > Gundersen > Pizzaro.
         score = getMatchGamePlanDefensiveMidSlotScore(player, {
+            match,
             snittBidragScore,
             posForm,
             borsScore,
@@ -4461,6 +4542,7 @@ function getMatchGamePlanLineStatsSlotPlayerScore(player, posId, match, seasonSt
         // HS: sesong/kvalitet + HS-volum, CB-fyll uten HS-kamper, myk √-sample.
         // Treffer: Kristoffer A > Gundersen > Knutsen > Brunstad > Kahrs.
         score = getMatchGamePlanRightCenterBackSlotScore(player, {
+            match,
             season,
             snittBidragScore,
             posForm,
@@ -4476,6 +4558,7 @@ function getMatchGamePlanLineStatsSlotPlayerScore(player, posId, match, seasonSt
         // VS: speilvendt av HS — venstre fot, form tungt, HMS/MS-fyll.
         // Treffer: Kahrs > Kristoffer A > Nyland > Knutsen > Brunstad > Strai.
         score = getMatchGamePlanLeftCenterBackSlotScore(player, {
+            match,
             season,
             snittBidragScore,
             posForm,
@@ -4491,6 +4574,7 @@ function getMatchGamePlanLineStatsSlotPlayerScore(player, posId, match, seasonSt
         // MS: CB-kvalitet først (få har MS-kamper), primærside + liten MS-bonus.
         // Treffer: Kahrs > Kristoffer A > Knutsen > Gundersen > Nyland > Brunstad.
         score = getMatchGamePlanMiddleCenterBackSlotScore(player, {
+            match,
             season,
             snittBidragScore,
             posForm,
@@ -4539,6 +4623,7 @@ function getMatchGamePlanGoalkeeperSlotScore(player, parts) {
         form = 0,
         matches = 0
     } = parts || {};
+    const { pos1 } = readSuggestionPositions(player, parts);
 
     // Myk sample; 1-kamps nødløsning (trener/innhopp) dempes ekstra.
     const sample = matches > 0 ? Math.min(1, Math.sqrt(matches / 3)) : 0;
@@ -4549,7 +4634,7 @@ function getMatchGamePlanGoalkeeperSlotScore(player, parts) {
         + posForm * 0.25
         + borsScore * 0.15
     );
-    const pref = player?.pos1 === 'Keeper' ? 4 : 0;
+    const pref = pos1 === 'Keeper' ? 4 : 0;
 
     return Math.round((
         sample * emergencyFactor * gkQuality * 0.72
@@ -4568,6 +4653,7 @@ function getMatchGamePlanPlaymakerSlotScore(player, parts) {
         minutes = 0,
         bestKampbonus = 0
     } = parts || {};
+    const { pos1, pos2 } = readSuggestionPositions(player, parts);
 
     // Myk sample: 1 kamp ≈ 0.58, 3+ = 1 (kvalitet kan vinne over rent volum).
     const sample = matches > 0 ? Math.min(1, Math.sqrt(matches / 3)) : 0;
@@ -4603,7 +4689,7 @@ function getMatchGamePlanPlaymakerSlotScore(player, parts) {
         midBidragScore * 0.55 + midMinutesScore * 0.45
     ) * 0.45;
 
-    const prefPM = player?.pos1 === 'Playmaker' || player?.pos2 === 'Playmaker';
+    const prefPM = pos1 === 'Playmaker' || pos2 === 'Playmaker';
     const pref = prefPM ? 6 : 0;
 
     return Math.round((sample * pmQuality * 0.70 + midFill + form * 0.18 + pref) * 10) / 10;
@@ -4618,6 +4704,7 @@ function getMatchGamePlanOffensiveMidSlotScore(player, parts) {
         matches = 0,
         minutes = 0
     } = parts || {};
+    const { pos1, pos2 } = readSuggestionPositions(player, parts);
 
     // Myk sample: 1 kamp ≈ 0.58, 3+ = 1. Minutter veier tyngre enn på PM (OM-arbeidshest).
     const sample = matches > 0 ? Math.min(1, Math.sqrt(matches / 3)) : 0;
@@ -4630,7 +4717,7 @@ function getMatchGamePlanOffensiveMidSlotScore(player, parts) {
         + minutesScore * 0.20
         + matchesScore * 0.10
     );
-    const prefOM = player?.pos1 === 'Offensiv midtbane' || player?.pos2 === 'Offensiv midtbane';
+    const prefOM = pos1 === 'Offensiv midtbane' || pos2 === 'Offensiv midtbane';
     const pref = prefOM ? 4 : 0;
 
     return Math.round((sample * omQuality * 0.72 + form * 0.16 + pref) * 10) / 10;
@@ -4691,10 +4778,11 @@ function getMatchGamePlanRightCenterBackSlotScore(player, parts) {
         minutes = 0,
         bestKampbonus = 0
     } = parts || {};
+    const { pos1, pos2 } = readSuggestionPositions(player, parts);
 
-    const pos1HS = player?.pos1 === 'Høyre stopper';
-    const pos2HS = player?.pos2 === 'Høyre stopper';
-    const posVS = player?.pos1 === 'Venstre stopper' || player?.pos2 === 'Venstre stopper';
+    const pos1HS = pos1 === 'Høyre stopper';
+    const pos2HS = pos2 === 'Høyre stopper';
+    const posVS = pos1 === 'Venstre stopper' || pos2 === 'Venstre stopper';
     const footAdjust = getMatchGamePlanRightCenterBackFootAdjust(player);
 
     let cbMatches = 0;
@@ -4753,8 +4841,9 @@ function getMatchGamePlanMiddleCenterBackSlotScore(player, parts) {
         minutes = 0,
         bestKampbonus = 0
     } = parts || {};
+    const { pos1 } = readSuggestionPositions(player, parts);
 
-    const pos1Stop = player?.pos1 === 'Venstre stopper' || player?.pos1 === 'Høyre stopper';
+    const pos1Stop = pos1 === 'Venstre stopper' || pos1 === 'Høyre stopper';
     let cbMatches = 0;
     let cbMinutes = 0;
     let cbPoints = 0;
@@ -4836,10 +4925,11 @@ function getMatchGamePlanLeftCenterBackSlotScore(player, parts) {
         minutes = 0,
         bestKampbonus = 0
     } = parts || {};
+    const { pos1, pos2 } = readSuggestionPositions(player, parts);
 
-    const pos1VS = player?.pos1 === 'Venstre stopper';
-    const pos2VS = player?.pos2 === 'Venstre stopper';
-    const posHS = player?.pos1 === 'Høyre stopper' || player?.pos2 === 'Høyre stopper';
+    const pos1VS = pos1 === 'Venstre stopper';
+    const pos2VS = pos2 === 'Venstre stopper';
+    const posHS = pos1 === 'Høyre stopper' || pos2 === 'Høyre stopper';
     const footAdjust = getMatchGamePlanLeftCenterBackFootAdjust(player);
 
     let cbMatches = 0;
@@ -4914,11 +5004,12 @@ function getMatchGamePlanDefensiveMidSlotScore(player, parts) {
         minutes = 0,
         bestKampbonus = 0
     } = parts || {};
+    const { pos1, pos2 } = readSuggestionPositions(player, parts);
 
-    const pos1DM = player?.pos1 === 'Defensiv midtbane';
-    const pos2DM = player?.pos2 === 'Defensiv midtbane';
-    const prefOM = player?.pos1 === 'Offensiv midtbane' || player?.pos2 === 'Offensiv midtbane';
-    const prefPM = player?.pos1 === 'Playmaker' || player?.pos2 === 'Playmaker';
+    const pos1DM = pos1 === 'Defensiv midtbane';
+    const pos2DM = pos2 === 'Defensiv midtbane';
+    const prefOM = pos1 === 'Offensiv midtbane' || pos2 === 'Offensiv midtbane';
+    const prefPM = pos1 === 'Playmaker' || pos2 === 'Playmaker';
     const pref = (pos1DM ? 8 : 0)
         + (pos2DM && !pos1DM ? 2 : 0)
         + ((prefOM || prefPM) && !pos1DM && !pos2DM ? 5 : 0);
@@ -5062,7 +5153,7 @@ function computeMatchGamePlanBestLineStatsSuggestion(match, zoneId) {
     const rememberSeasonStat = (player) => {
         const key = player?.id || player?.navn || '';
         if (!key || seasonStatByKey.has(key)) return;
-        seasonStatByKey.set(key, getMatchGamePlanPlayerSeasonStat(player));
+        seasonStatByKey.set(key, getMatchGamePlanPlayerSeasonStat(player, match));
     };
     candidates.forEach(rememberSeasonStat);
     slots.forEach((posId) => rememberSeasonStat(lineup[posId]));
@@ -5148,12 +5239,12 @@ function playerFitsMatchGamePlanAttackSuggestSlot(player, posId, match) {
     if (!player || !posId) return false;
     if (isMatchGamePlanAttackStrikerSlot(posId)) {
         // Kun ekte spiss-profil eller kamper på SP/SV/SH (SP2 → SP i stats).
-        if (playerHasSamspillPreferredFit(player, 'SP') || playerHasSamspillPreferredFit(player, 'SP2')) {
+        if (playerHasSamspillPreferredFit(player, 'SP', match) || playerHasSamspillPreferredFit(player, 'SP2', match)) {
             return true;
         }
         return (Number(getMatchGamePlanLineStatsPosStat(player, 'SP')?.matches) || 0) > 0;
     }
-    if (playerHasSamspillPreferredFit(player, posId)) return true;
+    if (playerHasSamspillPreferredFit(player, posId, match)) return true;
     return (Number(getMatchGamePlanLineStatsPosStat(player, posId)?.matches) || 0) > 0;
 }
 
@@ -5224,7 +5315,7 @@ function getMatchGamePlanAttackSlotPlayerScore(player, posId, match, seasonStat 
     const statsPosId = isMatchGamePlanAttackStrikerSlot(posId) ? 'SP' : posId;
     const isStriker = isMatchGamePlanAttackStrikerSlot(posId);
     const posStat = getMatchGamePlanLineStatsPosStat(player, statsPosId);
-    const seasonStatResolved = seasonStat || getMatchGamePlanPlayerSeasonStat(player);
+    const seasonStatResolved = seasonStat || getMatchGamePlanPlayerSeasonStat(player, match);
     const matches = Number(posStat?.matches) || 0;
     const minutes = Math.max(0, Math.floor(Number(posStat?.minutes) || 0));
     const snittBidrag = matches > 0 ? getMatchGamePlanSnittBidrag(posStat) : 0;
@@ -5241,7 +5332,7 @@ function getMatchGamePlanAttackSlotPlayerScore(player, posId, match, seasonStat 
     const posForm = posStat?.entries?.length
         ? Number(computeMatchGamePlanPositionForm(posStat.entries)) || 0
         : 0;
-    const form = Number(getMatchGamePlanPlayerForm(player)) || 0;
+    const form = Number(getMatchGamePlanPlayerForm(player, match)) || 0;
 
     const matchesScore = Math.max(0, Math.min(100, (matches / 8) * 100));
     const minutesScore = Math.max(0, Math.min(100, (minutes / MATCH_GAME_PLAN_ATTACK_MINUTES_FULL) * 100));
@@ -5787,7 +5878,7 @@ function getMatchSummaryKamptroppFormSnitt(match) {
     const players = getMatchSummaryKamptroppPlayers(match);
     if (!players.length) return null;
     const values = players
-        .map((player) => Number(getMatchGamePlanPlayerForm(player)) || 0)
+        .map((player) => Number(getMatchGamePlanPlayerForm(player, match)) || 0)
         .filter((value) => value > 0);
     if (!values.length) return null;
     return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
@@ -5829,7 +5920,7 @@ function getMatchSummaryMatchFormSnitt(match) {
     const players = getMatchSummaryMatchParticipantPlayers(match);
     if (!players.length) return null;
     const values = players
-        .map((player) => Number(getMatchGamePlanPlayerForm(player)) || 0)
+        .map((player) => Number(getMatchGamePlanPlayerForm(player, match)) || 0)
         .filter((value) => value > 0);
     if (!values.length) return null;
     return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
@@ -6337,7 +6428,7 @@ function compareMatchSquadLinePlayers(match, lineKey, left, right) {
     const rightOnPitch = rightIndex < 1000 ? 0 : 1;
     return leftOnPitch - rightOnPitch
         || leftIndex - rightIndex
-        || (Number(left?.drakt) || 999) - (Number(right?.drakt) || 999)
+        || matchSeasonJerseySort(left, match) - matchSeasonJerseySort(right, match)
         || String(left?.navn || '').localeCompare(String(right?.navn || ''), 'nb', { sensitivity: 'base' });
 }
 
@@ -6649,7 +6740,10 @@ function getMatchGamePlanSamspillFilter(match) {
     // and wipe bench-upgrade suggestions on the pitch chips.
     const filter = {
         historicalOnly: true,
-        excludeMatchId: match?.id || null
+        excludeMatchId: match?.id || null,
+        seasonYear: typeof window.getActivitySeasonYear === 'function'
+            ? window.getActivitySeasonYear(match)
+            : null
     };
     if (match?.matchGroup) filter.teamName = match.matchGroup;
     else filter.teamName = null;
@@ -7227,7 +7321,7 @@ function isMatchGamePlanBenchPlayerInSamspillZone(match, player, zoneId) {
     }
 
     const categories = matchGamePlanSamspillZoneBenchCategories[zoneId] || [];
-    const category = getMatchDetailPositionCategory(player.pos1);
+    const category = getMatchDetailPositionCategory(getMatchSeasonPlayerView(player, match).pos1);
     return Boolean(category && categories.includes(category));
 }
 
@@ -7448,7 +7542,7 @@ function getMatchGamePlanZoneBenchPlayers(match, zoneId) {
 
     return getMatchDetailAttendingPlayers(match).filter(player => {
         if (player.id && onPitchIds.has(player.id)) return false;
-        const category = getMatchDetailPositionCategory(player.pos1);
+        const category = getMatchDetailPositionCategory(getMatchSeasonPlayerView(player, match).pos1);
         return category && categories.includes(category);
     });
 }
@@ -7640,7 +7734,7 @@ function getMatchGamePlanSamspillSlotQuality(player, posId, match, qualityCache 
     const statsPosId = normalizeMatchGamePlanStatsPositionId(posId);
     const posStat = getPlayerPositionStatForPos(player, statsPosId)
         || (statsPosId !== posId ? getPlayerPositionStatForPos(player, posId) : null);
-    const seasonStat = getMatchGamePlanPlayerSeasonStat(player);
+    const seasonStat = getMatchGamePlanPlayerSeasonStat(player, match);
     const seasonValue = posStat?.matches > 0
         ? Number(computeMatchGamePlanPositionSeason(posStat, seasonStat)) || 0
         : 0;
@@ -7656,7 +7750,7 @@ function getMatchGamePlanSamspillSlotQuality(player, posId, match, qualityCache 
     } else if (posFormValue > 0) {
         quality = Math.round(posFormValue);
     } else {
-        const form = Number(getMatchGamePlanPlayerForm(player)) || 0;
+        const form = Number(getMatchGamePlanPlayerForm(player, match)) || 0;
         const kamp = Number(getMatchGamePlanPlayerKampbidrag(player, match)) || 0;
         const kampNorm = kamp > 0
             ? Math.max(0, Math.min(100, ((kamp - 5) / 25) * 100))
@@ -8121,8 +8215,8 @@ function getMatchGamePlanBenchPlayers(match) {
     return getMatchGamePlanSelectablePlayers(match)
         .filter(player => !Object.values(lineup).some(lineupPlayer => matchGamePlanSamePlayer(lineupPlayer, player)))
         .sort((a, b) => {
-            const jerseyA = Number(a.drakt || a.draktnummer) || 999;
-            const jerseyB = Number(b.drakt || b.draktnummer) || 999;
+            const jerseyA = matchSeasonJerseySort(a, match);
+            const jerseyB = matchSeasonJerseySort(b, match);
             return jerseyA - jerseyB || a.navn.localeCompare(b.navn);
         });
 }
@@ -8160,15 +8254,15 @@ function buildMatchGamePlanBenchPlanHtml(match) {
             if (!a.assignment.minute && b.assignment.minute) return 1;
             if (a.minuteValue !== b.minuteValue) return a.minuteValue - b.minuteValue;
 
-            const jerseyA = Number(a.player.drakt || a.player.draktnummer) || 999;
-            const jerseyB = Number(b.player.drakt || b.player.draktnummer) || 999;
+            const jerseyA = matchSeasonJerseySort(a.player, match);
+            const jerseyB = matchSeasonJerseySort(b.player, match);
             return jerseyA - jerseyB || a.player.navn.localeCompare(b.player.navn);
         });
     return `
         <div class="match-game-plan-bench-panel" aria-label="Planlagt innbytte">
             <div class="match-game-plan-bench-list">
                 ${benchItems.map(({ player, playerKey, assignment, isComplete, isPartial }) => {
-                    const jerseySort = Number(player.drakt || player.draktnummer) || 999;
+                    const jerseySort = matchSeasonJerseySort(player, match);
                     const isPlanned = Boolean(assignment.minute || assignment.position);
                     const rowClass = [
                         'match-game-plan-offc-select-field',
@@ -9159,9 +9253,9 @@ function getMatchPrintPlayerLabel(player) {
     return getMatchGamePlanPlayerShortName(player);
 }
 
-function getMatchPrintJersey(player) {
-    const jersey = player?.drakt || player?.draktnummer;
-    return jersey ? String(jersey) : '—';
+function getMatchPrintJersey(player, match) {
+    const jersey = getMatchSeasonPlayerView(player, match).draktnummer;
+    return jersey !== '' && jersey != null ? String(jersey) : '—';
 }
 
 function buildMatchPrintPitchHtml(match, planId) {
@@ -9254,7 +9348,7 @@ function buildMatchPrintLineupHtml(match) {
                     const player = lineup[posId] || null;
                     return `
                         <li>
-                            <span class="match-print-jersey">${escapeMatchHtml(getMatchPrintJersey(player))}</span>
+                            <span class="match-print-jersey">${escapeMatchHtml(getMatchPrintJersey(player, match))}</span>
                             <span class="match-print-pos">${escapeMatchHtml(getMatchGamePlanPositionLabel(posId))}</span>
                             <span class="match-print-name">${escapeMatchHtml(getMatchPrintPlayerLabel(player))}</span>
                         </li>
@@ -9323,8 +9417,8 @@ function getMatchPrintBenchPlanItems(match) {
         const minuteA = a.assignment.minute ? Number(a.assignment.minute) : 999;
         const minuteB = b.assignment.minute ? Number(b.assignment.minute) : 999;
         if (minuteA !== minuteB) return minuteA - minuteB;
-        const jerseyA = Number(a.player?.drakt || a.player?.draktnummer) || 999;
-        const jerseyB = Number(b.player?.drakt || b.player?.draktnummer) || 999;
+        const jerseyA = matchSeasonJerseySort(a.player, match);
+        const jerseyB = matchSeasonJerseySort(b.player, match);
         if (jerseyA !== jerseyB) return jerseyA - jerseyB;
         return getMatchPrintPlayerLabel(a.player).localeCompare(getMatchPrintPlayerLabel(b.player));
     });
@@ -9352,7 +9446,7 @@ function buildMatchPrintBenchPlanHtml(match) {
                             const position = assignment.position
                                 ? getMatchGamePlanPositionLabel(assignment.position)
                                 : '—';
-                            const jersey = getMatchPrintJersey(player);
+                            const jersey = getMatchPrintJersey(player, match);
                             return `
                                 <tr>
                                     <td class="match-print-minute">${escapeMatchHtml(minute)}</td>
@@ -9488,7 +9582,7 @@ function buildMatchPrintUtviklingsmomentHtml(match) {
                             const moment = String(player?.utviklingsmoment || '').trim();
                             return `
                                 <tr>
-                                    <td class="match-print-jersey">${escapeMatchHtml(getMatchPrintJersey(player))}</td>
+                                    <td class="match-print-jersey">${escapeMatchHtml(getMatchPrintJersey(player, match))}</td>
                                     <td class="match-print-name">${escapeMatchHtml(getMatchPrintPlayerLabel(player))}</td>
                                     <td class="match-print-utvikling-text">${
                                         moment
@@ -10740,13 +10834,7 @@ window.showMatchDetails = function(id) {
 
 function getMatchGamePlanSelectablePlayers(match) {
     const listedPlayers = (window.activePlayers || [])
-        .filter(player => {
-            if (match.matchGroup && player.spillerLag !== match.matchGroup) return false;
-            if (typeof window.isPlayerListedForActivity === 'function') {
-                return window.isPlayerListedForActivity(player, match);
-            }
-            return window.isPlayerInCurrentSquadPool(player);
-        });
+        .filter(player => isPlayerInMatchSeasonSquad(player, match));
     const participantRefs = typeof window.getMatchParticipantRefs === 'function'
         ? window.getMatchParticipantRefs(match)
         : window.getAttendingPlayerRefs(match.attendance);
@@ -11340,7 +11428,7 @@ function buildMatchGamePlanSelectCurrentStripHtml(match, posId, player) {
     if (!player) return '';
 
     const posStat = getPlayerPositionStatForPos(player, posId);
-    const seasonStat = getMatchGamePlanPlayerSeasonStat(player);
+    const seasonStat = getMatchGamePlanPlayerSeasonStat(player, match);
     const posCode = getMatchGamePlanPositionBadgeLabel(posId, getMatchPlayerSelectFormation(match));
     const matches = Math.max(0, Math.floor(Number(posStat?.matches) || 0));
     const bidrag = matches > 0
@@ -11385,7 +11473,7 @@ function buildMatchGamePlanPositionOptionsHtml(match, posId) {
         .sort(compareMatchGamePlanPositions)
         .map(targetPosId => {
             const targetPlayer = lineup[targetPosId];
-            const score = getMatchGamePlanPositionScore(currentPlayer, targetPosId);
+            const score = getMatchGamePlanPositionScore(currentPlayer, targetPosId, match);
             const positionLabel = getMatchGamePlanPositionLabel(targetPosId);
             const avatarHtml = targetPlayer
                 ? buildMatchGamePlanPlayerOptionAvatarHtml(targetPlayer)
@@ -11510,7 +11598,7 @@ function buildMatchGamePlanExperiencedPlayersTableHtml(match, posId, experienced
 
 function buildMatchGamePlanPlayerSelectOptionHtml(match, posId, player) {
     const existingPosId = getMatchGamePlanPlayerPitchPosId(match, player);
-    const score = getMatchGamePlanPositionScore(player, posId);
+    const score = getMatchGamePlanPositionScore(player, posId, match);
     const trailingHtml = existingPosId
         ? `<span class="match-game-plan-player-tag is-pitch">${escapeMatchHtml(getMatchGamePlanPositionBadgeLabel(existingPosId, getMatchPlayerSelectFormation(match)))}</span>`
         : buildMatchGamePlanFitTagHtml(score);
@@ -11567,7 +11655,7 @@ function buildMatchGamePlanPlayerOptionsHtml(match, posId, selectedPlayer) {
         experienced.push({
             player,
             posStat: safeStat,
-            seasonStat: getMatchGamePlanPlayerSeasonStat(player),
+            seasonStat: getMatchGamePlanPlayerSeasonStat(player, match),
             snittBidrag: safeStat.matches > 0 ? safeStat.points / safeStat.matches : 0,
             xp: safeStat.matches > 0 ? (safeStat.goals + safeStat.assists) / safeStat.matches : 0
         });
@@ -13432,7 +13520,10 @@ function buildPlayerPositionMatchStats(player, options = {}) {
         : null;
 
     (window.activeMatches || []).forEach((match) => {
-        if (!match || match.matchGroup !== player.spillerLag) return;
+        const seasonTeam = typeof window.getPlayerTeamForYear === 'function'
+            ? window.getPlayerTeamForYear(player, yearFilter)
+            : (player.spillerLag || '');
+        if (!match || match.matchGroup !== seasonTeam) return;
         if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(match)) return;
         if (typeof window.matchHasPlayedResult === 'function' && !window.matchHasPlayedResult(match)) return;
         if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return;
@@ -13523,9 +13614,11 @@ function getMatchGamePlanPlayerSeasonStat(player, yearFilter) {
             formParts: { oppm: 0, dis: 0, recentRedCardPenalty: 0 }
         };
     }
-    const year = yearFilter != null && yearFilter !== '' && yearFilter !== 'alle'
-        ? Number(yearFilter)
-        : new Date().getFullYear();
+    const year = yearFilter && typeof yearFilter === 'object'
+        ? (typeof window.getActivitySeasonYear === 'function' ? window.getActivitySeasonYear(yearFilter) : null)
+        : (yearFilter != null && yearFilter !== '' && yearFilter !== 'alle'
+            ? Number(yearFilter)
+            : (typeof window.getActivitySeasonYear === 'function' ? window.getActivitySeasonYear(null) : null));
     const rows = window.buildPlayerStatsData(
         Number.isFinite(year)
             ? { applyYearFilter: true, yearFilter: year }
@@ -13769,7 +13862,7 @@ function buildMatchGamePlanInsightTrainingRowHtml(player) {
 }
 
 function buildMatchGamePlanPlayerInsightHtml(player, match) {
-    const season = getMatchGamePlanPlayerSeasonStat(player);
+    const season = getMatchGamePlanPlayerSeasonStat(player, match);
     const positionRows = [...(buildPlayerPositionMatchStats(player) || [])]
         .sort(compareMatchGamePlanPositionRowsByBidrag);
 

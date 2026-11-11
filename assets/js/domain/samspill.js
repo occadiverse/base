@@ -491,12 +491,21 @@
             : DEFAULT_POSITION_RELEVANCE;
         const play = window.getDuoPairPlayHistory(playerObjA, playerObjB, opts);
         const confidence = play.dataConfidence || 'none';
+        const seasonYear = typeof window.resolvePlayerSeasonYear === 'function'
+            ? window.resolvePlayerSeasonYear(opts.seasonYear)
+            : null;
+        const bidragYear = seasonYear != null
+            ? seasonYear
+            : (opts.match && typeof window.getActivitySeasonYear === 'function'
+                ? window.getActivitySeasonYear(opts.match)
+                : (typeof window.getActiveSeasonYear === 'function' ? window.getActiveSeasonYear() : null));
+        const formOptions = bidragYear != null ? { yearFilter: bidragYear } : {};
 
         const formA = typeof window.calculatePlayerPerformanceChemistry === 'function'
-            ? window.calculatePlayerPerformanceChemistry(playerObjA.navn)
+            ? window.calculatePlayerPerformanceChemistry(playerObjA.navn, formOptions)
             : 0;
         const formB = typeof window.calculatePlayerPerformanceChemistry === 'function'
-            ? window.calculatePlayerPerformanceChemistry(playerObjB.navn)
+            ? window.calculatePlayerPerformanceChemistry(playerObjB.navn, formOptions)
             : 0;
 
         const togetherScore = clampScore((play.pitchCount / 8) * 100);
@@ -506,10 +515,10 @@
             : 50;
         const formScore = pairLimitedScore(formA, formB);
         const kampbidragA = typeof window.getPlayerKampbidragSnitt === 'function'
-            ? Number(window.getPlayerKampbidragSnitt(playerObjA, teamName)) || 0
+            ? Number(window.getPlayerKampbidragSnitt(playerObjA, teamName, bidragYear)) || 0
             : 0;
         const kampbidragB = typeof window.getPlayerKampbidragSnitt === 'function'
-            ? Number(window.getPlayerKampbidragSnitt(playerObjB, teamName)) || 0
+            ? Number(window.getPlayerKampbidragSnitt(playerObjB, teamName, bidragYear)) || 0
             : 0;
         const kampbidragScore = pairLimitedScore(
             normalizeKampbidrag(kampbidragA),
@@ -577,6 +586,7 @@
             posRight,
             opts.teamName || '',
             opts.excludeMatchId || '',
+            opts.seasonYear || '',
             opts.historicalOnly ? '1' : '0',
             (window.activeMatches || []).length
         ].join('|');

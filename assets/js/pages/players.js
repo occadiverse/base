@@ -50,6 +50,11 @@ window.renderAdminTeamsList = function() {
 };
 
 window.rosterStatusFilter = 'Aktiv';
+window.rosterMode = 'now';
+window.rosterPlanFilter = 'Uavklart';
+window.ROSTER_PLAN_SOURCE_YEAR = 2026;
+window.ROSTER_PLAN_YEAR = 2027;
+window.ROSTER_PLAN_STATUSES = ['Uavklart', 'Fortsetter', 'Slutter', 'Ny spiller'];
 
 window.setPlayerStatusFilter = function(status) {
     window.rosterStatusFilter = status;
@@ -252,6 +257,10 @@ window.syncPlayerStatusWithLeftToDate = function() {
     const leftToInput = document.getElementById('playerLeftToInput');
     const statusInput = document.getElementById('playerStatusInput');
     if (!leftToInput || !statusInput) return;
+    if (window._rosterPlanNewPlayer) {
+        statusInput.value = 'Passiv';
+        return;
+    }
     const leftTo = (leftToInput.value || '').trim();
     if (leftTo) {
         statusInput.value = 'Utregistrert';
@@ -390,6 +399,7 @@ function bindPlayerRosterEvents() {
 
     listContainer.dataset.eventsBound = 'true';
     listContainer.addEventListener('click', (event) => {
+        if (event.target.closest('[data-roster-plan-control]')) return;
         const row = event.target.closest('[data-player-id]');
         if (!row) return;
 
@@ -400,7 +410,23 @@ function bindPlayerRosterEvents() {
             window.openPlayerModal(playerId);
         }
     });
+    listContainer.addEventListener('change', (event) => {
+        const select = event.target.closest('[data-roster-plan-status]');
+        if (!select) return;
+        const row = select.closest('[data-player-id]');
+        if (!row) return;
+        window.saveRosterSeasonPlan(row.dataset.playerId, { status: select.value });
+    });
+    listContainer.addEventListener('focusout', (event) => {
+        const note = event.target.closest('[data-roster-plan-note]');
+        if (!note) return;
+        const row = note.closest('[data-player-id]');
+        if (!row) return;
+        if (note.value === (note.dataset.savedNote || '')) return;
+        window.saveRosterSeasonPlan(row.dataset.playerId, { note: note.value });
+    });
     listContainer.addEventListener('keydown', (event) => {
+        if (event.target.closest('[data-roster-plan-control]')) return;
         if (event.key !== 'Enter' && event.key !== ' ') return;
 
         const row = event.target.closest('[data-player-id]');
@@ -475,7 +501,445 @@ function buildRosterPlayerRow(p, currentYear) {
     `;
 }
 
+function getExplicitRosterSeasonPlan(player, year = window.ROSTER_PLAN_YEAR) {
+    const plans = player?.seasonPlans;
+    if (!plans || typeof plans !== 'object') return null;
+    const plan = plans[String(year)] || plans[year];
+    if (!plan || typeof plan !== 'object' || Array.isArray(plan) || !plan.status) return null;
+    return plan;
+}
+
+function playerHasRosterPlanSeason(player, year = window.ROSTER_PLAN_SOURCE_YEAR) {
+    return typeof window.getPlayerSeasonRecord === 'function'
+        && Boolean(window.getPlayerSeasonRecord(player, year));
+}
+
+function getRosterPlanStatus(player) {
+    const explicit = getExplicitRosterSeasonPlan(player);
+    if (explicit?.status) return explicit.status;
+    if (playerHasRosterPlanSeason(player)) return 'Uavklart';
+    return '';
+}
+
+function playerBelongsInRosterPlan(player) {
+    if (!player || player.isGuest) return false;
+    if (playerHasRosterPlanSeason(player)) return true;
+    return Boolean(getExplicitRosterSeasonPlan(player)?.status);
+}
+
+function getRosterPlanReference(player, year = window.ROSTER_PLAN_SOURCE_YEAR) {
+    const record = typeof window.getPlayerSeasonRecord === 'function'
+        ? window.getPlayerSeasonRecord(player, year)
+        : null;
+    if (record) {
+        return {
+            hasSeason: true,
+            pos1: record.pos1 || '',
+            pos2: record.pos2 || '',
+            draktnummer: record.draktnummer ?? '',
+            status: record.status || ''
+        };
+    }
+    return {
+        hasSeason: false,
+        pos1: player?.pos1 || '',
+        pos2: player?.pos2 || '',
+        draktnummer: player?.draktnummer ?? '',
+        status: ''
+    };
+}
+
+function getRosterPlanPosition(player) {
+    const reference = getRosterPlanReference(player);
+    return reference.pos1 && reference.pos1 !== '-' ? reference.pos1 : '';
+}
+
+function getRosterPlanPlayers() {
+    const searchTerm = (document.getElementById('playerSearchInput')?.value || '').trim().toLowerCase();
+    return (window.activePlayers || []).filter(player => {
+        if (!playerBelongsInRosterPlan(player)) return false;
+        const planStatus = getRosterPlanStatus(player);
+        if (window.rosterPlanFilter !== 'alle' && planStatus !== window.rosterPlanFilter) return false;
+        if (!searchTerm) return true;
+        const reference = getRosterPlanReference(player);
+        const position = reference.pos2 && reference.pos2 !== '-'
+            ? `${reference.pos1} / ${reference.pos2}`
+            : reference.pos1;
+        const note = getExplicitRosterSeasonPlan(player)?.note || '';
+        const haystack = [
+            player.navn,
+            reference.draktnummer,
+            position,
+            reference.status,
+            planStatus,
+            note
+        ].join(' ').toLowerCase();
+        return haystack.includes(searchTerm);
+    });
+}
+
+function buildRosterPlanBadge(status) {
+    const tone = status === 'Fortsetter'
+        ? 'is-continue'
+        : status === 'Slutter'
+            ? 'is-leave'
+            : status === 'Ny spiller'
+                ? 'is-new'
+                : 'is-open';
+    return `<span class="roster-plan-badge ${tone}">${escapeRosterHtml(status)}</span>`;
+}
+
+function buildRosterPlanRow(player) {
+    const reference = getRosterPlanReference(player);
+    const plan = getExplicitRosterSeasonPlan(player);
+    const planStatus = getRosterPlanStatus(player);
+    const position = reference.pos1 && reference.pos1 !== '-'
+        ? (reference.pos2 && reference.pos2 !== '-' ? `${reference.pos1} / ${reference.pos2}` : reference.pos1)
+        : '';
+    const number = reference.draktnummer !== '' && reference.draktnummer != null
+        ? `#${reference.draktnummer}`
+        : '';
+    const meta = [position, number].filter(Boolean).join(' · ') || 'Posisjon ikke satt';
+    const sourceYear = window.ROSTER_PLAN_SOURCE_YEAR;
+    const targetYear = window.ROSTER_PLAN_YEAR;
+    const seasonLine = reference.hasSeason
+        ? `${sourceYear}: ${reference.status || 'ikke satt'}`
+        : `Ingen ${sourceYear}-sesong`;
+    const hasTargetSeason = typeof window.getPlayerSeasonRecord === 'function'
+        && Boolean(window.getPlayerSeasonRecord(player, targetYear));
+    const note = plan?.note || '';
+    const options = window.ROSTER_PLAN_STATUSES.map(status => `
+        <option value="${escapeRosterHtml(status)}"${status === planStatus ? ' selected' : ''}>${escapeRosterHtml(status)}</option>
+    `).join('');
+
+    return `
+        <article class="roster-player-row is-plan-row" data-player-id="${escapeRosterHtml(player.id)}">
+            ${buildRosterPlayerAvatarHtml(player)}
+            <div class="roster-player-main" role="button" tabindex="0">
+                <div class="roster-player-name">${escapeRosterHtml(player.navn)}</div>
+                <div class="roster-player-meta">
+                    <span>${escapeRosterHtml(meta)}</span>
+                </div>
+                <div class="roster-plan-season">${escapeRosterHtml(seasonLine)}</div>
+            </div>
+            <div class="roster-plan-controls" data-roster-plan-control>
+                ${buildRosterPlanBadge(planStatus)}
+                ${hasTargetSeason ? `<span class="roster-plan-created">${targetYear}-tropp ✓</span>` : ''}
+                <label class="roster-plan-label">
+                    <span>${targetYear}</span>
+                    <select class="roster-plan-select" data-roster-plan-status aria-label="${targetYear}-planstatus for ${escapeRosterHtml(player.navn)}">
+                        ${options}
+                    </select>
+                </label>
+                <input
+                    type="text"
+                    class="roster-plan-note"
+                    data-roster-plan-note
+                    data-saved-note="${escapeRosterHtml(note)}"
+                    value="${escapeRosterHtml(note)}"
+                    maxlength="160"
+                    placeholder="Notat"
+                    aria-label="Plan-notat for ${escapeRosterHtml(player.navn)}"
+                >
+            </div>
+        </article>
+    `;
+}
+
+function renderRosterPlan() {
+    const listContainer = document.getElementById('playerRosterContainer');
+    const emptyState = document.getElementById('playerRosterEmpty');
+    if (!listContainer) return;
+    bindPlayerRosterEvents();
+
+    const planPlayers = (window.activePlayers || []).filter(playerBelongsInRosterPlan);
+    const filteredPlayers = getRosterPlanPlayers();
+    const counts = { Uavklart: 0, Fortsetter: 0, Slutter: 0, 'Ny spiller': 0 };
+    planPlayers.forEach(player => {
+        const status = getRosterPlanStatus(player);
+        if (Object.prototype.hasOwnProperty.call(counts, status)) counts[status] += 1;
+    });
+
+    const playersLabel = document.getElementById('roster-stat-label-players');
+    const ageLabel = document.getElementById('roster-stat-label-age');
+    const recruitsLabel = document.getElementById('roster-stat-label-recruits');
+    const injuredLabel = document.getElementById('roster-stat-label-injured');
+    if (playersLabel) playersLabel.textContent = 'Uavklart';
+    if (ageLabel) ageLabel.textContent = 'Fortsetter';
+    if (recruitsLabel) recruitsLabel.textContent = 'Slutter';
+    if (injuredLabel) injuredLabel.textContent = 'Ny spiller';
+    const statPlayersEl = document.getElementById('stat-total-players');
+    const statAvgAgeEl = document.getElementById('stat-avg-age');
+    const statRekruttEl = document.getElementById('stat-total-rekrutt');
+    const statInjuredEl = document.getElementById('stat-total-injured');
+    if (statPlayersEl) statPlayersEl.textContent = String(counts.Uavklart);
+    if (statAvgAgeEl) statAvgAgeEl.textContent = String(counts.Fortsetter);
+    if (statRekruttEl) statRekruttEl.textContent = String(counts.Slutter);
+    if (statInjuredEl) statInjuredEl.textContent = String(counts['Ny spiller']);
+
+    const boardTitleEl = document.getElementById('rosterBoardTitle');
+    const bottomlineSummaryEl = document.getElementById('rosterBottomlineSummary');
+    if (boardTitleEl) boardTitleEl.textContent = 'Troppsplan 2027';
+    if (bottomlineSummaryEl) {
+        bottomlineSummaryEl.textContent = `Viser ${filteredPlayers.length} av ${planPlayers.length} spillere i 2027-planen.`;
+    }
+    const emptyTitle = document.getElementById('roster-empty-title');
+    const emptyText = document.getElementById('roster-empty-text');
+    if (emptyTitle) emptyTitle.textContent = 'Ingen spillere i dette filteret';
+    if (emptyText) emptyText.textContent = 'Prøv et annet planfilter, eller legg til en ny spiller.';
+
+    listContainer.innerHTML = '';
+    if (!filteredPlayers.length) {
+        listContainer.classList.add('hidden');
+        if (emptyState) emptyState.classList.remove('hidden');
+        return;
+    }
+    listContainer.classList.remove('hidden');
+    if (emptyState) emptyState.classList.add('hidden');
+
+    const grouped = assignPlayersToRosterGroups(
+        [...filteredPlayers].sort(comparePlayersByFirstName).map(player => ({
+            ...player,
+            pos1: getRosterPlanPosition(player)
+        }))
+    );
+    const playersById = new Map(filteredPlayers.map(player => [player.id, player]));
+    ROSTER_POSITION_GROUPS.forEach(group => {
+        const playersInGroup = (grouped[group.id] || [])
+            .map(player => playersById.get(player.id))
+            .filter(Boolean);
+        if (!playersInGroup.length) return;
+        const section = document.createElement('section');
+        section.className = 'roster-group';
+        section.innerHTML = `
+            <div class="roster-group-heading">
+                <span>${group.label}</span>
+                <span class="roster-group-count">${playersInGroup.length}</span>
+            </div>
+            <div class="roster-group-rows">
+                ${playersInGroup.map(player => buildRosterPlanRow(player)).join('')}
+            </div>
+        `;
+        listContainer.appendChild(section);
+    });
+}
+
+window.setRosterMode = function(mode) {
+    window.rosterMode = mode === 'plan2027' ? 'plan2027' : 'now';
+    const planMode = window.rosterMode === 'plan2027';
+    document.getElementById('view-tropp')?.classList.toggle('is-plan-mode', planMode);
+    document.getElementById('roster-mode-now')?.classList.toggle('is-active', !planMode);
+    document.getElementById('roster-mode-plan')?.classList.toggle('is-active', planMode);
+    document.getElementById('roster-now-filters')?.classList.toggle('hidden', planMode);
+    document.getElementById('roster-plan-filters')?.classList.toggle('hidden', !planMode);
+    document.getElementById('rosterPlanIntro')?.classList.toggle('hidden', !planMode);
+    document.getElementById('rosterNowLegend')?.classList.toggle('hidden', planMode);
+    const addLabel = document.getElementById('roster-add-player-label');
+    const addButton = document.getElementById('roster-add-player-btn');
+    const createButton = document.getElementById('roster-create-season-btn');
+    if (addLabel) addLabel.textContent = planMode ? 'Ny spiller' : 'Legg til';
+    if (createButton) {
+        createButton.textContent = `Opprett ${window.ROSTER_PLAN_YEAR}-tropp`;
+        createButton.classList.toggle('hidden', !planMode);
+    }
+    if (addButton) {
+        const label = planMode ? 'Ny spiller i 2027-planen' : 'Legg til ny spiller';
+        addButton.title = label;
+        addButton.setAttribute('aria-label', label);
+    }
+    window.renderPlayerRoster();
+};
+
+window.setRosterPlanFilter = function(status) {
+    window.rosterPlanFilter = window.ROSTER_PLAN_STATUSES.includes(status) || status === 'alle'
+        ? status
+        : 'Uavklart';
+    document.querySelectorAll('#roster-plan-filters .roster-status-btn').forEach(button => {
+        button.classList.remove('is-active');
+    });
+    const activeId = window.rosterPlanFilter === 'alle'
+        ? 'roster-plan-filter-alle'
+        : window.rosterPlanFilter === 'Ny spiller'
+            ? 'roster-plan-filter-ny'
+            : `roster-plan-filter-${window.rosterPlanFilter.toLowerCase()}`;
+    document.getElementById(activeId)?.classList.add('is-active');
+    window.renderPlayerRoster();
+};
+
+function setRosterPlanCreateLock(locked) {
+    window._rosterPlanNewPlayer = Boolean(locked);
+    const statusInput = document.getElementById('playerStatusInput');
+    const leftToInput = document.getElementById('playerLeftToInput');
+    const hint = document.getElementById('playerPlanNewHint');
+    if (statusInput) {
+        statusInput.disabled = Boolean(locked);
+        if (locked) statusInput.value = 'Passiv';
+    }
+    if (leftToInput) {
+        leftToInput.disabled = Boolean(locked);
+        if (locked) leftToInput.value = '';
+    }
+    if (hint) {
+        const year = window.ROSTER_PLAN_YEAR;
+        hint.textContent = `Spilleren opprettes som Passiv og ligger kun i Troppsplan ${year} inntil ${year}-troppen opprettes.`;
+        hint.classList.toggle('hidden', !locked);
+    }
+}
+
+window.openRosterPlayerModal = function() {
+    if (window.rosterMode === 'plan2027') {
+        window.openPlayerModal();
+        setRosterPlanCreateLock(true);
+        const title = document.getElementById('playerFormTitle');
+        if (title) title.textContent = `Ny spiller i ${window.ROSTER_PLAN_YEAR}-planen`;
+        return;
+    }
+    window.openPlayerModal();
+};
+
+function fillCreateSeasonRosterDialog(plan) {
+    const title = document.getElementById('seasonRosterDialogTitle');
+    const body = document.getElementById('seasonRosterDialogBody');
+    const confirmButton = document.getElementById('seasonRosterDialogConfirm');
+    const year = plan?.targetYear || window.ROSTER_PLAN_YEAR;
+    const sourceYear = plan?.sourceYear || window.ROSTER_PLAN_SOURCE_YEAR;
+    const counts = plan?.antall || {};
+    if (title) title.textContent = `Opprett ${year}-tropp`;
+    if (confirmButton) {
+        confirmButton.textContent = `Opprett ${year}-tropp`;
+        confirmButton.disabled = !counts.skalSkrives;
+    }
+    if (!body) return;
+    body.replaceChildren();
+    const writeCount = counts.skalSkrives || 0;
+    const lines = [
+        `Fortsetter: ${counts.fortsetter || 0}`,
+        `Nye spillere: ${counts.nySpiller || 0}`,
+        '',
+        writeCount === 1
+            ? `1 spiller vil bli lagt til i ${year}-troppen.`
+            : `${writeCount} spillere vil bli lagt til i ${year}-troppen.`,
+        '',
+        `Uavklart: ${counts.uavklart || 0}`,
+        `Slutter: ${counts.slutter || 0}`,
+        '',
+        'Uavklarte og spillere som slutter tas ikke med.'
+    ];
+    if ((counts.uavklart || 0) > 0) {
+        const unresolved = counts.uavklart;
+        lines.push(unresolved === 1
+            ? '1 spiller er fortsatt uavklart og blir ikke tatt med.'
+            : `${unresolved} spillere er fortsatt uavklart og blir ikke tatt med.`);
+    }
+    if ((counts.eksistererAllerede || 0) > 0) {
+        lines.push(`${counts.eksistererAllerede} eksisterer allerede og blir ikke overskrevet.`);
+    }
+    lines.push(`Ingen ${sourceYear}-data endres.`);
+    lines.forEach(line => {
+        const paragraph = document.createElement('p');
+        paragraph.textContent = line;
+        if (!line) paragraph.className = 'season-roster-dialog-gap';
+        body.appendChild(paragraph);
+    });
+}
+
+window.openCreateSeasonRosterDialog = function() {
+    const dialog = document.getElementById('seasonRosterDialog');
+    if (!dialog || typeof window.previewCreateSeasonRoster !== 'function') return;
+    const plan = window.previewCreateSeasonRoster(window.ROSTER_PLAN_SOURCE_YEAR, window.ROSTER_PLAN_YEAR);
+    fillCreateSeasonRosterDialog(plan);
+    dialog.classList.remove('hidden');
+    dialog.classList.add('flex');
+};
+
+window.closeCreateSeasonRosterDialog = function() {
+    const dialog = document.getElementById('seasonRosterDialog');
+    if (!dialog) return;
+    dialog.classList.add('hidden');
+    dialog.classList.remove('flex');
+};
+
+window.confirmCreateSeasonRoster = async function() {
+    const confirmButton = document.getElementById('seasonRosterDialogConfirm');
+    if (!confirmButton || confirmButton.disabled) return;
+    if (typeof window.createSeasonRoster !== 'function') {
+        alert('Oppretting er ikke tilgjengelig ennå. Last siden på nytt.');
+        return;
+    }
+    confirmButton.disabled = true;
+    try {
+        const result = await window.createSeasonRoster(window.ROSTER_PLAN_SOURCE_YEAR, window.ROSTER_PLAN_YEAR);
+        window.closeCreateSeasonRosterDialog();
+        if (!result?.saved) {
+            alert(result?.reason === 'nothing_to_write'
+                ? 'Ingen nye spillere å opprette.'
+                : 'Troppen ble ikke opprettet.');
+        }
+    } catch (error) {
+        console.error(error);
+        alert(error.message || 'Kunne ikke opprette troppen.');
+    } finally {
+        if (confirmButton) confirmButton.disabled = false;
+    }
+};
+
+window.saveRosterSeasonPlan = async function(playerId, patch) {
+    const players = window.activePlayers || [];
+    const index = players.findIndex(player => player.id === playerId);
+    if (index === -1) return;
+    const player = players[index];
+    const current = getExplicitRosterSeasonPlan(player) || {};
+    const status = patch.status !== undefined ? patch.status : (current.status || getRosterPlanStatus(player) || 'Uavklart');
+    if (!window.ROSTER_PLAN_STATUSES.includes(status)) return;
+    const note = String(patch.note !== undefined ? patch.note : (current.note || '')).trim().slice(0, 160);
+    if (patch.status === undefined && note === String(current.note || '').trim()) return;
+    const sourceYear = window.ROSTER_PLAN_SOURCE_YEAR;
+    const targetYear = window.ROSTER_PLAN_YEAR;
+    const sourceBefore = JSON.stringify(window.getPlayerSeasonRecord?.(player, sourceYear) ?? null);
+    const targetBefore = JSON.stringify(window.getPlayerSeasonRecord?.(player, targetYear) ?? null);
+    const updated = {
+        ...player,
+        seasonPlans: {
+            ...(player.seasonPlans || {}),
+            [String(targetYear)]: {
+                status,
+                note,
+                updatedAt: new Date().toISOString()
+            }
+        }
+    };
+    if (JSON.stringify(window.getPlayerSeasonRecord?.(updated, sourceYear) ?? null) !== sourceBefore) return;
+    if (JSON.stringify(window.getPlayerSeasonRecord?.(updated, targetYear) ?? null) !== targetBefore) return;
+    try {
+        await window.savePlayerToDatabase(updated);
+    } catch (error) {
+        console.error(error);
+        alert(error.message || 'Kunne ikke lagre 2027-planen.');
+        window.renderPlayerRoster();
+        return;
+    }
+    players[index] = updated;
+    window.localStorage.setItem('bsk_local_players', JSON.stringify(players));
+    window.renderPlayerRoster();
+};
+
 window.renderPlayerRoster = function() {
+    if (window.rosterMode === 'plan2027') {
+        renderRosterPlan();
+        return;
+    }
+    const playersLabel = document.getElementById('roster-stat-label-players');
+    const ageLabel = document.getElementById('roster-stat-label-age');
+    const recruitsLabel = document.getElementById('roster-stat-label-recruits');
+    const injuredLabel = document.getElementById('roster-stat-label-injured');
+    if (playersLabel) playersLabel.textContent = 'Spillere';
+    if (ageLabel) ageLabel.textContent = 'Snittalder';
+    if (recruitsLabel) recruitsLabel.textContent = 'Rekrutter';
+    if (injuredLabel) injuredLabel.textContent = 'Skadede';
+    const emptyTitle = document.getElementById('roster-empty-title');
+    const emptyText = document.getElementById('roster-empty-text');
+    if (emptyTitle) emptyTitle.textContent = 'Ingen spillere funnet';
+    if (emptyText) emptyText.textContent = 'Prøv et annet filter, eller registrer en ny spiller i troppen.';
     const listContainer = document.getElementById('playerRosterContainer');
     const emptyState = document.getElementById('playerRosterEmpty');
     if (!listContainer) return;
@@ -567,10 +1031,12 @@ function getPlayerProfileRadarLineLabel(line) {
 }
 
 function getPlayerProfileSeasonMatches(player, yearFilter) {
-    const team = player?.spillerLag;
-    if (!team) return [];
+    const seasonTeam = typeof window.getPlayerTeamForYear === 'function'
+        ? window.getPlayerTeamForYear(player, yearFilter)
+        : (player?.spillerLag || '');
+    if (!seasonTeam) return [];
     return (window.activeMatches || []).filter(match => {
-        if (match.matchGroup !== team) return false;
+        if (match.matchGroup !== seasonTeam) return false;
         if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(match)) return false;
         if (typeof window.matchHasPlayedResult === 'function' && !window.matchHasPlayedResult(match)) return false;
         if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return false;
@@ -595,8 +1061,11 @@ function getPlayerProfileWinSplit(player, yearFilter) {
             && window.isPlayerAttending(match.attendance, player)
             && typeof window.isPlayerOnPitch === 'function'
             && window.isPlayerOnPitch(match, player);
-        if (onPitch) inne.push(match);
-        else ute.push(match);
+        if (!onPitch) {
+            ute.push(match);
+            return;
+        }
+        inne.push(match);
     });
     const summarize = (list) => {
         let w = 0;
@@ -1398,7 +1867,9 @@ function getPlayerProfileYearFilter(player) {
     const years = getPlayerProfileYearOptions(player);
     const current = window.playerProfileYearFilter;
     if (current === 'alle') return 'alle';
-    if (current && years.includes(Number(current))) return Number(current);
+    const selected = Number(current);
+    if (current != null && current !== '' && Number.isFinite(selected)) return selected;
+    if (typeof window.getActiveSeasonYear === 'function') return window.getActiveSeasonYear();
     return years[0] || new Date().getFullYear();
 }
 
@@ -2721,6 +3192,22 @@ window.renderPlayerProfilePage = function(playerId) {
     }
 
     const yearFilter = getPlayerProfileYearFilter(player);
+    const seasonView = typeof window.getPlayerSeasonData === 'function'
+        ? window.getPlayerSeasonData(player, yearFilter)
+        : null;
+    const profilePlayer = seasonView?.hasSeason
+        ? {
+            ...player,
+            spillerLag: seasonView.spillerLag,
+            draktnummer: seasonView.draktnummer,
+            pos1: seasonView.pos1,
+            pos2: seasonView.pos2,
+            status: seasonView.status,
+            tilknyttetFra: seasonView.tilknyttetFra,
+            tilknyttetTil: seasonView.tilknyttetTil,
+            utviklingsmoment: seasonView.utviklingsmoment
+        }
+        : player;
     const currentYear = new Date().getFullYear();
     const birthYear = player.fodselsaar ? String(player.fodselsaar) : '';
     const age = birthYear ? currentYear - parseInt(birthYear, 10) : null;
@@ -2732,10 +3219,10 @@ window.renderPlayerProfilePage = function(playerId) {
         ? window.getPlayerFormComponents(player.navn, { yearFilter })
         : { total: 0 };
     const teamMedian = typeof window.getTeamFormMedian === 'function'
-        ? window.getTeamFormMedian(player.spillerLag)
+        ? window.getTeamFormMedian(profilePlayer.spillerLag)
         : 0;
     const formTone = typeof window.getFormScoreTone === 'function'
-        ? window.getFormScoreTone(formComponents.total, player.spillerLag)
+        ? window.getFormScoreTone(formComponents.total, profilePlayer.spillerLag)
         : 'none';
     const formComparison = teamMedian > 0
         ? (formComponents.total >= teamMedian + 8
@@ -2758,11 +3245,11 @@ window.renderPlayerProfilePage = function(playerId) {
         ? window.renderPlayerTrendChartSvg(trendData)
         : '<p class="player-profile-empty">Ikke nok kamper til å vise utvikling.</p>';
 
-    const jersey = player.draktnummer ? String(player.draktnummer) : '-';
-    const posLabel = buildPlayerPositionLabel(player);
+    const jersey = profilePlayer.draktnummer ? String(profilePlayer.draktnummer) : '-';
+    const posLabel = buildPlayerPositionLabel(profilePlayer);
     const foot = player.fot ? `${player.fot} fot` : 'Ukjent fot';
     const ageLabel = age != null && birthYear ? `${age} år (${birthYear})` : (birthYear || '-');
-    const statusLabel = getPlayerDisplayStatus(player);
+    const statusLabel = getPlayerDisplayStatus(profilePlayer);
     const statusTone = statusLabel === 'Aktiv'
         ? 'is-active'
         : statusLabel === 'Rekrutt'
@@ -2770,7 +3257,7 @@ window.renderPlayerProfilePage = function(playerId) {
             : 'is-muted';
     const injuryValue = injuryInfo.isInjured ? (injuryInfo.label || 'Skadet') : 'Frisk';
     const injuryTone = injuryInfo.isInjured ? 'is-hurt' : 'is-ok';
-    const moment = getPlayerUtviklingsmoment(player);
+    const moment = getPlayerUtviklingsmoment(profilePlayer);
     const captainMark = player.isCaptain ? '<span class="player-profile-captain" title="Kaptein">⚓</span>' : '';
     const oppmote = stats
         ? (typeof window.formatOppmoteDisplay === 'function'
@@ -2827,7 +3314,7 @@ window.renderPlayerProfilePage = function(playerId) {
                     <div class="player-profile-page-hero-meta">
                         <span class="player-profile-page-jersey">#${escapeRosterHtml(jersey)}</span>
                         <div class="player-profile-badges">
-                            ${buildRosterStatusBadge(getPlayerDisplayStatus(player))}
+                            ${buildRosterStatusBadge(getPlayerDisplayStatus(profilePlayer))}
                             ${buildRosterInjuryBadge(injuryInfo)}
                         </div>
                     </div>
@@ -3119,6 +3606,7 @@ window.openPlayerModal = function(editPlayerId = null, options = {}) {
     window.updateDynamicSelectors();
     window._playerModalEditOnly = Boolean(options.editOnly);
     window._playerModalWasInjured = false;
+    setRosterPlanCreateLock(false);
 
     if (editPlayerId) {
         const pObj = (window.activePlayers || []).find(p => p.id === editPlayerId);
@@ -3220,6 +3708,7 @@ window.closePlayerModal = function() {
     if (profileEl) profileEl.innerHTML = '';
     window._playerModalEditOnly = false;
     window._playerModalWasInjured = false;
+    setRosterPlanCreateLock(false);
     document.getElementById('playerModal').classList.add('hidden');
     document.getElementById('playerModal').classList.remove('flex');
 };
@@ -3342,8 +3831,13 @@ window.savePlayer = async function(event) {
     let tilknyttetFra = (document.getElementById('playerJoinedFromInput')?.value || '').trim();
     let tilknyttetTil = (document.getElementById('playerLeftToInput')?.value || '').trim();
     let status = document.getElementById('playerStatusInput').value;
+    const creatingPlanPlayer = !existingPlayerId && window._rosterPlanNewPlayer;
     // Utregistrert always requires tilknyttet til. Setting the date forces Utregistrert.
-    if (tilknyttetTil) {
+    // A player created from Troppsplan stays Passiv until the next squad is created.
+    if (creatingPlanPlayer) {
+        status = 'Passiv';
+        tilknyttetTil = '';
+    } else if (tilknyttetTil) {
         status = 'Utregistrert';
     } else if (status === 'Utregistrert') {
         tilknyttetTil = getTodayDateString();
@@ -3435,9 +3929,20 @@ window.savePlayer = async function(event) {
     }
 
     const oldName = existingPlayer?.navn;
+    if (!existingPlayerId && window._rosterPlanNewPlayer) {
+        playerData.seasonPlans = {
+            ...(playerData.seasonPlans || {}),
+            [String(window.ROSTER_PLAN_YEAR)]: {
+                status: 'Ny spiller',
+                note: '',
+                updatedAt: new Date().toISOString()
+            }
+        };
+    }
 
     try {
         await window.savePlayerToDatabase(playerData);
+        window._rosterPlanNewPlayer = false;
 
         if (playerData.id && oldName && oldName !== playerData.navn && typeof window.remapPlayerRefsAfterRename === 'function') {
             await window.remapPlayerRefsAfterRename(playerData.id, oldName);
