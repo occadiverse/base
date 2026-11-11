@@ -13813,6 +13813,7 @@ function getMatchGamePlanPlayerRecentTrainings(player, limit = 8) {
             if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(event)) return false;
             if (typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(player, event)) return false;
             if (typeof window.hasRegisteredAttendance === 'function' && !window.hasRegisteredAttendance(event.attendance)) return false;
+            if (typeof window.isMandatoryTraining === 'function' && !window.isMandatoryTraining(event)) return false;
             return true;
         })
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))

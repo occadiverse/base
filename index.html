@@ -742,6 +742,10 @@
                     <i class="fa-solid fa-check"></i>
                     <span>Ja, utfør</span>
                 </button>
+                <button id="confirmAltBtn" class="bsk-btn bsk-btn-secondary bsk-modal-action-btn hidden">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Behold</span>
+                </button>
                 <button id="confirmNoBtn" class="bsk-btn bsk-btn-secondary bsk-modal-action-btn">
                     <i class="fa-solid fa-xmark"></i>
                     <span>Avbryt</span>
@@ -1210,6 +1214,11 @@
                         class="portal-field">
                 </div>
 
+                <div id="activitySeasonWrap">
+                    <label class="portal-label" for="activitySeasonYear">Sesong</label>
+                    <select id="activitySeasonYear" class="portal-field"></select>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="portal-label">Dato</label>
@@ -1664,21 +1673,21 @@
     </div>
 
     <script src="assets/js/state.js?v=20260908-local-hydrate-v1"></script>
-    <script src="assets/js/components/modals.js?v=20261111-sesongar"></script>
+    <script src="assets/js/components/modals.js?v=20261111-sesongvarsel"></script>
     <script src="assets/js/app-shell.js?v=20261025-oktside-lukk"></script>
-    <script src="assets/js/domain/player-refs.js?v=20261111-kampflate"></script>
+    <script src="assets/js/domain/player-refs.js?v=20261111-oppstart"></script>
     <script src="assets/js/domain/scoring.js?v=20261111-sesongar"></script>
     <script src="assets/js/domain/samspill.js?v=20261111-kampflate"></script>
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20261024-crest-eager"></script>
     <script src="assets/js/pages/players.js?v=20261111-aktiv-sesong"></script>
-    <script src="assets/js/pages/matches.js?v=20261111-kampflate"></script>
-    <script src="assets/js/pages/attendance.js?v=20261111-sesongar"></script>
-    <script src="assets/js/pages/statistics.js?v=20261111-kampflate"></script>
+    <script src="assets/js/pages/matches.js?v=20261111-oppstart"></script>
+    <script src="assets/js/pages/attendance.js?v=20261111-sesongvarsel"></script>
+    <script src="assets/js/pages/statistics.js?v=20261111-oppstart"></script>
     <script src="assets/js/pages/tactics.js?v=20261111-kampflate"></script>
     <script src="assets/js/pages/dashboard.js?v=20261101-award-values"></script>
-    <script src="assets/js/pages/training-session.js?v=20261111-kampflate"></script>
-    <script type="module" src="assets/js/firebase-sync.js?v=20261111-aktiv-sesong"></script>
+    <script src="assets/js/pages/training-session.js?v=20261111-oppstart"></script>
+    <script type="module" src="assets/js/firebase-sync.js?v=20261111-oppstart"></script>
     <script src="assets/js/app.js?v=20260612-swipe-widgets2"></script>
 </body>
 </html>

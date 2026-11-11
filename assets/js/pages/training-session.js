@@ -713,12 +713,11 @@ function getCurrentSeasonDateRange(year) {
 }
 
 function isTrainingEventInCurrentSeason(event, year) {
-    if (!event?.date) return false;
-    const eventDate = new Date(event.date);
-    if (Number.isNaN(eventDate.getTime())) return false;
-    eventDate.setHours(12, 0, 0, 0);
-    const { start, end } = getCurrentSeasonDateRange(year);
-    return eventDate >= start && eventDate <= end;
+    const eventYear = typeof window.getExplicitActivitySeasonYear === 'function'
+        ? window.getExplicitActivitySeasonYear(event)
+        : null;
+    if (eventYear == null) return false;
+    return eventYear === resolveTrainingAttendanceYear(year);
 }
 
 function getTrainingHistoricalAttendanceEvents(teamName, options = {}) {
@@ -729,6 +728,7 @@ function getTrainingHistoricalAttendanceEvents(teamName, options = {}) {
             if (teamName && event.team && event.team !== teamName) return false;
             if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(event)) return false;
             if (!isTrainingEventInCurrentSeason(event, options.year)) return false;
+            if (typeof window.isMandatoryTraining === 'function' && !window.isMandatoryTraining(event)) return false;
             return true;
         })
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
@@ -871,6 +871,62 @@ function buildTrainingDataRecommendationsHtml(match) {
     `;
 }
 
+function buildTrainingSeasonAdminHtml(year) {
+    const seasonYear = resolveTrainingAttendanceYear(year);
+    const modelFrom = window.TRAINING_MANDATORY_MODEL_FROM_YEAR || 2027;
+    const parts = [];
+    if (seasonYear >= modelFrom && typeof window.getMandatoryTrainingStart === 'function') {
+        const start = window.getMandatoryTrainingStart(seasonYear);
+        parts.push(`
+            <div class="training-season-start">
+                <label class="portal-label" for="training-start-${seasonYear}">Obligatorisk treningsstart ${seasonYear}</label>
+                <div class="training-season-start-row">
+                    <input
+                        id="training-start-${seasonYear}"
+                        type="date"
+                        class="portal-field"
+                        data-season-start-year="${seasonYear}"
+                        value="${escapeTrainingHtml(start)}"
+                    >
+                    <button type="button" class="bsk-btn bsk-btn-secondary" data-season-start-clear="${seasonYear}">Fjern</button>
+                </div>
+            </div>
+        `);
+    }
+    const missing = typeof window.getMissingTrainingStartNotice === 'function'
+        ? window.getMissingTrainingStartNotice(seasonYear)
+        : '';
+    const active = typeof window.getActiveSeasonYear === 'function' ? window.getActiveSeasonYear() : null;
+    const nextNotice = seasonYear === active && typeof window.getNextSeasonTrainingNotice === 'function'
+        ? window.getNextSeasonTrainingNotice()
+        : '';
+    if (missing) parts.push(`<p class="training-season-note">${escapeTrainingHtml(missing)}</p>`);
+    if (nextNotice) parts.push(`<p class="training-season-note">${escapeTrainingHtml(nextNotice)}</p>`);
+    return parts.join('');
+}
+
+window.refreshTrainingObligationViews = function() {
+    if (window.currentTab === 'oktside' && window._activeTrainingSessionId && typeof window.renderTrainingSession === 'function') {
+        window.renderTrainingSession(window._activeTrainingSessionId);
+    }
+    if (window.currentTab === 'statistikk' && typeof window.renderStatistikkSide === 'function') {
+        window.renderStatistikkSide();
+    }
+};
+
+document.addEventListener('change', (event) => {
+    const input = event.target?.closest?.('[data-season-start-year]');
+    if (!input || typeof window.setMandatoryTrainingStart !== 'function') return;
+    window.setMandatoryTrainingStart(input.dataset.seasonStartYear, input.value);
+});
+
+document.addEventListener('click', (event) => {
+    const button = event.target?.closest?.('[data-season-start-clear]');
+    if (!button || typeof window.setMandatoryTrainingStart !== 'function') return;
+    event.preventDefault();
+    window.setMandatoryTrainingStart(button.dataset.seasonStartClear, '');
+});
+
 function buildTrainingDataAttendanceHtml(teamName, options = {}) {
     const {
         listExpandedKey = '_trainingSessionAttendanceListExpanded',
@@ -905,11 +961,18 @@ function buildTrainingDataAttendanceHtml(teamName, options = {}) {
         : (stats.delta > 0 ? 'is-up' : (stats.delta < 0 ? 'is-down' : 'is-flat'));
     const primaryLabel = rangeLabel
         || (eventOptions.limit ? `Siste ${eventOptions.limit}` : 'Sesong');
+    const seasonAdminHtml = buildTrainingSeasonAdminHtml(eventOptions.year);
+    const viewedYear = resolveTrainingAttendanceYear(eventOptions.year);
+    const modelFrom = window.TRAINING_MANDATORY_MODEL_FROM_YEAR || 2027;
+    const emptyText = viewedYear >= modelFrom && stats.eventCount === 0
+        ? 'Ingen obligatoriske treninger i sesongen ennå.'
+        : 'Ingen oppmøtedata registrert for sesongen ennå.';
 
     if (stats.seasonPct === null && stats.lastFivePct === null && !totalPlayers) {
         return `
+            ${seasonAdminHtml}
             <div class="training-data-empty">
-                <p>Ingen oppmøtedata registrert for sesongen ennå.</p>
+                <p>${emptyText}</p>
             </div>
         `;
     }
@@ -952,6 +1015,7 @@ function buildTrainingDataAttendanceHtml(teamName, options = {}) {
     }
 
     return `
+        ${seasonAdminHtml}
         <div class="training-data-attendance">
             <div class="training-data-stat-grid">
                 <div class="training-data-stat">
@@ -1533,7 +1597,9 @@ function buildTrainingExercisePanelHtml(trainingEvent) {
 function buildTrainingAttendanceSeasonPanelHtml(trainingEvent) {
     const teamName = getTrainingSessionTeamName(trainingEvent);
     const isOpen = window._trainingSessionSeasonAttendanceOpen === true;
-    const seasonYear = getCurrentSeasonDateRange().year;
+    const seasonYear = typeof window.getExplicitActivitySeasonYear === 'function'
+        ? (window.getExplicitActivitySeasonYear(trainingEvent) || getCurrentSeasonDateRange().year)
+        : getCurrentSeasonDateRange().year;
 
     return `
         <section class="training-session-season-attendance-panel training-session-data-panel match-game-plan-panel match-collapsible-panel is-game-card is-game-card-secondary ${isOpen ? '' : 'is-collapsed'}">
@@ -1548,7 +1614,7 @@ function buildTrainingAttendanceSeasonPanelHtml(trainingEvent) {
             })}
             <div class="match-collapsible-content">
                 <div class="training-session-data-body">
-                    ${buildTrainingDataAttendanceHtml(teamName)}
+                    ${buildTrainingDataAttendanceHtml(teamName, { year: seasonYear })}
                 </div>
             </div>
         </section>
@@ -1839,6 +1905,12 @@ window.renderTrainingSession = function(eventId) {
 
     const isTraining = trainingEvent.type === 'Trening';
     const eventTypeLabel = isTraining ? 'Trening' : (trainingEvent.type || 'Aktivitet');
+    const obligationLabel = typeof window.getTrainingObligationLabel === 'function'
+        ? window.getTrainingObligationLabel(trainingEvent)
+        : '';
+    const obligationHtml = obligationLabel
+        ? `<span class="training-obligation-label">${escapeTrainingHtml(obligationLabel)}</span>`
+        : '';
     const chipIcon = isTraining ? 'fa-stopwatch' : 'fa-calendar-check';
     const dateValue = new Date(trainingEvent.date);
     /* Samme datostil som Hjem-øktkort (uten ukedag). */
@@ -1882,6 +1954,7 @@ window.renderTrainingSession = function(eventId) {
                         <div class="dashboard-session-hero">
                             <span class="dashboard-session-hero-time">${escapeTrainingHtml(timeLabel)}</span>
                             <span class="dashboard-session-hero-label">${escapeTrainingHtml(eventTypeLabel)}</span>
+                            ${obligationHtml}
                         </div>
                         <div class="dashboard-session-side is-radar">
                             <span class="dashboard-session-radar-inline">${radarParts}</span>
@@ -1891,6 +1964,7 @@ window.renderTrainingSession = function(eventId) {
                         <div class="dashboard-session-hero">
                             <span class="dashboard-session-hero-time">${escapeTrainingHtml(timeLabel)}</span>
                             <span class="dashboard-session-hero-label">${escapeTrainingHtml(eventTypeLabel)}</span>
+                            ${obligationHtml}
                             <span class="dashboard-session-unregistered-label">Oppmøte ikke registrert</span>
                         </div>
                         <div class="dashboard-session-side is-radar is-empty" aria-hidden="true"></div>`;

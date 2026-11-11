@@ -4185,6 +4185,32 @@
             text-transform: uppercase;
             text-shadow: 0 1px 0 rgba(2, 6, 23, 0.35);
         }
+        .training-obligation-label {
+            display: block;
+            margin-top: 0.2rem;
+            color: rgba(255, 253, 245, 0.78);
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .training-season-start {
+            margin-bottom: 0.75rem;
+        }
+        .training-season-start-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .training-season-start-row .portal-field {
+            flex: 1 1 auto;
+        }
+        .training-season-note {
+            margin: 0 0 0.75rem;
+            color: rgba(226, 232, 240, 0.78);
+            font-size: 0.82rem;
+            line-height: 1.4;
+        }
         .dashboard-session-attendance-count {
             color: #fffdf5;
             font-size: clamp(1.15rem, 3.2vw, 1.55rem);

@@ -791,6 +791,9 @@ window.updateDailySchedule = function() {
                             <div class="calendar-daily-meta-row calendar-detail-meta-row">
                                 <span><i class="fa-solid fa-location-dot"></i>${escapeCalendarHtml(e.location || 'Ikke oppgitt')}</span>
                                 ${attendanceMeta ? `<span><i class="fa-solid fa-user-check"></i>${escapeCalendarHtml(attendanceMeta)}</span>` : ''}
+                                ${e.type === 'Trening' && typeof window.getTrainingObligationLabel === 'function' && window.getTrainingObligationLabel(e)
+                                    ? `<span>${escapeCalendarHtml(window.getTrainingObligationLabel(e))}</span>`
+                                    : ''}
                             </div>
                         </div>
                     </div>
@@ -835,6 +838,7 @@ window.openActivityModal = function(defaultType = 'Trening') {
 
     document.getElementById('editActivityId').value = '';
     document.getElementById('activityDate').value = window.selectedCalendarDateStr || new Date().toISOString().split('T')[0];
+    window.fillActivitySeasonOptions();
     document.getElementById('activityTitle').value = '';
     document.getElementById('activityLocation').value = '';
     const venueSelect = document.getElementById('activityVenue');
@@ -879,6 +883,13 @@ window.editActivity = function(id) {
     document.getElementById('editActivityId').value = ev.id;
     document.getElementById('activityTitle').value = ev.title;
     document.getElementById('activityDate').value = ev.date;
+    window.fillActivitySeasonOptions(
+        ev.seasonYear != null && ev.seasonYear !== ''
+            ? ev.seasonYear
+            : (typeof window.getExplicitActivitySeasonYear === 'function'
+                ? window.getExplicitActivitySeasonYear(ev)
+                : null)
+    );
     document.getElementById('activityTime').value = ev.time || '';
     document.getElementById('activityLocation').value = ev.location || '';
 };
@@ -906,12 +917,30 @@ window.deleteCurrentActivity = function() {
     });
 };
 
+window.fillActivitySeasonOptions = function(selectedYear) {
+    const select = document.getElementById('activitySeasonYear');
+    if (!select) return;
+    const active = typeof window.getActiveSeasonYear === 'function'
+        ? window.getActiveSeasonYear()
+        : new Date().getFullYear();
+    const selected = typeof window.resolvePlayerSeasonYear === 'function'
+        ? window.resolvePlayerSeasonYear(selectedYear)
+        : null;
+    const years = [active, active + 1];
+    if (selected != null && !years.includes(selected)) years.push(selected);
+    years.sort((a, b) => a - b);
+    select.innerHTML = years.map((year) => `<option value="${year}">${year}</option>`).join('');
+    select.value = String(selected != null ? selected : active);
+};
+
 window.updateActivityTitlePlaceholder = function() {
     const type = document.getElementById('activityType')?.value || '';
     const titleInput = document.getElementById('activityTitle');
     const titleLabel = document.getElementById('activityTitleLabel');
     const venueWrap = document.getElementById('activityVenueWrap');
+    const seasonWrap = document.getElementById('activitySeasonWrap');
     const isMatch = type === 'Kamp';
+    const isTraining = type === 'Trening';
 
     if (titleLabel) titleLabel.innerText = isMatch ? 'Motstander' : 'Tittel';
     if (titleInput) {
@@ -921,9 +950,47 @@ window.updateActivityTitlePlaceholder = function() {
         titleInput.required = isMatch;
     }
     if (venueWrap) venueWrap.classList.toggle('hidden', !isMatch);
+    if (seasonWrap) seasonWrap.classList.toggle('hidden', !isTraining);
+    if (isTraining) {
+        const select = document.getElementById('activitySeasonYear');
+        if (select && !select.value) window.fillActivitySeasonOptions();
+    }
 };
 
-window.saveNewActivity = async function() {
+function getActivityFormDateYear(date) {
+    if (typeof window.getMatchStatsYear === 'function') {
+        const year = window.getMatchStatsYear({ date });
+        if (year) return year;
+    }
+    const prefix = Number(String(date || '').slice(0, 4));
+    return Number.isInteger(prefix) && prefix >= 1990 && prefix <= 2100 ? prefix : null;
+}
+
+function formatActivityFormDate(date) {
+    const match = String(date || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return match ? `${match[3]}.${match[2]}.${match[1]}` : String(date || '');
+}
+
+function readActivityFormSeasonYear() {
+    return typeof window.resolvePlayerSeasonYear === 'function'
+        ? window.resolvePlayerSeasonYear(document.getElementById('activitySeasonYear')?.value)
+        : null;
+}
+
+function setActivityFormSeasonYear(year) {
+    const select = document.getElementById('activitySeasonYear');
+    if (!select) return;
+    const value = String(year);
+    if (![...select.options].some((option) => option.value === value)) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+    }
+    select.value = value;
+}
+
+window.saveNewActivity = async function(options = {}) {
     const editId = document.getElementById('editActivityId').value;
     const type = document.getElementById('activityType')?.value || '';
     const title = document.getElementById('activityTitle').value.trim();
@@ -935,6 +1002,35 @@ window.saveNewActivity = async function() {
     if (!date) {
         alert('Du må velge dato!');
         return;
+    }
+    if (type === 'Trening' && options.seasonYearConfirmed !== true) {
+        const dateYear = getActivityFormDateYear(date);
+        const seasonYear = readActivityFormSeasonYear();
+        if (dateYear != null && seasonYear != null && dateYear !== seasonYear) {
+            const message = [
+                `Treningsdato: ${formatActivityFormDate(date)}`,
+                `Fotballsesong: ${seasonYear}`,
+                '',
+                'Dato og fotballsesong kan være forskjellige, for eksempel ved oppkjøring før nyttår. Kontroller at dette er tilsiktet.'
+            ].join('\n');
+            window.customConfirm(
+                'Dato og sesong er forskjellige',
+                message,
+                async () => {
+                    setActivityFormSeasonYear(dateYear);
+                    await window.saveNewActivity({ seasonYearConfirmed: true });
+                },
+                {
+                    confirmLabel: `Endre til ${dateYear}`,
+                    alternateLabel: `Behold ${seasonYear}`,
+                    alternateCallback: async () => {
+                        await window.saveNewActivity({ seasonYearConfirmed: true });
+                    },
+                    preformatted: true
+                }
+            );
+            return;
+        }
     }
     if (!selectedTeam) {
         alert('Fant ikke lag. Opprett eller velg et lag først.');
@@ -977,6 +1073,16 @@ window.saveNewActivity = async function() {
                 location: location || 'Ikke satt',
                 team: selectedTeam
             };
+            if (type === 'Trening') {
+                const selectedSeason = typeof window.resolvePlayerSeasonYear === 'function'
+                    ? window.resolvePlayerSeasonYear(document.getElementById('activitySeasonYear')?.value)
+                    : null;
+                activityData.seasonYear = selectedSeason != null
+                    ? selectedSeason
+                    : (typeof window.getActiveSeasonYear === 'function' ? window.getActiveSeasonYear() : null);
+            } else {
+                delete activityData.seasonYear;
+            }
 
             if (typeof window.saveEventToDatabase === 'function') await window.saveEventToDatabase(activityData);
         }

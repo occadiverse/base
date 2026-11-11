@@ -267,8 +267,13 @@ window.closeDashboardAlertModal = function() {
 
 window.customConfirm = function(title, message, callback, options = {}) {
     customConfirmCallback = callback;
+    customConfirmAlternateCallback = typeof options.alternateCallback === 'function'
+        ? options.alternateCallback
+        : null;
     document.getElementById('confirmTitle').innerText = title;
-    document.getElementById('confirmMessage').innerText = message;
+    const messageEl = document.getElementById('confirmMessage');
+    messageEl.innerText = message;
+    messageEl.style.whiteSpace = options.preformatted ? 'pre-line' : '';
 
     const yesBtn = document.getElementById('confirmYesBtn');
     const yesLabel = yesBtn?.querySelector('span');
@@ -280,7 +285,13 @@ window.customConfirm = function(title, message, callback, options = {}) {
         yesBtn.classList.toggle('bsk-btn-primary', options.danger !== true);
     }
 
+    const altBtn = document.getElementById('confirmAltBtn');
+    const altLabel = altBtn?.querySelector('span');
+    if (altLabel) altLabel.textContent = options.alternateLabel || 'Behold';
+    if (altBtn) altBtn.classList.toggle('hidden', !customConfirmAlternateCallback);
+
     const modal = document.getElementById('confirmModal');
+    modal.style.zIndex = '80';
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 };
@@ -289,7 +300,12 @@ window.closeConfirmModal = function() {
     const modal = document.getElementById('confirmModal');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
+    modal.style.zIndex = '';
     customConfirmCallback = null;
+    customConfirmAlternateCallback = null;
+
+    const messageEl = document.getElementById('confirmMessage');
+    if (messageEl) messageEl.style.whiteSpace = '';
 
     const yesBtn = document.getElementById('confirmYesBtn');
     const yesLabel = yesBtn?.querySelector('span');
@@ -298,10 +314,28 @@ window.closeConfirmModal = function() {
         yesBtn.classList.remove('bsk-btn-danger');
         yesBtn.classList.add('bsk-btn-primary');
     }
+
+    const altBtn = document.getElementById('confirmAltBtn');
+    const altLabel = altBtn?.querySelector('span');
+    if (altLabel) altLabel.textContent = 'Behold';
+    if (altBtn) altBtn.classList.add('hidden');
 };
 
 document.getElementById('confirmYesBtn').onclick = async function() {
     const callback = customConfirmCallback;
+    window.closeConfirmModal();
+    if (!callback) return;
+
+    try {
+        await callback();
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
+    }
+};
+
+document.getElementById('confirmAltBtn').onclick = async function() {
+    const callback = customConfirmAlternateCallback;
     window.closeConfirmModal();
     if (!callback) return;
 

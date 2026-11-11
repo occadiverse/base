@@ -461,7 +461,11 @@
             });
 
             onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'app'), (snapshot) => {
-                const parsed = window.resolvePlayerSeasonYear?.(snapshot.exists() ? snapshot.data()?.activeSeason : null);
+                const data = snapshot.exists() ? (snapshot.data() || {}) : {};
+                if (typeof window.applySeasonSettings === 'function') {
+                    window.applySeasonSettings(data.seasonSettings);
+                }
+                const parsed = window.resolvePlayerSeasonYear?.(data.activeSeason);
                 if (parsed == null || typeof window.applyActiveSeasonYear !== 'function') return;
                 if (window._activeSeasonYear === parsed) return;
                 window.applyActiveSeasonYear(parsed);
@@ -1186,6 +1190,40 @@
                 };
             }
             return { saved: true, year: parsed };
+        };
+
+        window.setMandatoryTrainingStart = async function(year, date) {
+            const seasonYear = typeof window.resolvePlayerSeasonYear === 'function'
+                ? window.resolvePlayerSeasonYear(year)
+                : null;
+            if (seasonYear == null) return { saved: false, reason: 'invalid_year' };
+            const trimmed = String(date || '').trim();
+            if (trimmed && !/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+                return { saved: false, reason: 'invalid_date', year: seasonYear };
+            }
+            const next = { ...(window._seasonSettings || {}) };
+            if (trimmed) next[String(seasonYear)] = { mandatoryTrainingFrom: trimmed };
+            else delete next[String(seasonYear)];
+            if (typeof window.applySeasonSettings === 'function') window.applySeasonSettings(next);
+            if (!isFirebaseWriteActive()) {
+                return { saved: false, reason: 'no_auth', localOnly: true, year: seasonYear, mandatoryTrainingFrom: trimmed };
+            }
+            try {
+                await setDoc(
+                    doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'app'),
+                    { seasonSettings: next },
+                    { merge: true }
+                );
+            } catch (error) {
+                console.error('Kunne ikke lagre obligatorisk treningsstart:', error);
+                return {
+                    saved: false,
+                    reason: 'database_save_failed',
+                    year: seasonYear,
+                    error: error.message || 'database_save_failed'
+                };
+            }
+            return { saved: true, year: seasonYear, mandatoryTrainingFrom: trimmed };
         };
 
         window.savePlayerSeasonSnapshot = async function(year = 2026) {

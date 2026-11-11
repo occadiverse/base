@@ -668,7 +668,9 @@ window.checkIndividualChemistry = function() {
                     ? window.getStatsSpillerYearFilter()
                     : window.getStatsKampYearFilter())
                 : yearFilter;
-            const year = window.getMatchStatsYear(activity);
+            const year = typeof window.getExplicitActivitySeasonYear === 'function'
+                ? window.getExplicitActivitySeasonYear(activity)
+                : window.getMatchStatsYear(activity);
             if (!year) return false;
 
             // Concrete year filters are cheap; only "Alle" needs the player-data year set.
@@ -2151,7 +2153,10 @@ window.getPlayerFormComponents = function(playerName, options = {}) {
         })
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
-    const recentTrainings = teamEvents.filter(e => e.type === 'Trening').slice(0, 5);
+    const recentTrainings = teamEvents.filter(e => (
+        e.type === 'Trening'
+        && (typeof window.isMandatoryTraining !== 'function' || window.isMandatoryTraining(e))
+    )).slice(0, 5);
     const attendedTrainings = recentTrainings.filter(e => window.isPlayerAttending(e.attendance, playerObj)).length;
     const availabilityScore = recentTrainings.length > 0
         ? (attendedTrainings / recentTrainings.length) * 10
@@ -2537,6 +2542,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     }
                 }
                 if (e.type === 'Kamp' && typeof window.matchHasPlayedResult === 'function' && !window.matchHasPlayedResult(e)) return;
+                if (e.type === 'Trening' && typeof window.isMandatoryTraining === 'function' && !window.isMandatoryTraining(e)) return;
                 const registered = typeof window.hasRegisteredAttendance === 'function'
                     ? window.hasRegisteredAttendance(e.attendance)
                     : Boolean(e.attendance);
@@ -2598,6 +2604,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                             : !e.attendance) return;
                         if (!onRosterForEvent(e)) return;
                         if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(e, yearFilter)) return;
+                        if (typeof window.isMandatoryTraining === 'function' && !window.isMandatoryTraining(e)) return;
                         trainingPossible += 1;
                         if (window.isPlayerAttending(e.attendance, p)) trainingAttended += 1;
                     });
@@ -4763,6 +4770,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                         ? !window.isPlayerOnRosterForSeasonDate(player, event?.date, yearFilter)
                         : (typeof window.isPlayerOnRosterForActivity === 'function' && !window.isPlayerOnRosterForActivity(player, event))) return false;
                     if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(event, yearFilter)) return false;
+                    if (typeof window.isMandatoryTraining === 'function' && !window.isMandatoryTraining(event)) return false;
                     return true;
                 })
                 .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))

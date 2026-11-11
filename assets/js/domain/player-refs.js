@@ -259,14 +259,90 @@ window.getActiveSeasonYear = function() {
     return new Date().getFullYear();
 };
 
-window.getActivitySeasonYear = function(activity) {
+window.TRAINING_MANDATORY_MODEL_FROM_YEAR = 2027;
+window._seasonSettings = {};
+
+window.getExplicitActivitySeasonYear = function(activity) {
+    const explicit = window.resolvePlayerSeasonYear(activity?.seasonYear);
+    if (explicit != null) return explicit;
     if (activity && typeof window.getMatchStatsYear === 'function') {
         const fromHelper = window.getMatchStatsYear(activity);
         if (fromHelper) return fromHelper;
     }
     const prefix = Number(String(activity?.date || '').slice(0, 4));
     if (Number.isInteger(prefix) && prefix >= 1990 && prefix <= 2100) return prefix;
-    return window.getActiveSeasonYear();
+    return null;
+};
+
+window.getActivitySeasonYear = function(activity) {
+    return window.getExplicitActivitySeasonYear(activity) ?? window.getActiveSeasonYear();
+};
+
+window.applySeasonSettings = function(settings) {
+    const source = settings && typeof settings === 'object' && !Array.isArray(settings) ? settings : {};
+    const next = {};
+    Object.keys(source).forEach((key) => {
+        const year = window.resolvePlayerSeasonYear(key);
+        if (year == null) return;
+        const from = String(source[key]?.mandatoryTrainingFrom || '').trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(from)) {
+            next[String(year)] = { mandatoryTrainingFrom: from };
+        }
+    });
+    const same = JSON.stringify(next) === JSON.stringify(window._seasonSettings || {});
+    window._seasonSettings = next;
+    if (!same && window._seasonSettingsReady) {
+        if (typeof window.invalidateDerivedStatsCache === 'function') window.invalidateDerivedStatsCache();
+        if (typeof window.refreshTrainingObligationViews === 'function') window.refreshTrainingObligationViews();
+    }
+    window._seasonSettingsReady = true;
+    return next;
+};
+
+window.getMandatoryTrainingStart = function(year) {
+    const seasonYear = window.resolvePlayerSeasonYear(year);
+    if (seasonYear == null) return '';
+    const record = window._seasonSettings?.[seasonYear] || window._seasonSettings?.[String(seasonYear)];
+    const from = String(record?.mandatoryTrainingFrom || '').trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(from) ? from : '';
+};
+
+window.isMandatoryTraining = function(activity) {
+    if (!activity || activity.type !== 'Trening') return false;
+    const year = window.getExplicitActivitySeasonYear(activity) ?? window.getActivitySeasonYear(activity);
+    const start = window.getMandatoryTrainingStart(year);
+    if (start) return String(activity.date || '').slice(0, 10) >= start;
+    return year < window.TRAINING_MANDATORY_MODEL_FROM_YEAR;
+};
+
+window.getTrainingObligationLabel = function(activity) {
+    if (!activity || activity.type !== 'Trening') return '';
+    const year = window.getExplicitActivitySeasonYear(activity) ?? window.getActivitySeasonYear(activity);
+    if (!window.getMandatoryTrainingStart(year) && year < window.TRAINING_MANDATORY_MODEL_FROM_YEAR) return '';
+    return window.isMandatoryTraining(activity) ? 'Obligatorisk' : 'Frivillig';
+};
+
+window.seasonHasTrainingActivity = function(year) {
+    const seasonYear = window.resolvePlayerSeasonYear(year);
+    if (seasonYear == null) return false;
+    return (window.activeEvents || []).some((event) => (
+        event?.type === 'Trening' && window.getExplicitActivitySeasonYear(event) === seasonYear
+    ));
+};
+
+window.getMissingTrainingStartNotice = function(year) {
+    const seasonYear = window.resolvePlayerSeasonYear(year);
+    if (seasonYear == null || seasonYear < window.TRAINING_MANDATORY_MODEL_FROM_YEAR) return '';
+    if (window.getMandatoryTrainingStart(seasonYear)) return '';
+    if (!window.seasonHasTrainingActivity(seasonYear)) return '';
+    return `Obligatorisk treningsstart er ikke satt for ${seasonYear}. Treninger behandles som frivillige.`;
+};
+
+window.getNextSeasonTrainingNotice = function() {
+    const active = window.getActiveSeasonYear();
+    const next = active + 1;
+    if (!window.seasonHasTrainingActivity(next)) return '';
+    return `Det finnes aktivitet registrert for ${next}. Aktiv sesong er fortsatt ${active}.`;
 };
 
 window.getPlayerSeasonRecord = function(player, year) {
