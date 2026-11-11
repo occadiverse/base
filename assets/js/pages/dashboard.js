@@ -18,7 +18,7 @@ function escapeDashboardJsString(value) {
 }
 
 function bindDashboardEvents() {
-    ['hjem-hero-match-container', 'hjem-bottom-widgets', 'hjem-season-summary'].forEach((containerId) => {
+    ['hjem-now', 'hjem-hero-match-container', 'hjem-bottom-widgets', 'hjem-coach-focus', 'hjem-season-pulse', 'hjem-season-summary'].forEach((containerId) => {
         const container = document.getElementById(containerId);
         if (!container || container.dataset.dashboardEventsBound === 'true') return;
 
@@ -46,6 +46,35 @@ function bindDashboardEvents() {
             } else if (action === 'open-statistikk') {
                 const year = Number(actionEl.dataset.seasonYear);
                 if (Number.isFinite(year)) window.statsKampYearFilter = year;
+                switchTab('statistikk');
+            } else if (action === 'open-season-pulse') {
+                const year = Number(actionEl.dataset.seasonYear);
+                if (Number.isFinite(year)) window.statsKampYearFilter = year;
+                window.statsLagSection = 'kampdata';
+                switchTab('statistikk');
+            } else if (action === 'open-roster-plan') {
+                if (typeof window.setRosterMode === 'function') window.setRosterMode('plan2027');
+                switchTab('tropp');
+            } else if (action === 'open-followup') {
+                const year = Number(actionEl.dataset.seasonYear);
+                if (Number.isFinite(year)) window.statsKampYearFilter = year;
+                window.statsLagSection = 'spillerdata';
+                if (typeof window.openStatsKampPanel === 'function') window.openStatsKampPanel('oppfolging');
+                switchTab('statistikk');
+                window.setTimeout(() => {
+                    const panel = document.querySelector('#stats-oppfolging-slot [data-stats-panel="oppfolging"]');
+                    if (panel && typeof panel.scrollIntoView === 'function') {
+                        panel.scrollIntoView({ block: 'start' });
+                    }
+                }, 350);
+            } else if (action === 'open-injured') {
+                if (typeof window.setRosterMode === 'function') window.setRosterMode('now');
+                if (typeof window.setPlayerStatusFilter === 'function') window.setPlayerStatusFilter('skadet');
+                switchTab('tropp');
+            } else if (action === 'open-training-start') {
+                const year = Number(actionEl.dataset.seasonYear);
+                if (Number.isFinite(year)) window.statsKampYearFilter = year;
+                window.statsLagSection = 'treningsdata';
                 switchTab('statistikk');
             } else if (action === 'open-player') {
                 const year = Number(actionEl.dataset.seasonYear);
@@ -156,12 +185,19 @@ window.updateDashboard = function() {
             if (!heroAlreadyCurrent) {
                 heroContainer.classList.remove('is-absent');
                 heroContainer.innerHTML = window.buildMatchDetailCardHtml(nm, {
-                    extraClass: 'h-full',
+                    extraClass: 'h-full hjem-card hjem-card-mid',
                     clickable: true,
                     showWatermark: true,
                     battleHero: true,
                     showHeroNav: false
                 });
+            }
+            const heroCard = heroContainer.querySelector('.match-detail-card');
+            if (heroCard && !heroCard.querySelector('.hjem-card-pill')) {
+                const pill = document.createElement('div');
+                pill.className = 'match-detail-chip hjem-card-pill';
+                pill.innerHTML = '<i class="fa-solid fa-futbol" aria-hidden="true"></i><span>Neste kamp</span>';
+                heroCard.insertBefore(pill, heroCard.firstChild);
             }
         } else if (upcoming.length > 0) {
             const nm = upcoming[0];
@@ -179,35 +215,9 @@ window.updateDashboard = function() {
                 </article>
             `;
             heroContainer.classList.remove('is-absent');
-        } else if (seasonModel) {
+        } else {
             heroContainer.innerHTML = '';
             heroContainer.classList.add('is-absent');
-        } else {
-            heroContainer.classList.remove('is-absent');
-            heroContainer.innerHTML = `
-                <article data-dashboard-action="open-kamper-tab" role="button" tabindex="0" class="match-detail-card dashboard-next-match-card dashboard-click-card hjem-empty-card h-full">
-                    <div class="dashboard-next-match-watermark">
-                        <i class="fa-solid fa-futbol"></i>
-                    </div>
-                    <div class="relative z-10 px-6 py-8 text-center">
-                        <div class="match-detail-chip mb-4 mx-auto">
-                            <i class="fa-solid fa-calendar-plus"></i>
-                            <span>Neste kamp</span>
-                        </div>
-                        <h3 class="font-black text-white text-sm">Ingen kommende kamp</h3>
-                        <p class="text-xs text-white/60 mt-2 max-w-[240px] mx-auto">Legg til en kamp for å komme i gang.</p>
-                        <button
-                            type="button"
-                            class="bsk-btn bsk-btn-chip match-list-add-btn hjem-empty-cta"
-                            data-dashboard-action="add-match"
-                            title="Legg til kamp"
-                            aria-label="Legg til kamp"
-                        >
-                            <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                            <span>Legg til kamp</span>
-                        </button>
-                    </div>
-                </article>`;
         }
     }
 
@@ -322,120 +332,410 @@ window.updateHjemWidget = function() {
         const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
         const timeLabel = ne.time || '--:--';
         const locationLabel = ne.location || 'Ikke oppgitt';
-        const fractionToneClass = sessionStats.fractionTone === 'good' ? '' : ` is-${sessionStats.fractionTone}`;
         const hasSessionAttendance = typeof window.hasRegisteredAttendance === 'function'
             ? window.hasRegisteredAttendance(ne.attendance)
             : false;
-        const radarParts = ['K', 'F', 'M', 'A'].map(letter => (
-            `${sessionStats.positionCounts[letter]}${letter}`
-        )).join('<span class="dashboard-session-radar-sep"> - </span>');
-        const sessionArenaHtml = hasSessionAttendance
-            ? `
-                        <div class="dashboard-session-side is-attendance">
-                            <span class="dashboard-session-attendance-count${fractionToneClass}">${sessionStats.møttOppAntall}</span>
-                            <span class="dashboard-session-attendance-label">påmeldt</span>
-                        </div>
-                        <div class="dashboard-session-hero">
-                            <span class="dashboard-session-hero-time">${escapeDashboardHtml(timeLabel)}</span>
-                            <span class="dashboard-session-hero-label">${escapeDashboardHtml(eventTypeLabel)}</span>
-                        </div>
-                        <div class="dashboard-session-side is-radar">
-                            <span class="dashboard-session-radar-inline">${radarParts}</span>
-                        </div>`
-            : `
-                        <div class="dashboard-session-side is-attendance is-empty" aria-hidden="true"></div>
-                        <div class="dashboard-session-hero">
-                            <span class="dashboard-session-hero-time">${escapeDashboardHtml(timeLabel)}</span>
-                            <span class="dashboard-session-hero-label">${escapeDashboardHtml(eventTypeLabel)}</span>
-                            <span class="dashboard-session-unregistered-label">Oppmøte ikke registrert</span>
-                        </div>
-                        <div class="dashboard-session-side is-radar is-empty" aria-hidden="true"></div>`;
+        const sessionSeasonYear = typeof window.getExplicitActivitySeasonYear === 'function'
+            ? window.getExplicitActivitySeasonYear(ne)
+            : (typeof window.getActivitySeasonYear === 'function' ? window.getActivitySeasonYear(ne) : null);
+        const sessionObligation = typeof window.getTrainingObligationLabel === 'function'
+            ? window.getTrainingObligationLabel(ne)
+            : '';
+        const sessionSeasonLine = [sessionSeasonYear ? String(sessionSeasonYear) : '', sessionObligation].filter(Boolean).join(' · ');
 
-        window._sessionInjuryPopupData = sessionStats.injuredReady;
-
-        let injuryChipHtml = '';
-        if (sessionStats.injuredReady.length > 0) {
-            const injuredCount = sessionStats.injuredReady.length;
-            const injuryLabel = injuredCount === 1
-                ? '1 skadet'
-                : `${injuredCount} skadet`;
-            injuryChipHtml = `
-                    <button type="button"
-                            data-dashboard-action="session-injury"
-                            class="bsk-btn bsk-btn-chip bsk-btn-danger dashboard-alert-chip"
-                            title="${escapeDashboardHtml(injuryLabel)}"
-                            aria-label="${escapeDashboardHtml(injuryLabel)}">
-                        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-                        <span>${escapeDashboardHtml(injuryLabel)}</span>
-                    </button>`;
-        } else {
-            window._sessionInjuryPopupData = [];
-        }
+        window._sessionInjuryPopupData = sessionStats.injuredReady.length ? sessionStats.injuredReady : [];
 
         const cardActionAttrs = canOpenSession
             ? `data-dashboard-action="open-training-session" data-event-id="${escapeDashboardHtml(ne.id)}"`
             : `data-dashboard-action="open-calendar-date" data-event-date="${escapeDashboardHtml(ne.date)}"`;
 
+        const attendanceLine = hasSessionAttendance
+            ? `${sessionStats.møttOppAntall} påmeldt · ${['K', 'F', 'M', 'A'].map(letter => `${sessionStats.positionCounts[letter]}${letter}`).join(' - ')}`
+            : 'Oppmøte ikke registrert';
+        const injuryLine = sessionStats.injuredReady.length
+            ? `<button type="button" class="hjem-inline-note" data-dashboard-action="session-injury">${escapeDashboardHtml(sessionStats.injuredReady.length === 1 ? '1 skadet' : `${sessionStats.injuredReady.length} skadet`)}</button>`
+            : '';
         sessionWidgetHtml = `
-            <article ${cardActionAttrs} role="button" tabindex="0" class="match-detail-card dashboard-next-session-card dashboard-click-card h-full">
-                <div class="dashboard-next-match-watermark">
-                    <i class="fa-solid fa-stopwatch"></i>
-                </div>
-
-                <div class="match-detail-card-top relative z-10">
-                    <div class="match-detail-meta">
-                        <i class="fa-regular fa-calendar-days"></i>
-                        <span>${escapeDashboardHtml(dateLabel)}</span>
-                        ${injuryChipHtml}
-                    </div>
-                    <div class="match-detail-top-chips">
-                        <div class="match-detail-chip match-detail-type-chip" aria-label="${escapeDashboardHtml(eventTypeLabel)}">
-                            <i class="fa-solid ${isTraining ? 'fa-stopwatch' : 'fa-calendar-check'}" aria-hidden="true"></i>
-                            <span>${escapeDashboardHtml(eventTypeLabel)}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dashboard-session-main relative z-10">
-                    <div class="dashboard-session-middle">
-                        ${sessionArenaHtml}
-                    </div>
-                </div>
-
-                <div class="match-detail-footer relative z-10">
-                    <div class="match-detail-footer-item" title="${escapeDashboardHtml(locationLabel)}">
-                        <i class="fa-solid fa-location-dot"></i>
-                        <span>${escapeDashboardHtml(locationLabel)}</span>
-                    </div>
-                </div>
-            </article>
-        `;
-    } else if (window.buildHjemSeasonModel()) {
-        sessionWidgetHtml = '';
-        bottomContainer.classList.add('is-absent');
-    } else {
-        bottomContainer.classList.remove('is-absent');
-        sessionWidgetHtml = `
-            <article data-dashboard-action="open-calendar-date" data-event-date="${escapeDashboardHtml(todayStr)}" role="button" tabindex="0" class="match-detail-card dashboard-next-session-card dashboard-click-card hjem-empty-card h-full">
-                <div class="dashboard-next-match-watermark">
-                    <i class="fa-solid fa-calendar-days"></i>
-                </div>
-                <div class="relative z-10 px-6 py-8 text-center">
-                    <div class="match-detail-chip mb-4 mx-auto">
-                        <i class="fa-solid fa-stopwatch"></i>
+            <article ${cardActionAttrs} role="button" tabindex="0" class="match-detail-card hjem-card hjem-card-mid dashboard-click-card h-full">
+                <div class="hjem-card-body">
+                    <div class="match-detail-chip hjem-card-pill">
+                        <i class="fa-solid fa-stopwatch" aria-hidden="true"></i>
                         <span>Neste økt</span>
                     </div>
-                    <h3 class="font-black text-white text-sm">Ingen kommende økter</h3>
-                    <p class="text-xs text-white/60 mt-2 max-w-[240px] mx-auto">Legg inn trening eller aktivitet i kalenderen.</p>
+                    <p class="hjem-lead">${escapeDashboardHtml(dateLabel)}</p>
+                    <p class="hjem-sub">${escapeDashboardHtml(timeLabel)} · ${escapeDashboardHtml(eventTypeLabel)}</p>
+                    ${sessionSeasonLine ? `<p class="hjem-quiet">${escapeDashboardHtml(sessionSeasonLine)}</p>` : ''}
+                    <p class="hjem-quiet">${escapeDashboardHtml(attendanceLine)}</p>
+                    <p class="hjem-quiet">${escapeDashboardHtml(locationLabel)}</p>
+                    ${injuryLine}
                 </div>
             </article>
         `;
+    } else {
+        sessionWidgetHtml = '';
+        bottomContainer.classList.add('is-absent');
     }
 
     if (sessionWidgetHtml) bottomContainer.classList.remove('is-absent');
     bottomContainer.innerHTML = sessionWidgetHtml;
     if (typeof window.renderHjemSeasonSummary === 'function') {
         window.renderHjemSeasonSummary();
+    }
+    if (typeof window.renderHjemOperations === 'function') {
+        window.renderHjemOperations();
+    }
+};
+
+const HJEM_LEAGUE_TITLE = 'NFF 5.div. avd.2';
+const HJEM_CUP_TITLE = 'Obos Cup';
+
+function hjemTodayKey() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function hjemCountPhrase(count, one, many) {
+    const n = Number(count) || 0;
+    return `${n} ${n === 1 ? one : many}`;
+}
+
+function hjemMatchCountsForYear(match, year) {
+    if (!match) return false;
+    const team = typeof window.getStatsTeamFilter === 'function' ? window.getStatsTeamFilter() : 'Alle';
+    if (team && team !== 'Alle' && match.matchGroup && match.matchGroup !== team) return false;
+    if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(match)) return false;
+    if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(match, year)) return false;
+    return true;
+}
+
+function hjemMatchTone(match) {
+    const outcome = typeof window.getMatchOutcomeScore === 'function'
+        ? window.getMatchOutcomeScore(match)
+        : (typeof window.getMatchRegularScore === 'function' ? window.getMatchRegularScore(match) : null);
+    if (!outcome) return 'U';
+    if (outcome.bsk > outcome.opponent) return 'S';
+    if (outcome.bsk < outcome.opponent) return 'T';
+    return 'U';
+}
+
+function hjemPlayedCountingMatches(year) {
+    return (Array.isArray(window.activeMatches) ? window.activeMatches : [])
+        .filter((match) => {
+            if (!hjemMatchCountsForYear(match, year)) return false;
+            if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return false;
+            const regular = typeof window.getMatchRegularScore === 'function'
+                ? window.getMatchRegularScore(match)
+                : null;
+            return Boolean(regular);
+        })
+        .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+}
+
+function hjemHasUpcomingMatch(year) {
+    const today = hjemTodayKey();
+    return (Array.isArray(window.activeMatches) ? window.activeMatches : []).some((match) => {
+        if (!hjemMatchCountsForYear(match, year)) return false;
+        const date = String(match.date || '').slice(0, 10);
+        if (!date || date < today) return false;
+        const regular = typeof window.getMatchRegularScore === 'function'
+            ? window.getMatchRegularScore(match)
+            : null;
+        return !regular;
+    });
+}
+
+function hjemHasUpcomingMandatoryTraining(year) {
+    const today = hjemTodayKey();
+    return (Array.isArray(window.activeEvents) ? window.activeEvents : []).some((event) => {
+        if (!event || event.type !== 'Trening') return false;
+        const date = String(event.date || '').slice(0, 10);
+        if (!date || date < today) return false;
+        const season = typeof window.getExplicitActivitySeasonYear === 'function'
+            ? window.getExplicitActivitySeasonYear(event)
+            : null;
+        if (season !== year) return false;
+        return typeof window.isMandatoryTraining === 'function' && window.isMandatoryTraining(event);
+    });
+}
+
+function hjemSeasonHasTraining(year) {
+    return typeof window.seasonHasTrainingActivity === 'function' && window.seasonHasTrainingActivity(year);
+}
+
+function hjemMandatoryStart(year) {
+    return typeof window.getMandatoryTrainingStart === 'function' ? window.getMandatoryTrainingStart(year) : '';
+}
+
+function hjemPlanSummary(year) {
+    if (typeof window.readRosterPlanSummary !== 'function') {
+        return { year, counts: { Uavklart: 0, Fortsetter: 0, Slutter: 0, 'Ny spiller': 0 }, total: 0 };
+    }
+    return window.readRosterPlanSummary(year);
+}
+
+function hjemResolvePhase(activeYear) {
+    const nextYear = activeYear + 1;
+    const playedActive = hjemPlayedCountingMatches(activeYear).length;
+    const playedNext = hjemPlayedCountingMatches(nextYear).length;
+    const upcomingActiveMatch = hjemHasUpcomingMatch(activeYear);
+    const upcomingActiveMandatory = hjemHasUpcomingMandatoryTraining(activeYear);
+    const nextHasPrep = hjemSeasonHasTraining(nextYear)
+        || Boolean(hjemMandatoryStart(nextYear))
+        || hjemHasUpcomingMatch(nextYear);
+    const activeHasPrep = hjemSeasonHasTraining(activeYear)
+        || Boolean(hjemMandatoryStart(activeYear))
+        || upcomingActiveMatch;
+    const nextPlan = hjemPlanSummary(nextYear);
+
+    if (playedActive === 0 && activeHasPrep) {
+        return {
+            id: 'oppkjoring',
+            year: activeYear,
+            title: `Oppkjøring ${activeYear}`,
+            detail: 'Ingen tellende kamper ennå'
+        };
+    }
+    if (upcomingActiveMatch || upcomingActiveMandatory) {
+        return {
+            id: 'sesong',
+            year: activeYear,
+            title: `Sesong ${activeYear}`,
+            detail: ''
+        };
+    }
+    if (playedNext === 0 && nextHasPrep) {
+        return {
+            id: 'oppkjoring',
+            year: nextYear,
+            title: `Oppkjøring ${nextYear}`,
+            detail: `Aktiv sesong er fortsatt ${activeYear}`
+        };
+    }
+    if (nextPlan.total > 0) {
+        const closed = playedActive > 0 ? `${activeYear} avsluttet · ` : '';
+        return {
+            id: 'pause',
+            year: activeYear,
+            title: 'Sesongpause',
+            detail: `${closed}${nextYear} planlegges`
+        };
+    }
+    if (playedActive > 0) {
+        return {
+            id: 'sesong',
+            year: activeYear,
+            title: `Sesong ${activeYear}`,
+            detail: 'Ingen kommende kamp'
+        };
+    }
+    return {
+        id: 'sesong',
+        year: activeYear,
+        title: `Sesong ${activeYear}`,
+        detail: 'Ingen tellende kamper ennå'
+    };
+}
+
+function hjemTrainingStartStatus(year, alwaysShow) {
+    const modelFrom = window.TRAINING_MANDATORY_MODEL_FROM_YEAR || 2027;
+    if (!year || year < modelFrom) return null;
+    const start = hjemMandatoryStart(year);
+    if (start) {
+        return { year, label: `${hjemSeasonLongDate(start)} ${year}` };
+    }
+    if (alwaysShow || hjemSeasonHasTraining(year)) {
+        return { year, label: 'Ikke satt' };
+    }
+    return null;
+}
+
+function hjemFollowUpCount(activeYear) {
+    if (typeof window.buildStatsFollowUps !== 'function') return null;
+    const previous = window.statsKampYearFilter;
+    window.statsKampYearFilter = activeYear;
+    try {
+        const team = typeof window.getStatsTeamFilter === 'function' ? window.getStatsTeamFilter() : 'Alle';
+        const result = window.buildStatsFollowUps(team);
+        return Number(result?.activePlayerCount) || 0;
+    } catch (error) {
+        console.warn('Kunne ikke lese oppfølging til forsiden.', error);
+        return null;
+    } finally {
+        window.statsKampYearFilter = previous;
+    }
+}
+
+function hjemInjuredSquadCount() {
+    const team = typeof window.getStatsTeamFilter === 'function' ? window.getStatsTeamFilter() : 'Alle';
+    return (Array.isArray(window.activePlayers) ? window.activePlayers : []).filter((player) => {
+        if (typeof window.isPlayerInCurrentSquadPool === 'function' && !window.isPlayerInCurrentSquadPool(player)) return false;
+        if (team && team !== 'Alle' && player.spillerLag !== team) return false;
+        const info = typeof window.getPlayerInjuryInfo === 'function' ? window.getPlayerInjuryInfo(player) : null;
+        return Boolean(info?.isInjured);
+    }).length;
+}
+
+function hjemPulseForYear(year) {
+    const rows = hjemPlayedCountingMatches(year).map((match) => {
+        const regular = typeof window.getMatchRegularScore === 'function'
+            ? window.getMatchRegularScore(match)
+            : null;
+        return {
+            tone: hjemMatchTone(match),
+            gf: regular ? regular.bsk : 0,
+            ga: regular ? regular.opponent : 0,
+            opponent: match.opponent || 'Motstander',
+            result: match.result || ''
+        };
+    });
+    const last = rows.slice(-5);
+    return {
+        year,
+        count: rows.length,
+        wins: rows.filter(row => row.tone === 'S').length,
+        draws: rows.filter(row => row.tone === 'U').length,
+        losses: rows.filter(row => row.tone === 'T').length,
+        goalsFor: rows.reduce((sum, row) => sum + row.gf, 0),
+        goalsAgainst: rows.reduce((sum, row) => sum + row.ga, 0),
+        last
+    };
+}
+
+window.buildHjemFrontModel = function() {
+    const activeYear = typeof window.getActiveSeasonYear === 'function'
+        ? window.getActiveSeasonYear()
+        : new Date().getFullYear();
+    const phase = hjemResolvePhase(activeYear);
+    const nextPlan = hjemPlanSummary(activeYear + 1);
+    const namedPlan = window.ROSTER_PLAN_YEAR && window.ROSTER_PLAN_YEAR !== nextPlan.year
+        ? hjemPlanSummary(window.ROSTER_PLAN_YEAR)
+        : nextPlan;
+    const plan = nextPlan.total > 0 ? nextPlan : (namedPlan.total > 0 ? namedPlan : nextPlan);
+    const trainingYear = phase.id === 'oppkjoring' ? phase.year : (phase.id === 'pause' ? activeYear + 1 : activeYear);
+    const trainingStart = hjemTrainingStartStatus(trainingYear, phase.id !== 'sesong');
+    return {
+        activeYear,
+        teamName: typeof window.getPrimaryTeamName === 'function' ? window.getPrimaryTeamName() : 'BSK',
+        phase,
+        plan,
+        showPlanInStatus: plan.total > 0 && phase.id !== 'sesong',
+        trainingStart,
+        followUpCount: hjemFollowUpCount(activeYear),
+        injuredCount: hjemInjuredSquadCount(),
+        pulse: hjemPulseForYear(activeYear)
+    };
+};
+
+function hjemPlanSecondaryLine(counts) {
+    const parts = [];
+    if (counts.Fortsetter) parts.push(hjemCountPhrase(counts.Fortsetter, 'fortsetter', 'fortsetter'));
+    if (counts.Slutter) parts.push(hjemCountPhrase(counts.Slutter, 'slutter', 'slutter'));
+    if (counts['Ny spiller']) parts.push(hjemCountPhrase(counts['Ny spiller'], 'ny', 'nye'));
+    return parts.join(' · ');
+}
+
+window.renderHjemOperations = function() {
+    const nowSlot = document.getElementById('hjem-now');
+    const focusSlot = document.getElementById('hjem-coach-focus');
+    const pulseSlot = document.getElementById('hjem-season-pulse');
+    if (!nowSlot && !focusSlot && !pulseSlot) return;
+    const model = window.buildHjemFrontModel();
+    const year = model.activeYear;
+
+    if (nowSlot) {
+        const planSecondary = model.showPlanInStatus ? hjemPlanSecondaryLine(model.plan.counts) : '';
+        const planLine = model.showPlanInStatus ? `
+            <button type="button" class="hjem-now-line" data-dashboard-action="open-roster-plan">
+                <span>Troppsplan ${model.plan.year} · ${escapeDashboardHtml(hjemCountPhrase(model.plan.counts.Uavklart, 'uavklart', 'uavklart'))}</span>
+                ${planSecondary ? `<span class="hjem-now-line-sub">${escapeDashboardHtml(planSecondary)}</span>` : ''}
+            </button>` : '';
+        const startLine = model.trainingStart ? `
+            <button type="button" class="hjem-now-line" data-dashboard-action="open-training-start" data-season-year="${model.trainingStart.year}">
+                <span>Obligatorisk treningsstart · ${escapeDashboardHtml(model.trainingStart.label)}</span>
+            </button>` : '';
+        nowSlot.innerHTML = `
+            <section class="hjem-now" aria-label="Akkurat nå">
+                <article class="match-detail-card hjem-card hjem-card-strong">
+                    <div class="hjem-card-body">
+                        <div class="match-detail-chip hjem-card-pill">
+                            <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+                            <span>Akkurat nå</span>
+                        </div>
+                        <h2 class="hjem-now-phase">${escapeDashboardHtml(model.phase.title)}</h2>
+                        ${model.phase.detail ? `<p class="hjem-now-detail">${escapeDashboardHtml(model.phase.detail)}</p>` : ''}
+                        ${planLine}
+                        ${startLine}
+                    </div>
+                </article>
+            </section>`;
+    }
+
+    if (focusSlot) {
+        const followLabel = model.followUpCount == null
+            ? 'Ikke tilgjengelig'
+            : hjemCountPhrase(model.followUpCount, 'spiller', 'spillere');
+        const rows = [`
+            <button type="button" class="hjem-focus-row" data-dashboard-action="open-followup" data-season-year="${year}">
+                <span class="hjem-focus-copy">
+                    <span class="hjem-focus-name">Oppfølging</span>
+                    <span class="hjem-focus-note">Signaler som kan kreve oppfølging</span>
+                </span>
+                <span class="hjem-focus-value">${escapeDashboardHtml(followLabel)}</span>
+            </button>`];
+        if (model.plan.total > 0) {
+            rows.push(`
+                <button type="button" class="hjem-focus-row" data-dashboard-action="open-roster-plan">
+                    <span class="hjem-focus-copy">
+                        <span class="hjem-focus-name">Troppsplan ${model.plan.year}</span>
+                    </span>
+                    <span class="hjem-focus-value">${escapeDashboardHtml(hjemCountPhrase(model.plan.counts.Uavklart, 'uavklart', 'uavklart'))}</span>
+                </button>`);
+        }
+        rows.push(`
+            <button type="button" class="hjem-focus-row" data-dashboard-action="open-injured">
+                <span class="hjem-focus-copy">
+                    <span class="hjem-focus-name">Skadet</span>
+                    <span class="hjem-focus-note">Nåværende skade i troppen</span>
+                </span>
+                <span class="hjem-focus-value">${escapeDashboardHtml(hjemCountPhrase(model.injuredCount, 'spiller', 'spillere'))}</span>
+            </button>`);
+        focusSlot.innerHTML = `
+            <section class="hjem-focus" aria-label="Trenerfokus">
+                <article class="match-detail-card hjem-card hjem-card-quiet">
+                    <div class="hjem-card-body">
+                        <div class="match-detail-chip hjem-card-pill">
+                            <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
+                            <span>Trenerfokus</span>
+                        </div>
+                        <div class="hjem-focus-rows">
+                            ${rows.join('')}
+                        </div>
+                    </div>
+                </article>
+            </section>`;
+    }
+
+    if (pulseSlot) {
+        const pulse = model.pulse;
+        const recordLine = `${pulse.wins} ${pulse.wins === 1 ? 'seier' : 'seire'} · ${pulse.draws} uavgjort · ${pulse.losses} ${pulse.losses === 1 ? 'tap' : 'tap'}`;
+        const facts = pulse.count ? `
+            <p class="hjem-pulse-count">${pulse.count} ${pulse.count === 1 ? 'kamp' : 'kamper'}</p>
+            <p class="hjem-pulse-record">${escapeDashboardHtml(recordLine)}</p>
+            <p class="hjem-pulse-goals">${pulse.goalsFor}–${pulse.goalsAgainst} mål</p>
+            ${pulse.last.length ? `<div class="hjem-pulse-last"><span>Siste ${pulse.last.length === 5 ? 'fem' : pulse.last.length}</span><ol>${pulse.last.map(row => `<li title="${escapeDashboardHtml(`${row.opponent} ${row.result}`)}">${row.tone}</li>`).join('')}</ol></div>` : ''}` : `
+            <p class="hjem-pulse-empty">Ingen tellende kamper ennå</p>`;
+        pulseSlot.innerHTML = `
+            <section class="hjem-pulse" aria-label="Sesongpuls ${year}">
+                <article data-dashboard-action="open-season-pulse" data-season-year="${year}" role="button" tabindex="0" class="match-detail-card hjem-card hjem-card-mid dashboard-click-card">
+                    <div class="hjem-card-body">
+                        <div class="match-detail-chip hjem-card-pill">
+                            <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
+                            <span>Sesongpuls ${year}</span>
+                        </div>
+                        ${facts}
+                    </div>
+                </article>
+            </section>`;
     }
 };
 
@@ -619,44 +919,6 @@ function hjemSeasonPlace(venue) {
     return 'Mot';
 }
 
-function hjemSeasonPlayerPhoto(name, playerId) {
-    const finder = typeof window.findPlayerByRef === 'function' ? window.findPlayerByRef : null;
-    const player = finder ? (finder(playerId) || finder(name)) : null;
-    if (typeof window.getPlayerProfilePhotoUrl !== 'function') return '';
-    return window.getPlayerProfilePhotoUrl(player) || '';
-}
-
-function hjemSeasonOneDecimal(value) {
-    const number = Number(value);
-    if (!Number.isFinite(number) || number <= 0) return '';
-    return number.toFixed(1).replace('.', ',');
-}
-
-function hjemSeasonBorsScore(stat) {
-    return hjemSeasonOneDecimal(stat?.snittBors);
-}
-
-function hjemSeasonAward(name, line, score, playerId) {
-    return {
-        name,
-        line,
-        score: score || '',
-        photo: hjemSeasonPlayerPhoto(name, playerId)
-    };
-}
-
-function readHjemSeasonAwards(year) {
-    if (typeof window.readHallOfFameStore !== 'function') return {};
-    const store = window.readHallOfFameStore();
-    const yearKey = String(year);
-    const team = typeof window.getStatsTeamFilter === 'function' ? window.getStatsTeamFilter() : 'Alle';
-    const teamKey = team && team !== 'Alle' ? String(team) : 'Alle';
-    const scoped = store[teamKey] && store[teamKey][yearKey];
-    if (scoped && typeof scoped === 'object') return scoped;
-    const allTeams = store.Alle && store.Alle[yearKey];
-    return allTeams && typeof allTeams === 'object' ? allTeams : {};
-}
-
 window.buildHjemSeasonModel = function() {
     const year = typeof window.getStatsActiveSeasonYear === 'function'
         ? window.getStatsActiveSeasonYear()
@@ -769,56 +1031,8 @@ window.buildHjemSeasonModel = function() {
     const cup = hjemSeasonCupCard(rows);
     const matches = cup && cup.match ? [cup.match] : [];
 
-    const awards = readHjemSeasonAwards(year);
-    const statRows = typeof window.buildPlayerStatsData === 'function'
-        ? window.buildPlayerStatsData({ applyYearFilter: true, yearFilter: year })
-        : [];
-    const statFor = (winner) => statRows.find(row => winner && row.navn === winner.navn) || null;
-    const people = [];
-    if (awards.player && awards.player.navn) {
-        people.push(hjemSeasonAward(
-            awards.player.navn,
-            'årets spiller',
-            hjemSeasonOneDecimal(statFor(awards.player)?.totalScore),
-            awards.player.playerId
-        ));
-    }
-    const sameBors = Boolean(awards.bors?.navn && awards.mal?.navn && awards.bors.navn === awards.mal.navn);
-    if (awards.mal && awards.mal.navn) {
-        const goals = Number(statFor(awards.mal)?.mal) || 0;
-        const goalLabel = goals === 1 ? '1 mål' : `${goals} mål`;
-        const borsScore = sameBors ? hjemSeasonBorsScore(statFor(awards.bors)) : '';
-        people.push(hjemSeasonAward(
-            awards.mal.navn,
-            sameBors ? `${goalLabel} og årets børs` : goalLabel,
-            borsScore,
-            awards.mal.playerId
-        ));
-    }
-    if (awards.bors?.navn && !sameBors) {
-        people.push(hjemSeasonAward(
-            awards.bors.navn,
-            'årets børs',
-            hjemSeasonBorsScore(statFor(awards.bors)),
-            awards.bors.playerId
-        ));
-    }
-    if (awards.oppmote && awards.oppmote.navn) {
-        const stat = statFor(awards.oppmote);
-        const attended = Number(stat?.oppmoteSamletAttended) || 0;
-        const possible = Number(stat?.oppmoteSamletPossible) || 0;
-        const pct = Math.round(Number(stat?.oppmoteSamletPct) || 0);
-        const detail = possible > 0 ? `, ${attended} av ${possible}` : '';
-        people.push(hjemSeasonAward(
-            awards.oppmote.navn,
-            `årets hederspris${detail}`,
-            pct > 0 ? `${pct}%` : '',
-            awards.oppmote.playerId
-        ));
-    }
-
-    if (!story && !notes && !cup && !matches.length && !people.length) return null;
-    return { year, story, notes, cupLead: cup ? cup.lead : '', matches, people };
+    if (!story && !notes && !cup && !matches.length) return null;
+    return { year, story, notes, cupLead: cup ? cup.lead : '', matches };
 };
 
 window.renderHjemSeasonSummary = function(existingModel) {
@@ -841,24 +1055,11 @@ window.renderHjemSeasonSummary = function(existingModel) {
             ${match.quote ? `<p class="hjem-season-quote">«${escapeDashboardHtml(match.quote)}»</p>` : ''}
         </article>
     `).join('');
-    const peopleRows = model.people.map(person => `
-        <article data-dashboard-action="open-player" data-player-name="${escapeDashboardHtml(person.name)}" data-season-year="${year}" role="button" tabindex="0" class="hjem-season-award dashboard-click-card">
-            <span class="hjem-season-award-photo" aria-hidden="true">
-                ${person.photo
-                    ? `<img src="${escapeDashboardHtml(person.photo)}" alt="" loading="lazy" decoding="async">`
-                    : '<i class="fa-solid fa-user"></i>'}
-            </span>
-            <span class="hjem-season-award-copy">
-                <span class="hjem-season-award-name">${escapeDashboardHtml(person.name)}</span>
-                <span class="hjem-season-award-line">${escapeDashboardHtml(person.line)}</span>
-            </span>
-            ${person.score ? `<span class="hjem-season-award-score">${escapeDashboardHtml(person.score)}</span>` : ''}
-        </article>
-    `).join('');
 
     slot.classList.remove('is-absent');
     slot.innerHTML = `
-        <section class="hjem-season" aria-label="Sesong ${year}">
+        <section class="hjem-season" aria-label="Sesongoppsummering ${year}">
+            <h2 class="hjem-section-label">Sesongoppsummering ${year}</h2>
             <article data-dashboard-action="open-statistikk" data-season-year="${year}" role="button" tabindex="0" class="match-detail-card dashboard-next-match-card hjem-season-story dashboard-click-card">
                 <div class="dashboard-next-match-watermark" aria-hidden="true">
                     <i class="fa-solid fa-book-open"></i>
@@ -866,13 +1067,12 @@ window.renderHjemSeasonSummary = function(existingModel) {
                 <div class="hjem-season-story-body relative z-10">
                     <div class="match-detail-chip">
                         <i class="fa-solid fa-flag" aria-hidden="true"></i>
-                        <span>NFF 5.div. avd.2 ${year}</span>
+                        <span>${HJEM_LEAGUE_TITLE} ${year}</span>
                     </div>
                     ${paragraphs}
                 </div>
             </article>
-            ${(model.cupLead || matchRows) ? `<div class="match-detail-card dashboard-next-session-card hjem-season-panel">${model.cupLead ? `<div class="hjem-season-cup-body"><div class="match-detail-chip"><i class="fa-solid fa-trophy" aria-hidden="true"></i><span>Obos Cup ${year}</span></div><p class="hjem-season-cup-lead">${escapeDashboardHtml(model.cupLead)}</p></div>` : ''}${matchRows}</div>` : ''}
-            ${peopleRows ? `<div class="match-detail-card dashboard-next-session-card hjem-season-panel hjem-season-awards-card"><div class="hjem-season-awards"><div class="match-detail-chip"><i class="fa-solid fa-crown" aria-hidden="true"></i><span>Kåringer</span></div>${peopleRows}</div></div>` : ''}
+            ${(model.cupLead || matchRows) ? `<div class="match-detail-card dashboard-next-session-card hjem-season-panel">${model.cupLead ? `<div class="hjem-season-cup-body"><div class="match-detail-chip"><i class="fa-solid fa-trophy" aria-hidden="true"></i><span>${HJEM_CUP_TITLE} ${year}</span></div><p class="hjem-season-cup-lead">${escapeDashboardHtml(model.cupLead)}</p></div>` : ''}${matchRows}</div>` : ''}
         </section>
     `;
 };

@@ -724,6 +724,26 @@ function renderRosterPlan() {
     });
 }
 
+window.readRosterPlanSummary = function(year) {
+    const target = Number(year) || window.ROSTER_PLAN_YEAR;
+    const counts = { Uavklart: 0, Fortsetter: 0, Slutter: 0, 'Ny spiller': 0 };
+    const useRosterPlan = target === window.ROSTER_PLAN_YEAR;
+    (window.activePlayers || []).forEach(player => {
+        if (useRosterPlan) {
+            if (!playerBelongsInRosterPlan(player)) return;
+            const status = getRosterPlanStatus(player);
+            if (Object.prototype.hasOwnProperty.call(counts, status)) counts[status] += 1;
+            return;
+        }
+        const plans = player?.seasonPlans;
+        const plan = plans && typeof plans === 'object' ? (plans[String(target)] || plans[target]) : null;
+        const status = plan && typeof plan === 'object' ? plan.status : '';
+        if (Object.prototype.hasOwnProperty.call(counts, status)) counts[status] += 1;
+    });
+    const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+    return { year: target, counts, total };
+};
+
 window.setRosterMode = function(mode) {
     window.rosterMode = mode === 'plan2027' ? 'plan2027' : 'now';
     const planMode = window.rosterMode === 'plan2027';

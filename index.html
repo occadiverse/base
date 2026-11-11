@@ -17,7 +17,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20261111-kalenderaar">
+    <link rel="stylesheet" href="assets/css/base.css?v=20261111-hjemuttrykk">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -30,6 +30,8 @@
             <!-- FORSIDE / DASHBOARD REDESIGN -->
             <div id="view-hjem" class="portal-view portal-page hjem-page">
                 <div class="hjem-home-grid">
+                    <div id="hjem-now"></div>
+                    <div class="hjem-upcoming-row">
                     <div id="hjem-hero-match-container">
                         <div class="match-detail-card hjem-loading-card">
                             <div class="dashboard-next-match-watermark">
@@ -50,6 +52,9 @@
                     <div id="hjem-bottom-widgets">
                         <!-- Neste økt genereres av JavaScript -->
                     </div>
+                    </div>
+                    <div id="hjem-coach-focus"></div>
+                    <div id="hjem-season-pulse"></div>
                     <div id="hjem-season-summary"></div>
                 </div>
             </div>
@@ -1680,12 +1685,12 @@
     <script src="assets/js/domain/samspill.js?v=20261111-kampflate"></script>
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20261024-crest-eager"></script>
-    <script src="assets/js/pages/players.js?v=20261111-aktiv-sesong"></script>
+    <script src="assets/js/pages/players.js?v=20261111-hjemforside"></script>
     <script src="assets/js/pages/matches.js?v=20261111-oppstart"></script>
     <script src="assets/js/pages/attendance.js?v=20261111-sesongvarsel"></script>
     <script src="assets/js/pages/statistics.js?v=20261111-oppstart"></script>
     <script src="assets/js/pages/tactics.js?v=20261111-kampflate"></script>
-    <script src="assets/js/pages/dashboard.js?v=20261101-award-values"></script>
+    <script src="assets/js/pages/dashboard.js?v=20261111-hjemutenkaaring"></script>
     <script src="assets/js/pages/training-session.js?v=20261111-oppstart"></script>
     <script type="module" src="assets/js/firebase-sync.js?v=20261111-oppstart"></script>
     <script src="assets/js/app.js?v=20260612-swipe-widgets2"></script>
