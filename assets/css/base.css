@@ -27813,6 +27813,9 @@
         .calendar-heading-panel:has(.calendar-year-menu.is-open) {
             z-index: 40;
         }
+        .calendar-mobile-chrome:has(.calendar-year-menu.is-open) {
+            z-index: 30;
+        }
         .calendar-shell-panel:has(.calendar-year-menu.is-open) .calendar-body {
             z-index: 1;
         }
