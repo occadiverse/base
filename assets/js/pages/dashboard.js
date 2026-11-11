@@ -193,11 +193,12 @@ window.updateDashboard = function() {
                 });
             }
             const heroCard = heroContainer.querySelector('.match-detail-card');
-            if (heroCard && !heroCard.querySelector('.hjem-card-pill')) {
-                const pill = document.createElement('div');
-                pill.className = 'match-detail-chip hjem-card-pill';
-                pill.innerHTML = '<i class="fa-solid fa-futbol" aria-hidden="true"></i><span>Neste kamp</span>';
-                heroCard.insertBefore(pill, heroCard.firstChild);
+            if (heroCard && !heroCard.querySelector('.hjem-mark')) {
+                heroCard.querySelector('.hjem-card-pill')?.remove();
+                const mark = document.createElement('div');
+                mark.className = 'hjem-mark';
+                mark.innerHTML = '<span class="hjem-mark-icon is-gold" aria-hidden="true"><i class="fa-solid fa-futbol"></i></span><span class="hjem-mark-label">Neste kamp</span>';
+                heroCard.insertBefore(mark, heroCard.firstChild);
             }
         } else if (upcoming.length > 0) {
             const nm = upcoming[0];
@@ -320,16 +321,8 @@ window.updateHjemWidget = function() {
         const canOpenSession = isTraining || ne.type === 'Annet';
         const eventTypeLabel = isTraining ? 'Trening' : (ne.type || 'Aktivitet');
         const sessionStats = window.buildNextSessionAttendanceStats(ne);
-        /* Samme datostil som kamp-hero (uten ukedag). */
-        const dateValue = new Date(ne.date);
-        const dateFormatted = Number.isNaN(dateValue.getTime())
-            ? 'Dato ikke satt'
-            : dateValue.toLocaleDateString('no-NO', {
-                day: '2-digit',
-                month: '2-digit',
-                year: '2-digit'
-            });
-        const dateLabel = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
+        /* Lang dato, samme formatter som sesongkortene. */
+        const dateLabel = hjemSeasonLongDate(ne.date) || 'Dato ikke satt';
         const timeLabel = ne.time || '--:--';
         const locationLabel = ne.location || 'Ikke oppgitt';
         const hasSessionAttendance = typeof window.hasRegisteredAttendance === 'function'
@@ -341,7 +334,13 @@ window.updateHjemWidget = function() {
         const sessionObligation = typeof window.getTrainingObligationLabel === 'function'
             ? window.getTrainingObligationLabel(ne)
             : '';
-        const sessionSeasonLine = [sessionSeasonYear ? String(sessionSeasonYear) : '', sessionObligation].filter(Boolean).join(' · ');
+        const obligationClass = sessionObligation === 'Obligatorisk'
+            ? ' is-mandatory'
+            : (sessionObligation === 'Frivillig' ? ' is-voluntary' : '');
+        const obligationHtml = sessionObligation
+            ? `<span class="hjem-obligation${obligationClass}">${escapeDashboardHtml(sessionObligation)}</span>`
+            : '';
+        const sessionSeasonHtml = [sessionSeasonYear ? escapeDashboardHtml(String(sessionSeasonYear)) : '', obligationHtml].filter(Boolean).join(' · ');
 
         window._sessionInjuryPopupData = sessionStats.injuredReady.length ? sessionStats.injuredReady : [];
 
@@ -358,13 +357,11 @@ window.updateHjemWidget = function() {
         sessionWidgetHtml = `
             <article ${cardActionAttrs} role="button" tabindex="0" class="match-detail-card hjem-card hjem-card-mid dashboard-click-card h-full">
                 <div class="hjem-card-body">
-                    <div class="match-detail-chip hjem-card-pill">
-                        <i class="fa-solid fa-stopwatch" aria-hidden="true"></i>
-                        <span>Neste økt</span>
-                    </div>
+                    ${hjemSectionMark('fa-calendar-days', 'Neste økt')}
                     <p class="hjem-lead">${escapeDashboardHtml(dateLabel)}</p>
-                    <p class="hjem-sub">${escapeDashboardHtml(timeLabel)} · ${escapeDashboardHtml(eventTypeLabel)}</p>
-                    ${sessionSeasonLine ? `<p class="hjem-quiet">${escapeDashboardHtml(sessionSeasonLine)}</p>` : ''}
+                    <p class="hjem-session-time">${escapeDashboardHtml(timeLabel)}</p>
+                    <p class="hjem-sub">${escapeDashboardHtml(eventTypeLabel)}</p>
+                    ${sessionSeasonHtml ? `<p class="hjem-quiet">${sessionSeasonHtml}</p>` : ''}
                     <p class="hjem-quiet">${escapeDashboardHtml(attendanceLine)}</p>
                     <p class="hjem-quiet">${escapeDashboardHtml(locationLabel)}</p>
                     ${injuryLine}
@@ -626,6 +623,10 @@ window.buildHjemFrontModel = function() {
     };
 };
 
+function hjemSectionMark(icon, label) {
+    return `<div class="hjem-mark"><span class="hjem-mark-icon is-gold" aria-hidden="true"><i class="fa-solid ${icon}"></i></span><span class="hjem-mark-label">${escapeDashboardHtml(label)}</span></div>`;
+}
+
 function hjemPlanSecondaryLine(counts) {
     const parts = [];
     if (counts.Fortsetter) parts.push(hjemCountPhrase(counts.Fortsetter, 'fortsetter', 'fortsetter'));
@@ -657,10 +658,7 @@ window.renderHjemOperations = function() {
             <section class="hjem-now" aria-label="Akkurat nå">
                 <article class="match-detail-card hjem-card hjem-card-strong">
                     <div class="hjem-card-body">
-                        <div class="match-detail-chip hjem-card-pill">
-                            <i class="fa-solid fa-bolt" aria-hidden="true"></i>
-                            <span>Akkurat nå</span>
-                        </div>
+                        ${hjemSectionMark('fa-bolt', 'Akkurat nå')}
                         <h2 class="hjem-now-phase">${escapeDashboardHtml(model.phase.title)}</h2>
                         ${model.phase.detail ? `<p class="hjem-now-detail">${escapeDashboardHtml(model.phase.detail)}</p>` : ''}
                         ${planLine}
@@ -676,6 +674,7 @@ window.renderHjemOperations = function() {
             : hjemCountPhrase(model.followUpCount, 'spiller', 'spillere');
         const rows = [`
             <button type="button" class="hjem-focus-row" data-dashboard-action="open-followup" data-season-year="${year}">
+                <span class="hjem-mark-icon is-orange" aria-hidden="true"><i class="fa-solid fa-triangle-exclamation"></i></span>
                 <span class="hjem-focus-copy">
                     <span class="hjem-focus-name">Oppfølging</span>
                     <span class="hjem-focus-note">Signaler som kan kreve oppfølging</span>
@@ -685,6 +684,7 @@ window.renderHjemOperations = function() {
         if (model.plan.total > 0) {
             rows.push(`
                 <button type="button" class="hjem-focus-row" data-dashboard-action="open-roster-plan">
+                    <span class="hjem-mark-icon is-gold" aria-hidden="true"><i class="fa-solid fa-users"></i></span>
                     <span class="hjem-focus-copy">
                         <span class="hjem-focus-name">Troppsplan ${model.plan.year}</span>
                     </span>
@@ -693,6 +693,7 @@ window.renderHjemOperations = function() {
         }
         rows.push(`
             <button type="button" class="hjem-focus-row" data-dashboard-action="open-injured">
+                <span class="hjem-mark-icon is-injury" aria-hidden="true"><i class="fa-solid fa-user-injured"></i></span>
                 <span class="hjem-focus-copy">
                     <span class="hjem-focus-name">Skadet</span>
                     <span class="hjem-focus-note">Nåværende skade i troppen</span>
@@ -703,10 +704,7 @@ window.renderHjemOperations = function() {
             <section class="hjem-focus" aria-label="Trenerfokus">
                 <article class="match-detail-card hjem-card hjem-card-quiet">
                     <div class="hjem-card-body">
-                        <div class="match-detail-chip hjem-card-pill">
-                            <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
-                            <span>Trenerfokus</span>
-                        </div>
+                        ${hjemSectionMark('fa-clipboard-list', 'Trenerfokus')}
                         <div class="hjem-focus-rows">
                             ${rows.join('')}
                         </div>
@@ -717,21 +715,29 @@ window.renderHjemOperations = function() {
 
     if (pulseSlot) {
         const pulse = model.pulse;
-        const recordLine = `${pulse.wins} ${pulse.wins === 1 ? 'seier' : 'seire'} · ${pulse.draws} uavgjort · ${pulse.losses} ${pulse.losses === 1 ? 'tap' : 'tap'}`;
+        const recordValue = `${pulse.wins} – ${pulse.draws} – ${pulse.losses}`;
         const facts = pulse.count ? `
-            <p class="hjem-pulse-count">${pulse.count} ${pulse.count === 1 ? 'kamp' : 'kamper'}</p>
-            <p class="hjem-pulse-record">${escapeDashboardHtml(recordLine)}</p>
-            <p class="hjem-pulse-goals">${pulse.goalsFor}–${pulse.goalsAgainst} mål</p>
-            ${pulse.last.length ? `<div class="hjem-pulse-last"><span>Siste ${pulse.last.length === 5 ? 'fem' : pulse.last.length}</span><ol>${pulse.last.map(row => `<li title="${escapeDashboardHtml(`${row.opponent} ${row.result}`)}">${row.tone}</li>`).join('')}</ol></div>` : ''}` : `
+            <div class="hjem-pulse-spots">
+                <div class="hjem-pulse-spot">
+                    <span class="hjem-pulse-spot-value">${pulse.count}</span>
+                    <span class="hjem-pulse-spot-label">${pulse.count === 1 ? 'Kamp' : 'Kamper'}</span>
+                </div>
+                <div class="hjem-pulse-spot">
+                    <span class="hjem-pulse-spot-value">${escapeDashboardHtml(recordValue)}</span>
+                    <span class="hjem-pulse-spot-label">Seier · uavgjort · tap</span>
+                </div>
+                <div class="hjem-pulse-spot">
+                    <span class="hjem-pulse-spot-value">${pulse.goalsFor}–${pulse.goalsAgainst}</span>
+                    <span class="hjem-pulse-spot-label">Mål</span>
+                </div>
+            </div>
+            ${pulse.last.length ? `<div class="hjem-pulse-last"><span>Siste ${pulse.last.length === 5 ? 'fem' : pulse.last.length}</span><ol>${pulse.last.map(row => `<li class="is-${String(row.tone || 'U').toLowerCase()}" title="${escapeDashboardHtml(`${row.opponent} ${row.result}`)}">${row.tone}</li>`).join('')}</ol></div>` : ''}` : `
             <p class="hjem-pulse-empty">Ingen tellende kamper ennå</p>`;
         pulseSlot.innerHTML = `
             <section class="hjem-pulse" aria-label="Sesongpuls ${year}">
                 <article data-dashboard-action="open-season-pulse" data-season-year="${year}" role="button" tabindex="0" class="match-detail-card hjem-card hjem-card-mid dashboard-click-card">
                     <div class="hjem-card-body">
-                        <div class="match-detail-chip hjem-card-pill">
-                            <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
-                            <span>Sesongpuls ${year}</span>
-                        </div>
+                        ${hjemSectionMark('fa-chart-simple', `Sesongpuls ${year}`)}
                         ${facts}
                     </div>
                 </article>

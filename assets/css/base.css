@@ -1220,7 +1220,8 @@
         }
         .hjem-page .hjem-card.dashboard-click-card:hover,
         .hjem-page .hjem-card.dashboard-click-card:focus-visible {
-            border-color: rgba(255, 224, 138, 0.78);
+            border-color: rgba(255, 224, 138, 0.9);
+            filter: brightness(1.045);
             outline: none;
         }
         .hjem-card-body {
@@ -1231,9 +1232,56 @@
             position: relative;
             z-index: 1;
         }
-        .hjem-page .hjem-card-pill {
-            align-self: flex-start;
-            margin-bottom: 0.35rem;
+        .hjem-page .hjem-card-strong > .hjem-card-body {
+            gap: 0.28rem;
+            padding: 0.9rem 1.25rem 0.95rem;
+        }
+        .hjem-mark {
+            align-items: center;
+            border-bottom: 1px solid rgba(245, 197, 66, 0.42);
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.15rem;
+            max-width: 100%;
+            padding-bottom: 0.42rem;
+            position: relative;
+            width: fit-content;
+            z-index: 2;
+        }
+        .hjem-mark-icon {
+            align-items: center;
+            border-radius: 0.42rem;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.68rem;
+            height: 1.4rem;
+            justify-content: center;
+            width: 1.4rem;
+        }
+        .hjem-mark-icon.is-gold {
+            background: rgba(245, 197, 66, 0.14);
+            box-shadow:
+                inset 0 0 0 1px rgba(245, 197, 66, 0.48),
+                0 0 8px rgba(245, 197, 66, 0.16);
+            color: #ffe08a;
+        }
+        .hjem-mark-icon.is-orange {
+            background: rgba(212, 137, 74, 0.16);
+            box-shadow: inset 0 0 0 1px rgba(212, 137, 74, 0.5);
+            color: #e0a36a;
+        }
+        .hjem-mark-icon.is-injury {
+            background: rgba(196, 104, 92, 0.16);
+            box-shadow: inset 0 0 0 1px rgba(196, 104, 92, 0.5);
+            color: #e09a90;
+        }
+        .hjem-mark-label {
+            color: #ffe08a;
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.14em;
+            line-height: 1.2;
+            text-transform: uppercase;
         }
         .hjem-now-phase,
         .hjem-lead {
@@ -1265,6 +1313,22 @@
             line-height: 1.4;
             margin: 0;
         }
+        .hjem-session-time {
+            color: #fffdf5;
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            line-height: 1.15;
+            margin: 0;
+        }
+        .hjem-obligation.is-voluntary {
+            color: #c5d0e2;
+            font-weight: 800;
+        }
+        .hjem-obligation.is-mandatory {
+            color: #8fbf96;
+            font-weight: 800;
+        }
         .hjem-now-line,
         .hjem-inline-note {
             appearance: none;
@@ -1273,8 +1337,8 @@
             cursor: pointer;
             display: flex;
             flex-direction: column;
-            gap: 0.15rem;
-            padding: 0.15rem 0;
+            gap: 0.04rem;
+            padding: 0.02rem 0;
             text-align: left;
             width: fit-content;
             max-width: 100%;
@@ -1311,11 +1375,12 @@
             width: 100%;
         }
         .hjem-focus-row + .hjem-focus-row {
-            box-shadow: inset 0 1px 0 rgba(245, 197, 66, 0.22);
+            box-shadow: inset 0 1px 0 rgba(245, 197, 66, 0.34);
         }
         .hjem-focus-row:hover,
         .hjem-focus-row:focus-visible {
             background: rgba(245, 197, 66, 0.08);
+            box-shadow: inset 0 0 0 1px rgba(245, 197, 66, 0.28);
             outline: none;
         }
         .hjem-focus-copy {
@@ -1348,40 +1413,64 @@
             font-weight: 800;
             line-height: 1.2;
         }
-        .hjem-pulse-count {
+        .hjem-pulse-spots {
+            background: rgba(5, 16, 32, 0.22);
+            border-radius: 0.8rem;
+            box-shadow: inset 0 0 0 1px rgba(245, 197, 66, 0.2);
+            display: grid;
+            gap: 0;
+            grid-template-columns: minmax(0, 1fr);
+            margin-top: 0.2rem;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .hjem-pulse-spot {
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 0.28rem;
+            min-width: 0;
+            padding: 0.75rem 0.9rem 0.7rem;
+        }
+        .hjem-pulse-spot + .hjem-pulse-spot {
+            box-shadow: inset 0 1px 0 rgba(245, 197, 66, 0.28);
+        }
+        .hjem-pulse-spot-value {
             color: #fffdf5;
-            font-size: 1.45rem;
+            font-size: clamp(1.35rem, 2.4vw, 1.8rem);
             font-weight: 950;
-            line-height: 1.1;
-            margin: 0.2rem 0 0;
+            letter-spacing: 0.01em;
+            line-height: 1;
         }
-        .hjem-pulse-record {
-            color: rgba(255, 255, 255, 0.92);
-            font-size: 1.05rem;
-            font-weight: 650;
-            line-height: 1.4;
-            margin: 0;
+        .hjem-pulse-spot-label {
+            color: #ffe08a;
+            font-size: 0.64rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            line-height: 1.25;
+            text-transform: uppercase;
         }
-        .hjem-pulse-goals,
         .hjem-pulse-empty {
             color: rgba(255, 248, 220, 0.78);
             font-size: 0.98rem;
             font-weight: 650;
             line-height: 1.4;
-            margin: 0;
+            margin: 0.2rem 0 0;
         }
         .hjem-pulse-last {
             align-items: baseline;
+            border-top: 1px solid rgba(245, 197, 66, 0.32);
             display: flex;
             flex-wrap: wrap;
             gap: 0.45rem 0.8rem;
-            margin-top: 0.55rem;
+            margin-top: 0.75rem;
+            padding-top: 0.7rem;
         }
         .hjem-pulse-last span {
             color: #ffe08a;
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             font-weight: 900;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.12em;
             text-transform: uppercase;
         }
         .hjem-pulse-last ol {
@@ -1394,9 +1483,18 @@
         }
         .hjem-pulse-last li {
             color: #fffdf5;
-            font-size: 1.05rem;
-            font-weight: 800;
-            letter-spacing: 0.04em;
+            font-size: 1.12rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+        }
+        .hjem-pulse-last li.is-s {
+            color: #8fbf96;
+        }
+        .hjem-pulse-last li.is-u {
+            color: #ffe08a;
+        }
+        .hjem-pulse-last li.is-t {
+            color: #e09a90;
         }
         .hjem-page #hjem-hero-match-container,
         .hjem-page #hjem-bottom-widgets {
@@ -1408,8 +1506,8 @@
             flex: 1 1 auto;
             width: 100%;
         }
-        .hjem-page #hjem-hero-match-container .hjem-card-pill {
-            margin: 1.15rem 1.25rem 0;
+        .hjem-page #hjem-hero-match-container .hjem-mark {
+            margin: 0.95rem 1.25rem 0;
         }
         .hjem-page #hjem-hero-match-container .match-detail-card-top {
             background: transparent;
@@ -1427,6 +1525,12 @@
             .hjem-upcoming-row:has(#hjem-hero-match-container.is-absent),
             .hjem-upcoming-row:has(#hjem-bottom-widgets.is-absent) {
                 grid-template-columns: minmax(0, 1fr);
+            }
+            .hjem-pulse-spots {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .hjem-pulse-spot + .hjem-pulse-spot {
+                box-shadow: inset 1px 0 0 rgba(245, 197, 66, 0.28);
             }
         }
         .hjem-season {
