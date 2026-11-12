@@ -1801,22 +1801,23 @@
                 inset 0 -10px 20px rgba(0, 0, 0, 0.18);
             color: inherit;
             cursor: default;
-            display: grid;
-            grid-template-columns: auto minmax(0, 1fr) auto;
+            display: flex;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             gap: 0.7rem;
             overflow: visible;
-            padding: 0.7rem 0.75rem;
+            padding: 1.45rem 1.15rem 1.05rem;
             position: relative;
-            text-align: left;
+            text-align: center;
             width: 100%;
         }
         .hjem-note-card.is-orange { --note-wash: rgba(251, 146, 60, 0.24); }
         .hjem-note-card.is-plan { --note-wash: rgba(245, 197, 66, 0.22); }
         .hjem-note-card.is-injury { --note-wash: rgba(248, 113, 113, 0.24); }
         .hjem-note-list {
-            gap: 0.7rem;
-            padding-top: 0.2rem;
+            gap: 1.35rem;
+            padding-top: 0.9rem;
         }
         .hjem-note-gem {
             --gem-hi: #fff8e1;
@@ -1829,18 +1830,32 @@
                 0 3px 0 rgba(6, 16, 32, 0.75),
                 0 6px 12px rgba(2, 8, 20, 0.28),
                 inset 0 1px 0 rgba(255, 255, 255, 0.55);
-            font-size: 1.05rem;
-            height: 2.75rem;
-            position: static;
-            transform: none;
-            width: 2.75rem;
+            font-size: 0.95rem;
+            height: 2.05rem;
+            left: 50%;
+            position: absolute;
+            top: 0;
+            transform: translate(-50%, -50%);
+            width: 2.05rem;
+            z-index: 2;
+        }
+        .hjem-note-card > .hjem-action {
+            position: absolute;
+            right: 0.7rem;
+            top: 58%;
+            transform: translateY(-50%);
         }
         .hjem-note-copy {
-            align-items: flex-start;
+            align-items: center;
             display: flex;
             flex-direction: column;
             gap: 0.12rem;
             min-width: 0;
+            text-align: center;
+        }
+        .hjem-note-card .hjem-note-title {
+            font-size: 0.78rem;
+            letter-spacing: 0.14em;
         }
         .hjem-note-meta {
             align-items: center;
@@ -1850,6 +1865,26 @@
             font-weight: 800;
             gap: 0.4rem;
             line-height: 1.1;
+            margin-top: 0.55rem;
+        }
+        .hjem-count-chip {
+            align-items: center;
+            background: linear-gradient(180deg, #404e63 0%, #535f6e 48%, #45576c 100%);
+            border: 0.5px solid #eec75c;
+            border-radius: 999px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+            color: #fef7da;
+            cursor: default;
+            display: inline-flex;
+            font-size: 1.05rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 900;
+            letter-spacing: 0.01em;
+            line-height: 1;
+            padding: 0.42rem 0.9rem;
+            pointer-events: none;
+            text-shadow: 0 2px 0 #0d1a2f;
+            width: fit-content;
         }
         .hjem-status-chip {
             align-items: center;
@@ -2076,11 +2111,14 @@
                 0 2px 0 #071428,
                 inset 0 1px 0 rgba(255, 248, 220, 0.28);
             display: inline-flex;
-            font-size: 0.95rem;
+            font-size: 0.78rem;
+            font-variant-numeric: tabular-nums;
             font-weight: 950;
             height: 1.9rem;
             justify-content: center;
-            width: 1.9rem;
+            min-width: 2.6rem;
+            padding: 0 0.42rem;
+            width: auto;
         }
         .hjem-form li.is-s {
             background: linear-gradient(180deg, #3d9a62 0%, #1e7a45 48%, #0f4f2c 100%);
@@ -14861,7 +14899,8 @@
         }
         :is(.stats-board-card, .stats-page-slot) .stats-lag-section-btn,
         :is(.stats-board-card, .stats-page-slot) .stats-lag-section-btn.bsk-btn,
-        :is(.stats-board-card, .stats-page-slot) .stats-lag-section-btn.bsk-btn-chip {
+        :is(.stats-board-card, .stats-page-slot) .stats-lag-section-btn.bsk-btn-chip,
+        .hjem-page .hjem-section-chip.bsk-btn-chip {
             align-items: center;
             background: #12345c;
             position: relative;
@@ -14897,6 +14936,11 @@
             transition: background 140ms ease, border-color 140ms ease;
             width: 100%;
         }
+        .hjem-page .hjem-section-chip.bsk-btn-chip {
+            cursor: pointer;
+            padding: 0.62rem 1.15rem;
+            width: auto;
+        }
         :is(.stats-board-card, .stats-page-slot) .stats-lag-section-btn i {
             color: #ffffff;
             flex: 0 0 auto;
@@ -14909,7 +14953,8 @@
             color: #ffffff;
         }
         :is(.stats-board-card, .stats-page-slot) .stats-lag-section-btn.is-active,
-        :is(.stats-board-card, .stats-page-slot) .stats-lag-section-btn.is-active:hover {
+        :is(.stats-board-card, .stats-page-slot) .stats-lag-section-btn.is-active:hover,
+        .hjem-page .hjem-section-chip.is-active {
             border-color: #c7ecff;
             color: #ffffff;
         }
@@ -14920,7 +14965,8 @@
             outline: 2px solid #8ed4ff;
             outline-offset: 2px;
         }
-        :is(.stats-board-card, .stats-page-slot) :is(.stats-lag-section-btn, .stats-filter-trigger)::before {
+        :is(.stats-board-card, .stats-page-slot) :is(.stats-lag-section-btn, .stats-filter-trigger)::before,
+        .hjem-page .hjem-section-chip.is-active::before {
             background: linear-gradient(180deg, #2a5a80 0%, #214c70 100%);
             border-radius: calc(0.55rem - 2.5px);
             content: "";
@@ -14932,14 +14978,16 @@
             top: 2px;
             z-index: 0;
         }
-        :is(.stats-board-card, .stats-page-slot) :is(.stats-lag-section-btn, .stats-filter-trigger) > * {
+        :is(.stats-board-card, .stats-page-slot) :is(.stats-lag-section-btn, .stats-filter-trigger) > *,
+        .hjem-page .hjem-section-chip > * {
             position: relative;
             z-index: 1;
         }
         :is(.stats-board-card, .stats-page-slot) .stats-lag-section-btn:hover:not(.is-active)::before,
         :is(.stats-board-card, .stats-page-slot) .stats-lag-section-btn.is-active::before,
         :is(.stats-board-card, .stats-page-slot) .stats-filter-trigger:hover::before,
-        :is(.stats-board-card, .stats-page-slot) .stats-filter-menu.is-open .stats-filter-trigger::before {
+        :is(.stats-board-card, .stats-page-slot) .stats-filter-menu.is-open .stats-filter-trigger::before,
+        .hjem-page .hjem-section-chip.is-active::before {
             background: linear-gradient(180deg, #346c94 0%, #285c80 100%);
         }
         :is(.stats-board-card, .stats-page-slot) #stat-view-lag {
