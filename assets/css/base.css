@@ -1706,6 +1706,32 @@
             margin: 0;
             min-width: 0;
         }
+        .hjem-now-fact.is-plan,
+        .hjem-now-fact.is-start {
+            justify-content: center;
+            gap: 0.65rem;
+        }
+        .hjem-now-fact.is-plan .hjem-now-fact-text,
+        .hjem-now-fact.is-start .hjem-now-fact-text {
+            align-items: center;
+            flex: 0 1 auto;
+        }
+        .hjem-now-fact .hjem-now-gem {
+            left: auto;
+            position: relative;
+            top: auto;
+            transform: none;
+        }
+        .hjem-now-fact-line {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+            justify-content: center;
+        }
+        .hjem-now-fact-line > span:not(.hjem-now-gem) {
+            white-space: nowrap;
+        }
         .hjem-family-head {
             align-items: center;
             display: flex;
@@ -1884,14 +1910,15 @@
                 drop-shadow(0 3px 0 #6b4a0c)
                 drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
             flex: 0 0 auto;
-            height: 2.85rem;
+            height: 3.25rem;
             justify-content: center;
+            margin: -0.25rem 0 -0.5rem;
             transform: rotate(-10deg);
             transform-origin: 50% 55%;
-            width: 2.85rem;
+            width: 3.25rem;
         }
         .hjem-page .hjem-board-mark i {
-            font-size: 1.85rem;
+            font-size: 2.35rem;
             line-height: 1;
             text-shadow:
                 -1px 0 0 #fffdf5,
@@ -2121,7 +2148,7 @@
             flex-direction: column;
             gap: 0.7rem;
             margin-top: 0.35rem;
-            padding: 1.15rem 0.8rem 0.85rem;
+            padding: 0.65rem 0.8rem 0.85rem;
         }
         .hjem-pulse-board .hjem-board-head {
             margin: 0;

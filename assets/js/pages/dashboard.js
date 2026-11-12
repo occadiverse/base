@@ -657,19 +657,25 @@ window.renderHjemOperations = function() {
     if (nowSlot) {
         const planSecondary = model.showPlanInStatus ? hjemPlanSecondaryLine(model.plan.counts) : '';
         const planLine = model.showPlanInStatus ? `
-            <div class="hjem-now-fact">
+            <div class="hjem-now-fact is-plan">
                 <p class="hjem-now-fact-text">
-                    <span>Troppsplan ${model.plan.year} · ${escapeDashboardHtml(hjemCountPhrase(model.plan.counts.Uavklart, 'uavklart', 'uavklart'))}</span>
+                    <span class="hjem-now-fact-line">
+                        <span class="hjem-note-gem is-gold hjem-now-gem" aria-hidden="true"><i class="fa-solid fa-users"></i></span>
+                        <span>Troppsplan ${model.plan.year}</span>
+                        ${hjemSectionChip('data-dashboard-action="open-roster-plan"', `${model.plan.counts.Uavklart} uavklart`)}
+                    </span>
                     ${planSecondary ? `<span class="hjem-now-line-sub">${escapeDashboardHtml(planSecondary)}</span>` : ''}
                 </p>
-                ${hjemActionButton('data-dashboard-action="open-roster-plan"', 'fa-users', `Åpne troppsplan ${model.plan.year}`)}
             </div>` : '';
         const startLine = model.trainingStart ? `
-            <div class="hjem-now-fact">
+            <div class="hjem-now-fact is-start">
                 <p class="hjem-now-fact-text">
-                    <span>Obligatorisk treningsstart · ${escapeDashboardHtml(model.trainingStart.label)}</span>
+                    <span class="hjem-now-fact-line">
+                        <span class="hjem-note-gem is-blue hjem-now-gem" aria-hidden="true"><i class="fa-solid fa-calendar-check"></i></span>
+                        <span>Obligatorisk treningsstart</span>
+                        ${hjemSectionChip(`data-dashboard-action="open-training-start" data-season-year="${model.trainingStart.year}"`, model.trainingStart.label)}
+                    </span>
                 </p>
-                ${hjemActionButton(`data-dashboard-action="open-training-start" data-season-year="${model.trainingStart.year}"`, 'fa-calendar-check', 'Åpne obligatorisk treningsstart')}
             </div>` : '';
         nowSlot.innerHTML = `
             <section class="hjem-now" aria-label="Akkurat nå">
