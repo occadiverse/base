@@ -1086,22 +1086,29 @@ window.renderHjemSeasonSummary = function(existingModel) {
     `).join('');
 
     slot.classList.remove('is-absent');
+    const leagueBox = `
+        <article data-dashboard-action="open-statistikk" data-season-year="${year}" role="button" tabindex="0" class="hjem-season-box is-league dashboard-click-card">
+            <span class="hjem-season-plaque">NFF SERIE 5.DIV.</span>
+            ${paragraphs}
+        </article>`;
+    const cupBox = (model.cupLead || matchRows) ? `
+        <article class="hjem-season-box is-cup">
+            <span class="hjem-season-plaque is-gold">OBOS CUP</span>
+            ${model.cupLead ? `<p class="hjem-season-cup-lead">${escapeDashboardHtml(model.cupLead)}</p>` : ''}
+            ${matchRows}
+        </article>` : '';
     slot.innerHTML = `
         <section class="hjem-season" aria-label="Sesongoppsummering ${year}">
-            <h2 class="hjem-section-label">Sesongoppsummering ${year}</h2>
-            <article data-dashboard-action="open-statistikk" data-season-year="${year}" role="button" tabindex="0" class="match-detail-card dashboard-next-match-card hjem-season-story dashboard-click-card">
-                <div class="dashboard-next-match-watermark" aria-hidden="true">
-                    <i class="fa-solid fa-book-open"></i>
-                </div>
-                <div class="hjem-season-story-body relative z-10">
-                    <div class="match-detail-chip">
-                        <i class="fa-solid fa-flag" aria-hidden="true"></i>
-                        <span>${HJEM_LEAGUE_TITLE} ${year}</span>
-                    </div>
-                    ${paragraphs}
+            <article class="hjem-pulse-board hjem-season-board">
+                <header class="hjem-board-head">
+                    <span class="hjem-board-mark" aria-hidden="true"><i class="fa-solid fa-book-open"></i></span>
+                    <h2>Sesongoppsummering ${year}</h2>
+                </header>
+                <div class="hjem-season-boxes">
+                    ${leagueBox}
+                    ${cupBox}
                 </div>
             </article>
-            ${(model.cupLead || matchRows) ? `<div class="match-detail-card dashboard-next-session-card hjem-season-panel">${model.cupLead ? `<div class="hjem-season-cup-body"><div class="match-detail-chip"><i class="fa-solid fa-trophy" aria-hidden="true"></i><span>${HJEM_CUP_TITLE} ${year}</span></div><p class="hjem-season-cup-lead">${escapeDashboardHtml(model.cupLead)}</p></div>` : ''}${matchRows}</div>` : ''}
         </section>
     `;
 };
