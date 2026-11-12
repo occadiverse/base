@@ -1152,6 +1152,11 @@
             margin: 0.35rem 0 0.7rem;
             text-transform: uppercase;
         }
+        @media (min-width: 768px) {
+            .hjem-page .hjem-section-label {
+                color: #0b2b4c;
+            }
+        }
         .hjem-page .hjem-card {
             background:
                 radial-gradient(ellipse 100% 50% at 50% -10%, rgba(255, 214, 102, 0.18), transparent 52%),
@@ -1819,6 +1824,102 @@
             gap: 1.35rem;
             padding-top: 0.9rem;
         }
+        .hjem-focus {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            min-width: 0;
+        }
+        .hjem-page .hjem-focus-board {
+            overflow: visible;
+            padding: 0.95rem 0.9rem 1.05rem;
+        }
+        .hjem-page .hjem-board-head {
+            align-items: center;
+            display: flex;
+            gap: 0.55rem;
+            min-height: 2.65rem;
+            padding: 0.15rem 0.15rem 0.7rem;
+            position: relative;
+        }
+        .hjem-page .hjem-board-head::after {
+            background: linear-gradient(
+                90deg,
+                transparent,
+                #ffe08a 20%,
+                #f5c542 50%,
+                #ffe08a 80%,
+                transparent
+            );
+            bottom: 0;
+            box-shadow: 0 0 10px rgba(245, 197, 66, 0.35);
+            content: "";
+            height: 2.5px;
+            left: 0.2rem;
+            position: absolute;
+            right: 0.2rem;
+        }
+        .hjem-page .hjem-board-head h2 {
+            color: #ffe9a8;
+            flex: 1 1 auto;
+            font-size: clamp(1.32rem, 3.7vw, 1.58rem);
+            font-weight: 950;
+            letter-spacing: 0.08em;
+            line-height: 1;
+            margin: 0;
+            min-width: 0;
+            text-shadow:
+                0 1px 0 rgba(255, 253, 245, 0.28),
+                0 2px 0 rgba(10, 26, 48, 0.55),
+                0 3px 0 rgba(122, 86, 8, 0.35),
+                0 0 18px rgba(255, 214, 102, 0.28);
+            text-transform: uppercase;
+        }
+        .hjem-page .hjem-board-mark {
+            align-items: center;
+            color: #f5c542;
+            display: inline-flex;
+            filter:
+                drop-shadow(0 1px 0 rgba(255, 253, 245, 0.85))
+                drop-shadow(0 3px 0 #6b4a0c)
+                drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
+            flex: 0 0 auto;
+            height: 2.85rem;
+            justify-content: center;
+            transform: rotate(-10deg);
+            transform-origin: 50% 55%;
+            width: 2.85rem;
+        }
+        .hjem-page .hjem-board-mark i {
+            font-size: 1.85rem;
+            line-height: 1;
+            text-shadow:
+                -1px 0 0 #fffdf5,
+                1px 0 0 #fffdf5,
+                0 -1px 0 #fffdf5,
+                0 1px 0 #fffdf5;
+        }
+        .hjem-page .hjem-focus .hjem-note-list {
+            padding-top: 1.2rem;
+        }
+        @media (min-width: 768px) {
+            .hjem-page .hjem-focus .hjem-note-list {
+                align-items: stretch;
+                display: grid;
+                gap: 1.15rem;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .hjem-page .hjem-focus .hjem-note-card {
+                justify-content: flex-start;
+            }
+            .hjem-page .hjem-focus .hjem-note-copy {
+                flex: 1 1 auto;
+            }
+            .hjem-page .hjem-focus .hjem-note-meta {
+                margin-top: auto;
+                padding-top: 0.7rem;
+            }
+        }
         .hjem-note-gem {
             --gem-hi: #fff8e1;
             --gem-mid: #f5c542;
@@ -2022,13 +2123,8 @@
             margin-top: 0.35rem;
             padding: 1.15rem 0.8rem 0.85rem;
         }
-        .hjem-pulse-board .hjem-family-head {
-            justify-content: space-between;
-            margin: 0 0 0.1rem;
-            padding-left: 0;
-        }
-        .hjem-pulse-board .hjem-family-head h2 {
-            flex: 1 1 auto;
+        .hjem-pulse-board .hjem-board-head {
+            margin: 0;
         }
         .hjem-metric-grid {
             display: grid;

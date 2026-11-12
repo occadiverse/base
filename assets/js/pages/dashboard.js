@@ -717,13 +717,15 @@ window.renderHjemOperations = function() {
                 </article>`);
         focusSlot.innerHTML = `
             <section class="hjem-focus" aria-label="Trenerfokus">
-                <header class="hjem-family-head">
-                    <span class="hjem-family-gem is-gold" aria-hidden="true"><i class="fa-solid fa-clipboard-list"></i></span>
-                    <h2>Trenerfokus</h2>
-                </header>
-                <div class="hjem-note-list">
-                    ${rows.join('')}
-                </div>
+                <article class="match-detail-card dashboard-next-match-card hjem-focus-board">
+                    <header class="hjem-board-head">
+                        <span class="hjem-board-mark" aria-hidden="true"><i class="fa-solid fa-clipboard-list"></i></span>
+                        <h2>Trenerfokus</h2>
+                    </header>
+                    <div class="hjem-note-list">
+                        ${rows.join('')}
+                    </div>
+                </article>
             </section>`;
     }
 
@@ -750,9 +752,9 @@ window.renderHjemOperations = function() {
         pulseSlot.innerHTML = `
             <section class="hjem-pulse" aria-label="Sesongpuls ${year}">
                 <article class="hjem-pulse-board">
-                    <header class="hjem-family-head">
+                    <header class="hjem-board-head">
+                        <span class="hjem-board-mark" aria-hidden="true"><i class="fa-solid fa-chart-line"></i></span>
                         <h2>Sesongpuls ${year}</h2>
-                        ${hjemActionButton(`data-dashboard-action="open-season-pulse" data-season-year="${year}"`, 'fa-chart-simple', `Åpne statistikk ${year}`)}
                     </header>
                     ${facts}
                 </article>
