@@ -1393,26 +1393,22 @@ function buildMatchGameCardTeaserHtml(text) {
 
 function buildMatchPhaseHeadingHtml(phase) {
     const phases = {
-        before: { label: 'Før kamp', icon: 'fa-clipboard-list', modifier: 'is-before' },
-        after: { label: 'Etter kamp', icon: 'fa-chart-pie', modifier: 'is-after' },
-        more: { label: 'Mer', icon: 'fa-circle-info', modifier: 'is-more' }
+        before: { label: 'Før kamp', modifier: 'is-before' },
+        after: { label: 'Etter kamp', modifier: 'is-after' },
+        more: { label: 'Mer', modifier: 'is-more' }
     };
     const item = phases[phase];
     if (!item) return '';
     return `
         <h2 class="match-phase-heading ${item.modifier}">
-            <span class="match-phase-heading-icon" aria-hidden="true"><i class="fa-solid ${item.icon}"></i></span>
-            <span class="match-phase-heading-label">${item.label}</span>
+            <span class="match-phase-banner">
+                <span class="match-phase-wing is-left" aria-hidden="true"></span>
+                <span class="match-phase-wing is-right" aria-hidden="true"></span>
+                <span class="match-phase-plate">
+                    <span class="match-phase-heading-label">${item.label}</span>
+                </span>
+            </span>
         </h2>
-    `;
-}
-
-function buildMatchAfterPhaseEyebrowHtml() {
-    return `
-        <p class="match-phase-eyebrow">
-            <i class="fa-solid fa-chart-pie" aria-hidden="true"></i>
-            <span>Etter kamp</span>
-        </p>
     `;
 }
 
@@ -10591,7 +10587,7 @@ window.showMatchDetails = function(id) {
         <div class="match-detail-page">
         ${buildMatchDetailCardHtml(match, { showWatermark: true, backOnClick: false, showHeroNav: true })}
 
-        ${matchSummaryPanelHtml ? `${buildMatchAfterPhaseEyebrowHtml()}${matchSummaryPanelHtml}` : ''}
+        ${matchSummaryPanelHtml}
 
         ${buildMatchPhaseHeadingHtml('before')}
 

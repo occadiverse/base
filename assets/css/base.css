@@ -24901,97 +24901,83 @@
             text-transform: uppercase;
         }
         .match-detail-page .match-phase-heading {
-            align-items: center;
-            background: linear-gradient(180deg, #163a66 0%, #0d2848 100%);
-            border-radius: 0.7rem;
-            color: #ffe9a8;
+            --banner-h: 42px;
+            --end-notch: 12px;
+            --end-clip: polygon(
+                0 0,
+                100% 0,
+                calc(100% - var(--end-notch)) 50%,
+                100% 100%,
+                0 100%,
+                var(--end-notch) 50%
+            );
+            --phase-face: linear-gradient(180deg, #6aa4b8 0%, #4b8ba1 28%, #3f7d94 100%);
+            color: #fff;
             cursor: default;
-            display: flex;
-            gap: 0.5rem;
-            margin: 0.15rem 0 0;
-            padding: 0.62rem 0.85rem 0.78rem;
+            margin: 0.15rem auto;
             pointer-events: none;
             position: relative;
+            user-select: none;
+            width: min(340px, calc(100% - 8px));
+            -webkit-tap-highlight-color: transparent;
         }
-        .match-detail-page .match-phase-heading::after {
-            background: linear-gradient(
-                90deg,
-                transparent 0%,
-                #ffe08a 16%,
-                #f5c542 50%,
-                #ffe08a 84%,
-                transparent 100%
-            );
-            bottom: 0.42rem;
-            content: "";
-            height: 2px;
-            left: 0.85rem;
+        .match-detail-page .match-phase-banner {
+            display: block;
+            height: var(--banner-h);
+            position: relative;
+        }
+        .match-detail-page .match-phase-wing {
+            display: none;
+        }
+        .match-detail-page .match-phase-plate {
+            background: linear-gradient(180deg, #f7fbfc 0%, #e7eeef 38%, #d5dfe2 72%, #b7c4c8 100%);
+            bottom: 0;
+            clip-path: var(--end-clip);
+            filter:
+                drop-shadow(0 2px 0 rgba(18, 36, 48, 0.22))
+                drop-shadow(0 3px 4px rgba(4, 24, 48, 0.16));
+            left: 0;
             position: absolute;
-            right: 0.85rem;
+            right: 0;
+            top: 0;
+            z-index: 2;
         }
-        .match-detail-page .match-phase-heading-icon {
-            color: #f5c542;
-            display: inline-flex;
-            filter: drop-shadow(0 1px 0 rgba(255, 253, 245, 0.28));
-            font-size: 0.95rem;
-            line-height: 1;
-            transform: rotate(-8deg);
+        .match-detail-page .match-phase-plate::before {
+            background: var(--phase-face);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.28),
+                inset 0 -2px 0 rgba(8, 48, 120, 0.16);
+            clip-path: var(--end-clip);
+            content: "";
+            inset: 0;
+            position: absolute;
+            transform: scaleX(0.984) scaleY(0.84);
         }
         .match-detail-page .match-phase-heading-label {
-            font-size: 0.78rem;
-            font-weight: 950;
-            letter-spacing: 0.14em;
+            color: #fff;
+            font-family: "Lilita One", Inter, sans-serif;
+            font-size: 0.95rem;
+            font-weight: 400;
+            left: 0;
+            letter-spacing: 0.04em;
             line-height: 1;
-            text-shadow: 0 1px 0 rgba(10, 26, 48, 0.55);
+            -webkit-text-stroke: 2px #161616;
+            paint-order: stroke fill;
+            position: absolute;
+            right: 0;
+            text-align: center;
+            text-shadow: 0 1px 0 #111;
             text-transform: uppercase;
+            top: 50%;
+            transform: translateY(-52%);
+            z-index: 1;
         }
         .match-detail-page .match-phase-heading.is-more {
-            background: linear-gradient(180deg, rgba(18, 48, 84, 0.55) 0%, rgba(10, 32, 58, 0.38) 100%);
-            margin-top: 0.85rem;
-            padding: 0.42rem 0.75rem 0.55rem;
+            margin-top: 0.7rem;
         }
-        .match-detail-page .match-phase-heading.is-more .match-phase-heading-icon {
-            color: rgba(255, 224, 138, 0.7);
-            font-size: 0.72rem;
-            transform: none;
-        }
-        .match-detail-page .match-phase-heading.is-more .match-phase-heading-label {
-            color: rgba(255, 224, 138, 0.72);
-            font-size: 0.68rem;
-            letter-spacing: 0.16em;
-        }
-        .match-detail-page .match-phase-heading.is-more::after {
-            background: linear-gradient(
-                90deg,
-                transparent 0%,
-                rgba(255, 224, 138, 0.2) 18%,
-                rgba(245, 197, 66, 0.34) 50%,
-                rgba(255, 224, 138, 0.2) 82%,
-                transparent 100%
-            );
-            bottom: 0.28rem;
-            height: 1px;
-        }
-        .match-detail-page .match-phase-eyebrow {
-            align-items: center;
-            color: #8a6414;
-            display: flex;
-            font-size: 0.68rem;
-            font-weight: 900;
-            gap: 0.4rem;
-            letter-spacing: 0.14em;
-            line-height: 1;
-            margin: 0.15rem 0.25rem -0.45rem;
-            text-transform: uppercase;
-        }
-        .match-detail-page .match-phase-eyebrow i {
-            color: #c8960a;
-            font-size: 0.72rem;
-        }
-        @media (max-width: 1023px) {
-            .match-detail-page .match-phase-eyebrow,
-            .match-detail-page .match-phase-eyebrow i {
-                color: #ffe9a8;
+        @media (min-width: 768px) {
+            .match-detail-page .match-phase-heading {
+                width: min(calc(100% - 1.25rem), 560px);
             }
         }
         .match-detail-page .is-game-card.is-collapsed .match-game-card-teaser {
