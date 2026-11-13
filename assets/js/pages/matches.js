@@ -1391,15 +1391,28 @@ function buildMatchGameCardTeaserHtml(text) {
     return `<p class="match-game-card-teaser">${escapeMatchHtml(label)}</p>`;
 }
 
-function buildMatchDetailSectionDividerHtml(label) {
-    const text = String(label || '').trim();
-    if (!text) return '';
+function buildMatchPhaseHeadingHtml(phase) {
+    const phases = {
+        before: { label: 'Før kamp', icon: 'fa-clipboard-list', modifier: 'is-before' },
+        after: { label: 'Etter kamp', icon: 'fa-chart-pie', modifier: 'is-after' },
+        more: { label: 'Mer', icon: 'fa-circle-info', modifier: 'is-more' }
+    };
+    const item = phases[phase];
+    if (!item) return '';
     return `
-        <div class="match-detail-secondary-divider" aria-hidden="true">
-            <span class="match-detail-secondary-divider-line"></span>
-            <span class="match-detail-secondary-divider-label">${escapeMatchHtml(text)}</span>
-            <span class="match-detail-secondary-divider-line"></span>
-        </div>
+        <h2 class="match-phase-heading ${item.modifier}">
+            <span class="match-phase-heading-icon" aria-hidden="true"><i class="fa-solid ${item.icon}"></i></span>
+            <span class="match-phase-heading-label">${item.label}</span>
+        </h2>
+    `;
+}
+
+function buildMatchAfterPhaseEyebrowHtml() {
+    return `
+        <p class="match-phase-eyebrow">
+            <i class="fa-solid fa-chart-pie" aria-hidden="true"></i>
+            <span>Etter kamp</span>
+        </p>
     `;
 }
 
@@ -1455,24 +1468,22 @@ function getMatchSummaryPanelTeaserText(match) {
         if (motmName) return `BB: ${motmName}`;
     }
 
-    const countMapEntries = (map) => {
+    const sumStatMap = (map) => {
         if (!map || typeof map !== 'object') return 0;
-        return Object.values(map).filter((value) => Number(value) > 0).length;
+        return Object.values(map).reduce((sum, value) => sum + (Number(value) || 0), 0);
     };
-    const scorerCount = countMapEntries(match.scorers);
-    const assistCount = countMapEntries(match.assists);
-    if (scorerCount > 0 || assistCount > 0) {
+    const goals = sumStatMap(match.scorers);
+    const assists = sumStatMap(match.assists);
+    if (goals > 0 || assists > 0) {
         const parts = [];
-        if (scorerCount > 0) {
-            parts.push(`${scorerCount} ${scorerCount === 1 ? 'scorer' : 'scorere'}`);
-        }
-        if (assistCount > 0) {
-            parts.push(`${assistCount} ${assistCount === 1 ? 'assist' : 'assists'}`);
-        }
+        if (goals > 0) parts.push(`${goals} mål`);
+        if (assists > 0) parts.push(`${assists} ${assists === 1 ? 'assist' : 'assists'}`);
         return parts.join(' · ');
     }
 
-    return 'Se scorere og trekk';
+    const result = String(match.result || '').trim();
+    if (result) return `Resultat ${result}`;
+    return '';
 }
 
 function getMatchKamptroppStatusCounts(match) {
@@ -1495,7 +1506,7 @@ function getMatchKamptroppStatusCounts(match) {
 
 function getMatchKamptroppPanelTeaserText(match) {
     const counts = getMatchKamptroppStatusCounts(match);
-    if (!counts.total) return 'Ingen spillere registrert';
+    if (!counts.total) return 'Ingen spillere valgt';
     return `${counts.total} · K${counts.K} · F${counts.F} · M${counts.M} · A${counts.A}`;
 }
 
@@ -1669,12 +1680,12 @@ function getMatchBanetidPanelTeaserText(match) {
 }
 
 function getMatchMotstanderPanelTeaserText(match) {
-    if (!match) return 'Historikk mot laget';
+    if (!match) return 'Ingen tidligere kamper';
     const record = typeof getOpponentHistoryRecord === 'function'
         && typeof getOpponentRecordMatches === 'function'
         ? getOpponentHistoryRecord(getOpponentRecordMatches(match))
         : null;
-    if (!record) return 'Historikk mot laget';
+    if (!record) return 'Ingen tidligere kamper';
     const total = Number(record.wins || 0) + Number(record.draws || 0) + Number(record.losses || 0);
     if (!total) return 'Ingen tidligere kamper';
     return `${record.wins}–${record.draws}–${record.losses} · ${record.goalsFor}-${record.goalsAgainst}`;
@@ -10580,8 +10591,9 @@ window.showMatchDetails = function(id) {
         <div class="match-detail-page">
         ${buildMatchDetailCardHtml(match, { showWatermark: true, backOnClick: false, showHeroNav: true })}
 
-        ${matchSummaryPanelHtml}
-        ${matchSummaryPanelHtml ? buildMatchDetailSectionDividerHtml('Oppsett') : ''}
+        ${matchSummaryPanelHtml ? `${buildMatchAfterPhaseEyebrowHtml()}${matchSummaryPanelHtml}` : ''}
+
+        ${buildMatchPhaseHeadingHtml('before')}
 
         ${matchSquadPanelHtml}
 
@@ -10614,6 +10626,8 @@ window.showMatchDetails = function(id) {
                 </div>
             </div>
         </section>
+
+        ${buildMatchPhaseHeadingHtml('after')}
 
         <section class="match-stats-panel match-collapsible-panel is-game-card is-game-card-work ${isStatsOpen ? '' : 'is-collapsed'}" data-match-panel="spillerbors">
             <div
@@ -10694,8 +10708,6 @@ window.showMatchDetails = function(id) {
             </div>
         </section>
 
-        <div class="match-detail-secondary-stack">
-        ${buildMatchDetailSectionDividerHtml('Mer')}
         <section class="match-coach-notes-panel match-collapsible-panel is-game-card is-game-card-secondary ${isCoachNotesOpen ? '' : 'is-collapsed'}" data-match-panel="trenernotater">
             <div
                 class="match-bench-action-row match-bench-topline match-coach-notes-topline"
@@ -10753,6 +10765,7 @@ window.showMatchDetails = function(id) {
             </div>
         </section>
 
+        ${buildMatchPhaseHeadingHtml('more')}
         <section class="match-opponent-info-panel match-collapsible-panel is-game-card is-game-card-secondary ${isOpponentInfoOpen ? '' : 'is-collapsed'}" data-match-panel="motstanderinfo">
             <div
                 class="match-bench-action-row match-bench-topline match-opponent-info-topline"
@@ -10780,7 +10793,6 @@ window.showMatchDetails = function(id) {
                 </div>
             </div>
         </section>
-        </div>
         ${buildMatchHeroMobileCloseBarHtml('Lukk kampdetaljer')}
         </div>
     `;

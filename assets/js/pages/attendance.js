@@ -843,6 +843,8 @@ window.openActivityModal = function(defaultType = 'Trening') {
     document.getElementById('activityLocation').value = '';
     const venueSelect = document.getElementById('activityVenue');
     if (venueSelect) venueSelect.value = 'Hjemme';
+    const matchTypeSelect = document.getElementById('activityMatchType');
+    if (matchTypeSelect) matchTypeSelect.value = 'Treningskamp';
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -938,6 +940,7 @@ window.updateActivityTitlePlaceholder = function() {
     const titleInput = document.getElementById('activityTitle');
     const titleLabel = document.getElementById('activityTitleLabel');
     const venueWrap = document.getElementById('activityVenueWrap');
+    const matchTypeWrap = document.getElementById('activityMatchTypeWrap');
     const seasonWrap = document.getElementById('activitySeasonWrap');
     const isMatch = type === 'Kamp';
     const isTraining = type === 'Trening';
@@ -950,6 +953,7 @@ window.updateActivityTitlePlaceholder = function() {
         titleInput.required = isMatch;
     }
     if (venueWrap) venueWrap.classList.toggle('hidden', !isMatch);
+    if (matchTypeWrap) matchTypeWrap.classList.toggle('hidden', !isMatch);
     if (seasonWrap) seasonWrap.classList.toggle('hidden', !isTraining);
     if (isTraining) {
         const select = document.getElementById('activitySeasonYear');
@@ -1047,6 +1051,10 @@ window.saveNewActivity = async function(options = {}) {
             const venue = document.getElementById('activityVenue')?.value?.trim()
                 || existingMatch?.venue
                 || 'Hjemme';
+            const selectedMatchType = document.getElementById('activityMatchType')?.value;
+            const matchType = selectedMatchType === 'Serie' || selectedMatchType === 'Cup' || selectedMatchType === 'Treningskamp'
+                ? selectedMatchType
+                : 'Treningskamp';
             const matchData = {
                 ...(existingMatch || {}),
                 id: editId || Date.now().toString(),
@@ -1054,7 +1062,7 @@ window.saveNewActivity = async function(options = {}) {
                 time,
                 opponent: title,
                 pitch: location || 'Ikke satt',
-                matchType: existingMatch ? existingMatch.matchType : 'Treningskamp',
+                matchType,
                 matchGroup: selectedTeam,
                 venue,
                 result: existingMatch ? existingMatch.result : ''

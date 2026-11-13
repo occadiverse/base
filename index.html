@@ -17,7 +17,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20261112-hjemcup">
+    <link rel="stylesheet" href="assets/css/base.css?v=20261113-teaser">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -851,9 +851,9 @@
                     <div class="col-span-1">
                         <label class="portal-label">Kamp-type</label>
                         <select id="matchType" class="portal-field" onchange="window.toggleMatchModalPenaltyFields()">
+                            <option value="Treningskamp">Treningskamp</option>
                             <option value="Serie">Serie</option>
                             <option value="Cup">Cup</option>
-                            <option value="Treningskamp">Trening</option>
                         </select>
                     </div>
                     <div class="col-span-1">
@@ -1203,6 +1203,15 @@
                     <label class="portal-label" id="activityTitleLabel">Tittel</label>
                     <input type="text" id="activityTitle" placeholder="F.eks. Taktisk trening, Lagfest..."
                         class="portal-field">
+                </div>
+
+                <div id="activityMatchTypeWrap" class="hidden">
+                    <label class="portal-label" for="activityMatchType">Kamptype</label>
+                    <select id="activityMatchType" class="portal-field">
+                        <option value="Treningskamp">Treningskamp</option>
+                        <option value="Serie">Serie</option>
+                        <option value="Cup">Cup</option>
+                    </select>
                 </div>
 
                 <div id="activityVenueWrap" class="hidden">
@@ -1686,8 +1695,8 @@
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20261024-crest-eager"></script>
     <script src="assets/js/pages/players.js?v=20261111-hjemforside"></script>
-    <script src="assets/js/pages/matches.js?v=20261111-oppstart"></script>
-    <script src="assets/js/pages/attendance.js?v=20261111-sesongvarsel"></script>
+    <script src="assets/js/pages/matches.js?v=20261113-teaser"></script>
+    <script src="assets/js/pages/attendance.js?v=20261113-kamptype"></script>
     <script src="assets/js/pages/statistics.js?v=20261111-oppstart"></script>
     <script src="assets/js/pages/tactics.js?v=20261111-kampflate"></script>
     <script src="assets/js/pages/dashboard.js?v=20261112-hjemcup"></script>

@@ -24900,6 +24900,117 @@
             text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
             text-transform: uppercase;
         }
+        .match-detail-page .match-phase-heading {
+            align-items: center;
+            background: linear-gradient(180deg, #163a66 0%, #0d2848 100%);
+            border-radius: 0.7rem;
+            color: #ffe9a8;
+            cursor: default;
+            display: flex;
+            gap: 0.5rem;
+            margin: 0.15rem 0 0;
+            padding: 0.62rem 0.85rem 0.78rem;
+            pointer-events: none;
+            position: relative;
+        }
+        .match-detail-page .match-phase-heading::after {
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                #ffe08a 16%,
+                #f5c542 50%,
+                #ffe08a 84%,
+                transparent 100%
+            );
+            bottom: 0.42rem;
+            content: "";
+            height: 2px;
+            left: 0.85rem;
+            position: absolute;
+            right: 0.85rem;
+        }
+        .match-detail-page .match-phase-heading-icon {
+            color: #f5c542;
+            display: inline-flex;
+            filter: drop-shadow(0 1px 0 rgba(255, 253, 245, 0.28));
+            font-size: 0.95rem;
+            line-height: 1;
+            transform: rotate(-8deg);
+        }
+        .match-detail-page .match-phase-heading-label {
+            font-size: 0.78rem;
+            font-weight: 950;
+            letter-spacing: 0.14em;
+            line-height: 1;
+            text-shadow: 0 1px 0 rgba(10, 26, 48, 0.55);
+            text-transform: uppercase;
+        }
+        .match-detail-page .match-phase-heading.is-more {
+            background: linear-gradient(180deg, rgba(18, 48, 84, 0.55) 0%, rgba(10, 32, 58, 0.38) 100%);
+            margin-top: 0.85rem;
+            padding: 0.42rem 0.75rem 0.55rem;
+        }
+        .match-detail-page .match-phase-heading.is-more .match-phase-heading-icon {
+            color: rgba(255, 224, 138, 0.7);
+            font-size: 0.72rem;
+            transform: none;
+        }
+        .match-detail-page .match-phase-heading.is-more .match-phase-heading-label {
+            color: rgba(255, 224, 138, 0.72);
+            font-size: 0.68rem;
+            letter-spacing: 0.16em;
+        }
+        .match-detail-page .match-phase-heading.is-more::after {
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 224, 138, 0.2) 18%,
+                rgba(245, 197, 66, 0.34) 50%,
+                rgba(255, 224, 138, 0.2) 82%,
+                transparent 100%
+            );
+            bottom: 0.28rem;
+            height: 1px;
+        }
+        .match-detail-page .match-phase-eyebrow {
+            align-items: center;
+            color: #8a6414;
+            display: flex;
+            font-size: 0.68rem;
+            font-weight: 900;
+            gap: 0.4rem;
+            letter-spacing: 0.14em;
+            line-height: 1;
+            margin: 0.15rem 0.25rem -0.45rem;
+            text-transform: uppercase;
+        }
+        .match-detail-page .match-phase-eyebrow i {
+            color: #c8960a;
+            font-size: 0.72rem;
+        }
+        @media (max-width: 1023px) {
+            .match-detail-page .match-phase-eyebrow,
+            .match-detail-page .match-phase-eyebrow i {
+                color: #ffe9a8;
+            }
+        }
+        .match-detail-page .is-game-card.is-collapsed .match-game-card-teaser {
+            color: rgba(255, 233, 168, 0.78);
+            font-weight: 650;
+            letter-spacing: 0.02em;
+        }
+        @media (max-width: 767px) {
+            .match-detail-page .match-game-plan-panel.is-game-card.is-collapsed .match-game-card-teaser {
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                line-clamp: 2;
+                line-height: 1.3;
+                overflow: hidden;
+                text-overflow: unset;
+                white-space: normal;
+            }
+        }
         :is(.match-detail-page, .training-session-page) .is-game-card-secondary.is-collapsed {
             background:
                 linear-gradient(168deg, #143456 0%, #0e2744 55%, #0a1f38 100%);
