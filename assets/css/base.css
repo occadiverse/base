@@ -12519,11 +12519,87 @@
         }
         .roster-player-row.is-plan-row {
             background: linear-gradient(90deg, #102f54 0%, #0c2746 100%);
+            gap: 0.22rem;
+            padding: 0.32rem 0.65rem 0.24rem;
         }
-        .roster-player-row.is-plan-row:has(.roster-plan-badge.is-open) { border-left-color: #f5c542; }
-        .roster-player-row.is-plan-row:has(.roster-plan-badge.is-continue) { border-left-color: #4ade80; }
-        .roster-player-row.is-plan-row:has(.roster-plan-badge.is-leave) { border-left-color: #d48980; }
-        .roster-player-row.is-plan-row:has(.roster-plan-badge.is-new) { border-left-color: #7ec2ff; }
+        .roster-player-row.is-plan-row .roster-player-name {
+            line-height: 1.05;
+        }
+        .roster-player-row.is-plan-row .roster-player-meta {
+            display: flex;
+            line-height: 1.15;
+            margin-top: 0;
+        }
+        .roster-player-row.is-plan-row .roster-plan-season {
+            line-height: 1.15;
+            margin-top: 0.02rem;
+        }
+        .roster-player-row.is-plan-row .roster-plan-controls {
+            gap: 0.16rem;
+        }
+        .roster-player-row.is-plan-row .roster-plan-label {
+            color: rgba(214, 224, 234, 0.62);
+            flex: 1 1 auto;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+        }
+        .roster-player-row.is-plan-row .roster-plan-label > span {
+            flex: 0 0 auto;
+        }
+        .roster-player-row.is-plan-row .roster-plan-select {
+            background-color: rgba(8, 24, 44, 0.45);
+            border-width: 1px;
+            border-style: solid;
+            font-size: 0.78rem;
+            font-weight: 900;
+            min-height: 2.15rem;
+            padding: 0.28rem 0.5rem;
+        }
+        .roster-player-row.is-plan-row .roster-plan-note {
+            background: rgba(255, 255, 255, 0.045);
+            border-color: rgba(255, 255, 255, 0.1);
+            font-size: 0.72rem;
+            font-weight: 700;
+            line-height: 1.2;
+            min-height: 1.5rem;
+            padding: 0.1rem 0.5rem;
+        }
+        .roster-player-row.is-plan-row.is-status-open {
+            border-left-color: #f5c542;
+        }
+        .roster-player-row.is-plan-row.is-status-open .roster-plan-select {
+            background-color: rgba(245, 197, 66, 0.1);
+            border-color: rgba(245, 197, 66, 0.55);
+            color: #ffe08a;
+        }
+        .roster-player-row.is-plan-row.is-status-continue {
+            border-left-color: #4ade80;
+        }
+        .roster-player-row.is-plan-row.is-status-continue .roster-plan-select {
+            background-color: rgba(74, 222, 128, 0.1);
+            border-color: rgba(74, 222, 128, 0.45);
+            color: #86efac;
+        }
+        .roster-player-row.is-plan-row.is-status-leave {
+            border-left-color: #d48980;
+        }
+        .roster-player-row.is-plan-row.is-status-leave .roster-plan-select {
+            background-color: rgba(196, 106, 98, 0.12);
+            border-color: rgba(212, 137, 128, 0.5);
+            color: #f0b0a8;
+        }
+        .roster-player-row.is-plan-row.is-status-new {
+            border-left-color: #7ec2ff;
+        }
+        .roster-player-row.is-plan-row.is-status-new .roster-plan-select {
+            background-color: rgba(94, 176, 255, 0.12);
+            border-color: rgba(126, 194, 255, 0.5);
+            color: #c8e4ff;
+        }
+        #view-tropp.is-plan-mode .roster-group-rows {
+            gap: 0.28rem;
+        }
         @media (max-width: 767px) {
             #view-tropp.is-plan-mode .roster-board-toolbar {
                 align-items: stretch;

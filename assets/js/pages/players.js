@@ -578,17 +578,6 @@ function getRosterPlanPlayers() {
     });
 }
 
-function buildRosterPlanBadge(status) {
-    const tone = status === 'Fortsetter'
-        ? 'is-continue'
-        : status === 'Slutter'
-            ? 'is-leave'
-            : status === 'Ny spiller'
-                ? 'is-new'
-                : 'is-open';
-    return `<span class="roster-plan-badge ${tone}">${escapeRosterHtml(status)}</span>`;
-}
-
 function buildRosterPlanRow(player) {
     const reference = getRosterPlanReference(player);
     const plan = getExplicitRosterSeasonPlan(player);
@@ -608,12 +597,19 @@ function buildRosterPlanRow(player) {
     const hasTargetSeason = typeof window.getPlayerSeasonRecord === 'function'
         && Boolean(window.getPlayerSeasonRecord(player, targetYear));
     const note = plan?.note || '';
+    const statusTone = planStatus === 'Fortsetter'
+        ? 'is-status-continue'
+        : planStatus === 'Slutter'
+            ? 'is-status-leave'
+            : planStatus === 'Ny spiller'
+                ? 'is-status-new'
+                : 'is-status-open';
     const options = window.ROSTER_PLAN_STATUSES.map(status => `
         <option value="${escapeRosterHtml(status)}"${status === planStatus ? ' selected' : ''}>${escapeRosterHtml(status)}</option>
     `).join('');
 
     return `
-        <article class="roster-player-row is-plan-row" data-player-id="${escapeRosterHtml(player.id)}">
+        <article class="roster-player-row is-plan-row ${statusTone}" data-player-id="${escapeRosterHtml(player.id)}">
             ${buildRosterPlayerAvatarHtml(player)}
             <div class="roster-player-main" role="button" tabindex="0">
                 <div class="roster-player-name">${escapeRosterHtml(player.navn)}</div>
@@ -623,7 +619,6 @@ function buildRosterPlanRow(player) {
                 <div class="roster-plan-season">${escapeRosterHtml(seasonLine)}</div>
             </div>
             <div class="roster-plan-controls" data-roster-plan-control>
-                ${buildRosterPlanBadge(planStatus)}
                 ${hasTargetSeason ? `<span class="roster-plan-created">${targetYear}-tropp ✓</span>` : ''}
                 <label class="roster-plan-label">
                     <span>${targetYear}</span>
