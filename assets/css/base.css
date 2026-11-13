@@ -12365,6 +12365,13 @@
             #view-statistikk.portal-view-mobile-peek .stats-board-card::before {
                 content: none;
             }
+            /* Peek-rammen har fast høyde. Uten dette krymper flex-kortet og overskriften sitter for høyt til den faller ned ved slipp. */
+            #view-statistikk.portal-view-mobile-peek .stats-board-card,
+            #view-statistikk.portal-view-mobile-peek .stats-board-top,
+            #view-statistikk.portal-view-mobile-peek .stats-board-heading,
+            #view-statistikk.portal-view-mobile-peek .stats-board-body {
+                flex-shrink: 0;
+            }
             body.is-statistikk-env .stats-page-slot,
             #view-statistikk.portal-view-mobile-peek .stats-page-slot {
                 padding-left: 1rem;
