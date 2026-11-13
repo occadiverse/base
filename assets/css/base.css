@@ -12314,13 +12314,17 @@
                 width: 100%;
             }
         }
-        /* Spillertropp: samme mørke flate som resten av portalen. */
+        /* Spillertropp og Statistikk: samme mørke flate som resten av portalen. */
         html:has(#view-tropp:not(.hidden)),
-        body:has(#view-tropp:not(.hidden)) {
+        body:has(#view-tropp:not(.hidden)),
+        html:has(#view-statistikk:not(.hidden)),
+        body:has(#view-statistikk:not(.hidden)) {
             background: #07182e;
         }
         body:has(#view-tropp:not(.hidden)) .portal-main-shell,
-        body:has(#view-tropp:not(.hidden)) #main-view.portal-main-view {
+        body:has(#view-tropp:not(.hidden)) #main-view.portal-main-view,
+        body:has(#view-statistikk:not(.hidden)) .portal-main-shell,
+        body:has(#view-statistikk:not(.hidden)) #main-view.portal-main-view {
             background: linear-gradient(180deg, #0a2240 0%, #07182e 100%);
         }
         body:has(#view-tropp:not(.hidden)) #main-view.portal-main-view {
