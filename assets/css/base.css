@@ -9979,7 +9979,8 @@
             }
             /* Portal topplinje = sømløs navy inn i lista (ingen skillelinje) */
             body.is-kamper-list .portal-mobile-header,
-            body.is-hjem-env .portal-mobile-header {
+            body.is-hjem-env .portal-mobile-header,
+            body.is-statistikk-env .portal-mobile-header {
                 background: #123f73;
                 backdrop-filter: none;
                 border: 0 !important;
@@ -9989,13 +9990,15 @@
                 outline: none;
             }
             body.is-kamper-list #portal-mobile-header,
-            body.is-hjem-env #portal-mobile-header {
+            body.is-hjem-env #portal-mobile-header,
+            body.is-statistikk-env #portal-mobile-header {
                 border: 0;
                 box-shadow: none;
             }
             /* Logo-chip: gullkant så den ikke forsvinner i navy */
             body.is-kamper-list .portal-mobile-brand-chip,
-            body.is-hjem-env .portal-mobile-brand-chip {
+            body.is-hjem-env .portal-mobile-brand-chip,
+            body.is-statistikk-env .portal-mobile-brand-chip {
                 background:
                     radial-gradient(circle at 88% 8%, rgba(255, 224, 138, 0.28), transparent 40%),
                     linear-gradient(160deg, #1a4a7a 0%, #0d3058 55%, #081f3c 100%);
@@ -10005,12 +10008,14 @@
                     inset 0 1px 0 rgba(255, 253, 245, 0.22);
             }
             body.is-kamper-list .portal-mobile-brand-mark .portal-brand-shield,
-            body.is-hjem-env .portal-mobile-brand-mark .portal-brand-shield {
+            body.is-hjem-env .portal-mobile-brand-mark .portal-brand-shield,
+            body.is-statistikk-env .portal-mobile-brand-mark .portal-brand-shield {
                 filter: drop-shadow(0 2px 4px rgba(2, 6, 23, 0.55));
             }
             /* Tre prikker: Clash-gullknapp */
             body.is-kamper-list .portal-mobile-admin-btn,
-            body.is-hjem-env .portal-mobile-admin-btn {
+            body.is-hjem-env .portal-mobile-admin-btn,
+            body.is-statistikk-env .portal-mobile-admin-btn {
                 background: linear-gradient(180deg, rgba(30, 80, 136, 0.85) 0%, rgba(8, 28, 56, 0.95) 100%);
                 border: 1.5px solid rgba(255, 224, 138, 0.5);
                 border-radius: 999px;
@@ -10022,27 +10027,33 @@
             body.is-kamper-list .portal-mobile-admin-btn:hover,
             body.is-kamper-list .portal-mobile-admin-btn.is-active,
             body.is-hjem-env .portal-mobile-admin-btn:hover,
-            body.is-hjem-env .portal-mobile-admin-btn.is-active {
+            body.is-hjem-env .portal-mobile-admin-btn.is-active,
+            body.is-statistikk-env .portal-mobile-admin-btn:hover,
+            body.is-statistikk-env .portal-mobile-admin-btn.is-active {
                 background: linear-gradient(180deg, rgba(40, 100, 160, 0.9) 0%, rgba(12, 40, 72, 0.98) 100%);
                 border-color: rgba(255, 224, 138, 0.75);
                 color: #fff6d6;
             }
             body.is-kamper-list .portal-mobile-tools-menu,
-            body.is-hjem-env .portal-mobile-tools-menu {
+            body.is-hjem-env .portal-mobile-tools-menu,
+            body.is-statistikk-env .portal-mobile-tools-menu {
                 background: linear-gradient(180deg, #1a3f6a 0%, #0f2744 100%);
                 border: 1.5px solid rgba(255, 224, 138, 0.35);
                 box-shadow: 0 16px 36px rgba(2, 6, 23, 0.45);
             }
             body.is-kamper-list .portal-mobile-tools-item,
-            body.is-hjem-env .portal-mobile-tools-item {
+            body.is-hjem-env .portal-mobile-tools-item,
+            body.is-statistikk-env .portal-mobile-tools-item {
                 color: #fffdf5;
             }
             body.is-kamper-list .portal-mobile-tools-item i,
-            body.is-hjem-env .portal-mobile-tools-item i {
+            body.is-hjem-env .portal-mobile-tools-item i,
+            body.is-statistikk-env .portal-mobile-tools-item i {
                 color: #ffe08a;
             }
             body.is-kamper-list .portal-mobile-tools-item:hover,
-            body.is-hjem-env .portal-mobile-tools-item:hover {
+            body.is-hjem-env .portal-mobile-tools-item:hover,
+            body.is-statistikk-env .portal-mobile-tools-item:hover {
                 background: rgba(245, 197, 66, 0.16);
             }
             /* Bunmeny: alltid navy — innhold midtstilt i flaten over safe-area */
@@ -12323,10 +12334,31 @@
                 background: #07182e;
             }
             body:has(#view-tropp:not(.hidden)) .portal-main-shell,
-            body:has(#view-tropp:not(.hidden)) #main-view.portal-main-view,
-            body:has(#view-statistikk:not(.hidden)) .portal-main-shell,
-            body:has(#view-statistikk:not(.hidden)) #main-view.portal-main-view {
+            body:has(#view-tropp:not(.hidden)) #main-view.portal-main-view {
                 background: linear-gradient(180deg, #0a2240 0%, #07182e 100%);
+            }
+            /* Statistikk: topp og logo sømløst som Kamper/Kalender, uten boks rundt overskriften. */
+            body.is-statistikk-env .portal-main-shell,
+            body.is-statistikk-env #main-view.portal-main-view {
+                background: linear-gradient(180deg, #123f73 0%, #123f73 11rem, #07182e 20rem);
+                padding-left: 0;
+                padding-right: 0;
+            }
+            body.is-statistikk-env #view-statistikk {
+                max-width: none;
+            }
+            body.is-statistikk-env .stats-board-card {
+                background: transparent;
+                border: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            body.is-statistikk-env .stats-board-card::before {
+                content: none;
+            }
+            body.is-statistikk-env .stats-page-slot {
+                padding-left: 1rem;
+                padding-right: 1rem;
             }
         }
         body:has(#view-tropp:not(.hidden)) #main-view.portal-main-view {

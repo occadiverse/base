@@ -45,6 +45,7 @@ function syncKamperEnvClass(tabId = window.currentTab) {
     const inListEnv = Boolean(tabId === 'kamper' && narrow);
     const inKalenderEnv = Boolean(tabId === 'oppmote' && narrow);
     const inHjemEnv = Boolean(tabId === 'hjem' && mobile);
+    const inStatistikkEnv = Boolean(tabId === 'statistikk' && mobile);
     document.body.classList.toggle('is-kamper-env', inDetailEnv);
     document.documentElement.classList.toggle('is-kamper-env', inDetailEnv);
     document.body.classList.toggle('is-kamper-list', inListEnv);
@@ -53,7 +54,9 @@ function syncKamperEnvClass(tabId = window.currentTab) {
     document.documentElement.classList.toggle('is-kalender-env', inKalenderEnv);
     document.body.classList.toggle('is-hjem-env', inHjemEnv);
     document.documentElement.classList.toggle('is-hjem-env', inHjemEnv);
-    syncPortalThemeColor(inDetailEnv || inListEnv || inKalenderEnv || inHjemEnv);
+    document.body.classList.toggle('is-statistikk-env', inStatistikkEnv);
+    document.documentElement.classList.toggle('is-statistikk-env', inStatistikkEnv);
+    syncPortalThemeColor(inDetailEnv || inListEnv || inKalenderEnv || inHjemEnv || inStatistikkEnv);
 }
 window.syncKamperEnvClass = syncKamperEnvClass;
 
