@@ -17,7 +17,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20261113-notch">
+    <link rel="stylesheet" href="assets/css/base.css?v=20261113-kamperliste">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -123,9 +123,6 @@
                                     <h3>Kamper</h3>
                                 </div>
                             </div>
-                            <div class="match-detail-top-chips">
-                                <span class="match-list-count-badge" id="matchListMobileCount" aria-label="0 kamper">0</span>
-                            </div>
                         </div>
 
                         <div class="match-list-toolbar match-list-mobile-toolbar">
@@ -133,10 +130,12 @@
                                 <button type="button" role="tab" onclick="setMatchTimeFilter('kommende')" id="btn-filter-kommende" class="bsk-btn bsk-btn-chip match-filter-btn is-active" aria-selected="true">
                                     <i class="fa-regular fa-calendar-days" aria-hidden="true"></i>
                                     <span>Kommende</span>
+                                    <span class="match-filter-count" id="matchFilterUpcomingCount">0</span>
                                 </button>
                                 <button type="button" role="tab" onclick="setMatchTimeFilter('tidligere')" id="btn-filter-tidligere" class="bsk-btn bsk-btn-chip match-filter-btn" aria-selected="false">
                                     <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
                                     <span>Tidligere</span>
+                                    <span class="match-filter-count" id="matchFilterPastCount">0</span>
                                 </button>
                             </div>
                             <button type="button"
@@ -1695,7 +1694,7 @@
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20261024-crest-eager"></script>
     <script src="assets/js/pages/players.js?v=20261111-hjemforside"></script>
-    <script src="assets/js/pages/matches.js?v=20261113-notch"></script>
+    <script src="assets/js/pages/matches.js?v=20261113-kamperliste2"></script>
     <script src="assets/js/pages/attendance.js?v=20261113-kamptype"></script>
     <script src="assets/js/pages/statistics.js?v=20261111-oppstart"></script>
     <script src="assets/js/pages/tactics.js?v=20261111-kampflate"></script>

@@ -577,7 +577,6 @@ function applyFilters() {
     if (pastContainer) pastContainer.innerHTML = '';
 
     const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
-    const currentTimeFilter = window.activeTimeFilter || 'kommende';
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -598,6 +597,22 @@ function applyFilters() {
             return matchDate < today;
         })
         .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    if (window.matchListTimeFilterUserChosen !== true) {
+        const hasAnyMatches = upcomingMatches.length > 0 || pastMatches.length > 0;
+        const shouldChooseStartView = window.matchListTimeFilterDecided !== true
+            || (window.matchListTimeFilterDecidedEmpty === true && hasAnyMatches);
+        if (shouldChooseStartView) {
+            window.activeTimeFilter = upcomingMatches.length > 0 || pastMatches.length === 0
+                ? 'kommende'
+                : 'tidligere';
+            window.matchListTimeFilterDecided = true;
+            window.matchListTimeFilterDecidedEmpty = !hasAnyMatches;
+        }
+    }
+
+    const currentTimeFilter = window.activeTimeFilter === 'tidligere' ? 'tidligere' : 'kommende';
+    syncMatchListTimeFilterChrome(currentTimeFilter, upcomingMatches.length, pastMatches.length);
     const filtered = currentTimeFilter === 'kommende' ? upcomingMatches : pastMatches;
     const sortedMatches = [...filtered].sort((a, b) =>
         currentTimeFilter === 'kommende' ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date)
@@ -605,13 +620,17 @@ function applyFilters() {
 
     updateMatchListCount('matchListUpcomingCount', upcomingMatches.length);
     updateMatchListCount('matchListPastCount', pastMatches.length);
-    updateMatchListCount('matchListMobileCount', sortedMatches.length);
+
+    const historyFocus = upcomingMatches.length === 0 && pastMatches.length > 0;
+    const desktopColumns = document.getElementById('matchListDesktopColumns');
+    if (desktopColumns) desktopColumns.classList.toggle('is-history-focus', historyFocus);
 
     renderMatchListIntoContainer(upcomingContainer, upcomingMatches, {
         isUpcoming: true,
         emptyTitle: 'Ingen kommende kamper',
         emptyText: 'Legg til en kamp for å komme i gang.',
-        showAddCta: true
+        showAddCta: true,
+        compactEmpty: historyFocus
     });
     renderMatchListIntoContainer(pastContainer, pastMatches, {
         isUpcoming: false,
@@ -655,12 +674,13 @@ function renderMatchListIntoContainer(container, matches, options = {}) {
         archiveOlderYears = false,
         emptyTitle = 'Ingen kamper funnet',
         emptyText = 'Legg til en kamp for å komme i gang.',
-        showAddCta = false
+        showAddCta = false,
+        compactEmpty = false
     } = options;
 
     if (!matches.length) {
         container.innerHTML = showEmpty
-            ? buildMatchListEmptyHtml(emptyTitle, emptyText, { showAddCta })
+            ? buildMatchListEmptyHtml(emptyTitle, emptyText, { showAddCta, compact: compactEmpty })
             : '';
         return;
     }
@@ -829,7 +849,7 @@ function buildMatchOpponentInfoBodyHtml(match) {
 }
 
 function buildMatchListEmptyHtml(title, text, options = {}) {
-    const { showAddCta = false } = options;
+    const { showAddCta = false, compact = false } = options;
     const ctaHtml = showAddCta
         ? `
             <button
@@ -846,7 +866,7 @@ function buildMatchListEmptyHtml(title, text, options = {}) {
         : '';
 
     return `
-        <div class="match-list-empty match-list-column-empty">
+        <div class="match-list-empty match-list-column-empty${compact ? ' is-compact' : ''}">
             <div class="match-list-empty-icon">
                 <i class="fa-solid fa-futbol"></i>
             </div>
@@ -9755,28 +9775,32 @@ function buildMatchGamePlanHtml(match) {
     `;
 }
 
-function setMatchTimeFilter(filterType) {
-    window.activeTimeFilter = filterType;
-
+function syncMatchListTimeFilterChrome(filterType, upcomingCount, pastCount) {
     const btnKommende = document.getElementById('btn-filter-kommende');
     const btnTidligere = document.getElementById('btn-filter-tidligere');
+    const upcomingCountEl = document.getElementById('matchFilterUpcomingCount');
+    const pastCountEl = document.getElementById('matchFilterPastCount');
+    const isUpcoming = filterType !== 'tidligere';
     const activeClass = 'bsk-btn bsk-btn-chip match-filter-btn is-active';
     const inactiveClass = 'bsk-btn bsk-btn-chip match-filter-btn';
 
-    if (btnKommende && btnTidligere) {
-        if (filterType === 'kommende') {
-            btnKommende.className = activeClass;
-            btnTidligere.className = inactiveClass;
-            btnKommende.setAttribute('aria-selected', 'true');
-            btnTidligere.setAttribute('aria-selected', 'false');
-        } else {
-            btnTidligere.className = activeClass;
-            btnKommende.className = inactiveClass;
-            btnTidligere.setAttribute('aria-selected', 'true');
-            btnKommende.setAttribute('aria-selected', 'false');
-        }
-    }
+    if (upcomingCountEl) upcomingCountEl.textContent = String(upcomingCount);
+    if (pastCountEl) pastCountEl.textContent = String(pastCount);
 
+    if (!btnKommende || !btnTidligere) return;
+
+    btnKommende.className = `${isUpcoming ? activeClass : inactiveClass}${upcomingCount === 0 ? ' is-zero' : ''}`;
+    btnTidligere.className = `${isUpcoming ? inactiveClass : activeClass}${pastCount === 0 ? ' is-zero' : ''}`;
+    btnKommende.setAttribute('aria-selected', isUpcoming ? 'true' : 'false');
+    btnTidligere.setAttribute('aria-selected', isUpcoming ? 'false' : 'true');
+    btnKommende.setAttribute('aria-label', `Kommende, ${upcomingCount} ${upcomingCount === 1 ? 'kamp' : 'kamper'}`);
+    btnTidligere.setAttribute('aria-label', `Tidligere, ${pastCount} ${pastCount === 1 ? 'kamp' : 'kamper'}`);
+}
+
+function setMatchTimeFilter(filterType) {
+    window.matchListTimeFilterUserChosen = true;
+    window.matchListTimeFilterDecided = true;
+    window.activeTimeFilter = filterType === 'tidligere' ? 'tidligere' : 'kommende';
     applyFilters();
 }
 
