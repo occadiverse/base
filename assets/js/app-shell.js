@@ -36,7 +36,7 @@ function syncPortalThemeColor(useNavy) {
     meta.setAttribute('content', useNavy ? PORTAL_THEME_COLOR_KAMPER : PORTAL_THEME_COLOR_DEFAULT);
 }
 
-/** Mobile navy shells: Kamper list / Kalender / Hjem keep chrome; detail hides portal header/nav.
+/** Mobile navy shells: Kamper list / Kalender / Hjem / Statistikk / Live keep chrome; detail hides portal header/nav.
  *  Class-only (no :has on visible views) so swipe peek cannot leak shell styles. */
 function syncKamperEnvClass(tabId = window.currentTab) {
     const mobile = window.innerWidth < 768;
@@ -46,6 +46,7 @@ function syncKamperEnvClass(tabId = window.currentTab) {
     const inKalenderEnv = Boolean(tabId === 'oppmote' && narrow);
     const inHjemEnv = Boolean(tabId === 'hjem' && mobile);
     const inStatistikkEnv = Boolean(tabId === 'statistikk' && mobile);
+    const inLiveEnv = Boolean(tabId === 'taktikk' && mobile);
     document.body.classList.toggle('is-kamper-env', inDetailEnv);
     document.documentElement.classList.toggle('is-kamper-env', inDetailEnv);
     document.body.classList.toggle('is-kamper-list', inListEnv);
@@ -56,7 +57,9 @@ function syncKamperEnvClass(tabId = window.currentTab) {
     document.documentElement.classList.toggle('is-hjem-env', inHjemEnv);
     document.body.classList.toggle('is-statistikk-env', inStatistikkEnv);
     document.documentElement.classList.toggle('is-statistikk-env', inStatistikkEnv);
-    syncPortalThemeColor(inDetailEnv || inListEnv || inKalenderEnv || inHjemEnv || inStatistikkEnv);
+    document.body.classList.toggle('is-live-env', inLiveEnv);
+    document.documentElement.classList.toggle('is-live-env', inLiveEnv);
+    syncPortalThemeColor(inDetailEnv || inListEnv || inKalenderEnv || inHjemEnv || inStatistikkEnv || inLiveEnv);
 }
 window.syncKamperEnvClass = syncKamperEnvClass;
 
