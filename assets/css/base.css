@@ -12341,24 +12341,43 @@
             body.is-statistikk-env .portal-main-shell,
             body.is-statistikk-env #main-view.portal-main-view {
                 background: linear-gradient(180deg, #123f73 0%, #123f73 11rem, #07182e 20rem);
+            }
+            body.is-statistikk-env #main-view.portal-main-view {
                 padding-left: 0;
                 padding-right: 0;
+                padding-top: 0;
             }
             body.is-statistikk-env #view-statistikk {
                 max-width: none;
             }
-            body.is-statistikk-env .stats-board-card {
+            body.is-statistikk-env .stats-board-top,
+            #view-statistikk.portal-view-mobile-peek .stats-board-top {
+                padding: 0.18rem 0.85rem 0.5rem;
+            }
+            body.is-statistikk-env .stats-board-card,
+            #view-statistikk.portal-view-mobile-peek .stats-board-card {
                 background: transparent;
                 border: 0;
                 border-radius: 0;
                 box-shadow: none;
             }
-            body.is-statistikk-env .stats-board-card::before {
+            body.is-statistikk-env .stats-board-card::before,
+            #view-statistikk.portal-view-mobile-peek .stats-board-card::before {
                 content: none;
             }
-            body.is-statistikk-env .stats-page-slot {
+            body.is-statistikk-env .stats-page-slot,
+            #view-statistikk.portal-view-mobile-peek .stats-page-slot {
                 padding-left: 1rem;
                 padding-right: 1rem;
+            }
+            /* Peek må se ut som landet side, ellers glir en boks inn og hopper ved slipp. */
+            #view-statistikk.portal-view-mobile-peek {
+                background: linear-gradient(180deg, #123f73 0%, #123f73 11rem, #07182e 20rem);
+                display: flex;
+                flex-direction: column;
+                max-width: none;
+                min-height: 0;
+                width: 100%;
             }
         }
         body:has(#view-tropp:not(.hidden)) #main-view.portal-main-view {
