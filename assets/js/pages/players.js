@@ -667,7 +667,7 @@ function renderRosterPlan() {
     if (playersLabel) playersLabel.textContent = 'Uavklart';
     if (ageLabel) ageLabel.textContent = 'Fortsetter';
     if (recruitsLabel) recruitsLabel.textContent = 'Slutter';
-    if (injuredLabel) injuredLabel.textContent = 'Ny spiller';
+    if (injuredLabel) injuredLabel.textContent = 'Nye';
     const statPlayersEl = document.getElementById('stat-total-players');
     const statAvgAgeEl = document.getElementById('stat-avg-age');
     const statRekruttEl = document.getElementById('stat-total-rekrutt');

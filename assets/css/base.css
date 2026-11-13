@@ -3252,7 +3252,7 @@
             height: 1.45rem;
             width: 1px;
         }
-        /* Kamptropp toolbar: navy/gull som hero-chips (ikke blå/grønn gem) */
+        /* Kamptropp-visning (Bidrag, S/B, Form) følger 11-filteret. Oppmøte er egen gullknapp. */
         .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp,
         .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-squad-update-btn.blknapp {
             border-radius: 0.7rem;
@@ -3268,43 +3268,35 @@
             min-width: 2.15rem;
             width: 2.15rem;
         }
-        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp:not(.is-active) {
-            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
-            border-color: rgba(255, 224, 138, 0.42);
-            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
-            color: rgba(255, 253, 245, 0.88);
-            opacity: 1;
-            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
-        }
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp:not(.is-active),
         .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp:not(.is-active):hover {
-            background: linear-gradient(180deg, rgba(40, 95, 150, 0.85) 0%, rgba(12, 36, 68, 0.95) 100%);
-            border-color: rgba(255, 224, 138, 0.7);
-            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.5);
-            color: #fffdf5;
+            background: linear-gradient(180deg, rgba(94, 176, 255, 0.45) 0%, rgba(26, 79, 158, 0.45) 100%);
+            border-color: rgba(200, 228, 255, 0.45);
+            border-width: 2.5px;
+            box-shadow: 0 2px 0 rgba(10, 34, 68, 0.75);
+            color: rgba(244, 249, 255, 0.78);
+            opacity: 0.85;
+            text-shadow: 0 1px 0 rgba(8, 28, 56, 0.55);
+            transform: none;
         }
-        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp.is-active {
-            background: linear-gradient(180deg, #ffe066 0%, #e69d10 60%, #a85800 100%);
-            border-color: #fff099;
-            box-shadow: 0 2px 0 #5c2e00;
-            color: #fffdf5;
-            opacity: 1;
-            text-shadow: 0 1px 0 #5c2e00;
-        }
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp.is-active,
         .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp.is-active:hover {
-            background: linear-gradient(180deg, #ffe58a 0%, #f0b429 60%, #b86300 100%);
-            border-color: #fff3b0;
-            box-shadow: 0 2px 0 #5c2e00;
-            color: #fffdf5;
+            background: linear-gradient(180deg, #7ec2ff 0%, #2460b8 100%);
+            border-color: #c8e4ff;
+            border-width: 2.5px;
+            box-shadow: 0 3px 0 #0f2f5c;
+            color: #f4f9ff;
+            opacity: 1;
+            text-shadow: 0 1px 0 rgba(8, 28, 56, 0.55);
         }
         .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp.is-active:active {
-            box-shadow: 0 1px 0 #3d1e00;
+            box-shadow: 0 1px 0 #07182f;
+            transform: translateY(2px);
         }
-        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp:focus-visible {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.4), 0 2px 0 rgba(2, 6, 23, 0.45);
-        }
+        .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp:focus-visible,
         .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp.is-active:focus-visible {
-            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.45), 0 2px 0 #5c2e00;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(126, 194, 255, 0.45), 0 2px 0 rgba(10, 34, 68, 0.75);
         }
         .match-detail-page .match-bench-panel.is-game-card .match-detail-squad-overlay-toolbar .match-game-plan-lineup-overlay-btn.blknapp i {
             color: inherit;
@@ -3468,7 +3460,7 @@
             overflow: visible;
             padding: 0;
         }
-        /* Visning: Samspill + Bidrag / S/B / Form (navy/gull chips) */
+        /* Visning over banen: samme blå knapp som 11-filteret. */
         .match-detail-lineup-builder .match-game-plan-lineup-toolbar .match-detail-lineup-overlay-segment {
             align-items: center;
             align-self: center;
@@ -3483,7 +3475,7 @@
         }
         .match-detail-lineup-builder .match-game-plan-lineup-toolbar .match-detail-lineup-overlay-segment .match-game-plan-lineup-overlay-btn {
             border-radius: 0.7rem;
-            border-width: 1.5px;
+            border-width: 2.5px;
             box-sizing: border-box;
             flex: 0 0 2.45rem;
             font-weight: 900;
@@ -3498,43 +3490,34 @@
             transform: none;
             width: 2.45rem;
         }
-        .match-detail-lineup-builder .match-game-plan-lineup-toolbar .match-detail-lineup-overlay-segment .match-game-plan-lineup-overlay-btn:not(.is-active) {
-            background: linear-gradient(180deg, rgba(30, 80, 136, 0.72) 0%, rgba(8, 28, 56, 0.88) 100%);
-            border-color: rgba(255, 224, 138, 0.42);
-            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.45);
-            color: rgba(255, 253, 245, 0.88);
-            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.4);
-        }
+        .match-detail-lineup-builder .match-game-plan-lineup-toolbar .match-detail-lineup-overlay-segment .match-game-plan-lineup-overlay-btn:not(.is-active),
         .match-detail-lineup-builder .match-game-plan-lineup-toolbar .match-detail-lineup-overlay-segment .match-game-plan-lineup-overlay-btn:not(.is-active):hover {
-            background: linear-gradient(180deg, rgba(40, 95, 150, 0.85) 0%, rgba(12, 36, 68, 0.95) 100%);
-            border-color: rgba(255, 224, 138, 0.7);
-            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.5);
-            color: #fffdf5;
+            background: linear-gradient(180deg, rgba(94, 176, 255, 0.45) 0%, rgba(26, 79, 158, 0.45) 100%);
+            border-color: rgba(200, 228, 255, 0.45);
+            box-shadow: 0 2px 0 rgba(10, 34, 68, 0.75);
+            color: rgba(244, 249, 255, 0.78);
+            opacity: 0.85;
+            text-shadow: 0 1px 0 rgba(8, 28, 56, 0.55);
             transform: none;
         }
-        .match-detail-lineup-builder .match-game-plan-lineup-toolbar .match-detail-lineup-overlay-segment .match-game-plan-lineup-overlay-btn.is-active {
-            background: linear-gradient(180deg, #ffe066 0%, #e69d10 60%, #a85800 100%);
-            border-color: #fff099;
-            box-shadow: 0 2px 0 #5c2e00;
-            color: #fffdf5;
-            text-shadow: 0 1px 0 #5c2e00;
-        }
+        .match-detail-lineup-builder .match-game-plan-lineup-toolbar .match-detail-lineup-overlay-segment .match-game-plan-lineup-overlay-btn.is-active,
         .match-detail-lineup-builder .match-game-plan-lineup-toolbar .match-detail-lineup-overlay-segment .match-game-plan-lineup-overlay-btn.is-active:hover {
-            background: linear-gradient(180deg, #ffe58a 0%, #f0b429 60%, #b86300 100%);
-            border-color: #fff3b0;
-            box-shadow: 0 2px 0 #5c2e00;
-            color: #fffdf5;
+            background: linear-gradient(180deg, #7ec2ff 0%, #2460b8 100%);
+            border-color: #c8e4ff;
+            box-shadow: 0 3px 0 #0f2f5c;
+            color: #f4f9ff;
+            opacity: 1;
+            text-shadow: 0 1px 0 rgba(8, 28, 56, 0.55);
             transform: none;
         }
         .match-detail-lineup-builder .match-game-plan-lineup-toolbar .match-detail-lineup-overlay-segment .match-game-plan-lineup-overlay-btn.is-active:active {
-            box-shadow: 0 1px 0 #3d1e00;
+            box-shadow: 0 1px 0 #07182f;
+            transform: translateY(2px);
         }
-        .match-detail-lineup-builder .match-game-plan-lineup-toolbar .match-detail-lineup-overlay-segment .match-game-plan-lineup-overlay-btn:focus-visible {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.4), 0 2px 0 rgba(2, 6, 23, 0.45);
-        }
+        .match-detail-lineup-builder .match-game-plan-lineup-toolbar .match-detail-lineup-overlay-segment .match-game-plan-lineup-overlay-btn:focus-visible,
         .match-detail-lineup-builder .match-game-plan-lineup-toolbar .match-detail-lineup-overlay-segment .match-game-plan-lineup-overlay-btn.is-active:focus-visible {
-            box-shadow: 0 0 0 3px rgba(245, 197, 66, 0.45), 0 2px 0 #5c2e00;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(126, 194, 255, 0.45), 0 2px 0 rgba(10, 34, 68, 0.75);
         }
         .match-detail-lineup-builder .match-game-plan-lineup-toolbar .match-detail-lineup-overlay-segment .match-game-plan-lineup-overlay-btn i {
             color: inherit;
@@ -3737,43 +3720,46 @@
         .match-detail-lineup-builder .match-game-plan-formation-trigger.is-active .match-game-plan-formation-trigger-chevron {
             color: #fffdf5;
         }
-        /* 2.2: Nullstill ikon-only (sekundær), Lagre primær CTA */
+        /* Nullstill: samme gem-knapp, i en rolig rød. Bekreftelse er litt tydeligere. */
         .match-detail-lineup-builder .match-game-plan-lineup-clear-btn {
-            background: linear-gradient(180deg, rgba(30, 80, 136, 0.55) 0%, rgba(8, 28, 56, 0.72) 100%);
-            border: 1.5px solid rgba(255, 224, 138, 0.28);
+            background: linear-gradient(180deg, #e0aaa2 0%, #b86a64 100%);
+            border: 2.5px solid rgba(255, 220, 214, 0.72);
             border-radius: 0.7rem;
-            box-shadow: 0 2px 0 rgba(2, 6, 23, 0.4);
-            color: rgba(255, 253, 245, 0.82);
+            box-shadow: 0 2px 0 rgba(74, 28, 26, 0.72);
+            color: rgba(255, 248, 246, 0.94);
             flex: 0 0 2.45rem;
             max-width: 2.45rem;
             min-width: 2.45rem;
+            opacity: 0.9;
             padding: 0;
-            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.35);
+            text-shadow: 0 1px 0 rgba(74, 28, 26, 0.45);
             width: 2.45rem;
         }
         .match-detail-lineup-builder .match-game-plan-lineup-clear-btn:hover:not(:disabled) {
-            background: linear-gradient(180deg, rgba(40, 95, 150, 0.7) 0%, rgba(12, 36, 68, 0.85) 100%);
-            border-color: rgba(255, 224, 138, 0.5);
-            color: #fffdf5;
+            background: linear-gradient(180deg, #e8b8b0 0%, #c47670 100%);
+            border-color: rgba(255, 220, 214, 0.7);
+            box-shadow: 0 2px 0 rgba(74, 28, 26, 0.75);
+            color: #fff8f6;
+            opacity: 1;
             transform: none;
         }
-        .match-detail-lineup-builder .match-game-plan-lineup-clear-btn.is-armed:not(:disabled) {
-            background:
-                radial-gradient(circle at 30% 22%, rgba(255, 224, 138, 0.28), transparent 42%),
-                linear-gradient(180deg, #c45a4a 0%, #9b2f28 48%, #6b1a16 100%);
-            border-color: rgba(255, 224, 138, 0.55);
-            box-shadow:
-                0 0 0 1px rgba(196, 146, 20, 0.4),
-                0 2px 0 #6b4a0c;
-            color: #ffe08a;
-        }
+        .match-detail-lineup-builder .match-game-plan-lineup-clear-btn.is-armed:not(:disabled),
         .match-detail-lineup-builder .match-game-plan-lineup-clear-btn.is-armed:hover:not(:disabled) {
-            background:
-                radial-gradient(circle at 30% 22%, rgba(255, 224, 138, 0.38), transparent 42%),
-                linear-gradient(180deg, #d46a58 0%, #b03830 48%, #7a201a 100%);
-            border-color: rgba(255, 224, 138, 0.75);
-            color: #fff6d6;
+            background: linear-gradient(180deg, #e8b0a8 0%, #c46a62 100%);
+            border-color: #f6ddd8;
+            box-shadow: 0 3px 0 #6e322c;
+            color: #fff8f6;
+            opacity: 1;
+            text-shadow: 0 1px 0 rgba(90, 32, 28, 0.45);
             transform: none;
+        }
+        .match-detail-lineup-builder .match-game-plan-lineup-clear-btn:active:not(:disabled) {
+            box-shadow: 0 1px 0 #4a201c;
+            transform: translateY(2px);
+        }
+        .match-detail-lineup-builder .match-game-plan-lineup-clear-btn:focus-visible {
+            box-shadow: 0 0 0 3px rgba(226, 150, 142, 0.45), 0 2px 0 rgba(74, 28, 26, 0.72);
+            outline: none;
         }
         .match-detail-lineup-builder .match-game-plan-lineup-clear-btn:disabled {
             cursor: not-allowed;
@@ -11146,7 +11132,7 @@
             flex-direction: row;
             gap: 0.75rem;
             justify-content: space-between;
-            padding: 0.15rem 0;
+            padding: 0.15rem 0 0.15rem 2rem;
         }
         .match-list-column-empty.is-compact .match-list-empty-icon,
         .match-list-column-empty.is-compact .match-list-empty-text {
@@ -12326,6 +12312,272 @@
                 flex: 1 1 auto;
                 grid-column: 1 / -1;
                 width: 100%;
+            }
+        }
+        /* Spillertropp: samme mørke flate som resten av portalen. */
+        html:has(#view-tropp:not(.hidden)),
+        body:has(#view-tropp:not(.hidden)) {
+            background: #07182e;
+        }
+        body:has(#view-tropp:not(.hidden)) .portal-main-shell,
+        body:has(#view-tropp:not(.hidden)) #main-view.portal-main-view {
+            background: linear-gradient(180deg, #0a2240 0%, #07182e 100%);
+        }
+        body:has(#view-tropp:not(.hidden)) #main-view.portal-main-view {
+            padding-bottom: 0.85rem;
+            padding-top: 0.45rem;
+        }
+        .roster-board-card {
+            background:
+                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.1), transparent 32%),
+                linear-gradient(180deg, #16467c 0%, #10365f 100%);
+        }
+        #view-tropp .roster-mode-switch {
+            background: rgba(7, 24, 46, 0.45);
+            border: 1px solid rgba(186, 210, 230, 0.16);
+            border-radius: 0.8rem;
+            box-shadow: none;
+            gap: 0.25rem;
+            padding: 0.2rem;
+        }
+        #view-tropp .roster-mode-switch .roster-status-btn {
+            border-radius: 0.62rem;
+            color: rgba(176, 198, 216, 0.72);
+            font-weight: 800;
+            padding: 0.4rem 0.7rem;
+        }
+        #view-tropp .roster-mode-switch .roster-status-btn.is-active {
+            background: linear-gradient(180deg, rgba(255, 224, 138, 0.28) 0%, rgba(245, 197, 66, 0.12) 100%);
+            border-color: rgba(255, 224, 138, 0.62);
+            box-shadow: inset 0 1px 0 rgba(255, 248, 220, 0.28);
+            color: #ffe9a8;
+        }
+        .roster-board-toolbar .roster-search-wrap {
+            height: 2.2rem;
+            max-height: 2.2rem;
+            min-height: 2.2rem;
+        }
+        .roster-board-stats {
+            gap: 0.45rem;
+            padding: 0.6rem 0.8rem;
+        }
+        .roster-board-stats .roster-stat-card {
+            background: linear-gradient(180deg, rgba(8, 24, 44, 0.72) 0%, rgba(6, 18, 34, 0.88) 100%);
+            border: 1px solid rgba(255, 224, 138, 0.24);
+            border-radius: 0.7rem;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 248, 220, 0.12),
+                0 2px 0 rgba(2, 6, 23, 0.35);
+            cursor: default;
+            padding: 0.38rem 0.45rem;
+        }
+        .roster-board-stats .roster-stat-label {
+            color: rgba(255, 236, 196, 0.62);
+            font-size: 0.56rem;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.08rem;
+        }
+        .roster-board-stats .roster-stat-value {
+            color: #ffe9a8;
+            font-size: 1.05rem;
+        }
+        #view-tropp.is-plan-mode .roster-plan-intro {
+            color: rgba(255, 255, 255, 0.58);
+            font-size: 0.72rem;
+            font-weight: 650;
+            line-height: 1.3;
+            margin: 0;
+            min-width: 0;
+            text-align: left;
+        }
+        #view-tropp.is-plan-mode .roster-create-season-btn {
+            align-self: stretch;
+            background: linear-gradient(180deg, #7ec2ff 0%, #1a4f9e 100%);
+            border: 2px solid #c8e4ff;
+            border-radius: 0.75rem;
+            box-shadow: 0 3px 0 #0a2244, inset 0 1px 0 rgba(255, 255, 255, 0.28);
+            color: #f4f9ff;
+            cursor: pointer;
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.01em;
+            margin: 0;
+            min-height: 2.35rem;
+            padding: 0.4rem 0.55rem;
+            text-shadow: 0 1px 0 rgba(8, 28, 56, 0.45);
+            width: auto;
+        }
+        #view-tropp.is-plan-mode .roster-create-season-btn:hover {
+            background: linear-gradient(180deg, #93ceff 0%, #2460b8 100%);
+        }
+        #view-tropp.is-plan-mode .roster-create-season-btn:active {
+            box-shadow: 0 1px 0 #07182f, inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transform: translateY(2px);
+        }
+        #view-tropp.is-plan-mode .roster-add-player-btn.match-filter-btn {
+            background: linear-gradient(180deg, rgba(94, 176, 255, 0.42) 0%, rgba(26, 79, 158, 0.62) 100%);
+            border: 2px solid rgba(200, 228, 255, 0.45);
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 0 rgba(10, 34, 68, 0.75);
+            color: #f4f9ff;
+            height: auto;
+            max-height: none;
+            min-height: 2.35rem;
+            width: auto;
+        }
+        #view-tropp.is-plan-mode .roster-add-player-btn.match-filter-btn:hover {
+            background: linear-gradient(180deg, rgba(126, 194, 255, 0.62) 0%, rgba(36, 96, 184, 0.78) 100%);
+            border-color: rgba(200, 228, 255, 0.7);
+            color: #ffffff;
+            transform: none;
+        }
+        #view-tropp.is-plan-mode #roster-plan-filters {
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            gap: 0.35rem;
+            justify-content: flex-start;
+            padding: 0;
+        }
+        #view-tropp.is-plan-mode #roster-plan-filters .roster-status-btn {
+            background: linear-gradient(180deg, rgba(22, 58, 96, 0.9) 0%, rgba(10, 32, 58, 0.92) 100%);
+            border: 1px solid rgba(176, 206, 230, 0.22);
+            border-radius: 999px;
+            color: rgba(198, 216, 232, 0.78);
+            padding: 0.32rem 0.62rem;
+        }
+        #view-tropp.is-plan-mode #roster-plan-filters .roster-status-btn.is-active {
+            background: linear-gradient(180deg, #ffe08a 0%, #f5c542 100%);
+            border-color: #fff6d6;
+            box-shadow: 0 2px 0 rgba(92, 64, 8, 0.45);
+            color: #1a1204;
+        }
+        #view-tropp.is-plan-mode .roster-board-stats {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.28rem 0.85rem;
+            padding: 0.45rem 0.85rem 0.55rem;
+        }
+        #view-tropp.is-plan-mode .roster-board-stats .roster-stat-card {
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            flex: 0 1 auto;
+            flex-direction: row;
+            gap: 0.28rem;
+            padding: 0;
+        }
+        #view-tropp.is-plan-mode .roster-board-stats .roster-stat-label {
+            letter-spacing: 0.02em;
+            margin: 0;
+            text-transform: none;
+        }
+        #view-tropp.is-plan-mode .roster-board-stats .roster-stat-value {
+            font-size: 0.95rem;
+        }
+        #view-tropp.is-plan-mode .roster-stat-card:nth-child(1) .roster-stat-value { color: #f5c542; }
+        #view-tropp.is-plan-mode .roster-stat-card:nth-child(2) .roster-stat-value { color: #86efac; }
+        #view-tropp.is-plan-mode .roster-stat-card:nth-child(3) .roster-stat-value { color: #f0b0a8; }
+        #view-tropp.is-plan-mode .roster-stat-card:nth-child(4) .roster-stat-value { color: #9ecbff; }
+        #view-tropp:not(.is-plan-mode) #roster-now-filters {
+            justify-content: flex-start;
+            overflow: hidden;
+        }
+        @media (max-width: 767px) {
+            #view-tropp:not(.is-plan-mode) #roster-now-filters {
+                gap: 0.15rem;
+            }
+            #view-tropp:not(.is-plan-mode) #roster-now-filters .roster-status-btn {
+                padding: 0.34rem 0.4rem;
+            }
+        }
+        #view-tropp.is-plan-mode .roster-content {
+            padding-top: 0.65rem;
+        }
+        .roster-plan-badge.is-open {
+            background: rgba(245, 197, 66, 0.16);
+            box-shadow: inset 0 0 0 1px rgba(245, 197, 66, 0.32);
+            color: #ffe08a;
+        }
+        .roster-plan-badge.is-continue {
+            background: rgba(74, 222, 128, 0.14);
+            box-shadow: inset 0 0 0 1px rgba(74, 222, 128, 0.28);
+            color: #86efac;
+        }
+        .roster-plan-badge.is-leave {
+            background: rgba(196, 106, 98, 0.18);
+            box-shadow: inset 0 0 0 1px rgba(224, 140, 128, 0.32);
+            color: #f0b0a8;
+        }
+        .roster-plan-badge.is-new {
+            background: rgba(94, 176, 255, 0.16);
+            box-shadow: inset 0 0 0 1px rgba(126, 194, 255, 0.34);
+            color: #c8e4ff;
+        }
+        .roster-player-row.is-plan-row {
+            background: linear-gradient(90deg, #102f54 0%, #0c2746 100%);
+        }
+        .roster-player-row.is-plan-row:has(.roster-plan-badge.is-open) { border-left-color: #f5c542; }
+        .roster-player-row.is-plan-row:has(.roster-plan-badge.is-continue) { border-left-color: #4ade80; }
+        .roster-player-row.is-plan-row:has(.roster-plan-badge.is-leave) { border-left-color: #d48980; }
+        .roster-player-row.is-plan-row:has(.roster-plan-badge.is-new) { border-left-color: #7ec2ff; }
+        @media (max-width: 767px) {
+            #view-tropp.is-plan-mode .roster-board-toolbar {
+                align-items: stretch;
+                display: grid;
+                gap: 0.4rem;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                padding: 0.55rem 0.7rem 0.65rem;
+            }
+            #view-tropp.is-plan-mode .roster-toolbar-filters {
+                display: contents;
+            }
+            #view-tropp.is-plan-mode .roster-mode-switch { grid-column: 1 / -1; grid-row: 1; }
+            #view-tropp.is-plan-mode .roster-plan-intro { grid-column: 1 / -1; grid-row: 2; }
+            #view-tropp.is-plan-mode .roster-create-season-btn { grid-column: 1; grid-row: 3; }
+            #view-tropp.is-plan-mode .roster-add-player-btn { grid-column: 2; grid-row: 3; }
+            #view-tropp.is-plan-mode #roster-plan-filters { grid-column: 1 / -1; grid-row: 4; }
+            #view-tropp.is-plan-mode .roster-search-wrap { grid-column: 1 / -1; grid-row: 5; }
+            #view-tropp.is-plan-mode .roster-create-season-btn,
+            #view-tropp.is-plan-mode .roster-add-player-btn {
+                min-width: 0;
+                width: 100%;
+            }
+        }
+        @media (min-width: 768px) {
+            #view-tropp.is-plan-mode .roster-board-toolbar {
+                align-items: center;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem 0.65rem;
+                justify-content: flex-start;
+            }
+            #view-tropp.is-plan-mode .roster-toolbar-filters {
+                display: contents;
+            }
+            #view-tropp.is-plan-mode .roster-mode-switch {
+                flex: 0 0 auto;
+                width: auto;
+            }
+            #view-tropp.is-plan-mode .roster-plan-intro {
+                flex: 1 1 18rem;
+            }
+            #view-tropp.is-plan-mode .roster-create-season-btn,
+            #view-tropp.is-plan-mode .roster-add-player-btn.match-filter-btn {
+                flex: 0 0 auto;
+                width: auto;
+            }
+            #view-tropp.is-plan-mode #roster-plan-filters {
+                flex: 1 1 auto;
+                width: auto;
+            }
+            #view-tropp.is-plan-mode .roster-search-wrap {
+                flex: 1 1 18rem;
+                margin-left: 0;
+                width: auto;
             }
         }
         .player-modal-card {
