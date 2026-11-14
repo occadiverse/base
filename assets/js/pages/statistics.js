@@ -868,14 +868,13 @@ window.checkIndividualChemistry = function() {
             const activeSection = typeof window.getStatsLagSection === 'function'
                 ? window.getStatsLagSection()
                 : 'kampdata';
-            const sections = Array.isArray(window.statsLagSections)
+            const sections = (Array.isArray(window.statsLagSections)
                 ? window.statsLagSections
                 : [
                     { id: 'kampdata', label: 'Kamp', icon: 'fa-shield-halved' },
                     { id: 'spillerdata', label: 'Spiller', icon: 'fa-users' },
-                    { id: 'treningsdata', label: 'Trening', icon: 'fa-user-check' },
                     { id: 'halloffame', label: 'HOF', icon: 'fa-trophy' }
-                ];
+                ]).filter(section => !section.hideNav);
 
             return sections.map(section => `
                 <button
@@ -901,10 +900,11 @@ window.checkIndividualChemistry = function() {
                 ? window.getStatsKampYearFilter()
                 : (years[0] || new Date().getFullYear());
             const yearLabel = String(yearFilter === 'alle' ? (years[0] || new Date().getFullYear()) : yearFilter);
-            const seasonLabel = yearFilter === 'alle' ? 'Alle år' : yearLabel;
+            const seasonLabel = yearFilter === 'alle' ? 'Alle' : yearLabel;
             if (!years.length) {
                 return `
                     <button type="button" class="stats-filter-trigger" disabled>
+                        <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
                         <span class="stats-filter-trigger-value">${escapeStatisticsHtml(seasonLabel)}</span>
                     </button>
                 `;
@@ -914,7 +914,7 @@ window.checkIndividualChemistry = function() {
                 menuId: 'year',
                 ariaLabel: 'Velg sesong',
                 valueLabel: seasonLabel,
-                icon: '',
+                icon: 'fa-calendar-days',
                 action: 'set-kamp-year',
                 valueAttr: 'year',
                 options: [
@@ -3961,10 +3961,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 </div>
             `;
             const oppmoteTeamName = data.filterLag && data.filterLag !== 'Alle' ? data.filterLag : '';
-            const oppmoteRange = typeof window.getStatsOppmoteRangeFilter === 'function'
-                ? window.getStatsOppmoteRangeFilter()
-                : 'season';
-            const oppmoteIsLast8 = oppmoteRange === 'last8';
             const attendanceYear = typeof window.getStatsKampYearFilter === 'function'
                 ? window.getStatsKampYearFilter()
                 : null;
@@ -3973,8 +3969,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
                     listExpandedKey: '_statsOppmoteListExpanded',
                     toggleActionAttr: 'data-stat-action',
                     toggleAction: 'toggle-attendance-list',
-                    eventLimit: oppmoteIsLast8 ? 8 : null,
-                    rangeLabel: oppmoteIsLast8 ? 'Siste 8' : 'Sesong',
+                    rangeLabel: 'Sesong',
                     ownAttendanceThreshold: 30,
                     year: attendanceYear && attendanceYear !== 'alle'
                         ? attendanceYear
@@ -3991,26 +3986,6 @@ window.getFormScoreBorderClass = function(score, teamName) {
                 title: 'Oppmøte',
                 showLabel: 'Vis oppmøte',
                 hideLabel: 'Skjul oppmøte',
-                headingExtraHtml: `
-                    <div class="stats-kamp-year-filter stats-oppmote-range-filter" role="tablist" aria-label="Filtrer oppmøteperiode">
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-selected="${oppmoteIsLast8 ? 'false' : 'true'}"
-                            class="bsk-btn bsk-btn-chip stats-kamp-year-btn ${oppmoteIsLast8 ? '' : 'is-active'}"
-                            data-stat-action="set-oppmote-range"
-                            data-range="season"
-                        >Sesong</button>
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-selected="${oppmoteIsLast8 ? 'true' : 'false'}"
-                            class="bsk-btn bsk-btn-chip stats-kamp-year-btn ${oppmoteIsLast8 ? 'is-active' : ''}"
-                            data-stat-action="set-oppmote-range"
-                            data-range="last8"
-                        >Siste 8</button>
-                    </div>
-                `,
                 content: oppmoteContent
             });
             return oppmotePanel;
@@ -6243,7 +6218,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.statsLagSections = [
             { id: 'kampdata', label: 'Kamp', icon: 'fa-shield-halved' },
             { id: 'spillerdata', label: 'Spiller', icon: 'fa-users' },
-            { id: 'treningsdata', label: 'Trening', icon: 'fa-user-check' },
+            { id: 'treningsdata', label: 'Trening', icon: 'fa-user-check', hideNav: true },
             { id: 'halloffame', label: 'HOF', icon: 'fa-trophy' }
         ];
         window.statsLagSection = window.statsLagSection || 'kampdata';
