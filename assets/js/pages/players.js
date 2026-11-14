@@ -460,6 +460,28 @@ function buildRosterPlayerAvatarHtml(player) {
     `;
 }
 
+function rosterPositionChipLabel(label) {
+    const name = String(label || '').trim();
+    if (!name || name === '-') return '';
+    if (typeof getMatchGamePlanPlayerPosAbbrev === 'function') {
+        const code = getMatchGamePlanPlayerPosAbbrev({ pos1: name }, null);
+        if (code) return code;
+    }
+    return name;
+}
+
+function buildRosterPositionChipsHtml(player) {
+    return [player?.pos1, player?.pos2]
+        .map(label => {
+            const name = String(label || '').trim();
+            const code = rosterPositionChipLabel(name);
+            if (!code) return '';
+            return `<span class="roster-pos-chip" title="${escapeRosterHtml(name)}">${escapeRosterHtml(code)}</span>`;
+        })
+        .filter(Boolean)
+        .join('');
+}
+
 function buildRosterPlayerRow(p, currentYear) {
     const age = currentYear - parseInt(p.fodselsaar || 2000);
     const posStr = p.pos2 && p.pos2 !== '-' ? `${p.pos1} / ${p.pos2}` : p.pos1;
@@ -483,8 +505,7 @@ function buildRosterPlayerRow(p, currentYear) {
             <div class="roster-player-main">
                 <div class="roster-player-name">${escapeRosterHtml(p.navn)}${captainMark}</div>
                 <div class="roster-player-meta">
-                    <span>${escapeRosterHtml(posStr)}</span>
-                    <span class="roster-player-meta-sep">·</span>
+                    ${buildRosterPositionChipsHtml(p)}
                     <span>${escapeRosterHtml(foot)}</span>
                 </div>
             </div>
