@@ -11657,6 +11657,69 @@
             color: #fffdf5;
             font-size: 1rem;
             font-weight: 900;
+            overflow: hidden;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-player-name-text {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-player-name .roster-player-age {
+            color: rgba(196, 214, 240, 0.9);
+            flex: 0 0 auto;
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-player-side {
+            align-items: flex-end;
+            align-self: center;
+            justify-content: center;
+            min-width: 0;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-badge {
+            align-items: center;
+            border-radius: 0.55rem;
+            border-style: solid;
+            border-width: 1.5px;
+            display: inline-flex;
+            font-size: 0.62rem;
+            justify-content: center;
+            letter-spacing: 0.04em;
+            min-height: 2.15rem;
+            min-width: 3.1rem;
+            padding: 0.22rem 0.48rem 0.28rem;
+            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+        }
+        #view-tropp:not(.is-plan-mode) .roster-badge-active {
+            background: linear-gradient(180deg, #86efac 0%, #22c55e 58%, #15803d 100%);
+            border-color: #dcfce7;
+            box-shadow: 0 2px 0 #14532d;
+            color: #f0fdf4;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-badge-recruit {
+            background: linear-gradient(180deg, #ffe08a 0%, #f5c542 58%, #d4920a 100%);
+            border-color: #fff6d6;
+            box-shadow: 0 2px 0 #6b4a0c;
+            color: #3d2a08;
+            text-shadow: 0 1px 0 rgba(255, 248, 220, 0.45);
+        }
+        #view-tropp:not(.is-plan-mode) .roster-badge-muted {
+            background: linear-gradient(180deg, #cbd5e1 0%, #94a3b8 58%, #64748b 100%);
+            border-color: #e2e8f0;
+            box-shadow: 0 2px 0 #334155;
+            color: #f8fafc;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-badge-injury-short {
+            background: linear-gradient(180deg, #fdba74 0%, #fb923c 58%, #ea580c 100%);
+            border-color: #ffedd5;
+            box-shadow: 0 2px 0 #9a3412;
+            color: #fff7ed;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-badge-injury-long {
+            background: linear-gradient(180deg, #fca5a5 0%, #f87171 58%, #dc2626 100%);
+            border-color: #fee2e2;
+            box-shadow: 0 2px 0 #7f1d1d;
+            color: #fef2f2;
         }
         #view-tropp:not(.is-plan-mode) .roster-player-meta {
             align-items: center;

@@ -503,7 +503,10 @@ function buildRosterPlayerRow(p, currentYear) {
         <article class="roster-player-row ${rowStateClasses}" data-player-id="${escapeRosterHtml(p.id)}" role="button" tabindex="0">
             ${buildRosterPlayerAvatarHtml(p)}
             <div class="roster-player-main">
-                <div class="roster-player-name">${escapeRosterHtml(p.navn)}${captainMark}</div>
+                <div class="roster-player-name">
+                    <span class="roster-player-name-text">${escapeRosterHtml(p.navn)}</span>${captainMark}
+                    <span class="roster-player-age">${age} år</span>
+                </div>
                 <div class="roster-player-meta">
                     ${buildRosterPositionChipsHtml(p)}
                     <span>${escapeRosterHtml(foot)}</span>
@@ -512,7 +515,6 @@ function buildRosterPlayerRow(p, currentYear) {
             <div class="roster-player-position">${escapeRosterHtml(posStr)}</div>
             <div class="roster-player-foot">${escapeRosterHtml(foot)}</div>
             <div class="roster-player-side">
-                <span class="roster-player-age">${age} år</span>
                 <div class="roster-player-badges">
                     ${buildRosterStatusBadge(displayStatus)}
                     ${buildRosterInjuryBadge(injuryInfo)}
