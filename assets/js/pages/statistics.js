@@ -901,11 +901,11 @@ window.checkIndividualChemistry = function() {
                 ? window.getStatsKampYearFilter()
                 : (years[0] || new Date().getFullYear());
             const yearLabel = String(yearFilter === 'alle' ? (years[0] || new Date().getFullYear()) : yearFilter);
+            const seasonLabel = yearFilter === 'alle' ? 'Alle år' : yearLabel;
             if (!years.length) {
                 return `
-                    <button type="button" class="bsk-btn bsk-btn-chip stats-lag-section-btn" disabled>
-                        <i class="fa-solid fa-calendar" aria-hidden="true"></i>
-                        <span>${escapeStatisticsHtml(yearLabel)}</span>
+                    <button type="button" class="stats-filter-trigger" disabled>
+                        <span class="stats-filter-trigger-value">${escapeStatisticsHtml(seasonLabel)}</span>
                     </button>
                 `;
             }
@@ -913,8 +913,8 @@ window.checkIndividualChemistry = function() {
             return window.renderStatsFilterMenuHtml({
                 menuId: 'year',
                 ariaLabel: 'Velg sesong',
-                valueLabel: yearFilter === 'alle' ? 'Alle år' : yearLabel,
-                icon: 'fa-calendar',
+                valueLabel: seasonLabel,
+                icon: '',
                 action: 'set-kamp-year',
                 valueAttr: 'year',
                 options: [
@@ -941,9 +941,13 @@ window.checkIndividualChemistry = function() {
                 : '';
 
             return `
-                <div class="stats-lag-filters" role="tablist" aria-label="Statistikkvalg">
-                    ${sectionFilterHtml}
-                    ${seasonFilterHtml}
+                <div class="stats-lag-filters">
+                    <div class="stats-lag-nav" role="tablist" aria-label="Statistikkvalg">
+                        ${sectionFilterHtml}
+                    </div>
+                    <div class="stats-lag-season">
+                        ${seasonFilterHtml}
+                    </div>
                 </div>
             `;
         };
