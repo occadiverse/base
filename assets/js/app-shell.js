@@ -36,7 +36,7 @@ function syncPortalThemeColor(useNavy) {
     meta.setAttribute('content', useNavy ? PORTAL_THEME_COLOR_KAMPER : PORTAL_THEME_COLOR_DEFAULT);
 }
 
-/** Mobile navy shells: Kamper list / Kalender / Hjem / Statistikk / Live keep chrome; detail hides portal header/nav.
+/** Mobile navy shells: Kamper list / Kalender / Hjem / Statistikk / Live / Spillertropp keep chrome; detail hides portal header/nav.
  *  Class-only (no :has on visible views) so swipe peek cannot leak shell styles. */
 function syncKamperEnvClass(tabId = window.currentTab) {
     const mobile = window.innerWidth < 768;
@@ -47,6 +47,7 @@ function syncKamperEnvClass(tabId = window.currentTab) {
     const inHjemEnv = Boolean(tabId === 'hjem' && mobile);
     const inStatistikkEnv = Boolean(tabId === 'statistikk' && mobile);
     const inLiveEnv = Boolean(tabId === 'taktikk' && mobile);
+    const inTroppEnv = Boolean(tabId === 'tropp' && mobile);
     document.body.classList.toggle('is-kamper-env', inDetailEnv);
     document.documentElement.classList.toggle('is-kamper-env', inDetailEnv);
     document.body.classList.toggle('is-kamper-list', inListEnv);
@@ -59,7 +60,9 @@ function syncKamperEnvClass(tabId = window.currentTab) {
     document.documentElement.classList.toggle('is-statistikk-env', inStatistikkEnv);
     document.body.classList.toggle('is-live-env', inLiveEnv);
     document.documentElement.classList.toggle('is-live-env', inLiveEnv);
-    syncPortalThemeColor(inDetailEnv || inListEnv || inKalenderEnv || inHjemEnv || inStatistikkEnv || inLiveEnv);
+    document.body.classList.toggle('is-tropp-env', inTroppEnv);
+    document.documentElement.classList.toggle('is-tropp-env', inTroppEnv);
+    syncPortalThemeColor(inDetailEnv || inListEnv || inKalenderEnv || inHjemEnv || inStatistikkEnv || inLiveEnv || inTroppEnv);
 }
 window.syncKamperEnvClass = syncKamperEnvClass;
 
@@ -200,9 +203,13 @@ function switchTab(tabId, options = {}) {
     if (activeMobileBtn) activeMobileBtn.classList.add('active-nav', 'text-bsk-yellow');
     setMobileNavTab(tabId);
 
+    const mobileTroppBtn = document.querySelector('.portal-mobile-tropp-btn');
+    if (mobileTroppBtn) {
+        mobileTroppBtn.classList.toggle('is-active', tabId === 'tropp' || tabId === 'spillerprofil');
+    }
     const mobileToolsBtn = document.querySelector('.portal-mobile-admin-btn');
     if (mobileToolsBtn) {
-        mobileToolsBtn.classList.toggle('is-active', tabId === 'tropp' || tabId === 'admin' || tabId === 'spillerprofil');
+        mobileToolsBtn.classList.toggle('is-active', tabId === 'admin');
     }
 
     if (tabId === 'oppmote') {

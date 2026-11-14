@@ -82,8 +82,11 @@ function renderMobileHeader() {
                 </span>
             </div>
             <div class="portal-mobile-tools">
-                <button onclick="toggleMobileToolsMenu(event)" class="portal-btn portal-btn-icon-sm portal-btn-secondary portal-mobile-admin-btn" title="Meny">
-                    <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
+                <button type="button" onclick="switchTab('tropp')" class="portal-btn portal-btn-icon-sm portal-btn-secondary portal-mobile-header-action portal-mobile-tropp-btn" title="Spillertropp" aria-label="Spillertropp">
+                    <i class="fa-solid fa-users" aria-hidden="true"></i>
+                </button>
+                <button type="button" onclick="toggleMobileToolsMenu(event)" class="portal-btn portal-btn-icon-sm portal-btn-secondary portal-mobile-header-action portal-mobile-admin-btn" title="Meny" aria-label="Meny">
+                    <i class="fa-solid fa-ellipsis-vertical text-lg" aria-hidden="true"></i>
                 </button>
                 <div id="portal-mobile-tools-menu" class="portal-mobile-tools-menu hidden">
                     <button onclick="closeMobileToolsMenu(); switchTab('tropp')" class="portal-mobile-tools-item">

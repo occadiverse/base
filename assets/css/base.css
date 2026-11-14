@@ -193,19 +193,24 @@
         .stats-hero-panel > .stats-hero-lag-filter {
             margin-bottom: 0.85rem;
         }
-        .portal-mobile-admin-btn {
-            background: rgba(255, 255, 255, 0.72);
-            border: 1px solid rgba(18, 63, 115, 0.12);
-            border-radius: 0.75rem;
-            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+        button.portal-btn.portal-mobile-header-action,
+        button.portal-btn.portal-mobile-header-action:hover,
+        button.portal-btn.portal-mobile-header-action:active,
+        button.portal-btn.portal-mobile-header-action.is-active,
+        button.portal-btn.portal-mobile-header-action.is-active:hover {
+            background: transparent;
+            border: 0;
+            box-shadow: none;
             color: #123f73;
         }
-        .portal-mobile-admin-btn.is-active {
-            background: rgba(245, 197, 66, 0.2);
-            border-color: rgba(245, 197, 66, 0.5);
+        button.portal-btn.portal-mobile-header-action.is-active,
+        button.portal-btn.portal-mobile-header-action.is-active:hover {
             color: #0b2b4c;
         }
         .portal-mobile-tools {
+            align-items: center;
+            display: flex;
+            gap: 0.4rem;
             position: relative;
         }
         .portal-mobile-tools-menu {
@@ -9973,7 +9978,10 @@
             body.is-kamper-list,
             html.is-hjem-env,
             html.is-hjem-env body,
-            body.is-hjem-env {
+            body.is-hjem-env,
+            html.is-tropp-env,
+            html.is-tropp-env body,
+            body.is-tropp-env {
                 background: #0b2b4c !important;
                 color-scheme: dark;
             }
@@ -9981,7 +9989,8 @@
             body.is-kamper-list .portal-mobile-header,
             body.is-hjem-env .portal-mobile-header,
             body.is-statistikk-env .portal-mobile-header,
-            body.is-live-env .portal-mobile-header {
+            body.is-live-env .portal-mobile-header,
+            body.is-tropp-env .portal-mobile-header {
                 background: #123f73;
                 backdrop-filter: none;
                 border: 0 !important;
@@ -9993,7 +10002,8 @@
             body.is-kamper-list #portal-mobile-header,
             body.is-hjem-env #portal-mobile-header,
             body.is-statistikk-env #portal-mobile-header,
-            body.is-live-env #portal-mobile-header {
+            body.is-live-env #portal-mobile-header,
+            body.is-tropp-env #portal-mobile-header {
                 border: 0;
                 box-shadow: none;
             }
@@ -10001,7 +10011,8 @@
             body.is-kamper-list .portal-mobile-brand-chip,
             body.is-hjem-env .portal-mobile-brand-chip,
             body.is-statistikk-env .portal-mobile-brand-chip,
-            body.is-live-env .portal-mobile-brand-chip {
+            body.is-live-env .portal-mobile-brand-chip,
+            body.is-tropp-env .portal-mobile-brand-chip {
                 background:
                     radial-gradient(circle at 88% 8%, rgba(255, 224, 138, 0.28), transparent 40%),
                     linear-gradient(160deg, #1a4a7a 0%, #0d3058 55%, #081f3c 100%);
@@ -10013,38 +10024,53 @@
             body.is-kamper-list .portal-mobile-brand-mark .portal-brand-shield,
             body.is-hjem-env .portal-mobile-brand-mark .portal-brand-shield,
             body.is-statistikk-env .portal-mobile-brand-mark .portal-brand-shield,
-            body.is-live-env .portal-mobile-brand-mark .portal-brand-shield {
+            body.is-live-env .portal-mobile-brand-mark .portal-brand-shield,
+            body.is-tropp-env .portal-mobile-brand-mark .portal-brand-shield {
                 filter: drop-shadow(0 2px 4px rgba(2, 6, 23, 0.55));
             }
-            /* Tre prikker: Clash-gullknapp */
-            body.is-kamper-list .portal-mobile-admin-btn,
-            body.is-hjem-env .portal-mobile-admin-btn,
-            body.is-statistikk-env .portal-mobile-admin-btn,
-            body.is-live-env .portal-mobile-admin-btn {
-                background: linear-gradient(180deg, rgba(30, 80, 136, 0.85) 0%, rgba(8, 28, 56, 0.95) 100%);
-                border: 1.5px solid rgba(255, 224, 138, 0.5);
-                border-radius: 999px;
-                box-shadow:
-                    0 2px 0 rgba(2, 6, 23, 0.4),
-                    inset 0 1px 0 rgba(255, 253, 245, 0.12);
+            /* Tropp og meny: bare ikon, ingen ring */
+            body.is-kamper-list button.portal-btn.portal-mobile-header-action,
+            body.is-kamper-list button.portal-btn.portal-mobile-header-action:hover,
+            body.is-kamper-list button.portal-btn.portal-mobile-header-action:active,
+            body.is-kamper-list button.portal-btn.portal-mobile-header-action.is-active,
+            body.is-hjem-env button.portal-btn.portal-mobile-header-action,
+            body.is-hjem-env button.portal-btn.portal-mobile-header-action:hover,
+            body.is-hjem-env button.portal-btn.portal-mobile-header-action:active,
+            body.is-hjem-env button.portal-btn.portal-mobile-header-action.is-active,
+            body.is-statistikk-env button.portal-btn.portal-mobile-header-action,
+            body.is-statistikk-env button.portal-btn.portal-mobile-header-action:hover,
+            body.is-statistikk-env button.portal-btn.portal-mobile-header-action:active,
+            body.is-statistikk-env button.portal-btn.portal-mobile-header-action.is-active,
+            body.is-live-env button.portal-btn.portal-mobile-header-action,
+            body.is-live-env button.portal-btn.portal-mobile-header-action:hover,
+            body.is-live-env button.portal-btn.portal-mobile-header-action:active,
+            body.is-live-env button.portal-btn.portal-mobile-header-action.is-active,
+            body.is-tropp-env button.portal-btn.portal-mobile-header-action,
+            body.is-tropp-env button.portal-btn.portal-mobile-header-action:hover,
+            body.is-tropp-env button.portal-btn.portal-mobile-header-action:active,
+            body.is-tropp-env button.portal-btn.portal-mobile-header-action.is-active {
+                background: transparent;
+                border: 0;
+                box-shadow: none;
                 color: #ffe08a;
             }
-            body.is-kamper-list .portal-mobile-admin-btn:hover,
-            body.is-kamper-list .portal-mobile-admin-btn.is-active,
-            body.is-hjem-env .portal-mobile-admin-btn:hover,
-            body.is-hjem-env .portal-mobile-admin-btn.is-active,
-            body.is-statistikk-env .portal-mobile-admin-btn:hover,
-            body.is-statistikk-env .portal-mobile-admin-btn.is-active,
-            body.is-live-env .portal-mobile-admin-btn:hover,
-            body.is-live-env .portal-mobile-admin-btn.is-active {
-                background: linear-gradient(180deg, rgba(40, 100, 160, 0.9) 0%, rgba(12, 40, 72, 0.98) 100%);
-                border-color: rgba(255, 224, 138, 0.75);
+            body.is-kamper-list button.portal-btn.portal-mobile-header-action:hover,
+            body.is-kamper-list button.portal-btn.portal-mobile-header-action.is-active,
+            body.is-hjem-env button.portal-btn.portal-mobile-header-action:hover,
+            body.is-hjem-env button.portal-btn.portal-mobile-header-action.is-active,
+            body.is-statistikk-env button.portal-btn.portal-mobile-header-action:hover,
+            body.is-statistikk-env button.portal-btn.portal-mobile-header-action.is-active,
+            body.is-live-env button.portal-btn.portal-mobile-header-action:hover,
+            body.is-live-env button.portal-btn.portal-mobile-header-action.is-active,
+            body.is-tropp-env button.portal-btn.portal-mobile-header-action:hover,
+            body.is-tropp-env button.portal-btn.portal-mobile-header-action.is-active {
                 color: #fff6d6;
             }
             body.is-kamper-list .portal-mobile-tools-menu,
             body.is-hjem-env .portal-mobile-tools-menu,
             body.is-statistikk-env .portal-mobile-tools-menu,
-            body.is-live-env .portal-mobile-tools-menu {
+            body.is-live-env .portal-mobile-tools-menu,
+            body.is-tropp-env .portal-mobile-tools-menu {
                 background: linear-gradient(180deg, #1a3f6a 0%, #0f2744 100%);
                 border: 1.5px solid rgba(255, 224, 138, 0.35);
                 box-shadow: 0 16px 36px rgba(2, 6, 23, 0.45);
@@ -10052,19 +10078,22 @@
             body.is-kamper-list .portal-mobile-tools-item,
             body.is-hjem-env .portal-mobile-tools-item,
             body.is-statistikk-env .portal-mobile-tools-item,
-            body.is-live-env .portal-mobile-tools-item {
+            body.is-live-env .portal-mobile-tools-item,
+            body.is-tropp-env .portal-mobile-tools-item {
                 color: #fffdf5;
             }
             body.is-kamper-list .portal-mobile-tools-item i,
             body.is-hjem-env .portal-mobile-tools-item i,
             body.is-statistikk-env .portal-mobile-tools-item i,
-            body.is-live-env .portal-mobile-tools-item i {
+            body.is-live-env .portal-mobile-tools-item i,
+            body.is-tropp-env .portal-mobile-tools-item i {
                 color: #ffe08a;
             }
             body.is-kamper-list .portal-mobile-tools-item:hover,
             body.is-hjem-env .portal-mobile-tools-item:hover,
             body.is-statistikk-env .portal-mobile-tools-item:hover,
-            body.is-live-env .portal-mobile-tools-item:hover {
+            body.is-live-env .portal-mobile-tools-item:hover,
+            body.is-tropp-env .portal-mobile-tools-item:hover {
                 background: rgba(245, 197, 66, 0.16);
             }
             /* Bunmeny: alltid navy — innhold midtstilt i flaten over safe-area */
@@ -10287,19 +10316,17 @@
             body.is-kalender-env .portal-mobile-brand-mark .portal-brand-shield {
                 filter: drop-shadow(0 2px 4px rgba(2, 6, 23, 0.55));
             }
-            body.is-kalender-env .portal-mobile-admin-btn {
-                background: linear-gradient(180deg, rgba(30, 80, 136, 0.85) 0%, rgba(8, 28, 56, 0.95) 100%);
-                border: 1.5px solid rgba(255, 224, 138, 0.5);
-                border-radius: 999px;
-                box-shadow:
-                    0 2px 0 rgba(2, 6, 23, 0.4),
-                    inset 0 1px 0 rgba(255, 253, 245, 0.12);
+            body.is-kalender-env button.portal-btn.portal-mobile-header-action,
+            body.is-kalender-env button.portal-btn.portal-mobile-header-action:hover,
+            body.is-kalender-env button.portal-btn.portal-mobile-header-action:active,
+            body.is-kalender-env button.portal-btn.portal-mobile-header-action.is-active {
+                background: transparent;
+                border: 0;
+                box-shadow: none;
                 color: #ffe08a;
             }
-            body.is-kalender-env .portal-mobile-admin-btn:hover,
-            body.is-kalender-env .portal-mobile-admin-btn.is-active {
-                background: linear-gradient(180deg, rgba(40, 100, 160, 0.9) 0%, rgba(12, 40, 72, 0.98) 100%);
-                border-color: rgba(255, 224, 138, 0.75);
+            body.is-kalender-env button.portal-btn.portal-mobile-header-action:hover,
+            body.is-kalender-env button.portal-btn.portal-mobile-header-action.is-active {
                 color: #fff6d6;
             }
             body.is-kalender-env .portal-mobile-tools-menu {
@@ -12421,7 +12448,7 @@
             }
             body:has(#view-tropp:not(.hidden)) .portal-main-shell,
             body:has(#view-tropp:not(.hidden)) #main-view.portal-main-view {
-                background: linear-gradient(180deg, #0a2240 0%, #07182e 100%);
+                background: linear-gradient(180deg, #123f73 0%, #123f73 2.75rem, #0a2240 9rem, #07182e 100%);
             }
             /* Statistikk: topp og logo sømløst som Kamper/Kalender, uten boks rundt overskriften. */
             body.is-statistikk-env .portal-main-shell,
