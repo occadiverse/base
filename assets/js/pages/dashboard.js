@@ -638,6 +638,13 @@ function hjemSectionChip(attrs, label) {
     return `<button type="button" class="bsk-btn bsk-btn-chip stats-lag-section-btn is-active hjem-section-chip" ${attrs}><span>${escapeDashboardHtml(label)}</span></button>`;
 }
 
+function hjemKeepInlineTokens(text) {
+    return escapeDashboardHtml(text).replace(
+        /\d+(?:\s*[–—-]\s*\d+)+/g,
+        (token) => `<span class="hjem-keep">${token}</span>`
+    );
+}
+
 function hjemPlanSecondaryLine(counts) {
     const parts = [];
     if (counts.Fortsetter) parts.push(hjemCountPhrase(counts.Fortsetter, 'fortsetter', 'fortsetter'));
@@ -1076,12 +1083,12 @@ window.renderHjemSeasonSummary = function(existingModel) {
 
     const year = escapeDashboardHtml(model.year);
     const paragraphs = [model.story, model.notes].filter(Boolean).map(text => (
-        `<p>${escapeDashboardHtml(text)}</p>`
+        `<p>${hjemKeepInlineTokens(text)}</p>`
     )).join('');
     const matchRows = model.matches.map(match => `
         <article data-dashboard-action="open-match" data-match-id="${escapeDashboardHtml(match.id)}" role="button" tabindex="0" class="hjem-season-row dashboard-click-card">
-            <p class="hjem-season-row-line">${escapeDashboardHtml(match.line)}</p>
-            ${match.quote ? `<p class="hjem-season-quote">«${escapeDashboardHtml(match.quote)}»</p>` : ''}
+            <p class="hjem-season-row-line">${hjemKeepInlineTokens(match.line)}</p>
+            ${match.quote ? `<p class="hjem-season-quote">«${hjemKeepInlineTokens(match.quote)}»</p>` : ''}
         </article>
     `).join('');
 
@@ -1094,7 +1101,7 @@ window.renderHjemSeasonSummary = function(existingModel) {
     const cupBox = (model.cupLead || matchRows) ? `
         <article class="hjem-season-box is-cup">
             <span class="hjem-season-plaque is-gold">OBOS CUP</span>
-            ${model.cupLead ? `<p class="hjem-season-cup-lead">${escapeDashboardHtml(model.cupLead)}</p>` : ''}
+            ${model.cupLead ? `<p class="hjem-season-cup-lead">${hjemKeepInlineTokens(model.cupLead)}</p>` : ''}
             ${matchRows}
         </article>` : '';
     slot.innerHTML = `
