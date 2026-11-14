@@ -985,7 +985,8 @@ window.renderPlayerRoster = function() {
     bindPlayerRosterEvents();
 
     const filteredPlayers = getRosterFilteredPlayers();
-    const allPlayers = Array.isArray(window.activePlayers) ? window.activePlayers : [];
+    const allPlayers = (Array.isArray(window.activePlayers) ? window.activePlayers : [])
+        .filter(player => !isPlayerLeftSquad(player));
     const currentYear = new Date().getFullYear();
     let totalAge = 0;
     let countRekrutt = 0;
@@ -1012,7 +1013,7 @@ window.renderPlayerRoster = function() {
     if (statAvgAgeEl) statAvgAgeEl.innerText = `${avgAge} år`;
     if (statRekruttEl) statRekruttEl.innerText = String(countRekrutt);
     if (statInjuredEl) statInjuredEl.innerText = String(countInjured);
-    if (boardTitleEl) boardTitleEl.innerText = getRosterStatusFilterLabel();
+    if (boardTitleEl) boardTitleEl.innerText = 'Tropp nå';
     if (bottomlineSummaryEl) {
         bottomlineSummaryEl.innerText = `Viser ${filteredPlayers.length} av ${allPlayers.length} spillere i troppen.`;
     }

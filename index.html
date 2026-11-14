@@ -17,7 +17,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20261114-tropp-age-chip">
+    <link rel="stylesheet" href="assets/css/base.css?v=20261114-tropp-hero">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -253,15 +253,15 @@
             </div>
 
             <div id="view-tropp" class="hidden portal-view portal-page roster-page">
-                <section class="match-detail-card roster-board-card">
-                    <div class="dashboard-next-match-watermark roster-board-watermark">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-
-                    <div class="match-detail-card-top roster-board-top relative z-10">
-                        <div class="match-detail-meta match-list-column-title">
-                            <i class="fa-solid fa-users"></i>
-                            <span id="rosterBoardTitle">Aktive</span>
+                <section class="match-detail-card roster-board-card roster-work-card" aria-label="Spillertropp">
+                    <div class="roster-work-heading">
+                        <div class="match-bench-heading roster-board-heading">
+                            <span class="match-game-card-icon roster-board-mark" aria-hidden="true">
+                                <i class="fa-solid fa-users"></i>
+                            </span>
+                            <div class="match-bench-heading-copy">
+                                <h2 class="roster-hero-title">Spillertropp</h2>
+                            </div>
                         </div>
                         <div class="roster-board-top-right">
                             <div id="rosterNowLegend" class="roster-bottomline-legend roster-topline-legend" aria-label="Forklaring av spillerstatus">
@@ -273,12 +273,15 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="roster-board-toolbar relative z-10">
+                    <div class="roster-mode-row">
                         <div class="roster-status-filter roster-mode-switch" role="tablist" aria-label="Velg troppvisning">
                             <button type="button" id="roster-mode-now" class="bsk-btn bsk-btn-chip roster-status-btn is-active" onclick="window.setRosterMode('now')">Tropp nå</button>
                             <button type="button" id="roster-mode-plan" class="bsk-btn bsk-btn-chip roster-status-btn" onclick="window.setRosterMode('plan2027')">Troppsplan 2027</button>
                         </div>
+                        <h3 id="rosterBoardTitle">Tropp nå</h3>
+                    </div>
+
+                    <div class="roster-board-toolbar relative z-10">
                         <p id="rosterPlanIntro" class="roster-plan-intro hidden">Planlegg hvem som fortsetter, slutter eller kommer inn før 2027-troppen opprettes.</p>
                         <button type="button" id="roster-create-season-btn" class="roster-create-season-btn hidden" onclick="window.openCreateSeasonRosterDialog()">Opprett 2027-tropp</button>
                         <div class="roster-toolbar-filters">
@@ -310,7 +313,6 @@
                             <i class="fa-solid fa-magnifying-glass"></i>
                             <input type="search" id="playerSearchInput" oninput="handlePlayerSearchChange()" placeholder="Søk etter navn, drakt eller posisjon..." class="roster-search-input" aria-label="Søk spillere">
                         </div>
-
                     </div>
 
                     <div class="roster-stat-grid roster-board-stats relative z-10">
@@ -332,6 +334,12 @@
                         </div>
                     </div>
 
+                    <footer class="match-detail-footer roster-bottomline relative z-10">
+                        <p id="rosterBottomlineSummary">Viser 0 spillere.</p>
+                    </footer>
+                </section>
+
+                <section class="match-detail-card roster-board-card roster-list-card">
                     <div class="roster-content relative z-10">
                         <div class="roster-table-head" aria-hidden="true">
                             <span>Nr</span>
@@ -355,11 +363,6 @@
                             </button>
                         </div>
                     </div>
-
-                    <footer class="match-detail-footer roster-bottomline relative z-10">
-                        <p id="rosterBottomlineSummary">Viser 0 spillere.</p>
-                        <span class="roster-bottomline-title">Spillertropp</span>
-                    </footer>
                 </section>
             </div>
 
@@ -1693,7 +1696,7 @@
     <script src="assets/js/domain/samspill.js?v=20261111-kampflate"></script>
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20261024-crest-eager"></script>
-    <script src="assets/js/pages/players.js?v=20261114-tropp-age-chip"></script>
+    <script src="assets/js/pages/players.js?v=20261114-tropp-count"></script>
     <script src="assets/js/pages/matches.js?v=20261113-kamperliste2"></script>
     <script src="assets/js/pages/attendance.js?v=20261113-kamptype"></script>
     <script src="assets/js/pages/statistics.js?v=20261114-stats-gold-season"></script>
