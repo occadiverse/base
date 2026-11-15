@@ -443,6 +443,16 @@ function bindPlayerRosterEvents() {
             window.openPlayerModal(playerId);
         }
     });
+    listContainer.addEventListener('error', (event) => {
+        const img = event.target;
+        if (!(img instanceof HTMLImageElement)) return;
+        const avatar = img.closest('.roster-player-avatar');
+        if (!avatar?.querySelector('.roster-avatar-fallback') || img.dataset.rosterAvatarFailed === '1') return;
+        img.dataset.rosterAvatarFailed = '1';
+        img.hidden = true;
+        img.removeAttribute('src');
+        avatar.classList.add('is-fallback');
+    }, true);
 }
 
 function getRosterPlayerPhotoUrl(player) {
@@ -451,15 +461,80 @@ function getRosterPlayerPhotoUrl(player) {
         : (player?.photoUrl || player?.bildeUrl || player?.avatarUrl || player?.imageUrl || player?.photo || '');
 }
 
+function getRosterPlayerInitials(name) {
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '';
+    const first = parts[0].charAt(0);
+    const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : '';
+    return (first + last).toLocaleUpperCase('nb');
+}
+
+function buildRosterAvatarFallbackHtml(player) {
+    const initials = getRosterPlayerInitials(player?.navn);
+    if (!initials) {
+        return '<i class="fa-solid fa-user roster-avatar-fallback" aria-hidden="true"></i>';
+    }
+    return `<span class="roster-avatar-initials roster-avatar-fallback" aria-hidden="true">${escapeRosterHtml(initials)}</span>`;
+}
+
 function buildRosterPlayerAvatarHtml(player) {
     const photoUrl = getRosterPlayerPhotoUrl(player);
+    if (window.rosterMode === 'plan2027') {
+        return `
+            <div class="roster-player-avatar" aria-hidden="true">
+                ${photoUrl
+                    ? `<img src="${escapeRosterHtml(photoUrl)}" alt="">`
+                    : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
+            </div>
+        `;
+    }
+
+    const fallback = buildRosterAvatarFallbackHtml(player);
+    if (!photoUrl) {
+        return `<div class="roster-player-avatar is-fallback" aria-hidden="true">${fallback}</div>`;
+    }
 
     return `
         <div class="roster-player-avatar" aria-hidden="true">
-            ${photoUrl
-                ? `<img src="${escapeRosterHtml(photoUrl)}" alt="">`
-                : '<i class="fa-solid fa-user" aria-hidden="true"></i>'}
+            <img src="${escapeRosterHtml(photoUrl)}" alt="">
+            ${fallback}
         </div>
+    `;
+}
+
+function buildRosterNowStatusChip(status, injuryInfo) {
+    const statusLabel = status || '-';
+    const statusClass = status === 'Aktiv'
+        ? 'roster-badge-active'
+        : status === 'Rekrutt'
+            ? 'roster-badge-recruit'
+            : 'roster-badge-muted';
+    const toneClass = status === 'Aktiv'
+        ? 'is-active'
+        : status === 'Rekrutt'
+            ? 'is-recruit'
+            : 'is-muted';
+    let accessible = status === 'Utregistrert'
+        ? 'Utregistrert. Ikke lenger tilknyttet troppen'
+        : statusLabel;
+    let flagHtml = '';
+
+    if (injuryInfo?.isInjured) {
+        const isLong = injuryInfo.type === 'langvarig';
+        const explanation = injuryInfo.label || (isLong ? 'Langvarig skade' : 'Dag-til-dag');
+        accessible = `${statusLabel} – ${isLong ? 'skadet' : 'D-T-D'}. ${explanation}`;
+        flagHtml = `
+            <span class="roster-badge ${isLong ? 'roster-badge-injury-long' : 'roster-badge-injury-short'} roster-status-chip-flag" aria-hidden="true">
+                <i class="fa-solid fa-kit-medical" aria-hidden="true"></i>
+            </span>
+        `;
+    }
+
+    return `
+        <span class="roster-status-chip ${toneClass}" aria-label="${escapeRosterHtml(accessible)}">
+            <span class="roster-badge ${statusClass} roster-status-chip-main" aria-hidden="true">${escapeRosterHtml(statusLabel)}</span>
+            ${flagHtml}
+        </span>
     `;
 }
 
@@ -513,14 +588,16 @@ function buildRosterPlayerRow(p, currentYear) {
                 <div class="roster-player-meta">
                     ${buildRosterPositionChipsHtml(p)}
                     <span>${escapeRosterHtml(foot)}</span>
+                    ${injuryInfo?.isInjured
+                        ? `<span class="roster-availability-note" aria-hidden="true">${escapeRosterHtml(injuryInfo.type === 'dag-til-dag' ? (injuryInfo.label || 'Dag-til-dag') : 'Skadet')}</span>`
+                        : ''}
                 </div>
             </div>
             <div class="roster-player-position">${escapeRosterHtml(posStr)}</div>
             <div class="roster-player-foot">${escapeRosterHtml(foot)}</div>
             <div class="roster-player-side">
                 <div class="roster-player-badges">
-                    ${buildRosterStatusBadge(displayStatus)}
-                    ${buildRosterInjuryBadge(injuryInfo)}
+                    ${buildRosterNowStatusChip(displayStatus, injuryInfo)}
                 </div>
             </div>
         </article>

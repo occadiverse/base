@@ -9528,7 +9528,6 @@
         /* Kamper: Kommende, Tidligere og Legg til = samme blå plate som stats og profil */
         .match-list-page .match-filter-btn:not(.match-list-add-btn),
         .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn),
-        #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch .match-filter-btn,
         .match-list-page .match-list-add-btn,
         .match-list-page .match-list-add-btn.bsk-btn-chip,
         .match-list-page .match-list-add-btn.match-filter-btn,
@@ -9562,7 +9561,6 @@
             white-space: nowrap;
         }
         .match-list-page .match-filter-btn:not(.match-list-add-btn)::before,
-        #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch .match-filter-btn::before,
         .match-list-page .match-list-add-btn::before,
         #view-tropp:not(.is-plan-mode) .roster-add-player-btn.match-list-add-btn::before {
             background: linear-gradient(180deg, #2a5a80 0%, #214c70 100%);
@@ -9577,14 +9575,12 @@
             z-index: 0;
         }
         .match-list-page .match-filter-btn:not(.match-list-add-btn) > *,
-        #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch .match-filter-btn > *,
         .match-list-page .match-list-add-btn > *,
         #view-tropp:not(.is-plan-mode) .roster-add-player-btn.match-list-add-btn > * {
             position: relative;
             z-index: 1;
         }
         .match-list-page .match-filter-btn:not(.match-list-add-btn) i,
-        #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch .match-filter-btn i,
         .match-list-page .match-list-add-btn i,
         #view-tropp:not(.is-plan-mode) .roster-add-player-btn.match-list-add-btn i {
             color: inherit;
@@ -9602,8 +9598,7 @@
             color: #fffdf5;
         }
         .match-list-page .match-filter-btn:not(.match-list-add-btn):hover:not(.is-active),
-        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn):hover:not(.is-active),
-        #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch .match-filter-btn:hover:not(.is-active) {
+        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn):hover:not(.is-active) {
             background: #12345c;
             border-color: #c7ecff;
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
@@ -9613,9 +9608,7 @@
         .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active,
         .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active,
         .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active:hover,
-        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active:hover,
-        #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch .match-filter-btn.is-active,
-        #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch .match-filter-btn.is-active:hover {
+        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active:hover {
             background: linear-gradient(180deg, #245a86 0%, #1a456c 100%);
             border-color: rgba(255, 224, 138, 0.95);
             box-shadow:
@@ -9635,27 +9628,22 @@
             transform: none;
         }
         .match-list-page .match-filter-btn:not(.match-list-add-btn):hover:not(.is-active)::before,
-        #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch .match-filter-btn:hover:not(.is-active)::before,
         .match-list-page .match-list-add-btn:hover::before,
         #view-tropp:not(.is-plan-mode) .roster-add-player-btn.match-list-add-btn:hover::before {
             background: linear-gradient(180deg, #346c94 0%, #285c80 100%);
         }
         .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active::before,
-        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active:hover::before,
-        #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch .match-filter-btn.is-active::before,
-        #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch .match-filter-btn.is-active:hover::before {
+        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active:hover::before {
             background: linear-gradient(180deg, rgba(255, 224, 138, 0.34) 0%, rgba(245, 197, 66, 0.05) 100%);
         }
         .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active i,
         .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active i,
-        #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch .match-filter-btn.is-active i,
         .match-list-page .match-list-add-btn:hover i,
         #view-tropp:not(.is-plan-mode) .roster-add-player-btn.match-list-add-btn:hover i {
             color: inherit;
         }
         .match-list-page .match-filter-btn:not(.match-list-add-btn):focus-visible,
         .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active:focus-visible,
-        #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch .match-filter-btn:focus-visible,
         .match-list-page .match-list-add-btn:focus-visible,
         #view-tropp:not(.is-plan-mode) .roster-add-player-btn.match-list-add-btn:focus-visible {
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
@@ -11845,6 +11833,76 @@
             box-shadow: 0 2px 0 #7f1d1d;
             color: #fef2f2;
         }
+        #view-tropp:not(.is-plan-mode) .roster-player-badges {
+            flex-wrap: nowrap;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-status-chip {
+            align-items: stretch;
+            border-radius: 0.55rem;
+            border-style: solid;
+            border-width: 1.5px;
+            display: inline-flex;
+            flex: 0 0 auto;
+            max-width: 100%;
+            overflow: hidden;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-status-chip.is-active {
+            border-color: #dcfce7;
+            box-shadow: 0 2px 0 #14532d;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-status-chip.is-recruit {
+            border-color: #fff6d6;
+            box-shadow: 0 2px 0 #6b4a0c;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-status-chip.is-muted {
+            border-color: #e2e8f0;
+            box-shadow: 0 2px 0 #334155;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-status-chip .roster-badge {
+            border-radius: 0;
+            border-width: 0;
+            box-shadow: none;
+            min-height: 1.5rem;
+            min-width: 0;
+            padding: 0.14rem 0.38rem 0.18rem;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-status-chip .roster-status-chip-flag {
+            border-left: 1.5px solid rgba(255, 253, 245, 0.72);
+            justify-content: center;
+            min-width: 1.45rem;
+            padding-left: 0.28rem;
+            padding-right: 0.28rem;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-status-chip .roster-status-chip-flag i {
+            font-size: 0.68rem;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-availability-note {
+            color: #ffedd5;
+            font-weight: 800;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-player-avatar.is-fallback {
+            color: #ffe08a;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-player-avatar .roster-avatar-fallback {
+            display: none;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-player-avatar.is-fallback .roster-avatar-fallback {
+            align-items: center;
+            color: #ffe08a;
+            display: inline-flex;
+            font-size: 0.78rem;
+            font-weight: 900;
+            justify-content: center;
+            letter-spacing: 0.03em;
+            line-height: 1;
+            opacity: 1;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-player-avatar.is-fallback i.roster-avatar-fallback {
+            font-size: 0.95rem;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-player-avatar.is-fallback img {
+            display: none;
+        }
         #view-tropp:not(.is-plan-mode) .roster-player-meta {
             align-items: center;
             color: #d6e4f5;
@@ -12867,18 +12925,20 @@
             padding: 0.55rem 0.9rem 0.15rem;
         }
         #view-tropp .roster-mode-row .roster-mode-switch {
-            align-items: center;
-            background: transparent;
-            border: 0;
-            box-shadow: none;
-            display: flex;
-            flex: 0 0 auto;
+            align-items: stretch;
+            background: #12345c;
+            border: 1.5px solid rgba(142, 212, 255, 0.5);
+            border-radius: 0.55rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            display: inline-flex;
+            flex: 0 1 auto;
             flex-direction: row;
             flex-wrap: nowrap;
-            gap: 0.35rem;
+            gap: 0;
             justify-content: flex-start;
             margin: 0;
-            max-width: none;
+            max-width: 100%;
+            overflow: hidden;
             padding: 0;
             width: auto;
         }
@@ -12921,16 +12981,16 @@
             }
         }
         #view-tropp .roster-mode-switch {
-            background: rgba(7, 24, 46, 0.45);
-            border: 1px solid rgba(186, 210, 230, 0.16);
-            border-radius: 0.8rem;
-            box-shadow: none;
-            gap: 0.25rem;
-            padding: 0.2rem;
+            background: #12345c;
+            border: 1.5px solid rgba(142, 212, 255, 0.5);
+            border-radius: 0.55rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            gap: 0;
+            padding: 0;
         }
         #view-tropp .roster-mode-switch .roster-status-btn {
-            border-radius: 0.62rem;
-            color: rgba(176, 198, 216, 0.72);
+            border-radius: 0;
+            color: #fffdf5;
             font-weight: 800;
             padding: 0.4rem 0.7rem;
         }
@@ -12940,24 +13000,39 @@
         }
         #view-tropp .roster-mode-row .roster-mode-switch .roster-status-btn {
             background: #12345c;
-            border: 0.5px solid #8ed4ff;
-            border-radius: 0.5rem;
-            box-shadow:
-                inset 0 0 0 1px rgba(10, 36, 74, 0.45),
-                inset 0 2px 3px rgba(8, 28, 60, 0.2);
-            color: #ffffff;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            color: #fffdf5;
             font-size: 0.72rem;
             font-weight: 950;
-            min-height: 1.9rem;
-            padding: 0.28rem 0.7rem;
+            height: auto;
+            max-height: none;
+            min-height: 2.15rem;
+            padding: 0.28rem 0.85rem;
+            position: relative;
+            transform: none;
         }
-        #view-tropp .roster-mode-row .roster-mode-switch .roster-status-btn.is-active {
+        #view-tropp .roster-mode-row .roster-mode-switch .roster-status-btn + .roster-status-btn {
+            box-shadow: inset 1px 0 0 rgba(142, 212, 255, 0.4);
+        }
+        #view-tropp .roster-mode-row .roster-mode-switch .roster-status-btn:hover:not(.is-active) {
+            background: #1a456c;
+            color: #fffdf5;
+            transform: none;
+        }
+        #view-tropp .roster-mode-row .roster-mode-switch .roster-status-btn.is-active,
+        #view-tropp .roster-mode-row .roster-mode-switch .roster-status-btn.is-active:hover {
             background: linear-gradient(180deg, #ffe7a3 0%, #f5c542 58%, #e2aa22 100%);
             border-color: #fff6d6;
-            box-shadow:
-                inset 0 1px 0 rgba(255, 253, 245, 0.75),
-                0 2px 0 #6b4a0c;
+            box-shadow: inset 0 1px 0 rgba(255, 253, 245, 0.75);
             color: #3d2a08;
+            transform: none;
+        }
+        #view-tropp .roster-mode-row .roster-mode-switch .roster-status-btn:focus-visible {
+            outline: 2px solid #8ed4ff;
+            outline-offset: -3px;
+            z-index: 1;
         }
         .roster-board-toolbar .roster-search-wrap {
             height: 2.2rem;
@@ -12975,13 +13050,8 @@
             justify-content: flex-start;
         }
         #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch {
-            background: transparent;
-            border: 0;
-            box-shadow: none;
             flex: 0 1 auto;
-            gap: 0.4rem;
             max-width: 100%;
-            padding: 0;
             width: auto;
         }
         #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch .match-filter-btn {
@@ -13178,12 +13248,22 @@
             display: block;
         }
         @media (max-width: 767px) {
+            #view-tropp:not(.is-plan-mode) .roster-mode-row {
+                align-items: stretch;
+                flex-direction: column;
+                flex-wrap: nowrap;
+            }
             #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch {
-                width: auto;
+                width: 100%;
             }
             #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch .match-filter-btn,
             #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-mode-switch .match-filter-btn:first-child {
-                flex: 0 0 auto;
+                flex: 1 1 0;
+                width: auto;
+            }
+            #view-tropp:not(.is-plan-mode) .roster-mode-row .roster-add-player-btn {
+                align-self: flex-end;
+                margin-left: 0;
                 width: auto;
             }
             #view-tropp.is-plan-mode .roster-mode-row .roster-mode-switch .match-filter-btn {
