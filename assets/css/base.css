@@ -1896,39 +1896,40 @@
                 0 12px 22px rgba(2, 8, 20, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.14);
             overflow: visible;
-            padding: 0.65rem 0.9rem 1.05rem;
+            padding: 0.4rem 0.9rem 1.05rem;
         }
         .hjem-page .hjem-focus-board::before {
             content: none;
         }
         .hjem-page .hjem-board-head {
             align-items: center;
-            display: flex;
-            gap: 0.55rem;
-            min-height: 2.65rem;
-            padding: 0.15rem 0.15rem 0.7rem;
+            column-gap: 0.45rem;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            padding: 0 0.05rem;
             position: relative;
+            row-gap: 0.38rem;
         }
         .hjem-page .hjem-board-head::after {
             background: linear-gradient(
                 90deg,
-                transparent,
-                #ffe08a 20%,
-                #f5c542 50%,
-                #ffe08a 80%,
-                transparent
+                transparent 0%,
+                rgba(214, 168, 64, 0.4) 8%,
+                rgba(226, 184, 74, 0.95) 50%,
+                rgba(214, 168, 64, 0.4) 92%,
+                transparent 100%
             );
-            bottom: 0;
-            box-shadow: 0 0 10px rgba(245, 197, 66, 0.35);
+            box-shadow: 0 0 2px rgba(214, 168, 64, 0.2);
             content: "";
-            height: 2.5px;
-            left: 0.2rem;
-            position: absolute;
-            right: 0.2rem;
+            grid-column: 1 / -1;
+            grid-row: 2;
+            height: 1.5px;
+            width: 100%;
         }
         .hjem-page .hjem-board-head h2 {
             color: #ffe9a8;
-            flex: 1 1 auto;
+            grid-column: 2;
+            grid-row: 1;
             font-size: 1.16rem;
             font-weight: 950;
             letter-spacing: 0.04em;
@@ -1950,15 +1951,17 @@
                 drop-shadow(0 3px 0 #6b4a0c)
                 drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
             flex: 0 0 auto;
-            height: 2.55rem;
+            grid-column: 1;
+            grid-row: 1;
+            height: 2.15rem;
             justify-content: center;
-            margin: -0.15rem 0 -0.35rem;
-            transform: rotate(-10deg);
+            margin: 0;
+            transform: translateY(0.06rem) rotate(-10deg);
             transform-origin: 50% 55%;
-            width: 2.55rem;
+            width: 2.15rem;
         }
         .hjem-page .hjem-board-mark i {
-            font-size: 1.85rem;
+            font-size: 1.55rem;
             line-height: 1;
             text-shadow:
                 -1px 0 0 #fffdf5,
@@ -1967,17 +1970,19 @@
                 0 1px 0 #fffdf5;
         }
         @media (min-width: 768px) {
+            .hjem-page .hjem-board-head {
+                row-gap: 0.42rem;
+            }
             .hjem-page .hjem-board-head h2 {
                 font-size: 1.46rem;
                 letter-spacing: 0.07em;
             }
             .hjem-page .hjem-board-mark {
-                height: 3.25rem;
-                margin: -0.25rem 0 -0.5rem;
-                width: 3.25rem;
+                height: 2.55rem;
+                width: 2.55rem;
             }
             .hjem-page .hjem-board-mark i {
-                font-size: 2.35rem;
+                font-size: 1.85rem;
             }
         }
         .hjem-page .hjem-focus .hjem-note-list {
@@ -2007,7 +2012,7 @@
             }
             .hjem-page .hjem-focus .hjem-note-list {
                 gap: 0.85rem;
-                padding-top: 0.7rem;
+                padding-top: 1.05rem;
             }
             .hjem-page .hjem-focus .hjem-note-card {
                 gap: 0.35rem;
@@ -2226,7 +2231,7 @@
             flex-direction: column;
             gap: 0.7rem;
             margin-top: 0.35rem;
-            padding: 0.65rem 0.8rem 0.85rem;
+            padding: 0.4rem 0.8rem 0.85rem;
         }
         .hjem-pulse-board .hjem-board-head {
             margin: 0;
@@ -2431,21 +2436,37 @@
             font-weight: 500;
             letter-spacing: 0;
             line-height: 1.55;
-            margin: 0;
+            margin: 0 auto;
             max-width: 42rem;
+            text-align: left;
+            width: 100%;
             text-transform: none;
         }
         .hjem-season-box .hjem-keep {
             white-space: nowrap;
         }
         .hjem-season-box .hjem-season-row {
-            margin: 0.7rem 0 0;
-            padding: 0.75rem 0.15rem;
+            border-radius: 0;
+            margin: 0.85rem auto 0;
+            max-width: 42rem;
+            padding: 0.85rem 0 0;
+            position: relative;
+            width: 100%;
         }
         .hjem-season-box .hjem-season-cup-lead + .hjem-season-row,
         .hjem-season-box .hjem-season-row + .hjem-season-row {
-            box-shadow: inset 0 1px 0 rgba(245, 197, 66, 0.28);
-            margin-top: 0;
+            box-shadow: none;
+            margin-top: 0.85rem;
+        }
+        .hjem-season-box .hjem-season-cup-lead + .hjem-season-row::before,
+        .hjem-season-box .hjem-season-row + .hjem-season-row::before {
+            background: rgba(245, 197, 66, 0.34);
+            content: "";
+            height: 1px;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
         }
         .hjem-season-row {
             background: transparent;
