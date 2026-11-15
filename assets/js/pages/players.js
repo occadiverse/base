@@ -56,6 +56,66 @@ window.ROSTER_PLAN_SOURCE_YEAR = 2026;
 window.ROSTER_PLAN_YEAR = 2027;
 window.ROSTER_PLAN_STATUSES = ['Uavklart', 'Fortsetter', 'Slutter', 'Ny spiller'];
 
+function getRosterSeasonYear(planMode) {
+    const raw = planMode ? window.ROSTER_PLAN_YEAR : window.ROSTER_PLAN_SOURCE_YEAR;
+    const parsed = typeof window.resolvePlayerSeasonYear === 'function'
+        ? window.resolvePlayerSeasonYear(raw)
+        : null;
+    if (parsed != null) return parsed;
+    if (!planMode && typeof window.getActiveSeasonYear === 'function') return window.getActiveSeasonYear();
+    return planMode ? window.ROSTER_PLAN_YEAR : window.ROSTER_PLAN_SOURCE_YEAR;
+}
+
+function syncRosterSeasonChrome() {
+    const planMode = window.rosterMode === 'plan2027';
+    const nowYear = getRosterSeasonYear(false);
+    const planYear = getRosterSeasonYear(true);
+    const titleEl = document.getElementById('rosterBoardTitle');
+    const nowBtn = document.getElementById('roster-mode-now');
+    const planBtn = document.getElementById('roster-mode-plan');
+    const kicker = document.getElementById('rosterPlanKicker');
+    if (titleEl) titleEl.textContent = `Tropp ${planMode ? planYear : nowYear}`;
+    if (nowBtn) nowBtn.textContent = `Tropp ${nowYear}`;
+    if (planBtn) planBtn.textContent = `Tropp ${planYear}`;
+    if (kicker) kicker.hidden = !planMode;
+    if (planMode) setRosterVisibleAgeChip(null);
+}
+
+function setRosterVisibleAgeChip(players) {
+    const ageEl = document.getElementById('rosterVisibleAge');
+    const hide = () => {
+        if (ageEl) {
+            ageEl.hidden = true;
+            ageEl.textContent = '';
+            ageEl.removeAttribute('aria-label');
+            ageEl.removeAttribute('title');
+        }
+    };
+    if (window.rosterMode === 'plan2027' || !Array.isArray(players) || !players.length) {
+        hide();
+        return;
+    }
+    const currentYear = new Date().getFullYear();
+    let totalAge = 0;
+    players.forEach(player => {
+        totalAge += currentYear - parseInt(player.fodselsaar || 2000, 10);
+    });
+    const avgAge = totalAge / players.length;
+    if (!Number.isFinite(avgAge)) {
+        hide();
+        return;
+    }
+    const text = `${avgAge.toFixed(1).replace('.', ',')} år`;
+    const accessible = `Snittalder for viste spillere: ${text}`;
+    if (ageEl) {
+        ageEl.hidden = false;
+        ageEl.innerHTML = `<i class="fa-solid fa-calendar" aria-hidden="true"></i><span aria-hidden="true">${text}</span>`;
+        ageEl.setAttribute('role', 'img');
+        ageEl.setAttribute('aria-label', accessible);
+        ageEl.title = 'Snittalder for viste spillere';
+    }
+}
+
 window.setPlayerStatusFilter = function(status) {
     window.rosterStatusFilter = status;
     const activeId = `roster-filter-${status === 'alle' ? 'alle' : status === 'skadet' ? 'skadet' : status.toLowerCase()}`;
@@ -294,29 +354,30 @@ function getRosterFilteredPlayers() {
     const players = Array.isArray(window.activePlayers) ? window.activePlayers : [];
 
     return players.filter(p => {
+        // Søk går gjennom hele listen, også utregistrerte. Uten søk følger statusfilteret,
+        // og utregistrerte holdes ute av tropplisten.
+        if (searchTerm) {
+            const posStr = p.pos2 && p.pos2 !== '-' ? `${p.pos1} / ${p.pos2}` : p.pos1;
+            const haystack = [
+                p.navn,
+                p.draktnummer ? String(p.draktnummer) : '',
+                posStr,
+                p.fot,
+                p.status,
+                getPlayerDisplayStatus(p),
+                p.spillerLag
+            ].join(' ').toLowerCase();
+            return haystack.includes(searchTerm);
+        }
+
         const injuryInfo = typeof window.getPlayerInjuryInfo === 'function'
             ? window.getPlayerInjuryInfo(p)
             : { isInjured: false };
 
         if (window.rosterStatusFilter === 'skadet' && !injuryInfo.isInjured) return false;
         if (window.rosterStatusFilter !== 'alle' && window.rosterStatusFilter !== 'skadet' && p.status !== window.rosterStatusFilter) return false;
-
-        // Utregistrert skjules fra tropplisten, men forblir søkbare for historikk/profil.
-        if (!searchTerm && isPlayerLeftSquad(p)) return false;
-
-        if (!searchTerm) return true;
-
-        const posStr = p.pos2 && p.pos2 !== '-' ? `${p.pos1} / ${p.pos2}` : p.pos1;
-        const haystack = [
-            p.navn,
-            p.draktnummer ? String(p.draktnummer) : '',
-            posStr,
-            p.fot,
-            p.status,
-            p.spillerLag
-        ].join(' ').toLowerCase();
-
-        return haystack.includes(searchTerm);
+        if (isPlayerLeftSquad(p)) return false;
+        return true;
     });
 }
 
@@ -776,14 +837,10 @@ function renderRosterPlan() {
     if (statRekruttEl) statRekruttEl.textContent = String(counts.Slutter);
     if (statInjuredEl) statInjuredEl.textContent = String(counts['Ny spiller']);
 
-    const boardTitleEl = document.getElementById('rosterBoardTitle');
     const bottomlineSummaryEl = document.getElementById('rosterBottomlineSummary');
-    if (boardTitleEl) boardTitleEl.textContent = 'Troppsplan 2027';
     if (bottomlineSummaryEl) {
         bottomlineSummaryEl.textContent = `Viser ${filteredPlayers.length} av ${planPlayers.length} spillere i 2027-planen.`;
     }
-    const searchStatusEl = document.getElementById('rosterSearchStatus');
-    if (searchStatusEl) searchStatusEl.textContent = '';
     const emptyTitle = document.getElementById('roster-empty-title');
     const emptyText = document.getElementById('roster-empty-text');
     if (emptyTitle) emptyTitle.textContent = 'Ingen spillere i dette filteret';
@@ -867,16 +924,9 @@ window.setRosterMode = function(mode) {
         createButton.classList.toggle('hidden', !planMode);
     }
     if (addButton) {
-        const label = planMode ? 'Ny spiller i 2027-planen' : 'Legg til spiller';
+        const label = planMode ? `Ny spiller i ${getRosterSeasonYear(true)}-planen` : 'Legg til spiller';
         addButton.title = label;
         addButton.setAttribute('aria-label', label);
-        const toolbarFilters = document.querySelector('#view-tropp .roster-toolbar-filters');
-        const boardTitle = document.getElementById('rosterBoardTitle');
-        if (planMode) {
-            toolbarFilters?.appendChild(addButton);
-        } else if (boardTitle) {
-            boardTitle.before(addButton);
-        }
     }
     window.renderPlayerRoster();
 };
@@ -1055,6 +1105,7 @@ window.saveRosterSeasonPlan = async function(playerId, patch) {
 };
 
 window.renderPlayerRoster = function() {
+    syncRosterSeasonChrome();
     if (window.rosterMode === 'plan2027') {
         renderRosterPlan();
         return;
@@ -1089,38 +1140,7 @@ window.renderPlayerRoster = function() {
     setRosterCount('roster-count-rekrutt', countByStatus('Rekrutt'));
     setRosterCount('roster-count-skadet', countInjured);
 
-    const ageEl = document.getElementById('rosterVisibleAge');
-    if (ageEl) {
-        let totalAge = 0;
-        filteredPlayers.forEach(player => {
-            totalAge += currentYear - parseInt(player.fodselsaar || 2000, 10);
-        });
-        const avgAge = filteredPlayers.length > 0 ? totalAge / filteredPlayers.length : NaN;
-        if (!filteredPlayers.length || !Number.isFinite(avgAge)) {
-            ageEl.hidden = true;
-            ageEl.textContent = '';
-        } else {
-            ageEl.hidden = false;
-            ageEl.textContent = `Snittalder: ${avgAge.toFixed(1).replace('.', ',')} år`;
-        }
-    }
-
-    const searchTerm = (document.getElementById('playerSearchInput')?.value || '').trim();
-    const searchStatusEl = document.getElementById('rosterSearchStatus');
-    if (searchStatusEl) {
-        if (!searchTerm) {
-            searchStatusEl.textContent = '';
-        } else if (!filteredPlayers.length) {
-            searchStatusEl.textContent = 'Ingen treff';
-        } else if (filteredPlayers.length === 1) {
-            searchStatusEl.textContent = '1 treff';
-        } else {
-            searchStatusEl.textContent = `${filteredPlayers.length} treff`;
-        }
-    }
-
-    const boardTitleEl = document.getElementById('rosterBoardTitle');
-    if (boardTitleEl) boardTitleEl.textContent = 'Tropp nå';
+    setRosterVisibleAgeChip(filteredPlayers);
 
     listContainer.innerHTML = '';
 

@@ -265,20 +265,18 @@
                         </div>
                     </div>
                     <div class="roster-mode-row">
-                        <div class="roster-status-filter roster-mode-switch match-filter-segmented" role="tablist" aria-label="Velg troppvisning">
-                            <button type="button" id="roster-mode-now" role="tab" class="bsk-btn bsk-btn-chip match-filter-btn roster-status-btn is-active" aria-selected="true" onclick="window.setRosterMode('now')"><span>Tropp nå</span></button>
-                            <button type="button" id="roster-mode-plan" role="tab" class="bsk-btn bsk-btn-chip match-filter-btn roster-status-btn" aria-selected="false" onclick="window.setRosterMode('plan2027')"><span>Troppsplan 2027</span></button>
+                        <div class="roster-season-heading">
+                            <div class="roster-season-chip">
+                                <h3 id="rosterBoardTitle">Tropp</h3>
+                                <span id="rosterVisibleAge" class="roster-visible-age" hidden></span>
+                            </div>
+                            <p id="rosterPlanKicker" class="roster-plan-kicker" hidden>Troppsplanlegging</p>
                         </div>
-                        <button type="button"
-                                id="roster-add-player-btn"
-                                onclick="window.openRosterPlayerModal()"
-                                class="bsk-btn bsk-btn-chip match-list-add-btn match-filter-btn roster-add-player-btn"
-                                title="Legg til spiller"
-                                aria-label="Legg til spiller">
-                            <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                            <span id="roster-add-player-label">Legg til spiller</span>
-                        </button>
-                        <h3 id="rosterBoardTitle">Tropp nå</h3>
+                        <span id="rosterAgeDot" class="roster-season-dot" aria-hidden="true"></span>
+                        <div class="roster-mode-switch" role="tablist" aria-label="Velg troppvisning">
+                            <button type="button" id="roster-mode-now" role="tab" class="blknapp match-subs-view-tab is-active" aria-selected="true" onclick="window.setRosterMode('now')">Tropp</button>
+                            <button type="button" id="roster-mode-plan" role="tab" class="blknapp match-subs-view-tab" aria-selected="false" onclick="window.setRosterMode('plan2027')">Tropp</button>
+                        </div>
                     </div>
 
                     <div class="roster-board-toolbar relative z-10">
@@ -294,11 +292,21 @@
                             </div>
                         </div>
 
-                        <div class="roster-search-wrap">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="search" id="playerSearchInput" oninput="handlePlayerSearchChange()" placeholder="Søk navn, drakt eller posisjon" class="roster-search-input" aria-label="Søk spillere">
+                        <div class="roster-search-line">
+                            <button type="button"
+                                    id="roster-add-player-btn"
+                                    onclick="window.openRosterPlayerModal()"
+                                    class="roster-add-player-btn"
+                                    title="Legg til spiller"
+                                    aria-label="Legg til spiller">
+                                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                                <span id="roster-add-player-label">Legg til spiller</span>
+                            </button>
+                            <div class="roster-search-wrap">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="search" id="playerSearchInput" oninput="handlePlayerSearchChange()" placeholder="Søk navn, drakt eller posisjon" class="roster-search-input" aria-label="Søk spillere">
+                            </div>
                         </div>
-                        <p id="rosterSearchStatus" class="roster-search-status" aria-live="polite" aria-atomic="true"></p>
                     </div>
 
                     <div id="roster-now-filters" class="stats-kamp-summary-metric-grid roster-count-filters relative z-10" role="tablist" aria-label="Filtrer etter status">
@@ -353,8 +361,7 @@
                 </section>
 
                 <section class="match-detail-card roster-board-card roster-list-card">
-                    <div class="roster-content relative z-10">
-                        <p id="rosterVisibleAge" class="roster-visible-age" hidden></p>
+                        <div class="roster-content relative z-10">
                         <div class="roster-table-head" aria-hidden="true">
                             <span>Nr</span>
                             <span>Spiller</span>
