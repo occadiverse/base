@@ -583,9 +583,10 @@ function buildRosterPlayerRow(p, currentYear) {
             <div class="roster-player-main">
                 <div class="roster-player-name">
                     <span class="roster-player-name-text">${escapeRosterHtml(p.navn)}</span>${captainMark}
-                    <span class="roster-player-age">${age} år</span>
+                    <span class="roster-player-age roster-player-age-inline">${age} år</span>
                 </div>
                 <div class="roster-player-meta">
+                    <span class="roster-player-age roster-player-age-meta">${age} år</span>
                     ${buildRosterPositionChipsHtml(p)}
                     <span>${escapeRosterHtml(foot)}</span>
                     ${injuryInfo?.isInjured

@@ -11729,58 +11729,93 @@
         .roster-player-row.is-long-injury-player {
             border-left-color: #f87171;
         }
-        /* Tropp nå: samme lukkede spillerrad som Spillerbørs. Troppsplan beholder egne kort. */
+        /* Tropp nå deler presentasjonen med det lukkede Spillerbørs-kortet. Troppsplan beholder egne kort. */
+        #view-tropp:not(.is-plan-mode) .roster-group {
+            container-name: roster-group;
+            container-type: inline-size;
+            width: 100%;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-group-heading {
+            width: 100%;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-group-rows {
+            align-items: start;
+            display: grid;
+            gap: 0.45rem;
+            grid-template-columns: minmax(0, 1fr);
+        }
+        @container roster-group (min-width: 44rem) {
+            #view-tropp:not(.is-plan-mode) .roster-group-rows {
+                gap: 0.55rem 0.75rem;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
         #view-tropp:not(.is-plan-mode) .roster-player-row {
-            background: linear-gradient(180deg, rgba(30, 80, 136, 0.62) 0%, rgba(8, 28, 56, 0.82) 100%);
-            border: 1.5px solid rgba(245, 197, 66, 0.42);
-            border-radius: 0.95rem;
-            box-shadow:
-                0 2px 0 rgba(10, 26, 48, 0.45),
-                0 6px 14px rgba(2, 6, 23, 0.14),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            gap: 0.7rem;
-            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center;
+            container-name: roster-card;
+            container-type: inline-size;
+            display: flex;
+            gap: 0.55rem;
+            max-width: 100%;
             min-height: 0;
-            padding: 0.55rem 0.8rem;
+            min-width: 0;
+            padding: 0.45rem 0.55rem;
+            transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+            width: 100%;
+        }
+        @media (min-width: 641px) {
+            #view-tropp:not(.is-plan-mode) .roster-player-row {
+                gap: 0.7rem;
+                padding: 0.55rem 0.8rem;
+            }
         }
         #view-tropp:not(.is-plan-mode) .roster-player-row:hover,
         #view-tropp:not(.is-plan-mode) .roster-player-row:focus-visible {
-            background: linear-gradient(180deg, rgba(40, 95, 150, 0.74) 0%, rgba(12, 36, 68, 0.9) 100%);
-            border-color: rgba(245, 197, 66, 0.62);
-            box-shadow:
-                0 2px 0 rgba(10, 26, 48, 0.4),
-                0 8px 16px rgba(2, 6, 23, 0.16),
-                inset 0 1px 0 rgba(255, 255, 255, 0.14);
             outline: none;
             transform: none;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-player-row:focus-visible {
+            outline: 2px solid #8ed4ff;
+            outline-offset: 3px;
         }
         #view-tropp:not(.is-plan-mode) .roster-player-row.is-passive-player {
             opacity: 0.82;
         }
         #view-tropp:not(.is-plan-mode) .roster-player-avatar {
-            background: linear-gradient(180deg, #1f3a5f, #123f73);
-            border: 1.5px solid rgba(245, 197, 66, 0.65);
-            border-radius: 0.55rem;
             box-shadow: none;
-            height: 2.75rem;
-            width: 2.5rem;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-player-main {
+            flex: 1 1 0;
+            gap: 0.12rem;
+            min-width: 0;
         }
         #view-tropp:not(.is-plan-mode) .roster-player-name {
-            color: #fffdf5;
-            font-size: 1rem;
-            font-weight: 900;
+            min-width: 0;
             overflow: hidden;
         }
         #view-tropp:not(.is-plan-mode) .roster-player-name-text {
+            flex: 1 1 auto;
             min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
-        #view-tropp:not(.is-plan-mode) .roster-player-name .roster-player-age {
-            color: #d6e4f5;
+        #view-tropp:not(.is-plan-mode) .roster-player-age-inline {
+            color: rgba(196, 214, 240, 0.9);
+            display: none;
             flex: 0 0 auto;
-            font-size: 0.78rem;
+            font-size: 0.74rem;
             font-weight: 800;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-player-meta .roster-player-age {
+            color: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+        }
+        @container roster-card (min-width: 34rem) {
+            #view-tropp:not(.is-plan-mode) .roster-player-age-inline {
+                display: inline;
+            }
+            #view-tropp:not(.is-plan-mode) .roster-player-age-meta {
+                display: none;
+            }
         }
         #view-tropp:not(.is-plan-mode) .roster-player-side {
             align-items: flex-end;
@@ -11838,6 +11873,7 @@
         }
         #view-tropp:not(.is-plan-mode) .roster-status-chip {
             align-items: stretch;
+            align-self: center;
             border-radius: 0.55rem;
             border-style: solid;
             border-width: 1.5px;
@@ -11862,19 +11898,21 @@
             border-radius: 0;
             border-width: 0;
             box-shadow: none;
-            min-height: 1.5rem;
+            font-size: 0.58rem;
+            min-height: 1.32rem;
             min-width: 0;
-            padding: 0.14rem 0.38rem 0.18rem;
+            padding: 0.1rem 0.32rem 0.12rem;
+            white-space: nowrap;
         }
         #view-tropp:not(.is-plan-mode) .roster-status-chip .roster-status-chip-flag {
             border-left: 1.5px solid rgba(255, 253, 245, 0.72);
             justify-content: center;
-            min-width: 1.45rem;
-            padding-left: 0.28rem;
-            padding-right: 0.28rem;
+            min-width: 1.25rem;
+            padding-left: 0.24rem;
+            padding-right: 0.24rem;
         }
         #view-tropp:not(.is-plan-mode) .roster-status-chip .roster-status-chip-flag i {
-            font-size: 0.68rem;
+            font-size: 0.6rem;
         }
         #view-tropp:not(.is-plan-mode) .roster-availability-note {
             color: #ffedd5;
@@ -11903,36 +11941,10 @@
         #view-tropp:not(.is-plan-mode) .roster-player-avatar.is-fallback img {
             display: none;
         }
-        #view-tropp:not(.is-plan-mode) .roster-player-meta {
-            align-items: center;
-            color: #d6e4f5;
-            display: flex;
-            font-size: 0.74rem;
-            font-weight: 800;
-        }
-        #view-tropp:not(.is-plan-mode) .roster-pos-chip {
-            align-items: center;
-            background: linear-gradient(180deg, #ff4fd8, #bd0a88);
-            border: 1px solid rgba(255, 255, 255, 0.85);
-            border-radius: 0.28rem;
-            color: #fff;
-            display: inline-flex;
-            font-size: 0.62rem;
-            font-weight: 900;
-            letter-spacing: 0.02em;
-            line-height: 1;
-            padding: 0.14rem 0.28rem;
-            text-shadow: 0 1px 0 rgba(74, 0, 53, 0.75);
-        }
         #view-tropp:not(.is-plan-mode) .roster-player-position,
         #view-tropp:not(.is-plan-mode) .roster-player-foot,
         #view-tropp:not(.is-plan-mode) .roster-table-head {
             display: none;
-        }
-        #view-tropp:not(.is-plan-mode) .roster-player-age {
-            color: rgba(196, 214, 240, 0.9);
-            font-size: 0.74rem;
-            font-weight: 800;
         }
         .roster-mode-switch,
         #roster-plan-filters,
@@ -27635,8 +27647,8 @@
                 width: auto;
             }
         }
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row {
-            align-items: start;
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row,
+        #view-tropp:not(.is-plan-mode) .roster-player-row {
             background:
                 linear-gradient(180deg, rgba(18, 42, 72, 0.88) 0%, rgba(12, 32, 58, 0.78) 100%);
             border: 1.5px solid rgba(245, 197, 66, 0.48);
@@ -27646,6 +27658,9 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.08),
                 inset 0 0 0 1px rgba(245, 197, 66, 0.1);
             color: #fffdf5;
+        }
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row {
+            align-items: start;
             column-gap: 0.75rem;
             display: grid;
             grid-template-columns: auto minmax(0, 1fr);
@@ -27667,7 +27682,8 @@
             text-align: left;
             width: 100%;
         }
-        .match-stats-summary-thumb {
+        .match-stats-summary-thumb,
+        #view-tropp:not(.is-plan-mode) .roster-player-avatar {
             background: linear-gradient(180deg, #1f3a5f, #123f73);
             border: 1.5px solid rgba(245, 197, 66, 0.65);
             border-radius: 0.55rem;
@@ -27691,7 +27707,8 @@
             top: 50%;
             transform: translate(-50%, -50%);
         }
-        .match-stats-summary-chip.is-pos {
+        .match-stats-summary-chip.is-pos,
+        #view-tropp:not(.is-plan-mode) .roster-pos-chip {
             background: linear-gradient(180deg, #ff4fd8, #bd0a88);
             border: 1px solid rgba(255, 255, 255, 0.85);
             color: #fff;
@@ -27705,7 +27722,8 @@
             gap: 0.12rem;
             min-width: 0;
         }
-        .match-stats-summary-name {
+        .match-stats-summary-name,
+        #view-tropp:not(.is-plan-mode) .roster-player-name-text {
             color: #fffdf5;
             font-size: 0.92rem;
             font-weight: 900;
@@ -27714,7 +27732,8 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .match-stats-summary-meta {
+        .match-stats-summary-meta,
+        #view-tropp:not(.is-plan-mode) .roster-player-meta {
             align-items: center;
             color: rgba(196, 214, 240, 0.9);
             display: flex;
@@ -27735,7 +27754,8 @@
             flex-wrap: wrap;
             gap: 0.22rem;
         }
-        .match-stats-summary-chip {
+        .match-stats-summary-chip,
+        #view-tropp:not(.is-plan-mode) .roster-pos-chip {
             align-items: center;
             border-radius: 0.28rem;
             display: inline-flex;
@@ -27892,7 +27912,9 @@
             text-shadow: inherit;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row:hover,
-        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row:focus-within {
+        .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row:focus-within,
+        #view-tropp:not(.is-plan-mode) .roster-player-row:hover,
+        #view-tropp:not(.is-plan-mode) .roster-player-row:focus-visible {
             background:
                 linear-gradient(180deg, rgba(28, 58, 96, 0.92) 0%, rgba(16, 42, 74, 0.86) 100%);
             border-color: #ffe08a;
@@ -28369,14 +28391,17 @@
                 gap: 0.7rem;
                 min-height: 3.05rem;
             }
-            .match-detail-page .match-stats-panel.is-game-card .match-stats-summary-thumb {
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-summary-thumb,
+            #view-tropp:not(.is-plan-mode) .roster-player-avatar {
                 height: 2.75rem;
                 width: 2.5rem;
             }
-            .match-detail-page .match-stats-panel.is-game-card .match-stats-summary-name {
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-summary-name,
+            #view-tropp:not(.is-plan-mode) .roster-player-name-text {
                 font-size: 1rem;
             }
-            .match-detail-page .match-stats-panel.is-game-card .match-stats-summary-meta {
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-summary-meta,
+            #view-tropp:not(.is-plan-mode) .roster-player-meta {
                 font-size: 0.74rem;
             }
             .match-detail-page .match-stats-panel.is-game-card .match-stats-summary-bors {
