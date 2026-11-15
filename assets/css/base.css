@@ -20777,6 +20777,12 @@
             padding: 1.55rem 0.9rem 0.85rem;
             position: relative;
         }
+        .match-detail-page .stats-kamp-summary-kampen-note {
+            border: 1.5px solid rgba(245, 197, 66, 0.42);
+            box-shadow:
+                0 2px 0 rgba(6, 16, 32, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
         .stats-kamp-summary-kampen-note-label {
             align-items: center;
             display: flex;
@@ -26028,13 +26034,16 @@
                 transparent 100%
             );
             box-shadow: 0 0 12px rgba(245, 197, 66, 0.45);
-            content: "";
+            content: none;
             height: 3.5px;
             left: 8%;
             pointer-events: none;
             position: absolute;
             right: 8%;
             top: 0;
+        }
+        .training-session-page .match-game-plan-panel.is-game-card::before {
+            content: "";
         }
         /* Fase 2: lukkede kort roligere — teaser får mer plass; åpne beholder full Clash. */
         .match-detail-page .match-coach-notes-panel.is-game-card.is-collapsed,
@@ -26053,7 +26062,21 @@
                 0 0 0 1px rgba(10, 26, 48, 0.85),
                 0 8px 20px rgba(2, 6, 23, 0.28),
                 inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            padding: 0.4rem 0.85rem 0.32rem;
+        }
+        .training-session-page .match-game-plan-panel.is-game-card.is-collapsed {
             padding: 0.7rem 0.95rem 0.75rem;
+        }
+        .match-detail-page .is-game-card.is-collapsed .match-bench-topline,
+        .match-detail-page .is-game-card.is-collapsed .match-game-plan-topline,
+        .match-detail-page .is-game-card.is-collapsed .match-coach-notes-topline,
+        .match-detail-page .is-game-card.is-collapsed .match-subs-topline,
+        .match-detail-page .is-game-card.is-collapsed .match-stats-topline,
+        .match-detail-page .is-game-card.is-collapsed .match-opponent-info-topline,
+        .match-detail-page .is-game-card.is-collapsed .match-summary-topline {
+            margin-bottom: 0;
+            min-height: 2.75rem;
+            padding-bottom: 0.36rem;
         }
         .match-detail-page .match-coach-notes-panel.is-game-card.is-collapsed::before,
         .match-detail-page .match-subs-panel.is-game-card.is-collapsed::before,
@@ -26157,10 +26180,10 @@
                 0 100%,
                 var(--end-notch) 50%
             );
-            --phase-face: linear-gradient(180deg, #6aa4b8 0%, #4b8ba1 28%, #3f7d94 100%);
-            color: #fff;
+            --phase-face: linear-gradient(180deg, #3d7ebf 0%, #2a629c 46%, #1d4e82 100%);
+            color: #ffe9a8;
             cursor: default;
-            margin: 0.15rem auto;
+            margin: 0.35rem auto;
             pointer-events: none;
             position: relative;
             user-select: none;
@@ -26176,7 +26199,7 @@
             display: none;
         }
         .match-detail-page .match-phase-plate {
-            background: linear-gradient(180deg, #f7fbfc 0%, #e7eeef 38%, #d5dfe2 72%, #b7c4c8 100%);
+            background: linear-gradient(180deg, #ffe9a8 0%, #e2b84a 100%);
             bottom: 0;
             clip-path: var(--end-clip);
             filter:
@@ -26197,22 +26220,22 @@
             content: "";
             inset: 0;
             position: absolute;
-            transform: scaleX(0.984) scaleY(0.84);
+            transform: scaleX(0.988) scaleY(0.9);
         }
         .match-detail-page .match-phase-heading-label {
-            color: #fff;
+            color: #ffe9a8;
             font-family: "Lilita One", Inter, sans-serif;
-            font-size: 0.95rem;
+            font-size: 0.84rem;
             font-weight: 400;
-            left: 0;
-            letter-spacing: 0.04em;
-            line-height: 1;
-            -webkit-text-stroke: 2px #161616;
-            paint-order: stroke fill;
+            left: 0.85rem;
+            letter-spacing: 0.06em;
+            line-height: 1.1;
+            -webkit-text-stroke: 0;
+            paint-order: normal;
             position: absolute;
-            right: 0;
+            right: 0.85rem;
             text-align: center;
-            text-shadow: 0 1px 0 #111;
+            text-shadow: 0 1px 0 rgba(10, 26, 48, 0.35);
             text-transform: uppercase;
             top: 50%;
             transform: translateY(-52%);
@@ -26228,8 +26251,15 @@
         }
         .match-detail-page .is-game-card.is-collapsed .match-game-card-teaser {
             color: rgba(255, 233, 168, 0.78);
+            display: -webkit-box;
             font-weight: 650;
             letter-spacing: 0.02em;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            overflow: hidden;
+            text-overflow: unset;
+            white-space: normal;
         }
         @media (max-width: 767px) {
             .match-detail-page .match-game-plan-panel.is-game-card.is-collapsed .match-game-card-teaser {
@@ -26252,6 +26282,9 @@
                 0 0 0 1px rgba(10, 26, 48, 0.7),
                 0 4px 14px rgba(2, 6, 23, 0.22),
                 inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            padding: 0.4rem 0.85rem 0.32rem;
+        }
+        .training-session-page .is-game-card-secondary.is-collapsed {
             padding: 0.58rem 0.85rem 0.62rem;
         }
         :is(.match-detail-page, .training-session-page) .is-game-card-secondary.is-collapsed::before {
@@ -26352,7 +26385,36 @@
             margin: 0 0 0.85rem;
             min-height: 0;
             overflow: visible;
-            padding: 0.2rem 0.1rem 0.55rem;
+            padding: 0.15rem 1.45rem 0.4rem 0.1rem;
+        }
+        .match-detail-page .is-game-card .match-bench-topline::before,
+        .match-detail-page .is-game-card .match-game-plan-topline::before,
+        .match-detail-page .is-game-card .match-coach-notes-topline::before,
+        .match-detail-page .is-game-card .match-subs-topline::before,
+        .match-detail-page .is-game-card .match-stats-topline::before,
+        .match-detail-page .is-game-card .match-opponent-info-topline::before,
+        .match-detail-page .is-game-card .match-summary-topline::before {
+            border-bottom: 2px solid #ffe9a8;
+            border-right: 2px solid #ffe9a8;
+            content: "";
+            height: 0.42rem;
+            pointer-events: none;
+            position: absolute;
+            right: 0.35rem;
+            top: 0.95rem;
+            transform: rotate(45deg);
+            width: 0.42rem;
+            z-index: 4;
+        }
+        .match-detail-page .is-game-card.is-collapsed .match-bench-topline::before,
+        .match-detail-page .is-game-card.is-collapsed .match-game-plan-topline::before,
+        .match-detail-page .is-game-card.is-collapsed .match-coach-notes-topline::before,
+        .match-detail-page .is-game-card.is-collapsed .match-subs-topline::before,
+        .match-detail-page .is-game-card.is-collapsed .match-stats-topline::before,
+        .match-detail-page .is-game-card.is-collapsed .match-opponent-info-topline::before,
+        .match-detail-page .is-game-card.is-collapsed .match-summary-topline::before {
+            top: 1.05rem;
+            transform: rotate(-45deg);
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-topline::after,
         .match-detail-page .match-coach-notes-panel.is-game-card .match-coach-notes-topline::after,
@@ -26369,7 +26431,25 @@
         .match-detail-page .match-stats-panel.is-game-card .match-stats-topline::after,
         .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-topline::after,
         .match-detail-page .match-summary-panel.is-game-card .match-summary-topline::after,
-        :is(.match-detail-page, .training-session-page) .match-game-plan-panel.is-game-card .match-game-plan-topline::after {
+        .match-detail-page .match-game-plan-panel.is-game-card .match-game-plan-topline::after {
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(214, 168, 64, 0.4) 8%,
+                rgba(226, 184, 74, 0.95) 50%,
+                rgba(214, 168, 64, 0.4) 92%,
+                transparent 100%
+            );
+            bottom: 0;
+            box-shadow: 0 0 2px rgba(214, 168, 64, 0.2);
+            content: "";
+            height: 1.5px;
+            left: 0.35rem;
+            opacity: 1;
+            position: absolute;
+            right: 0.35rem;
+        }
+        .training-session-page .match-game-plan-panel.is-game-card .match-game-plan-topline::after {
             background: linear-gradient(
                 90deg,
                 transparent,
@@ -26422,22 +26502,23 @@
             margin: 0 0 0.85rem;
             min-height: 0;
             overflow: visible;
-            padding: 0.2rem 0.1rem 0.55rem;
+            padding: 0.15rem 1.45rem 0.4rem 0.1rem;
         }
         .match-detail-page .match-bench-panel.is-game-card .match-bench-topline::after {
             background: linear-gradient(
                 90deg,
-                transparent,
-                #ffe08a 20%,
-                #f5c542 50%,
-                #ffe08a 80%,
-                transparent
+                transparent 0%,
+                rgba(214, 168, 64, 0.4) 8%,
+                rgba(226, 184, 74, 0.95) 50%,
+                rgba(214, 168, 64, 0.4) 92%,
+                transparent 100%
             );
             bottom: 0;
-            box-shadow: 0 0 10px rgba(245, 197, 66, 0.35);
+            box-shadow: 0 0 2px rgba(214, 168, 64, 0.2);
             content: "";
-            height: 2.5px;
+            height: 1.5px;
             left: 0.35rem;
+            opacity: 1;
             position: absolute;
             right: 0.35rem;
             z-index: 1;
@@ -26470,7 +26551,15 @@
             gap: 0.45rem;
         }
         .match-detail-page .match-bench-panel.is-game-card .match-bench-heading,
-        :is(.match-detail-page, .training-session-page) .match-game-plan-panel.is-game-card .match-bench-heading {
+        .match-detail-page .match-game-plan-panel.is-game-card .match-bench-heading {
+            align-items: center;
+            gap: 0.55rem;
+            min-height: 0;
+            padding-left: 0.05rem;
+            position: relative;
+            z-index: 2;
+        }
+        .training-session-page .match-game-plan-panel.is-game-card .match-bench-heading {
             align-items: center;
             gap: 0.55rem;
             min-height: 2.65rem;
@@ -26489,25 +26578,31 @@
                 drop-shadow(0 3px 0 #6b4a0c)
                 drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
             flex: 0 0 auto;
-            height: 2.85rem;
+            height: 2.15rem;
             justify-content: center;
-            margin: -0.15rem 0 -0.4rem;
+            margin: 0;
             position: relative;
-            transform: rotate(-10deg);
+            transform: translateY(0.06rem) rotate(-10deg);
             transform-origin: 50% 55%;
-            width: 2.85rem;
+            width: 2.15rem;
             z-index: 3;
         }
         .match-detail-page .match-bench-panel.is-game-card .match-lineup-mark,
-        :is(.match-detail-page, .training-session-page) .match-game-plan-panel.is-game-card .match-game-plan-mark {
+        .match-detail-page .match-game-plan-panel.is-game-card .match-game-plan-mark {
+            height: 2.15rem;
+            margin: 0;
+            width: 2.15rem;
+        }
+        .training-session-page .match-game-plan-panel.is-game-card .match-game-plan-mark {
             height: 3.25rem;
             margin: -0.25rem 0 -0.5rem;
+            transform: rotate(-10deg);
             width: 3.25rem;
         }
         .match-detail-page .match-bench-panel.is-game-card .match-squad-mark i,
         .match-detail-page .match-bench-panel.is-game-card .match-lineup-mark i,
-        :is(.match-detail-page, .training-session-page) .match-game-plan-panel.is-game-card .match-game-plan-mark i {
-            font-size: 1.85rem;
+        .match-detail-page .match-game-plan-panel.is-game-card .match-game-plan-mark i {
+            font-size: 1.45rem;
             line-height: 1;
             text-shadow:
                 -1px 0 0 #fffdf5,
@@ -26515,8 +26610,7 @@
                 0 -1px 0 #fffdf5,
                 0 1px 0 #fffdf5;
         }
-        .match-detail-page .match-bench-panel.is-game-card .match-lineup-mark i,
-        :is(.match-detail-page, .training-session-page) .match-game-plan-panel.is-game-card .match-game-plan-mark i {
+        .training-session-page .match-game-plan-panel.is-game-card .match-game-plan-mark i {
             font-size: 2.35rem;
         }
         .match-detail-page .match-bench-panel.is-game-card[data-match-panel="oppstilling"] .match-game-plan-samspill-info-btn,
@@ -26525,7 +26619,18 @@
             z-index: 3;
         }
         .match-detail-page .match-bench-panel.is-game-card .match-bench-heading h3,
-        :is(.match-detail-page, .training-session-page) .match-game-plan-panel.is-game-card .match-bench-heading h3 {
+        .match-detail-page .match-game-plan-panel.is-game-card .match-bench-heading h3 {
+            color: #ffe9a8;
+            font-size: 1.16rem;
+            letter-spacing: 0.04em;
+            line-height: 1.15;
+            margin: 0;
+            overflow-wrap: anywhere;
+            position: relative;
+            text-shadow: 0 1px 0 rgba(10, 26, 48, 0.4);
+            z-index: 2;
+        }
+        .training-session-page .match-game-plan-panel.is-game-card .match-bench-heading h3 {
             color: #ffe9a8;
             font-size: clamp(1.32rem, 3.7vw, 1.58rem);
             letter-spacing: 0.08em;
@@ -26568,7 +26673,7 @@
         .match-detail-page .match-coach-notes-panel.is-game-card .match-bench-heading {
             align-items: center;
             gap: 0.55rem;
-            min-height: 2.65rem;
+            min-height: 0;
             padding-left: 0.05rem;
             position: relative;
             z-index: 2;
@@ -26584,10 +26689,10 @@
                 0 0 12px rgba(245, 197, 66, 0.55);
             display: inline-block;
             flex: 0 0 auto;
-            height: 2.35rem;
-            margin: -0.15rem 0 -0.4rem;
+            height: 2.05rem;
+            margin: 0;
             position: relative;
-            transform: rotate(-12deg);
+            transform: translateY(0.06rem) rotate(-12deg);
             transform-origin: 50% 55%;
             width: 1.85rem;
             z-index: 3;
@@ -26625,16 +26730,13 @@
         }
         .match-detail-page .match-coach-notes-panel.is-game-card .match-bench-heading h3 {
             color: #ffe9a8;
-            font-size: clamp(1.32rem, 3.7vw, 1.58rem);
-            letter-spacing: 0.08em;
-            line-height: 1;
+            font-size: 1.16rem;
+            letter-spacing: 0.04em;
+            line-height: 1.15;
             margin: 0;
+            overflow-wrap: anywhere;
             position: relative;
-            text-shadow:
-                0 1px 0 rgba(255, 253, 245, 0.28),
-                0 2px 0 rgba(10, 26, 48, 0.55),
-                0 3px 0 rgba(122, 86, 8, 0.35),
-                0 0 18px rgba(255, 214, 102, 0.28);
+            text-shadow: 0 1px 0 rgba(10, 26, 48, 0.4);
             z-index: 2;
         }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-swap-mark {
@@ -26856,13 +26958,13 @@
         .match-detail-page .match-summary-panel.is-game-card .match-bench-heading {
             align-items: center;
             gap: 0.55rem;
-            min-height: 2.65rem;
+            min-height: 0;
             padding-left: 0.05rem;
             position: relative;
             z-index: 2;
         }
         .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-mark {
-            --mark-size: 2.85rem;
+            --mark-size: 2.15rem;
             background:
                 radial-gradient(circle at 50% 42%, #fff6d6 0 34%, transparent 35%),
                 radial-gradient(circle at 50% 55%, #7a5608 0 54%, transparent 55%),
@@ -26876,9 +26978,9 @@
             display: inline-block;
             flex: 0 0 auto;
             height: var(--mark-size);
-            margin: -0.2rem 0 -0.45rem;
+            margin: 0;
             position: relative;
-            transform: rotate(-12deg);
+            transform: translateY(0.06rem) rotate(-12deg);
             transform-origin: 50% 55%;
             width: var(--mark-size);
             z-index: 3;
@@ -26921,28 +27023,25 @@
                 drop-shadow(0 3px 0 #6b4a0c)
                 drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
             flex: 0 0 auto;
-            height: 3rem;
-            margin: -0.2rem 0 -0.45rem;
+            height: 2.2rem;
+            margin: 0;
             position: relative;
-            transform: rotate(-10deg);
+            transform: translateY(0.06rem) rotate(-10deg);
             transform-origin: 50% 55%;
-            width: 2.55rem;
+            width: 1.9rem;
             z-index: 3;
         }
         .match-detail-page .match-subs-panel.is-game-card .match-bench-heading h3,
         .match-detail-page .match-opponent-info-panel.is-game-card .match-bench-heading h3,
         .match-detail-page .match-summary-panel.is-game-card .match-bench-heading h3 {
             color: #ffe9a8;
-            font-size: clamp(1.32rem, 3.7vw, 1.58rem);
-            letter-spacing: 0.08em;
-            line-height: 1;
+            font-size: 1.16rem;
+            letter-spacing: 0.04em;
+            line-height: 1.15;
             margin: 0;
+            overflow-wrap: anywhere;
             position: relative;
-            text-shadow:
-                0 1px 0 rgba(255, 253, 245, 0.28),
-                0 2px 0 rgba(10, 26, 48, 0.55),
-                0 3px 0 rgba(122, 86, 8, 0.35),
-                0 0 18px rgba(255, 214, 102, 0.28);
+            text-shadow: 0 1px 0 rgba(10, 26, 48, 0.4);
             z-index: 2;
         }
         .match-detail-page .match-summary-panel.is-game-card .match-summary-mark {
@@ -26955,18 +27054,18 @@
                 drop-shadow(0 3px 0 #6b4a0c)
                 drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
             flex: 0 0 auto;
-            height: 2.85rem;
-            margin: -0.15rem 0 -0.4rem;
+            height: 2.15rem;
+            margin: 0;
             position: relative;
-            transform: rotate(-8deg);
+            transform: translateY(0.06rem) rotate(-8deg);
             transform-origin: 50% 55%;
-            width: 2.85rem;
+            width: 2.15rem;
             z-index: 3;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-bench-heading {
             align-items: center;
             gap: 0.55rem;
-            min-height: 2.65rem;
+            min-height: 0;
             padding-left: 0.05rem;
             position: relative;
             z-index: 2;
@@ -26981,27 +27080,57 @@
                 drop-shadow(0 3px 0 #6b4a0c)
                 drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
             flex: 0 0 auto;
-            height: 3rem;
-            margin: -0.2rem 0 -0.45rem;
+            height: 2.2rem;
+            margin: 0;
             position: relative;
-            transform: rotate(-12deg);
+            transform: translateY(0.06rem) rotate(-12deg);
             transform-origin: 50% 55%;
-            width: 3rem;
+            width: 2.2rem;
             z-index: 3;
         }
         .match-detail-page .match-stats-panel.is-game-card .match-bench-heading h3 {
             color: #ffe9a8;
-            font-size: clamp(1.32rem, 3.7vw, 1.58rem);
-            letter-spacing: 0.08em;
-            line-height: 1;
+            font-size: 1.16rem;
+            letter-spacing: 0.04em;
+            line-height: 1.15;
             margin: 0;
+            overflow-wrap: anywhere;
             position: relative;
-            text-shadow:
-                0 1px 0 rgba(255, 253, 245, 0.28),
-                0 2px 0 rgba(10, 26, 48, 0.55),
-                0 3px 0 rgba(122, 86, 8, 0.35),
-                0 0 18px rgba(255, 214, 102, 0.28);
+            text-shadow: 0 1px 0 rgba(10, 26, 48, 0.4);
             z-index: 2;
+        }
+        @media (min-width: 768px) {
+            .match-detail-page .match-bench-panel.is-game-card .match-bench-heading h3,
+            .match-detail-page .match-game-plan-panel.is-game-card .match-bench-heading h3,
+            .match-detail-page .match-coach-notes-panel.is-game-card .match-bench-heading h3,
+            .match-detail-page .match-subs-panel.is-game-card .match-bench-heading h3,
+            .match-detail-page .match-opponent-info-panel.is-game-card .match-bench-heading h3,
+            .match-detail-page .match-summary-panel.is-game-card .match-bench-heading h3,
+            .match-detail-page .match-stats-panel.is-game-card .match-bench-heading h3 {
+                font-size: 1.28rem;
+                letter-spacing: 0.05em;
+            }
+            .match-detail-page .match-bench-panel.is-game-card .match-squad-mark,
+            .match-detail-page .match-bench-panel.is-game-card .match-lineup-mark,
+            .match-detail-page .match-game-plan-panel.is-game-card .match-game-plan-mark,
+            .match-detail-page .match-summary-panel.is-game-card .match-summary-mark,
+            .match-detail-page .match-subs-panel.is-game-card .match-subs-playing-time-mark {
+                height: 2.4rem;
+                width: 2.4rem;
+            }
+            .match-detail-page .match-stats-panel.is-game-card .match-stats-star-mark {
+                height: 2.45rem;
+                width: 2.45rem;
+            }
+            .match-detail-page .match-opponent-info-panel.is-game-card .match-opponent-info-mark {
+                height: 2.45rem;
+                width: 2.1rem;
+            }
+            .match-detail-page .match-bench-panel.is-game-card .match-squad-mark i,
+            .match-detail-page .match-bench-panel.is-game-card .match-lineup-mark i,
+            .match-detail-page .match-game-plan-panel.is-game-card .match-game-plan-mark i {
+                font-size: 1.65rem;
+            }
         }
         .match-detail-page .match-opponent-info-panel.is-game-card .match-collapsible-content,
         .match-detail-page .match-stats-panel.is-game-card .match-collapsible-content,

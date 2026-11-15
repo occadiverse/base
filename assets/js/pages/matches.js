@@ -1415,7 +1415,7 @@ function buildMatchPhaseHeadingHtml(phase) {
     const phases = {
         before: { label: 'Før kamp', modifier: 'is-before' },
         after: { label: 'Etter kamp', modifier: 'is-after' },
-        more: { label: 'Mer', modifier: 'is-more' }
+        more: { label: 'Om motstanderen', modifier: 'is-more' }
     };
     const item = phases[phase];
     if (!item) return '';
