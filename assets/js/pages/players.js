@@ -780,7 +780,6 @@ window.setRosterMode = function(mode) {
     document.getElementById('roster-now-filters')?.classList.toggle('hidden', planMode);
     document.getElementById('roster-plan-filters')?.classList.toggle('hidden', !planMode);
     document.getElementById('rosterPlanIntro')?.classList.toggle('hidden', !planMode);
-    document.getElementById('rosterNowLegend')?.classList.toggle('hidden', planMode);
     const addLabel = document.getElementById('roster-add-player-label');
     const addButton = document.getElementById('roster-add-player-btn');
     const createButton = document.getElementById('roster-create-season-btn');

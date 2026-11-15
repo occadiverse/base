@@ -11488,32 +11488,6 @@
             margin-top: 1rem;
             padding: 0.9rem 1rem;
         }
-        .roster-bottomline-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-        }
-        .roster-bottomline-legend span {
-            align-items: center;
-            display: inline-flex;
-            gap: 0.35rem;
-            white-space: nowrap;
-        }
-        .roster-bottomline-legend i {
-            font-size: 0.45rem;
-        }
-        .roster-legend-active {
-            color: #22c55e;
-        }
-        .roster-legend-recruit {
-            color: #f5c542;
-        }
-        .roster-legend-muted {
-            color: #94a3b8;
-        }
-        .roster-legend-injury {
-            color: #fb7185;
-        }
         .roster-hero-panel {
             background:
                 radial-gradient(circle at 0% 0%, rgba(245, 197, 66, 0.28), transparent 30%),
@@ -11910,7 +11884,6 @@
         }
         #view-tropp #roster-plan-filters.hidden,
         #view-tropp #rosterPlanIntro.hidden,
-        #view-tropp #rosterNowLegend.hidden,
         #view-tropp #roster-now-filters.hidden,
         #view-tropp #roster-create-season-btn.hidden {
             display: none;
@@ -12459,31 +12432,6 @@
             flex-wrap: nowrap;
             min-height: var(--portal-topline-min-height);
         }
-        .roster-board-top-right {
-            align-items: center;
-            display: flex;
-            flex: 0 1 auto;
-            flex-wrap: nowrap;
-            gap: 0.75rem;
-            justify-content: flex-end;
-            min-width: 0;
-            overflow: hidden;
-        }
-        .roster-topline-legend {
-            color: rgba(255, 248, 230, 0.86);
-            flex: 1 1 16rem;
-            flex-wrap: wrap;
-            font-size: 0.62rem;
-            font-weight: 900;
-            gap: 0.45rem 0.7rem;
-            justify-content: flex-end;
-            min-width: 0;
-            overflow: visible;
-            white-space: normal;
-        }
-        .roster-topline-legend span {
-            white-space: nowrap;
-        }
         .roster-board-toolbar {
             align-items: center;
             background: rgba(255, 255, 255, 0.04);
@@ -12613,12 +12561,6 @@
             .roster-board-top {
                 align-items: center;
                 flex-direction: row;
-            }
-            .roster-board-top-right {
-                display: none;
-            }
-            .roster-topline-legend {
-                display: none;
             }
             .roster-board-toolbar {
                 display: grid;
