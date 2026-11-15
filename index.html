@@ -280,18 +280,6 @@
                     </div>
 
                     <div class="roster-board-toolbar relative z-10">
-                        <p id="rosterPlanIntro" class="roster-plan-intro hidden">Planlegg hvem som fortsetter, slutter eller kommer inn før 2027-troppen opprettes.</p>
-                        <button type="button" id="roster-create-season-btn" class="roster-create-season-btn hidden" onclick="window.openCreateSeasonRosterDialog()">Opprett 2027-tropp</button>
-                        <div class="roster-toolbar-filters">
-                            <div id="roster-plan-filters" class="roster-status-filter hidden" role="tablist" aria-label="Filtrer 2027-planen">
-                                <button type="button" onclick="window.setRosterPlanFilter('Uavklart')" id="roster-plan-filter-uavklart" class="bsk-btn bsk-btn-chip roster-status-btn is-active">Uavklart</button>
-                                <button type="button" onclick="window.setRosterPlanFilter('Fortsetter')" id="roster-plan-filter-fortsetter" class="bsk-btn bsk-btn-chip roster-status-btn">Fortsetter</button>
-                                <button type="button" onclick="window.setRosterPlanFilter('Slutter')" id="roster-plan-filter-slutter" class="bsk-btn bsk-btn-chip roster-status-btn">Slutter</button>
-                                <button type="button" onclick="window.setRosterPlanFilter('Ny spiller')" id="roster-plan-filter-ny" class="bsk-btn bsk-btn-chip roster-status-btn">Ny spiller</button>
-                                <button type="button" onclick="window.setRosterPlanFilter('alle')" id="roster-plan-filter-alle" class="bsk-btn bsk-btn-chip roster-status-btn">Alle</button>
-                            </div>
-                        </div>
-
                         <div class="roster-search-line">
                             <button type="button"
                                     id="roster-add-player-btn"
@@ -306,6 +294,10 @@
                                 <i class="fa-solid fa-magnifying-glass"></i>
                                 <input type="search" id="playerSearchInput" oninput="handlePlayerSearchChange()" placeholder="Søk navn, drakt eller posisjon" class="roster-search-input" aria-label="Søk spillere">
                             </div>
+                        </div>
+                        <div id="roster-create-season" class="roster-create-season hidden">
+                            <p id="rosterPlanIntro" class="roster-plan-intro">Oppretter neste sesongs tropp fra spillere merket Fortsetter eller Ny spiller. Uavklarte og de som slutter tas ikke med.</p>
+                            <button type="button" id="roster-create-season-btn" class="roster-add-player-btn roster-create-season-btn" onclick="window.openCreateSeasonRosterDialog()">Opprett tropp</button>
                         </div>
                     </div>
 
@@ -336,23 +328,34 @@
                         </button>
                     </div>
 
-                    <div id="roster-plan-stats" class="roster-stat-grid roster-board-stats relative z-10">
-                        <div class="roster-stat-card">
-                            <span class="roster-stat-label" id="roster-stat-label-players">Spillere</span>
-                            <span class="roster-stat-value" id="stat-total-players">0</span>
+                    <div id="roster-plan-filters" class="roster-plan-filterbar hidden relative z-10">
+                        <div class="stats-kamp-summary-metric-grid roster-count-filters" role="tablist" aria-label="Filtrer etter planstatus">
+                            <button type="button" id="roster-plan-filter-uavklart" data-plan-filter="Uavklart" role="tab" class="stats-kamp-summary-metric-card is-amber is-active" aria-selected="true" onclick="window.setRosterPlanFilter('Uavklart')">
+                                <i class="fa-solid fa-circle-question stats-kamp-summary-metric-bg-icon" aria-hidden="true"></i>
+                                <span class="stats-kamp-summary-metric-label">Uavklart</span>
+                                <strong class="stats-kamp-summary-metric-value" id="roster-plan-count-uavklart">0</strong>
+                                <i class="fa-solid fa-check roster-count-check" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" id="roster-plan-filter-fortsetter" data-plan-filter="Fortsetter" role="tab" class="stats-kamp-summary-metric-card is-green" aria-selected="false" onclick="window.setRosterPlanFilter('Fortsetter')">
+                                <i class="fa-solid fa-user-check stats-kamp-summary-metric-bg-icon" aria-hidden="true"></i>
+                                <span class="stats-kamp-summary-metric-label">Fortsetter</span>
+                                <strong class="stats-kamp-summary-metric-value" id="roster-plan-count-fortsetter">0</strong>
+                                <i class="fa-solid fa-check roster-count-check" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" id="roster-plan-filter-slutter" data-plan-filter="Slutter" role="tab" class="stats-kamp-summary-metric-card is-red" aria-selected="false" onclick="window.setRosterPlanFilter('Slutter')">
+                                <i class="fa-solid fa-user-minus stats-kamp-summary-metric-bg-icon" aria-hidden="true"></i>
+                                <span class="stats-kamp-summary-metric-label">Slutter</span>
+                                <strong class="stats-kamp-summary-metric-value" id="roster-plan-count-slutter">0</strong>
+                                <i class="fa-solid fa-check roster-count-check" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" id="roster-plan-filter-ny" data-plan-filter="Ny spiller" role="tab" class="stats-kamp-summary-metric-card is-blue" aria-selected="false" onclick="window.setRosterPlanFilter('Ny spiller')">
+                                <i class="fa-solid fa-user-plus stats-kamp-summary-metric-bg-icon" aria-hidden="true"></i>
+                                <span class="stats-kamp-summary-metric-label">Nye spillere</span>
+                                <strong class="stats-kamp-summary-metric-value" id="roster-plan-count-ny">0</strong>
+                                <i class="fa-solid fa-check roster-count-check" aria-hidden="true"></i>
+                            </button>
                         </div>
-                        <div class="roster-stat-card">
-                            <span class="roster-stat-label" id="roster-stat-label-age">Snittalder</span>
-                            <span class="roster-stat-value" id="stat-avg-age">0 år</span>
-                        </div>
-                        <div class="roster-stat-card">
-                            <span class="roster-stat-label" id="roster-stat-label-recruits">Rekrutter</span>
-                            <span class="roster-stat-value" id="stat-total-rekrutt">0</span>
-                        </div>
-                        <div class="roster-stat-card">
-                            <span class="roster-stat-label" id="roster-stat-label-injured">Skadede</span>
-                            <span class="roster-stat-value" id="stat-total-injured">0</span>
-                        </div>
+                        <button type="button" id="roster-plan-filter-alle" role="tab" class="blknapp roster-plan-all-btn" aria-selected="false" onclick="window.setRosterPlanFilter('alle')">Alle</button>
                     </div>
 
                     <footer class="match-detail-footer roster-bottomline relative z-10">
@@ -362,14 +365,7 @@
 
                 <section class="match-detail-card roster-board-card roster-list-card">
                         <div class="roster-content relative z-10">
-                        <div class="roster-table-head" aria-hidden="true">
-                            <span>Nr</span>
-                            <span>Spiller</span>
-                            <span>Posisjon</span>
-                            <span>Fot</span>
-                            <span>Alder / status</span>
-                        </div>
-
+                        <p id="rosterPlanSearchStatus" class="roster-plan-search-status" hidden aria-live="polite"></p>
                         <div id="playerRosterContainer" class="roster-list"></div>
 
                         <div id="playerRosterEmpty" class="hidden roster-empty">

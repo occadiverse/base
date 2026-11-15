@@ -2678,6 +2678,17 @@
                 padding-right: 0.85rem;
                 padding-top: 1rem;
             }
+            /* Trenerfokus, sesongpuls og sesongoppsummering: uten ytterramme, kant i kant som Kamper */
+            body.is-hjem-env .hjem-page :is(.hjem-focus-board, .hjem-pulse-board) {
+                background: transparent !important;
+                border: 0;
+                border-radius: 0;
+                box-shadow: none;
+                margin-left: -0.85rem;
+                margin-right: -0.85rem;
+                padding-left: 0.85rem;
+                padding-right: 0.85rem;
+            }
             .hjem-home-grid {
                 gap: 0.85rem;
             }
@@ -10032,8 +10043,8 @@
             #view-kamper.portal-view-mobile-peek .match-list-mobile-top {
                 background: transparent;
                 border-bottom: 0;
-                padding-bottom: 0.55rem;
-                padding-top: 0.2rem;
+                padding-bottom: 0.42rem;
+                padding-top: 0.35rem;
             }
             #view-kamper.portal-view-mobile-peek .match-list-mobile-toolbar {
                 background: transparent;
@@ -11719,23 +11730,27 @@
         .roster-player-row.is-long-injury-player {
             border-left-color: #f87171;
         }
-        /* Tropp nå deler presentasjonen med det lukkede Spillerbørs-kortet. Troppsplan beholder egne kort. */
-        #view-tropp:not(.is-plan-mode) .roster-group {
+        /* Tropp nå og troppsplan deler kolonneoppsettet med hverandre. */
+        #view-tropp:not(.is-plan-mode) .roster-group,
+        #view-tropp.is-plan-mode .roster-group {
             container-name: roster-group;
             container-type: inline-size;
             width: 100%;
         }
-        #view-tropp:not(.is-plan-mode) .roster-group-heading {
+        #view-tropp:not(.is-plan-mode) .roster-group-heading,
+        #view-tropp.is-plan-mode .roster-group-heading {
             width: 100%;
         }
-        #view-tropp:not(.is-plan-mode) .roster-group-rows {
+        #view-tropp:not(.is-plan-mode) .roster-group-rows,
+        #view-tropp.is-plan-mode .roster-group-rows {
             align-items: start;
             display: grid;
             gap: 0.45rem;
             grid-template-columns: minmax(0, 1fr);
         }
         @container roster-group (min-width: 44rem) {
-            #view-tropp:not(.is-plan-mode) .roster-group-rows {
+            #view-tropp:not(.is-plan-mode) .roster-group-rows,
+            #view-tropp.is-plan-mode .roster-group-rows {
                 gap: 0.55rem 0.75rem;
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
@@ -11760,11 +11775,14 @@
             }
         }
         #view-tropp:not(.is-plan-mode) .roster-player-row:hover,
-        #view-tropp:not(.is-plan-mode) .roster-player-row:focus-visible {
+        #view-tropp:not(.is-plan-mode) .roster-player-row:focus-visible,
+        #view-tropp.is-plan-mode .roster-player-row:hover,
+        #view-tropp.is-plan-mode .roster-player-row:focus-visible {
             outline: none;
             transform: none;
         }
-        #view-tropp:not(.is-plan-mode) .roster-player-row:focus-visible {
+        #view-tropp:not(.is-plan-mode) .roster-player-row:focus-visible,
+        #view-tropp.is-plan-mode .roster-player-main:focus-visible {
             outline: 2px solid #8ed4ff;
             outline-offset: 3px;
         }
@@ -11900,13 +11918,13 @@
             color: #ffedd5;
             font-weight: 800;
         }
-        #view-tropp:not(.is-plan-mode) .roster-player-avatar.is-fallback {
+        #view-tropp .roster-player-avatar.is-fallback {
             color: #ffe08a;
         }
-        #view-tropp:not(.is-plan-mode) .roster-player-avatar .roster-avatar-fallback {
+        #view-tropp .roster-player-avatar .roster-avatar-fallback {
             display: none;
         }
-        #view-tropp:not(.is-plan-mode) .roster-player-avatar.is-fallback .roster-avatar-fallback {
+        #view-tropp .roster-player-avatar.is-fallback .roster-avatar-fallback {
             align-items: center;
             color: #ffe08a;
             display: inline-flex;
@@ -11917,10 +11935,10 @@
             line-height: 1;
             opacity: 1;
         }
-        #view-tropp:not(.is-plan-mode) .roster-player-avatar.is-fallback i.roster-avatar-fallback {
+        #view-tropp .roster-player-avatar.is-fallback i.roster-avatar-fallback {
             font-size: 0.95rem;
         }
-        #view-tropp:not(.is-plan-mode) .roster-player-avatar.is-fallback img {
+        #view-tropp .roster-player-avatar.is-fallback img {
             display: none;
         }
         #view-tropp:not(.is-plan-mode) .roster-player-position,
@@ -11937,7 +11955,9 @@
         #view-tropp #roster-plan-filters.hidden,
         #view-tropp #rosterPlanIntro.hidden,
         #view-tropp #roster-now-filters.hidden,
-        #view-tropp #roster-create-season-btn.hidden {
+        #view-tropp #roster-create-season.hidden,
+        #view-tropp #roster-create-season-btn.hidden,
+        #view-tropp #rosterPlanSearchStatus[hidden] {
             display: none;
         }
         #view-tropp .roster-mode-switch,
@@ -11956,16 +11976,12 @@
             margin: 0;
             text-align: center;
         }
-        .roster-create-season-btn {
-            align-self: center;
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.28);
-            border-radius: 999px;
-            color: rgba(255, 255, 255, 0.86);
+        .roster-plan-search-status {
+            color: rgba(255, 246, 214, 0.78);
             font-size: 0.72rem;
             font-weight: 800;
-            margin: 0 auto;
-            padding: 0.38rem 0.8rem;
+            line-height: 1.2;
+            margin: 0 0 0.45rem;
         }
         .roster-plan-created {
             color: #fde68a;
@@ -12004,17 +12020,17 @@
             margin-top: 1.1rem;
         }
         .roster-player-row.is-plan-row {
-            align-items: start;
-            grid-template-columns: auto minmax(0, 1fr);
-            grid-template-areas:
-                "avatar main"
-                "controls controls";
-        }
-        .roster-player-row.is-plan-row .roster-player-avatar {
-            grid-area: avatar;
+            align-items: center;
+            align-content: start;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem 0.55rem;
+            min-width: 0;
+            padding: 0.55rem 0.7rem 0.65rem;
+            width: 100%;
         }
         .roster-player-row.is-plan-row .roster-player-main {
-            grid-area: main;
+            flex: 1 1 8rem;
             min-width: 0;
         }
         .roster-player-row.is-plan-row .roster-player-position,
@@ -12028,44 +12044,50 @@
             margin-top: 0.15rem;
         }
         .roster-plan-controls {
-            align-items: center;
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem;
-            grid-area: controls;
+            flex: 1 0 100%;
+            flex-direction: column;
+            gap: 0.45rem;
             min-width: 0;
             width: 100%;
         }
-        .roster-plan-label {
-            align-items: center;
-            color: rgba(255, 255, 255, 0.7);
+        .roster-plan-field {
+            color: rgba(255, 246, 214, 0.78);
             display: flex;
-            flex: 1 1 8rem;
-            font-size: 0.62rem;
-            font-weight: 900;
-            gap: 0.35rem;
-            letter-spacing: 0.04em;
+            flex-direction: column;
+            font-size: 0.68rem;
+            font-weight: 800;
+            gap: 0.22rem;
+            letter-spacing: 0.02em;
             min-width: 0;
+            width: 100%;
         }
         .roster-plan-select,
         .roster-plan-note {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(8, 24, 48, 0.55);
+            border: 1.5px solid rgba(245, 197, 66, 0.32);
             border-radius: 0.7rem;
-            color: #ffffff;
+            box-sizing: border-box;
+            color: #fffdf5;
             font: inherit;
-            font-size: 0.75rem;
+            font-size: 0.78rem;
             font-weight: 800;
             max-width: 100%;
             min-width: 0;
+            width: 100%;
         }
         .roster-plan-select {
-            flex: 1 1 auto;
-            padding: 0.35rem 0.5rem;
+            min-height: 2.2rem;
+            padding: 0.35rem 0.55rem;
         }
         .roster-plan-note {
-            flex: 1 1 100%;
+            min-height: 2.2rem;
             padding: 0.4rem 0.55rem;
+        }
+        .roster-plan-select:focus-visible,
+        .roster-plan-note:focus-visible {
+            outline: 2px solid #8ed4ff;
+            outline-offset: 2px;
         }
         .roster-plan-note::placeholder {
             color: rgba(255, 255, 255, 0.45);
@@ -12767,7 +12789,8 @@
                 radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.1), transparent 32%),
                 linear-gradient(180deg, #16467c 0%, #10365f 100%);
         }
-        #view-tropp:not(.is-plan-mode) .roster-board-card {
+        #view-tropp:not(.is-plan-mode) .roster-board-card,
+        #view-tropp.is-plan-mode .roster-board-card {
             background:
                 radial-gradient(ellipse 100% 45% at 50% -12%, rgba(245, 197, 66, 0.16), transparent 55%),
                 linear-gradient(168deg, #163a62 0%, #0f2d52 48%, #0a2240 100%);
@@ -12780,10 +12803,12 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.14);
         }
         #view-tropp:not(.is-plan-mode) .roster-board-toolbar,
+        #view-tropp.is-plan-mode .roster-board-toolbar,
         #view-tropp:not(.is-plan-mode) .roster-board-stats {
             background: transparent;
         }
         #view-tropp:not(.is-plan-mode) .roster-board-card .roster-bottomline,
+        #view-tropp.is-plan-mode .roster-board-card .roster-bottomline,
         #view-tropp:not(.is-plan-mode) #roster-plan-stats {
             display: none;
         }
@@ -12799,10 +12824,6 @@
             min-height: 0;
             min-width: 0;
             padding: 0;
-        }
-        #view-tropp.is-plan-mode .roster-board-heading {
-            gap: 0.55rem;
-            min-height: 2.65rem;
         }
         #view-tropp .roster-board-heading .roster-board-mark {
             align-items: center;
@@ -12879,31 +12900,6 @@
                 font-size: 1.28rem;
                 letter-spacing: 0.05em;
             }
-        }
-        #view-tropp.is-plan-mode .roster-board-heading .roster-board-mark {
-            height: 3.25rem;
-            margin: -0.25rem 0 -0.5rem;
-            transform: rotate(-10deg);
-            width: 3.25rem;
-        }
-        #view-tropp.is-plan-mode .roster-board-heading .roster-board-mark i {
-            font-size: 2.35rem;
-        }
-        #view-tropp.is-plan-mode .roster-hero-title {
-            font-size: clamp(1.15rem, 3.1vw, 1.42rem);
-            letter-spacing: 0.08em;
-            line-height: 1;
-            text-shadow: none;
-        }
-        #view-tropp.is-plan-mode .roster-work-heading {
-            flex-wrap: wrap;
-            gap: 0.65rem;
-            padding: 0.7rem 0.9rem 0.55rem;
-        }
-        #view-tropp.is-plan-mode .roster-work-heading::after {
-            background: linear-gradient(90deg, transparent, #ffe08a 18%, #f5c542 50%, #ffe08a 82%, transparent);
-            box-shadow: none;
-            height: 2px;
         }
         #view-tropp .roster-work-heading .roster-board-heading {
             min-width: 0;
@@ -13108,125 +13104,112 @@
         #view-tropp.is-plan-mode .roster-visible-age {
             display: none;
         }
+        #view-tropp.is-plan-mode .roster-board-toolbar {
+            align-items: stretch;
+            flex-direction: column;
+            gap: 0.55rem;
+            padding: 0.2rem 0.9rem 0.75rem;
+        }
+        #view-tropp.is-plan-mode .roster-search-line {
+            align-items: stretch;
+            flex-direction: column;
+            width: 100%;
+        }
+        #view-tropp.is-plan-mode .roster-search-line .roster-add-player-btn,
+        #view-tropp.is-plan-mode .roster-create-season .roster-create-season-btn {
+            align-self: flex-start;
+        }
+        #view-tropp.is-plan-mode .roster-search-line .roster-search-wrap {
+            flex: 1 1 auto;
+            width: 100%;
+        }
+        #view-tropp.is-plan-mode .roster-create-season {
+            align-items: center;
+            background: rgba(8, 24, 48, 0.35);
+            border: 1px solid rgba(245, 197, 66, 0.28);
+            border-radius: 0.85rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 0.75rem;
+            padding: 0.55rem 0.7rem;
+        }
         #view-tropp.is-plan-mode .roster-plan-intro {
-            color: rgba(255, 255, 255, 0.58);
+            color: rgba(255, 246, 214, 0.78);
+            flex: 1 1 16rem;
             font-size: 0.72rem;
             font-weight: 650;
-            line-height: 1.3;
+            line-height: 1.35;
             margin: 0;
             min-width: 0;
             text-align: left;
         }
-        #view-tropp.is-plan-mode .roster-create-season-btn {
-            align-self: stretch;
-            background: linear-gradient(180deg, #7ec2ff 0%, #1a4f9e 100%);
-            border: 2px solid #c8e4ff;
-            border-radius: 0.75rem;
-            box-shadow: 0 3px 0 #0a2244, inset 0 1px 0 rgba(255, 255, 255, 0.28);
-            color: #f4f9ff;
-            cursor: pointer;
-            font-size: 0.68rem;
-            font-weight: 900;
-            letter-spacing: 0.01em;
-            margin: 0;
-            min-height: 2.35rem;
-            padding: 0.4rem 0.55rem;
-            text-shadow: 0 1px 0 rgba(8, 28, 56, 0.45);
-            width: auto;
-        }
-        #view-tropp.is-plan-mode .roster-create-season-btn:hover {
-            background: linear-gradient(180deg, #93ceff 0%, #2460b8 100%);
-        }
-        #view-tropp.is-plan-mode .roster-create-season-btn:active {
-            box-shadow: 0 1px 0 #07182f, inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            transform: translateY(2px);
-        }
-        #view-tropp.is-plan-mode #roster-plan-filters {
-            background: transparent;
-            border: 0;
-            border-radius: 0;
-            box-shadow: none;
-            gap: 0.35rem;
-            justify-content: flex-start;
-            padding: 0;
-        }
-        #view-tropp.is-plan-mode #roster-plan-filters .roster-status-btn {
-            background: linear-gradient(180deg, rgba(22, 58, 96, 0.9) 0%, rgba(10, 32, 58, 0.92) 100%);
-            border: 1px solid rgba(176, 206, 230, 0.22);
-            border-radius: 999px;
-            color: rgba(198, 216, 232, 0.78);
-            padding: 0.32rem 0.62rem;
-        }
-        #view-tropp.is-plan-mode #roster-plan-filters .roster-status-btn.is-active {
-            background: linear-gradient(180deg, #ffe08a 0%, #f5c542 100%);
-            border-color: #fff6d6;
-            box-shadow: 0 2px 0 rgba(92, 64, 8, 0.45);
-            color: #1a1204;
-        }
-        #view-tropp.is-plan-mode .roster-board-stats {
+        #view-tropp.is-plan-mode .roster-plan-filterbar {
             align-items: center;
             display: flex;
             flex-wrap: wrap;
-            gap: 0.28rem 0.85rem;
-            padding: 0.45rem 0.85rem 0.55rem;
+            gap: 0.55rem;
+            padding: 0 0.9rem 0.9rem;
         }
-        #view-tropp.is-plan-mode .roster-board-stats .roster-stat-card {
-            background: transparent;
-            border: 0;
-            border-radius: 0;
-            box-shadow: none;
-            flex: 0 1 auto;
-            flex-direction: row;
-            gap: 0.28rem;
-            padding: 0;
+        #view-tropp.is-plan-mode .roster-plan-filterbar .stats-kamp-summary-metric-grid {
+            flex: 1 1 18rem;
+            min-width: 0;
         }
-        #view-tropp.is-plan-mode .roster-board-stats .roster-stat-label {
-            color: rgba(255, 236, 196, 0.62);
-            letter-spacing: 0.02em;
-            margin: 0;
-            text-transform: none;
+        #view-tropp.is-plan-mode .roster-plan-all-btn {
+            flex: 0 0 auto;
+            font-size: 0.74rem;
+            font-weight: 950;
+            height: 2.15rem;
+            padding: 0 0.9rem;
+            white-space: nowrap;
+            width: auto;
         }
-        #view-tropp.is-plan-mode .roster-board-stats .roster-stat-value {
-            font-size: 0.95rem;
+        #view-tropp.is-plan-mode .roster-plan-all-btn:focus-visible {
+            outline: 2px solid #8ed4ff;
+            outline-offset: 2px;
         }
-        #view-tropp.is-plan-mode .roster-stat-card:nth-child(1) .roster-stat-value { color: #f5c542; }
-        #view-tropp.is-plan-mode .roster-stat-card:nth-child(2) .roster-stat-value { color: #86efac; }
-        #view-tropp.is-plan-mode .roster-stat-card:nth-child(3) .roster-stat-value { color: #f0b0a8; }
-        #view-tropp.is-plan-mode .roster-stat-card:nth-child(4) .roster-stat-value { color: #9ecbff; }
         #view-tropp:not(.is-plan-mode) #roster-now-filters {
             margin: 0;
             padding: 0 0.9rem 0.9rem;
             width: 100%;
         }
-        #view-tropp:not(.is-plan-mode) #roster-now-filters .stats-kamp-summary-metric-card {
+        #view-tropp:not(.is-plan-mode) #roster-now-filters .stats-kamp-summary-metric-card,
+        #view-tropp.is-plan-mode #roster-plan-filters .stats-kamp-summary-metric-card {
             min-height: 4.4rem;
             min-width: 0;
         }
-        #view-tropp:not(.is-plan-mode) #roster-now-filters .is-green .stats-kamp-summary-metric-label {
+        #view-tropp:not(.is-plan-mode) #roster-now-filters .is-green .stats-kamp-summary-metric-label,
+        #view-tropp.is-plan-mode #roster-plan-filters .is-green .stats-kamp-summary-metric-label {
             color: #bbf7d0;
         }
-        #view-tropp:not(.is-plan-mode) #roster-now-filters .is-amber .stats-kamp-summary-metric-label {
+        #view-tropp:not(.is-plan-mode) #roster-now-filters .is-amber .stats-kamp-summary-metric-label,
+        #view-tropp.is-plan-mode #roster-plan-filters .is-amber .stats-kamp-summary-metric-label {
             color: #fef3c7;
         }
-        #view-tropp:not(.is-plan-mode) #roster-now-filters .is-red .stats-kamp-summary-metric-label {
+        #view-tropp:not(.is-plan-mode) #roster-now-filters .is-red .stats-kamp-summary-metric-label,
+        #view-tropp.is-plan-mode #roster-plan-filters .is-red .stats-kamp-summary-metric-label {
             color: #fecaca;
         }
-        #view-tropp:not(.is-plan-mode) #roster-now-filters .stats-kamp-summary-metric-card:hover:not(.is-active) {
+        #view-tropp:not(.is-plan-mode) #roster-now-filters .stats-kamp-summary-metric-card:hover:not(.is-active),
+        #view-tropp.is-plan-mode #roster-plan-filters .stats-kamp-summary-metric-card:hover:not(.is-active) {
             filter: brightness(1.08);
         }
-        #view-tropp:not(.is-plan-mode) #roster-now-filters .stats-kamp-summary-metric-card.is-active {
+        #view-tropp:not(.is-plan-mode) #roster-now-filters .stats-kamp-summary-metric-card.is-active,
+        #view-tropp.is-plan-mode #roster-plan-filters .stats-kamp-summary-metric-card.is-active {
             box-shadow:
                 0 0 0 2px #fffdf5,
                 0 3px 0 rgba(10, 26, 48, 0.85);
         }
-        #view-tropp:not(.is-plan-mode) #roster-now-filters .stats-kamp-summary-metric-card:focus-visible {
+        #view-tropp:not(.is-plan-mode) #roster-now-filters .stats-kamp-summary-metric-card:focus-visible,
+        #view-tropp.is-plan-mode #roster-plan-filters .stats-kamp-summary-metric-card:focus-visible {
             outline: 2px solid #8ed4ff;
             outline-offset: 3px;
         }
-        #view-tropp:not(.is-plan-mode) #roster-now-filters .stats-kamp-summary-metric-card:active {
+        #view-tropp:not(.is-plan-mode) #roster-now-filters .stats-kamp-summary-metric-card:active,
+        #view-tropp.is-plan-mode #roster-plan-filters .stats-kamp-summary-metric-card:active {
             transform: translateY(1px);
         }
-        #view-tropp:not(.is-plan-mode) #roster-now-filters .roster-count-check {
+        #view-tropp:not(.is-plan-mode) #roster-now-filters .roster-count-check,
+        #view-tropp.is-plan-mode #roster-plan-filters .roster-count-check {
             color: #fffdf5;
             display: none;
             font-size: 0.72rem;
@@ -13237,27 +13220,39 @@
             top: 0.38rem;
             z-index: 2;
         }
-        #view-tropp:not(.is-plan-mode) #roster-now-filters .is-active .roster-count-check {
+        #view-tropp:not(.is-plan-mode) #roster-now-filters .is-active .roster-count-check,
+        #view-tropp.is-plan-mode #roster-plan-filters .is-active .roster-count-check {
             display: block;
         }
         @media (max-width: 767px) {
-            #view-tropp:not(.is-plan-mode) #roster-now-filters.stats-kamp-summary-metric-grid {
+            #view-tropp:not(.is-plan-mode) #roster-now-filters.stats-kamp-summary-metric-grid,
+            #view-tropp.is-plan-mode #roster-plan-filters .stats-kamp-summary-metric-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            #view-tropp:not(.is-plan-mode) #roster-now-filters.stats-kamp-summary-metric-grid {
+                padding-left: 0.7rem;
+                padding-right: 0.7rem;
+            }
+            #view-tropp.is-plan-mode .roster-plan-filterbar {
                 padding-left: 0.7rem;
                 padding-right: 0.7rem;
             }
         }
-        #view-tropp:not(.is-plan-mode) .roster-board-toolbar .roster-search-wrap {
+        #view-tropp:not(.is-plan-mode) .roster-board-toolbar .roster-search-wrap,
+        #view-tropp.is-plan-mode .roster-board-toolbar .roster-search-wrap {
             background: rgba(8, 24, 48, 0.55);
             border-color: rgba(245, 197, 66, 0.32);
         }
-        #view-tropp:not(.is-plan-mode) .roster-board-toolbar .roster-search-input {
+        #view-tropp:not(.is-plan-mode) .roster-board-toolbar .roster-search-input,
+        #view-tropp.is-plan-mode .roster-board-toolbar .roster-search-input {
             color: #fffdf5;
         }
-        #view-tropp:not(.is-plan-mode) .roster-board-toolbar .roster-search-input::placeholder {
+        #view-tropp:not(.is-plan-mode) .roster-board-toolbar .roster-search-input::placeholder,
+        #view-tropp.is-plan-mode .roster-board-toolbar .roster-search-input::placeholder {
             color: rgba(226, 236, 248, 0.78);
         }
         #view-tropp.is-plan-mode .roster-content {
+            padding-bottom: 0.85rem;
             padding-top: 0.65rem;
         }
         .roster-plan-badge.is-open {
@@ -13280,144 +13275,20 @@
             box-shadow: inset 0 0 0 1px rgba(126, 194, 255, 0.34);
             color: #c8e4ff;
         }
-        .roster-player-row.is-plan-row {
-            background: linear-gradient(90deg, #102f54 0%, #0c2746 100%);
-            gap: 0.22rem;
-            padding: 0.32rem 0.65rem 0.24rem;
+        #view-tropp.is-plan-mode .roster-player-row.is-status-open .roster-plan-select {
+            border-color: rgba(245, 197, 66, 0.7);
         }
-        .roster-player-row.is-plan-row .roster-player-name {
-            line-height: 1.05;
+        #view-tropp.is-plan-mode .roster-player-row.is-status-continue .roster-plan-select {
+            border-color: rgba(74, 222, 128, 0.7);
         }
-        .roster-player-row.is-plan-row .roster-player-meta {
-            display: flex;
-            line-height: 1.15;
-            margin-top: 0;
+        #view-tropp.is-plan-mode .roster-player-row.is-status-leave .roster-plan-select {
+            border-color: rgba(248, 113, 113, 0.7);
         }
-        .roster-player-row.is-plan-row .roster-plan-season {
-            line-height: 1.15;
-            margin-top: 0.02rem;
+        #view-tropp.is-plan-mode .roster-player-row.is-status-new .roster-plan-select {
+            border-color: rgba(142, 212, 255, 0.75);
         }
-        .roster-player-row.is-plan-row .roster-plan-controls {
-            gap: 0.16rem;
-        }
-        .roster-player-row.is-plan-row .roster-plan-label {
-            color: rgba(214, 224, 234, 0.62);
-            flex: 1 1 auto;
-            font-size: 0.68rem;
-            font-weight: 800;
-            letter-spacing: 0.02em;
-        }
-        .roster-player-row.is-plan-row .roster-plan-label > span {
-            flex: 0 0 auto;
-        }
-        .roster-player-row.is-plan-row .roster-plan-select {
-            background-color: rgba(8, 24, 44, 0.45);
-            border-width: 1px;
-            border-style: solid;
-            font-size: 0.78rem;
-            font-weight: 900;
-            min-height: 2.15rem;
-            padding: 0.28rem 0.5rem;
-        }
-        .roster-player-row.is-plan-row .roster-plan-note {
-            background: rgba(255, 255, 255, 0.045);
-            border-color: rgba(255, 255, 255, 0.1);
-            font-size: 0.72rem;
-            font-weight: 700;
-            line-height: 1.2;
-            min-height: 1.5rem;
-            padding: 0.1rem 0.5rem;
-        }
-        .roster-player-row.is-plan-row.is-status-open {
-            border-left-color: #f5c542;
-        }
-        .roster-player-row.is-plan-row.is-status-open .roster-plan-select {
-            background-color: rgba(245, 197, 66, 0.1);
-            border-color: rgba(245, 197, 66, 0.55);
-            color: #ffe08a;
-        }
-        .roster-player-row.is-plan-row.is-status-continue {
-            border-left-color: #4ade80;
-        }
-        .roster-player-row.is-plan-row.is-status-continue .roster-plan-select {
-            background-color: rgba(74, 222, 128, 0.1);
-            border-color: rgba(74, 222, 128, 0.45);
-            color: #86efac;
-        }
-        .roster-player-row.is-plan-row.is-status-leave {
-            border-left-color: #d48980;
-        }
-        .roster-player-row.is-plan-row.is-status-leave .roster-plan-select {
-            background-color: rgba(196, 106, 98, 0.12);
-            border-color: rgba(212, 137, 128, 0.5);
-            color: #f0b0a8;
-        }
-        .roster-player-row.is-plan-row.is-status-new {
-            border-left-color: #7ec2ff;
-        }
-        .roster-player-row.is-plan-row.is-status-new .roster-plan-select {
-            background-color: rgba(94, 176, 255, 0.12);
-            border-color: rgba(126, 194, 255, 0.5);
-            color: #c8e4ff;
-        }
-        #view-tropp.is-plan-mode .roster-group-rows {
-            gap: 0.28rem;
-        }
-        @media (max-width: 767px) {
-            #view-tropp.is-plan-mode .roster-board-toolbar {
-                align-items: stretch;
-                display: grid;
-                gap: 0.4rem;
-                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-                padding: 0.55rem 0.7rem 0.65rem;
-            }
-            #view-tropp.is-plan-mode .roster-toolbar-filters {
-                display: contents;
-            }
-            #view-tropp.is-plan-mode .roster-plan-intro { grid-column: 1 / -1; grid-row: 1; }
-            #view-tropp.is-plan-mode .roster-create-season-btn { grid-column: 1 / -1; grid-row: 2; }
-            #view-tropp.is-plan-mode #roster-plan-filters { grid-column: 1 / -1; grid-row: 3; }
-            #view-tropp.is-plan-mode .roster-search-line { grid-column: 1 / -1; grid-row: 4; }
-            #view-tropp.is-plan-mode .roster-create-season-btn {
-                min-width: 0;
-                width: 100%;
-            }
-        }
-        @media (min-width: 768px) {
-            #view-tropp.is-plan-mode .roster-board-toolbar {
-                align-items: center;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.5rem 0.65rem;
-                justify-content: flex-start;
-            }
-            #view-tropp.is-plan-mode .roster-toolbar-filters {
-                display: contents;
-            }
-            #view-tropp.is-plan-mode .roster-mode-switch {
-                flex: 0 0 auto;
-                width: auto;
-            }
-            #view-tropp.is-plan-mode .roster-plan-intro {
-                flex: 1 1 18rem;
-            }
-            #view-tropp.is-plan-mode .roster-create-season-btn {
-                flex: 0 0 auto;
-                width: auto;
-            }
-            #view-tropp.is-plan-mode .roster-search-line {
-                flex: 1 1 16rem;
-                width: auto;
-            }
-            #view-tropp.is-plan-mode #roster-plan-filters {
-                flex: 1 1 auto;
-                width: auto;
-            }
-            #view-tropp.is-plan-mode .roster-search-wrap {
-                flex: 1 1 18rem;
-                margin-left: 0;
-                width: auto;
-            }
+        #view-tropp:not(.is-plan-mode) #rosterPlanSearchStatus {
+            display: none;
         }
         .player-modal-card {
             box-shadow: 0 24px 48px rgba(2, 6, 23, 0.42);
@@ -27608,7 +27479,8 @@
             }
         }
         .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row,
-        #view-tropp:not(.is-plan-mode) .roster-player-row {
+        #view-tropp:not(.is-plan-mode) .roster-player-row,
+        #view-tropp.is-plan-mode .roster-player-row {
             background:
                 linear-gradient(180deg, rgba(18, 42, 72, 0.88) 0%, rgba(12, 32, 58, 0.78) 100%);
             border: 1.5px solid rgba(245, 197, 66, 0.48);
@@ -27643,7 +27515,8 @@
             width: 100%;
         }
         .match-stats-summary-thumb,
-        #view-tropp:not(.is-plan-mode) .roster-player-avatar {
+        #view-tropp:not(.is-plan-mode) .roster-player-avatar,
+        #view-tropp.is-plan-mode .roster-player-avatar {
             background: linear-gradient(180deg, #1f3a5f, #123f73);
             border: 1.5px solid rgba(245, 197, 66, 0.65);
             border-radius: 0.55rem;
@@ -27668,7 +27541,8 @@
             transform: translate(-50%, -50%);
         }
         .match-stats-summary-chip.is-pos,
-        #view-tropp:not(.is-plan-mode) .roster-pos-chip {
+        #view-tropp:not(.is-plan-mode) .roster-pos-chip,
+        #view-tropp.is-plan-mode .roster-pos-chip {
             background: linear-gradient(180deg, #ff4fd8, #bd0a88);
             border: 1px solid rgba(255, 255, 255, 0.85);
             color: #fff;
@@ -27683,7 +27557,8 @@
             min-width: 0;
         }
         .match-stats-summary-name,
-        #view-tropp:not(.is-plan-mode) .roster-player-name-text {
+        #view-tropp:not(.is-plan-mode) .roster-player-name-text,
+        #view-tropp.is-plan-mode .roster-player-name-text {
             color: #fffdf5;
             font-size: 0.92rem;
             font-weight: 900;
@@ -27693,7 +27568,8 @@
             white-space: nowrap;
         }
         .match-stats-summary-meta,
-        #view-tropp:not(.is-plan-mode) .roster-player-meta {
+        #view-tropp:not(.is-plan-mode) .roster-player-meta,
+        #view-tropp.is-plan-mode .roster-player-meta {
             align-items: center;
             color: rgba(196, 214, 240, 0.9);
             display: flex;
@@ -27715,7 +27591,8 @@
             gap: 0.22rem;
         }
         .match-stats-summary-chip,
-        #view-tropp:not(.is-plan-mode) .roster-pos-chip {
+        #view-tropp:not(.is-plan-mode) .roster-pos-chip,
+        #view-tropp.is-plan-mode .roster-pos-chip {
             align-items: center;
             border-radius: 0.28rem;
             display: inline-flex;
@@ -27899,7 +27776,8 @@
         .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row:hover,
         .match-detail-page .match-stats-panel.is-game-card .match-stats-player-row:focus-within,
         #view-tropp:not(.is-plan-mode) .roster-player-row:hover,
-        #view-tropp:not(.is-plan-mode) .roster-player-row:focus-visible {
+        #view-tropp:not(.is-plan-mode) .roster-player-row:focus-visible,
+        #view-tropp.is-plan-mode .roster-player-row:hover {
             background:
                 linear-gradient(180deg, rgba(28, 58, 96, 0.92) 0%, rgba(16, 42, 74, 0.86) 100%);
             border-color: #ffe08a;
