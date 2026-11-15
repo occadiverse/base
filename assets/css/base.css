@@ -213,6 +213,21 @@
             gap: 0.4rem;
             position: relative;
         }
+        @media (max-width: 767px) {
+            button.portal-btn.portal-mobile-tropp-btn {
+                align-items: center;
+                flex: 0 0 2.75rem;
+                height: 2.75rem;
+                justify-content: center;
+                min-height: 2.75rem;
+                min-width: 2.75rem;
+                width: 2.75rem;
+            }
+            button.portal-btn.portal-mobile-tropp-btn i {
+                font-size: 0.84rem;
+                line-height: 1;
+            }
+        }
         .portal-mobile-tools-menu {
             background: rgba(255, 255, 255, 0.98);
             border: 1px solid rgba(18, 63, 115, 0.12);
