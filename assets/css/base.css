@@ -9533,11 +9533,9 @@
         .match-list-page .match-list-add-btn.match-filter-btn {
             align-items: center;
             background: #12345c;
-            border: 0.5px solid #8ed4ff;
+            border: 1.5px solid rgba(142, 212, 255, 0.5);
             border-radius: 0.55rem;
-            box-shadow:
-                inset 0 0 0 1px rgba(10, 36, 74, 0.45),
-                inset 0 2px 3px rgba(8, 28, 60, 0.2);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
             color: #ffffff;
             display: inline-flex;
             flex-shrink: 0;
@@ -9553,15 +9551,10 @@
             min-height: 2.35rem;
             overflow: hidden;
             padding: 0.4rem 0.35rem 0.48rem;
-            paint-order: stroke fill;
+            paint-order: normal;
             position: relative;
-            text-shadow:
-                0 1.5px 0 #111,
-                1px 1px 0 #111,
-                -1px 1px 0 #111,
-                1px -1px 0 #111,
-                -1px -1px 0 #111;
-            -webkit-text-stroke: 0.6px #111;
+            text-shadow: none;
+            -webkit-text-stroke: 0;
             text-transform: none;
             transform: none;
             white-space: nowrap;
@@ -9586,55 +9579,71 @@
         }
         .match-list-page .match-filter-btn:not(.match-list-add-btn) i,
         .match-list-page .match-list-add-btn i {
-            color: #ffffff;
+            color: inherit;
             flex: 0 0 auto;
             font-size: 0.82rem;
-            paint-order: stroke fill;
-            text-shadow: 0 1px 0 #111;
-            -webkit-text-stroke: 0.45px #111;
+            paint-order: normal;
+            text-shadow: none;
+            -webkit-text-stroke: 0;
+        }
+        .match-list-page .match-list-add-btn,
+        .match-list-page .match-list-add-btn.bsk-btn-chip,
+        .match-list-page .match-list-add-btn.match-filter-btn {
+            border-color: rgba(255, 224, 138, 0.72);
+            color: #fffdf5;
         }
         .match-list-page .match-filter-btn:not(.match-list-add-btn):hover:not(.is-active),
-        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn):hover:not(.is-active),
+        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn):hover:not(.is-active) {
+            background: #12345c;
+            border-color: #c7ecff;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+            transform: none;
+        }
         .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active,
         .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active,
         .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active:hover,
-        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active:hover,
+        .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active:hover {
+            background: linear-gradient(180deg, #245a86 0%, #1a456c 100%);
+            border-color: rgba(255, 224, 138, 0.95);
+            box-shadow:
+                inset 0 0 0 1px rgba(245, 197, 66, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.16);
+            color: #ffe9a8;
+            transform: none;
+        }
         .match-list-page .match-list-add-btn:hover,
         .match-list-page .match-list-add-btn.bsk-btn-chip:hover,
         .match-list-page .match-list-add-btn.match-filter-btn:hover {
             background: #12345c;
-            border-color: #c7ecff;
-            box-shadow:
-                inset 0 0 0 1px rgba(10, 36, 74, 0.45),
-                inset 0 2px 3px rgba(8, 28, 60, 0.2);
-            color: #ffffff;
+            border-color: rgba(255, 224, 138, 0.95);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+            color: #fffdf5;
             transform: none;
         }
         .match-list-page .match-filter-btn:not(.match-list-add-btn):hover:not(.is-active)::before,
-        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active::before,
-        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active:hover::before,
         .match-list-page .match-list-add-btn:hover::before {
             background: linear-gradient(180deg, #346c94 0%, #285c80 100%);
+        }
+        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active::before,
+        .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active:hover::before {
+            background: linear-gradient(180deg, rgba(255, 224, 138, 0.34) 0%, rgba(245, 197, 66, 0.05) 100%);
         }
         .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active i,
         .match-list-page .match-filter-btn.bsk-btn-chip:not(.match-list-add-btn).is-active i,
         .match-list-page .match-list-add-btn:hover i {
-            color: #ffffff;
+            color: inherit;
         }
         .match-list-page .match-filter-btn:not(.match-list-add-btn):focus-visible,
         .match-list-page .match-filter-btn:not(.match-list-add-btn).is-active:focus-visible,
         .match-list-page .match-list-add-btn:focus-visible {
-            box-shadow:
-                inset 0 0 0 1px rgba(10, 36, 74, 0.45),
-                inset 0 2px 3px rgba(8, 28, 60, 0.2);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
             outline: 2px solid #8ed4ff;
             outline-offset: 2px;
         }
         .match-list-page .match-list-add-btn:active,
         .match-list-page .match-list-add-btn.bsk-btn-chip:active {
-            box-shadow:
-                inset 0 0 0 1px rgba(10, 36, 74, 0.45),
-                inset 0 2px 3px rgba(8, 28, 60, 0.2);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
             transform: translateY(1px);
         }
         .hjem-page .match-list-add-btn,
@@ -9919,9 +9928,9 @@
                 z-index: 25;
             }
             .match-list-mobile-top {
-                background: rgba(255, 255, 255, 0.07);
-                border-bottom: 1px solid rgba(245, 197, 66, 0.14);
-                padding: 0.75rem 0.85rem;
+                background: transparent;
+                border-bottom: 0;
+                padding: 0.35rem 0.85rem 0.42rem;
             }
             .match-list-mobile-toolbar {
                 background: transparent;
@@ -10235,8 +10244,8 @@
             body.is-kamper-list .match-list-mobile-top {
                 background: transparent;
                 border-bottom: 0;
-                padding-bottom: 0.55rem;
-                padding-top: 0.2rem;
+                padding-bottom: 0.42rem;
+                padding-top: 0.35rem;
             }
             body.is-kamper-list .match-list-mobile-toolbar {
                 background: transparent;
@@ -10497,14 +10506,21 @@
                 padding-right: 1.15rem;
             }
         }
-        .match-list-column-past {
+        .match-list-page .match-list-column {
             background:
-                radial-gradient(circle at 100% 0%, rgba(245, 197, 66, 0.1), transparent 32%),
-                linear-gradient(180deg, #123f73 0%, #0b2b4c 100%);
+                radial-gradient(ellipse 100% 45% at 50% -12%, rgba(245, 197, 66, 0.16), transparent 55%),
+                linear-gradient(168deg, #163a62 0%, #0f2d52 48%, #0a2240 100%);
+            border: 2px solid rgba(245, 197, 66, 0.42);
+            border-radius: 1rem;
+            box-shadow:
+                0 0 0 1.5px rgba(6, 16, 32, 0.85),
+                0 6px 0 rgba(6, 16, 32, 0.88),
+                0 12px 22px rgba(2, 8, 20, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.14);
         }
         .match-list-column-watermark {
             bottom: auto;
-            opacity: 0.075;
+            opacity: 0.032;
             right: -2.8rem;
             top: -3.5rem;
         }
@@ -10512,14 +10528,35 @@
             font-size: clamp(10rem, 22vw, 16rem);
         }
         .match-list-mobile-watermark {
-            opacity: 0.08;
+            opacity: 0.028;
             right: -3.25rem;
             top: -2.4rem;
         }
         .match-list-column-header {
             align-items: center;
+            background: transparent;
+            border-bottom: 0;
             gap: 0.75rem;
             min-height: var(--portal-topline-min-height);
+            position: relative;
+        }
+        .match-list-column-header::after {
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(214, 168, 64, 0.4) 8%,
+                rgba(226, 184, 74, 0.95) 50%,
+                rgba(214, 168, 64, 0.4) 92%,
+                transparent 100%
+            );
+            bottom: 0;
+            box-shadow: 0 0 2px rgba(214, 168, 64, 0.2);
+            content: "";
+            height: 1.5px;
+            left: 1.15rem;
+            pointer-events: none;
+            position: absolute;
+            right: 1.15rem;
         }
         .match-list-column-header .match-list-column-title {
             flex: 1 1 auto;
@@ -10546,51 +10583,46 @@
         /* Kamper-liste heading = samme Clash som Kampplan (merke/typografi/gullinje) */
         .match-list-mobile-card .match-list-mobile-top {
             position: relative;
-            padding-bottom: 0.55rem;
-            padding-top: 0.2rem;
+            padding-bottom: 0.42rem;
+            padding-top: 0.35rem;
         }
         .match-list-mobile-card .match-list-mobile-top::after {
             background: linear-gradient(
                 90deg,
-                transparent,
-                #ffe08a 20%,
-                #f5c542 50%,
-                #ffe08a 80%,
-                transparent
+                transparent 0%,
+                rgba(214, 168, 64, 0.4) 8%,
+                rgba(226, 184, 74, 0.95) 50%,
+                rgba(214, 168, 64, 0.4) 92%,
+                transparent 100%
             );
             bottom: 0;
-            box-shadow: 0 0 10px rgba(245, 197, 66, 0.35);
+            box-shadow: 0 0 2px rgba(214, 168, 64, 0.2);
             content: "";
-            height: 2.5px;
-            left: 0;
+            height: 1.5px;
+            left: 0.85rem;
             pointer-events: none;
             position: absolute;
-            right: 0;
+            right: 0.85rem;
             z-index: 1;
         }
         .match-list-mobile-card .match-list-mobile-heading {
             align-items: center;
             display: flex;
-            gap: 0.55rem;
-            min-height: 2.65rem;
-            padding: 0;
-            padding-left: 0.05rem;
+            gap: 0.45rem;
+            min-height: 0;
+            padding: 0 0.05rem;
             position: relative;
             z-index: 2;
         }
         .match-list-mobile-card .match-list-mobile-heading h3 {
             color: #ffe9a8;
-            font-size: clamp(1.32rem, 3.7vw, 1.58rem);
+            font-size: 1.16rem;
             font-weight: 950;
-            letter-spacing: 0.08em;
-            line-height: 1;
+            letter-spacing: 0.04em;
+            line-height: 1.15;
             margin: 0;
             position: relative;
-            text-shadow:
-                0 1px 0 rgba(255, 253, 245, 0.28),
-                0 2px 0 rgba(10, 26, 48, 0.55),
-                0 3px 0 rgba(122, 86, 8, 0.35),
-                0 0 18px rgba(255, 214, 102, 0.28);
+            text-shadow: 0 1px 0 rgba(10, 26, 48, 0.4);
             text-transform: uppercase;
             z-index: 2;
         }
@@ -10603,17 +10635,17 @@
                 drop-shadow(0 3px 0 #6b4a0c)
                 drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
             flex: 0 0 auto;
-            height: 3.25rem;
+            height: 2.15rem;
             justify-content: center;
-            margin: -0.25rem 0 -0.5rem;
+            margin: 0;
             position: relative;
-            transform: rotate(-10deg);
+            transform: translateY(0.06rem) rotate(-10deg);
             transform-origin: 50% 55%;
-            width: 3.25rem;
+            width: 2.15rem;
             z-index: 3;
         }
         .match-list-mobile-card .match-list-mark i {
-            font-size: 2.35rem;
+            font-size: 1.55rem;
             line-height: 1;
             text-shadow:
                 -1px 0 0 #fffdf5,
@@ -10678,13 +10710,29 @@
             font-size: 0.82rem;
         }
         .match-list-mobile-top {
-            background: rgba(255, 255, 255, 0.07);
-            border-bottom: 1px solid rgba(245, 197, 66, 0.16);
-            min-height: var(--portal-topline-min-height);
+            background: transparent;
+            border-bottom: 0;
+            min-height: 0;
         }
         .match-list-column-title {
-            font-size: 0.94rem;
+            align-items: center;
+            color: #ffe9a8;
+            font-size: 1.16rem;
+            font-weight: 950;
+            letter-spacing: 0.04em;
             min-width: 0;
+            text-shadow: 0 1px 0 rgba(10, 26, 48, 0.4);
+            text-transform: uppercase;
+        }
+        .match-list-column-title i {
+            color: #f5c542;
+            filter:
+                drop-shadow(0 1px 0 rgba(255, 253, 245, 0.85))
+                drop-shadow(0 3px 0 #6b4a0c)
+                drop-shadow(0 0 12px rgba(245, 197, 66, 0.55));
+            font-size: 1.55rem;
+            transform: translateY(0.06rem) rotate(-10deg);
+            transform-origin: 50% 55%;
         }
         .match-list-column-title-label {
             min-width: 0;
@@ -10875,13 +10923,12 @@
         .match-list-column .match-fixture-row,
         .match-list-mobile-card .match-fixture-row {
             background: linear-gradient(180deg, rgba(30, 80, 136, 0.62) 0%, rgba(8, 28, 56, 0.82) 100%);
-            border: 2.5px solid rgba(255, 224, 138, 0.48);
+            border: 1.5px solid rgba(245, 197, 66, 0.42);
             border-radius: 0.95rem;
             box-shadow:
-                0 3px 0 rgba(2, 6, 23, 0.55),
-                0 10px 22px rgba(2, 6, 23, 0.22),
-                inset 0 1px 0 rgba(255, 253, 245, 0.16),
-                inset 0 -10px 22px rgba(2, 6, 23, 0.18);
+                0 2px 0 rgba(10, 26, 48, 0.45),
+                0 6px 14px rgba(2, 6, 23, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
             transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
         }
         .match-list-column .match-fixture-row:hover,
@@ -10889,12 +10936,11 @@
         .match-list-column .match-fixture-row:focus-visible,
         .match-list-mobile-card .match-fixture-row:focus-visible {
             background: linear-gradient(180deg, rgba(40, 95, 150, 0.74) 0%, rgba(12, 36, 68, 0.9) 100%);
-            border-color: rgba(255, 224, 138, 0.72);
+            border-color: rgba(245, 197, 66, 0.62);
             box-shadow:
-                0 3px 0 rgba(2, 6, 23, 0.62),
-                0 12px 26px rgba(2, 6, 23, 0.28),
-                inset 0 1px 0 rgba(255, 253, 245, 0.22),
-                inset 0 -10px 22px rgba(2, 6, 23, 0.16);
+                0 2px 0 rgba(10, 26, 48, 0.4),
+                0 8px 16px rgba(2, 6, 23, 0.16),
+                inset 0 1px 0 rgba(255, 255, 255, 0.14);
             outline: none;
         }
         .match-fixture-row.is-win {
@@ -11119,9 +11165,9 @@
         /* Kamper-liste: dempet meta (Serie · bane) uten egen chip */
         .match-list-column .match-fixture-meta,
         .match-list-mobile-card .match-fixture-meta {
-            color: rgba(255, 253, 245, 0.38);
+            color: #d5e4f4;
             font-size: 0.64rem;
-            font-weight: 600;
+            font-weight: 700;
         }
         .match-fixture-side {
             align-items: flex-end;
@@ -11239,9 +11285,6 @@
         .match-list-page .match-filter-count {
             font-variant-numeric: tabular-nums;
         }
-        .match-list-page .match-filter-btn.is-zero:not(.is-active) {
-            opacity: 0.62;
-        }
         .match-list-column-empty.is-compact {
             align-items: center;
             flex-direction: row;
@@ -11267,6 +11310,22 @@
                 display: grid;
                 gap: 1.25rem;
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .match-list-column-title {
+                font-size: 1.08rem;
+                letter-spacing: 0.03em;
+            }
+            .match-list-column-title i {
+                font-size: 1.45rem;
+            }
+            @media (min-width: 1440px) {
+                .match-list-column-title {
+                    font-size: 1.28rem;
+                    letter-spacing: 0.05em;
+                }
+                .match-list-column-title i {
+                    font-size: 1.65rem;
+                }
             }
             .match-list-desktop-columns.is-history-focus {
                 grid-template-columns: minmax(0, 1fr);
