@@ -260,7 +260,7 @@
                                 <i class="fa-solid fa-users"></i>
                             </span>
                             <div class="match-bench-heading-copy">
-                                <h2 class="roster-hero-title">Spillertropp</h2>
+                                <h2 id="rosterHeroTitle" class="roster-hero-title">Spillertropp</h2>
                             </div>
                         </div>
                     </div>
@@ -270,14 +270,13 @@
                                 <h3 id="rosterBoardTitle">Tropp</h3>
                                 <span id="rosterVisibleAge" class="roster-visible-age" hidden></span>
                             </div>
-                            <p id="rosterPlanKicker" class="roster-plan-kicker" hidden>Troppsplanlegging</p>
                         </div>
-                        <span id="rosterAgeDot" class="roster-season-dot" aria-hidden="true"></span>
-                        <div class="roster-mode-switch" role="tablist" aria-label="Velg troppvisning">
-                            <button type="button" id="roster-mode-now" role="tab" class="blknapp match-subs-view-tab is-active" aria-selected="true" onclick="window.setRosterMode('now')">Tropp</button>
-                            <button type="button" id="roster-mode-plan" role="tab" class="blknapp match-subs-view-tab" aria-selected="false" onclick="window.setRosterMode('plan2027')">Tropp</button>
+                        <div class="roster-mode-switch">
+                            <button type="button" id="roster-mode-now" class="blknapp" hidden onclick="window.setRosterMode('now')">← Tropp 2026</button>
+                            <button type="button" id="roster-mode-plan" class="blknapp" onclick="window.setRosterMode('plan2027')">Planlegg 2027 →</button>
                         </div>
                     </div>
+                    <p id="rosterPlanKicker" class="roster-plan-kicker" hidden>Velg hvem som fortsetter eller slutter.</p>
 
                     <div class="roster-board-toolbar relative z-10">
                         <div class="roster-search-line">
@@ -290,14 +289,16 @@
                                 <i class="fa-solid fa-plus" aria-hidden="true"></i>
                                 <span id="roster-add-player-label">Legg til spiller</span>
                             </button>
+                            <section id="roster-create-season" class="roster-create-season hidden" aria-label="Opprett troppen">
+                                <button type="button" id="roster-create-season-btn" class="roster-add-player-btn roster-create-season-btn" onclick="window.openCreateSeasonRosterDialog()">Opprett tropp</button>
+                            </section>
                             <div class="roster-search-wrap">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                                 <input type="search" id="playerSearchInput" oninput="handlePlayerSearchChange()" placeholder="Søk navn, drakt eller posisjon" class="roster-search-input" aria-label="Søk spillere">
                             </div>
-                        </div>
-                        <div id="roster-create-season" class="roster-create-season hidden">
-                            <p id="rosterPlanIntro" class="roster-plan-intro">Oppretter neste sesongs tropp fra spillere merket Fortsetter eller Ny spiller. Uavklarte og de som slutter tas ikke med.</p>
-                            <button type="button" id="roster-create-season-btn" class="roster-add-player-btn roster-create-season-btn" onclick="window.openCreateSeasonRosterDialog()">Opprett tropp</button>
+                            <div class="roster-plan-filter-head">
+                                <button type="button" id="roster-plan-filter-alle" role="tab" class="blknapp roster-plan-all-btn" aria-selected="false" onclick="window.setRosterPlanFilter('alle')">Alle</button>
+                            </div>
                         </div>
                     </div>
 
@@ -328,8 +329,8 @@
                         </button>
                     </div>
 
-                    <div id="roster-plan-filters" class="roster-plan-filterbar hidden relative z-10">
-                        <div class="stats-kamp-summary-metric-grid roster-count-filters" role="tablist" aria-label="Filtrer etter planstatus">
+                    <div id="roster-plan-filters" class="roster-plan-filterbar hidden relative z-10" role="tablist" aria-label="Filtrer etter planstatus" aria-owns="roster-plan-filter-alle">
+                        <div class="stats-kamp-summary-metric-grid roster-count-filters">
                             <button type="button" id="roster-plan-filter-uavklart" data-plan-filter="Uavklart" role="tab" class="stats-kamp-summary-metric-card is-amber is-active" aria-selected="true" onclick="window.setRosterPlanFilter('Uavklart')">
                                 <i class="fa-solid fa-circle-question stats-kamp-summary-metric-bg-icon" aria-hidden="true"></i>
                                 <span class="stats-kamp-summary-metric-label">Uavklart</span>
@@ -355,7 +356,6 @@
                                 <i class="fa-solid fa-check roster-count-check" aria-hidden="true"></i>
                             </button>
                         </div>
-                        <button type="button" id="roster-plan-filter-alle" role="tab" class="blknapp roster-plan-all-btn" aria-selected="false" onclick="window.setRosterPlanFilter('alle')">Alle</button>
                     </div>
 
                     <footer class="match-detail-footer roster-bottomline relative z-10">
@@ -365,12 +365,12 @@
 
                 <section class="match-detail-card roster-board-card roster-list-card">
                         <div class="roster-content relative z-10">
+                        <h3 id="rosterPlanListHeading" class="roster-plan-list-heading" tabindex="-1" hidden></h3>
                         <p id="rosterPlanStatusHint" class="roster-plan-status-hint" hidden>Trykk på planstatusen på spillerkortet for å endre den.</p>
                         <div id="rosterPlanStatusNotice" class="roster-plan-status-notice" hidden>
                             <p id="rosterPlanStatusNoticeText" role="status"></p>
                             <button type="button" id="rosterPlanStatusNoticeAction" hidden></button>
                         </div>
-                        <h3 id="rosterPlanListHeading" class="roster-plan-list-heading" tabindex="-1" hidden></h3>
                         <p id="rosterPlanSearchStatus" class="roster-plan-search-status" hidden aria-live="polite"></p>
                         <div id="playerRosterContainer" class="roster-list"></div>
 

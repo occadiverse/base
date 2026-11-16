@@ -70,17 +70,27 @@ function syncRosterSeasonChrome() {
     const planMode = window.rosterMode === 'plan2027';
     const nowYear = getRosterSeasonYear(false);
     const planYear = getRosterSeasonYear(true);
+    const hero = document.getElementById('rosterHeroTitle');
     const titleEl = document.getElementById('rosterBoardTitle');
     const nowBtn = document.getElementById('roster-mode-now');
     const planBtn = document.getElementById('roster-mode-plan');
     const kicker = document.getElementById('rosterPlanKicker');
-    if (titleEl) titleEl.textContent = `Tropp ${planMode ? planYear : nowYear}`;
-    if (nowBtn) nowBtn.textContent = `Tropp ${nowYear}`;
-    if (planBtn) planBtn.textContent = `Tropp ${planYear}`;
-    if (kicker) kicker.hidden = !planMode;
-    const intro = document.getElementById('rosterPlanIntro');
-    if (intro) {
-        intro.textContent = `Oppretter ${planYear}-troppen fra spillere merket Fortsetter eller Ny spiller. Uavklarte og de som slutter tas ikke med, og ${nowYear}-data endres ikke.`;
+    const workCard = document.querySelector('#view-tropp .roster-work-card');
+    if (hero) hero.textContent = planMode ? `Spillertropp ${planYear}` : 'Spillertropp';
+    if (workCard) workCard.setAttribute('aria-label', planMode ? `Spillertropp ${planYear}` : 'Spillertropp');
+    if (titleEl) titleEl.textContent = `Tropp ${nowYear}`;
+    if (nowBtn) {
+        nowBtn.hidden = !planMode;
+        nowBtn.textContent = `← ${nowYear}`;
+        nowBtn.setAttribute('aria-label', `Tilbake til Tropp ${nowYear}`);
+    }
+    if (planBtn) {
+        planBtn.hidden = planMode;
+        planBtn.textContent = `Planlegg ${planYear} →`;
+    }
+    if (kicker) {
+        kicker.hidden = !planMode;
+        kicker.textContent = 'Velg hvem som fortsetter eller slutter.';
     }
     if (planMode) setRosterVisibleAgeChip(null);
     document.getElementById('rosterPlanStatusHint')?.toggleAttribute('hidden', !planMode);
@@ -470,10 +480,100 @@ function bindAdminTeamsListEvents() {
     });
 }
 
+function clearRosterPlanStatusMenuPlacement(menu) {
+    if (!menu) return;
+    menu.classList.remove('is-placed', 'is-drop-up');
+    menu.style.left = '';
+    menu.style.top = '';
+    menu.style.maxHeight = '';
+    menu.style.overflowY = '';
+}
+
+function rosterPlanMenuBounds() {
+    const viewport = window.visualViewport;
+    const viewTop = viewport ? viewport.offsetTop : 0;
+    const viewBottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight;
+    const viewLeft = viewport ? viewport.offsetLeft : 0;
+    const viewRight = viewport ? viewport.offsetLeft + viewport.width : window.innerWidth;
+    let bottom = viewBottom - 8;
+    const nav = document.querySelector('.portal-mobile-nav-shell');
+    if (nav) {
+        const style = getComputedStyle(nav);
+        const rect = nav.getBoundingClientRect();
+        const shown = style.display !== 'none'
+            && style.visibility !== 'hidden'
+            && rect.width > 0
+            && rect.height > 0;
+        if (shown && rect.top < viewBottom - 4 && rect.bottom > viewTop + 4) {
+            bottom = Math.min(bottom, rect.top - 8);
+        }
+    }
+    return {
+        top: viewTop + 8,
+        bottom,
+        left: viewLeft + 8,
+        right: viewRight - 8
+    };
+}
+
+function placeOpenRosterPlanStatusMenu() {
+    const menu = document.querySelector('.roster-plan-status-menu:not([hidden])');
+    const toggle = menu?.parentElement?.querySelector('[data-roster-plan-status-toggle]');
+    if (!menu || !toggle) return;
+    const bounds = rosterPlanMenuBounds();
+    const anchor = toggle.getBoundingClientRect();
+    const gap = 6;
+    const previousScroll = menu.scrollTop;
+    menu.classList.add('is-placed');
+    menu.style.maxHeight = 'none';
+    menu.style.overflowY = 'visible';
+    const naturalHeight = menu.scrollHeight;
+    const spaceBelow = bounds.bottom - anchor.bottom - gap;
+    const spaceAbove = anchor.top - bounds.top - gap;
+    if (anchor.bottom < bounds.top || anchor.top > bounds.bottom) {
+        closeRosterPlanStatusMenus();
+        return;
+    }
+    if (Math.max(spaceBelow, spaceAbove) < 36) {
+        closeRosterPlanStatusMenus();
+        return;
+    }
+    const openUp = spaceBelow < naturalHeight && spaceAbove > spaceBelow;
+    const available = openUp ? spaceAbove : spaceBelow;
+    const scroll = naturalHeight > available + 1;
+    const height = scroll ? Math.min(naturalHeight, available) : naturalHeight;
+    menu.classList.toggle('is-drop-up', openUp);
+    menu.style.maxHeight = scroll ? `${Math.round(height)}px` : '';
+    menu.style.overflowY = scroll ? 'auto' : '';
+    if (scroll) menu.scrollTop = previousScroll;
+    const width = menu.offsetWidth;
+    const left = Math.max(bounds.left, Math.min(anchor.right - width, bounds.right - width));
+    const top = openUp
+        ? Math.max(bounds.top, anchor.top - gap - height)
+        : Math.min(anchor.bottom + gap, Math.max(bounds.top, bounds.bottom - height));
+    menu.style.left = `${Math.round(left)}px`;
+    menu.style.top = `${Math.round(top)}px`;
+}
+
+let rosterPlanMenuFrame = 0;
+
+function watchOpenRosterPlanStatusMenu() {
+    cancelAnimationFrame(rosterPlanMenuFrame);
+    const step = () => {
+        if (!document.querySelector('.roster-plan-status-menu:not([hidden])')) return;
+        placeOpenRosterPlanStatusMenu();
+        if (!document.querySelector('.roster-plan-status-menu:not([hidden])')) return;
+        rosterPlanMenuFrame = requestAnimationFrame(step);
+    };
+    rosterPlanMenuFrame = requestAnimationFrame(step);
+}
+
 function closeRosterPlanStatusMenus() {
+    cancelAnimationFrame(rosterPlanMenuFrame);
     const openToggle = document.querySelector('[data-roster-plan-status-toggle][aria-expanded="true"]');
     document.querySelectorAll('.roster-plan-status-menu').forEach(menu => {
         menu.hidden = true;
+        clearRosterPlanStatusMenuPlacement(menu);
         const toggle = menu.parentElement?.querySelector('[data-roster-plan-status-toggle]');
         if (toggle) toggle.setAttribute('aria-expanded', 'false');
     });
@@ -491,10 +591,47 @@ function rosterPlanStatusSentenceLabel(status) {
     return status === 'Ny spiller' ? 'Ny spiller' : (status || 'Uavklart');
 }
 
-function rosterPlanStatusActionLabel(status) {
-    if (status === 'Ny spiller') return 'Vis Nye spillere';
-    if (status === 'Uavklart') return 'Vis Uavklarte';
-    return `Vis ${status}`;
+function rosterPlanStatusActionLabel(status, revealsPlayer) {
+    if (revealsPlayer) return 'Vis spilleren →';
+    return `Vis ${rosterPlanStatusSentenceLabel(status)} →`;
+}
+
+let rosterPlanStatusEvent = null;
+
+function rosterPlanStatusView(event) {
+    const player = (window.activePlayers || []).find(entry => entry.id === event.playerId);
+    const filter = window.rosterPlanFilter || 'Uavklart';
+    const searchTerm = (document.getElementById('playerSearchInput')?.value || '').trim();
+    const status = player ? getRosterPlanStatus(player) : event.status;
+    const view = {
+        playerName: event.playerName,
+        statusLabel: rosterPlanStatusSentenceLabel(event.status),
+        explanation: '',
+        actionLabel: '',
+        actionStatus: ''
+    };
+    const visibleHere = player ? rosterPlanPlayerVisibleInFilter(player, filter, searchTerm) : false;
+    if (visibleHere) return view;
+    const visibleOnStatus = player ? rosterPlanPlayerVisibleInFilter(player, status, searchTerm) : false;
+    if (searchTerm && !visibleOnStatus) {
+        view.explanation = `Søket skjuler fortsatt spilleren under ${rosterPlanStatusSentenceLabel(status)}.`;
+        if (filter !== status) {
+            view.actionLabel = rosterPlanStatusActionLabel(status, false);
+            view.actionStatus = status;
+        }
+        return view;
+    }
+    if (filter !== 'alle' && filter !== status) {
+        view.explanation = `Spilleren er skjult av ${rosterPlanStatusSentenceLabel(filter)}-filteret.`;
+        view.actionLabel = rosterPlanStatusActionLabel(status, true);
+        view.actionStatus = status;
+    }
+    return view;
+}
+
+function syncRosterPlanStatusNotice() {
+    if (!rosterPlanStatusEvent || window.rosterMode !== 'plan2027') return;
+    showRosterPlanStatusNotice({ confirmed: rosterPlanStatusView(rosterPlanStatusEvent) });
 }
 
 function rosterPlanListHeadingText(filter, count, searchTerm) {
@@ -511,18 +648,38 @@ function rosterPlanListHeadingText(filter, count, searchTerm) {
     return `${rosterPlanFilterNoun(filter)} · ${count}`;
 }
 
-function showRosterPlanStatusNotice({ text, actionStatus = '' }) {
+function rosterPlanStatusNoticeSignature(confirmed) {
+    if (!confirmed) return '';
+    return ['ok', confirmed.playerName, confirmed.statusLabel, confirmed.explanation, confirmed.actionLabel, confirmed.actionStatus].join('\u0000');
+}
+
+function showRosterPlanStatusNotice({ text, actionStatus = '', confirmed = null }) {
     const notice = document.getElementById('rosterPlanStatusNotice');
     const textEl = document.getElementById('rosterPlanStatusNoticeText');
     const action = document.getElementById('rosterPlanStatusNoticeAction');
     if (!notice || !textEl) return;
-    textEl.textContent = text || '';
-    notice.hidden = !text;
+    const signature = confirmed ? rosterPlanStatusNoticeSignature(confirmed) : (text ? `text:${text}` : '');
+    if (notice.dataset.signature === signature && notice.hidden === !signature) return;
+    notice.dataset.signature = signature;
+    if (confirmed) {
+        const name = escapeRosterHtml(confirmed.playerName || 'Spilleren');
+        const statusLabel = escapeRosterHtml(confirmed.statusLabel || '');
+        const explanation = confirmed.explanation
+            ? `<span class="roster-plan-status-notice-why">${escapeRosterHtml(confirmed.explanation)}</span>`
+            : '';
+        textEl.innerHTML = `<span class="roster-plan-status-notice-confirm"><i class="fa-solid fa-check" aria-hidden="true"></i><span><strong>${name}</strong> er satt til <strong>${statusLabel}</strong>.</span></span>${explanation}`;
+        notice.hidden = false;
+    } else {
+        textEl.textContent = text || '';
+        notice.hidden = !text;
+    }
     if (action) {
-        if (actionStatus) {
+        const label = confirmed?.actionLabel || '';
+        const status = confirmed ? confirmed.actionStatus : actionStatus;
+        if (status && (label || !confirmed)) {
             action.hidden = false;
-            action.dataset.planStatus = actionStatus;
-            action.textContent = rosterPlanStatusActionLabel(actionStatus);
+            action.dataset.planStatus = status;
+            action.textContent = label || rosterPlanStatusActionLabel(status, false);
         } else {
             action.hidden = true;
             action.removeAttribute('data-plan-status');
@@ -532,6 +689,7 @@ function showRosterPlanStatusNotice({ text, actionStatus = '' }) {
 }
 
 function hideRosterPlanStatusNotice() {
+    rosterPlanStatusEvent = null;
     showRosterPlanStatusNotice({ text: '' });
 }
 
@@ -624,6 +782,18 @@ function bindPlayerRosterEvents() {
                 toggle.focus();
             }
         });
+        const repositionRosterPlanStatusMenu = (event) => {
+            const menu = document.querySelector('.roster-plan-status-menu:not([hidden])');
+            if (!menu) return;
+            const target = event?.target;
+            if (target === menu || (target instanceof Node && menu.contains(target))) return;
+            placeOpenRosterPlanStatusMenu();
+        };
+        document.addEventListener('scroll', repositionRosterPlanStatusMenu, true);
+        document.getElementById('main-view')?.addEventListener('scroll', repositionRosterPlanStatusMenu, { passive: true });
+        window.addEventListener('resize', repositionRosterPlanStatusMenu);
+        window.visualViewport?.addEventListener('resize', repositionRosterPlanStatusMenu);
+        window.visualViewport?.addEventListener('scroll', repositionRosterPlanStatusMenu);
     }
     const noticeAction = document.getElementById('rosterPlanStatusNoticeAction');
     if (noticeAction && noticeAction.dataset.eventsBound !== 'true') {
@@ -631,7 +801,6 @@ function bindPlayerRosterEvents() {
         noticeAction.addEventListener('click', () => {
             const status = noticeAction.dataset.planStatus;
             if (!status) return;
-            noticeAction.hidden = true;
             window.setRosterPlanFilter(status);
         });
     }
@@ -659,11 +828,14 @@ function bindPlayerRosterEvents() {
             const focusContext = captureRosterPlanStatusFocus(row.dataset.playerId);
             const playerName = row.querySelector('.roster-player-name-text')?.textContent?.trim() || 'Spilleren';
             const searchTerm = (document.getElementById('playerSearchInput')?.value || '').trim();
+            const playerId = row.dataset.playerId;
+            rosterPlanStatusEvent = null;
             rosterPlanStatusUiDepth += 1;
             showRosterPlanStatusNotice({ text: `Oppdaterer planstatus for ${playerName} …` });
-            window.saveRosterSeasonPlan(row.dataset.playerId, patch).then(result => {
-                const player = (window.activePlayers || []).find(entry => entry.id === row.dataset.playerId);
+            window.saveRosterSeasonPlan(playerId, patch).then(result => {
+                const player = (window.activePlayers || []).find(entry => entry.id === playerId);
                 if (!result?.ok) {
+                    rosterPlanStatusEvent = null;
                     showRosterPlanStatusNotice({
                         text: result?.message || `Planstatusen til ${playerName} ble ikke endret.`
                     });
@@ -671,21 +843,9 @@ function bindPlayerRosterEvents() {
                     settleRosterPlanStatusFocus(focusContext, true);
                     return;
                 }
-                const filter = window.rosterPlanFilter;
-                const visibleHere = player ? rosterPlanPlayerVisibleInFilter(player, filter, searchTerm) : false;
-                const visibleInNewStatus = player ? rosterPlanPlayerVisibleInFilter(player, status, searchTerm) : false;
-                const statusLabel = rosterPlanStatusSentenceLabel(status);
-                let text = `${playerName} er satt til ${statusLabel}.`;
-                let actionStatus = '';
-                if (!visibleHere) {
-                    const place = rosterPlanFilterNoun(status);
-                    text = `${playerName} er satt til ${statusLabel} og vises under ${place}.`;
-                    if (searchTerm && !visibleInNewStatus) {
-                        text += ` Søket «${searchTerm}» skjuler spilleren der også.`;
-                    }
-                    actionStatus = status;
-                }
-                showRosterPlanStatusNotice({ text, actionStatus });
+                rosterPlanStatusEvent = { playerId, playerName, status };
+                const visibleHere = player ? rosterPlanPlayerVisibleInFilter(player, window.rosterPlanFilter, searchTerm) : false;
+                syncRosterPlanStatusNotice();
                 settleRosterPlanStatusFocus(focusContext, visibleHere);
             }).finally(() => {
                 rosterPlanStatusUiDepth = Math.max(0, rosterPlanStatusUiDepth - 1);
@@ -701,6 +861,8 @@ function bindPlayerRosterEvents() {
             if (willOpen && menu) {
                 menu.hidden = false;
                 toggle.setAttribute('aria-expanded', 'true');
+                placeOpenRosterPlanStatusMenu();
+                watchOpenRosterPlanStatusMenu();
             }
             return;
         }
@@ -1008,7 +1170,6 @@ function buildRosterPlanRow(player) {
         pos1: reference.pos1,
         pos2: reference.pos2
     });
-    const age = new Date().getFullYear() - parseInt(player.fodselsaar || 2000);
     const hasTargetSeason = typeof window.getPlayerSeasonRecord === 'function'
         && Boolean(window.getPlayerSeasonRecord(player, targetYear));
     const note = plan?.note || '';
@@ -1028,7 +1189,6 @@ function buildRosterPlanRow(player) {
                         <span class="roster-player-name-text">${escapeRosterHtml(player.navn)}</span>
                     </div>
                     <div class="roster-player-meta">
-                        <span class="roster-player-age roster-player-age-meta">${age} år</span>
                         ${positionChips}
                         <span class="roster-plan-season">${escapeRosterHtml(seasonLine)}</span>
                     </div>
@@ -1049,8 +1209,8 @@ function buildRosterPlanRow(player) {
                         data-saved-note="${escapeRosterHtml(note)}"
                         value="${escapeRosterHtml(note)}"
                         maxlength="160"
-                        placeholder="Notat"
-                        aria-label="Notat for ${escapeRosterHtml(player.navn)}"
+                        placeholder="Notat om neste sesong – valgfritt"
+                        aria-label="Notat om neste sesong for ${escapeRosterHtml(player.navn)}"
                     >
                 </label>
             </div>
@@ -1193,6 +1353,7 @@ function renderRosterPlan() {
     } finally {
         window._rosterPlanRendering = false;
         restoreRosterPlanNoteDraft(noteDraft);
+        syncRosterPlanStatusNotice();
     }
 }
 
@@ -1222,10 +1383,8 @@ window.setRosterMode = function(mode) {
     document.getElementById('view-tropp')?.classList.toggle('is-plan-mode', planMode);
     const nowTab = document.getElementById('roster-mode-now');
     const planTab = document.getElementById('roster-mode-plan');
-    nowTab?.classList.toggle('is-active', !planMode);
-    planTab?.classList.toggle('is-active', planMode);
-    nowTab?.setAttribute('aria-selected', planMode ? 'false' : 'true');
-    planTab?.setAttribute('aria-selected', planMode ? 'true' : 'false');
+    if (nowTab) nowTab.hidden = !planMode;
+    if (planTab) planTab.hidden = planMode;
     document.getElementById('roster-now-filters')?.classList.toggle('hidden', planMode);
     document.getElementById('roster-plan-filters')?.classList.toggle('hidden', !planMode);
     document.getElementById('roster-create-season')?.classList.toggle('hidden', !planMode);
@@ -1234,11 +1393,11 @@ window.setRosterMode = function(mode) {
     const createButton = document.getElementById('roster-create-season-btn');
     if (addLabel) addLabel.textContent = planMode ? 'Ny spiller' : 'Legg til spiller';
     if (createButton) {
-        createButton.textContent = `Opprett ${window.ROSTER_PLAN_YEAR}-tropp`;
+        createButton.textContent = `Opprett ${getRosterSeasonYear(true)}-tropp`;
         createButton.classList.toggle('hidden', !planMode);
     }
     if (addButton) {
-        const label = planMode ? `Ny spiller i ${getRosterSeasonYear(true)}-planen` : 'Legg til spiller';
+        const label = planMode ? `Legg til ny spiller i ${getRosterSeasonYear(true)}-planen` : 'Legg til spiller';
         addButton.title = label;
         addButton.setAttribute('aria-label', label);
     }
@@ -1303,6 +1462,7 @@ function fillCreateSeasonRosterDialog(plan) {
         `Fortsetter: ${counts.fortsetter || 0}`,
         `Nye spillere: ${counts.nySpiller || 0}`,
         '',
+        'Spillere merket Fortsetter eller Ny spiller tas med.',
         writeCount === 1
             ? `1 spiller vil bli lagt til i ${year}-troppen.`
             : `${writeCount} spillere vil bli lagt til i ${year}-troppen.`,
@@ -1310,14 +1470,9 @@ function fillCreateSeasonRosterDialog(plan) {
         `Uavklart: ${counts.uavklart || 0}`,
         `Slutter: ${counts.slutter || 0}`,
         '',
-        'Uavklarte og spillere som slutter tas ikke med.'
+        'Uavklarte og spillere som slutter tas ikke med.',
+        `Eksisterende ${year}-poster overskrives ikke.`
     ];
-    if ((counts.uavklart || 0) > 0) {
-        const unresolved = counts.uavklart;
-        lines.push(unresolved === 1
-            ? '1 spiller er fortsatt uavklart og blir ikke tatt med.'
-            : `${unresolved} spillere er fortsatt uavklart og blir ikke tatt med.`);
-    }
     if ((counts.eksistererAllerede || 0) > 0) {
         lines.push(`${counts.eksistererAllerede} eksisterer allerede og blir ikke overskrevet.`);
     }
