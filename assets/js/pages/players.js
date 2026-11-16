@@ -461,12 +461,53 @@ function bindAdminTeamsListEvents() {
     });
 }
 
+function closeRosterPlanStatusMenus() {
+    document.querySelectorAll('.roster-plan-status-menu').forEach(menu => {
+        menu.hidden = true;
+        const toggle = menu.parentElement?.querySelector('[data-roster-plan-status-toggle]');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    });
+}
+
 function bindPlayerRosterEvents() {
     const listContainer = document.getElementById('playerRosterContainer');
     if (!listContainer || listContainer.dataset.eventsBound === 'true') return;
 
     listContainer.dataset.eventsBound = 'true';
+    if (!window._rosterPlanStatusMenuBound) {
+        window._rosterPlanStatusMenuBound = true;
+        document.addEventListener('click', (event) => {
+            if (event.target.closest('.roster-plan-status')) return;
+            closeRosterPlanStatusMenus();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') closeRosterPlanStatusMenus();
+        });
+    }
     listContainer.addEventListener('click', (event) => {
+        const option = event.target.closest('[data-roster-plan-status-option]');
+        if (option) {
+            event.preventDefault();
+            const row = option.closest('[data-player-id]');
+            const status = option.dataset.rosterPlanStatusOption;
+            closeRosterPlanStatusMenus();
+            if (row && status && status !== option.closest('.roster-plan-status-menu')?.querySelector('.is-current')?.dataset.rosterPlanStatusOption) {
+                window.saveRosterSeasonPlan(row.dataset.playerId, { status });
+            }
+            return;
+        }
+        const toggle = event.target.closest('[data-roster-plan-status-toggle]');
+        if (toggle) {
+            event.preventDefault();
+            const menu = toggle.parentElement?.querySelector('.roster-plan-status-menu');
+            const willOpen = Boolean(menu?.hidden);
+            closeRosterPlanStatusMenus();
+            if (willOpen && menu) {
+                menu.hidden = false;
+                toggle.setAttribute('aria-expanded', 'true');
+            }
+            return;
+        }
         if (event.target.closest('[data-roster-plan-control]')) return;
         const row = event.target.closest('[data-player-id]');
         if (!row) return;
@@ -477,13 +518,6 @@ function bindPlayerRosterEvents() {
         } else if (playerId) {
             window.openPlayerModal(playerId);
         }
-    });
-    listContainer.addEventListener('change', (event) => {
-        const select = event.target.closest('[data-roster-plan-status]');
-        if (!select) return;
-        const row = select.closest('[data-player-id]');
-        if (!row) return;
-        window.saveRosterSeasonPlan(row.dataset.playerId, { status: select.value });
     });
     listContainer.addEventListener('focusout', (event) => {
         if (window._rosterPlanRendering) return;
@@ -554,6 +588,39 @@ function buildRosterPlayerAvatarHtml(player) {
         <div class="roster-player-avatar" aria-hidden="true">
             <img src="${escapeRosterHtml(photoUrl)}" alt="">
             ${fallback}
+        </div>
+    `;
+}
+
+function rosterPlanStatusChipLabel(status) {
+    return status === 'Ny spiller' ? 'Ny' : (status || 'Uavklart');
+}
+
+function rosterPlanStatusToneClass(status) {
+    if (status === 'Fortsetter') return 'is-continue';
+    if (status === 'Slutter') return 'is-leave';
+    if (status === 'Ny spiller') return 'is-new';
+    return 'is-open';
+}
+
+function buildRosterPlanStatusChip(planStatus, targetYear, playerId) {
+    const statusLabel = planStatus || 'Uavklart';
+    const toneClass = rosterPlanStatusToneClass(statusLabel);
+    const menuId = `roster-plan-status-${playerId}`;
+    const options = window.ROSTER_PLAN_STATUSES.map(status => `
+        <button type="button" class="roster-plan-status-option${status === statusLabel ? ' is-current' : ''}" role="option" data-roster-plan-status-option="${escapeRosterHtml(status)}" aria-selected="${status === statusLabel ? 'true' : 'false'}">
+            ${escapeRosterHtml(rosterPlanStatusChipLabel(status))}
+        </button>
+    `).join('');
+
+    return `
+        <div class="roster-plan-status" data-roster-plan-control>
+            <button type="button" class="roster-status-chip roster-plan-status-chip ${toneClass}" data-roster-plan-status-toggle aria-haspopup="listbox" aria-expanded="false" aria-controls="${escapeRosterHtml(menuId)}" aria-label="Planstatus ${targetYear}: ${escapeRosterHtml(statusLabel)}. Velg status">
+                <span class="roster-badge roster-plan-status-badge ${toneClass} roster-status-chip-main" aria-hidden="true">${escapeRosterHtml(rosterPlanStatusChipLabel(statusLabel))}</span>
+            </button>
+            <div class="roster-plan-status-menu" id="${escapeRosterHtml(menuId)}" role="listbox" hidden>
+                ${options}
+            </div>
         </div>
     `;
 }
@@ -742,9 +809,6 @@ function buildRosterPlanRow(player) {
     const reference = getRosterPlanReference(player);
     const plan = getExplicitRosterSeasonPlan(player);
     const planStatus = getRosterPlanStatus(player);
-    const number = reference.draktnummer !== '' && reference.draktnummer != null
-        ? `#${reference.draktnummer}`
-        : '';
     const sourceYear = window.ROSTER_PLAN_SOURCE_YEAR;
     const targetYear = window.ROSTER_PLAN_YEAR;
     const seasonLine = reference.hasSeason
@@ -754,6 +818,7 @@ function buildRosterPlanRow(player) {
         pos1: reference.pos1,
         pos2: reference.pos2
     });
+    const age = new Date().getFullYear() - parseInt(player.fodselsaar || 2000);
     const hasTargetSeason = typeof window.getPlayerSeasonRecord === 'function'
         && Boolean(window.getPlayerSeasonRecord(player, targetYear));
     const note = plan?.note || '';
@@ -764,33 +829,29 @@ function buildRosterPlanRow(player) {
             : planStatus === 'Ny spiller'
                 ? 'is-status-new'
                 : 'is-status-open';
-    const options = window.ROSTER_PLAN_STATUSES.map(status => `
-        <option value="${escapeRosterHtml(status)}"${status === planStatus ? ' selected' : ''}>${escapeRosterHtml(status)}</option>
-    `).join('');
-
     return `
         <article class="roster-player-row is-plan-row ${statusTone}" data-player-id="${escapeRosterHtml(player.id)}">
-            ${buildRosterPlayerAvatarHtml(player)}
-            <div class="roster-player-main" role="button" tabindex="0">
-                <div class="roster-player-name">
-                    <span class="roster-player-name-text">${escapeRosterHtml(player.navn)}</span>
+            <div class="roster-plan-identity">
+                ${buildRosterPlayerAvatarHtml(player)}
+                <div class="roster-player-main" role="button" tabindex="0">
+                    <div class="roster-player-name">
+                        <span class="roster-player-name-text">${escapeRosterHtml(player.navn)}</span>
+                    </div>
+                    <div class="roster-player-meta">
+                        <span class="roster-player-age roster-player-age-meta">${age} år</span>
+                        ${positionChips}
+                        <span class="roster-plan-season">${escapeRosterHtml(seasonLine)}</span>
+                    </div>
                 </div>
-                <div class="roster-player-meta">
-                    ${positionChips}
-                    ${number ? `<span>${escapeRosterHtml(number)}</span>` : ''}
+                <div class="roster-player-side">
+                    <div class="roster-player-badges">
+                        ${buildRosterPlanStatusChip(planStatus, targetYear, player.id)}
+                    </div>
                 </div>
-                <p class="roster-plan-season">${escapeRosterHtml(seasonLine)}</p>
             </div>
             <div class="roster-plan-controls" data-roster-plan-control>
                 ${hasTargetSeason ? `<span class="roster-plan-created">${targetYear}-tropp er opprettet</span>` : ''}
                 <label class="roster-plan-field">
-                    <span>Planstatus ${targetYear}</span>
-                    <select class="roster-plan-select" data-roster-plan-status aria-label="Planstatus ${targetYear} for ${escapeRosterHtml(player.navn)}">
-                        ${options}
-                    </select>
-                </label>
-                <label class="roster-plan-field">
-                    <span>Notat</span>
                     <input
                         type="text"
                         class="roster-plan-note"

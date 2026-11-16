@@ -11863,6 +11863,12 @@
                 gap: 0.7rem;
                 padding: 0.55rem 0.8rem;
             }
+            #view-tropp.is-plan-mode .roster-player-row.is-plan-row {
+                padding: 0.55rem 0.8rem 0.75rem;
+            }
+            #view-tropp.is-plan-mode .roster-plan-identity {
+                gap: 0.7rem;
+            }
         }
         #view-tropp:not(.is-plan-mode) .roster-player-row:hover,
         #view-tropp:not(.is-plan-mode) .roster-player-row:focus-visible,
@@ -11879,7 +11885,8 @@
         #view-tropp:not(.is-plan-mode) .roster-player-row.is-passive-player {
             opacity: 0.82;
         }
-        #view-tropp:not(.is-plan-mode) .roster-player-avatar {
+        #view-tropp:not(.is-plan-mode) .roster-player-avatar,
+        #view-tropp.is-plan-mode .roster-player-avatar {
             box-shadow: none;
         }
         #view-tropp:not(.is-plan-mode) .roster-player-main {
@@ -11902,7 +11909,8 @@
             font-size: 0.74rem;
             font-weight: 800;
         }
-        #view-tropp:not(.is-plan-mode) .roster-player-meta .roster-player-age {
+        #view-tropp:not(.is-plan-mode) .roster-player-meta .roster-player-age,
+        #view-tropp.is-plan-mode .roster-player-meta .roster-player-age {
             color: inherit;
             font-size: inherit;
             font-weight: inherit;
@@ -12110,28 +12118,163 @@
             margin-top: 1.1rem;
         }
         .roster-player-row.is-plan-row {
-            align-items: center;
-            align-content: start;
+            align-items: stretch;
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.45rem 0.55rem;
+            flex-direction: column;
+            gap: 0.45rem;
             min-width: 0;
-            padding: 0.55rem 0.7rem 0.65rem;
+            padding: 0.45rem 0.55rem 0.65rem;
+            width: 100%;
+        }
+        .roster-plan-identity {
+            align-items: center;
+            display: flex;
+            gap: 0.55rem;
+            min-width: 0;
             width: 100%;
         }
         .roster-player-row.is-plan-row .roster-player-main {
-            flex: 1 1 8rem;
+            flex: 1 1 0;
+            gap: 0.12rem;
+            min-width: 0;
+        }
+        .roster-plan-identity .roster-player-side {
+            align-items: flex-end;
+            align-self: center;
+            justify-content: center;
             min-width: 0;
         }
         .roster-player-row.is-plan-row .roster-player-position,
         .roster-player-row.is-plan-row .roster-player-foot {
             display: none;
         }
-        .roster-plan-season {
-            color: rgba(255, 255, 255, 0.62);
-            font-size: 0.68rem;
+        .roster-player-meta .roster-plan-season {
+            color: inherit;
+            font-size: inherit;
             font-weight: 800;
-            margin-top: 0.15rem;
+            margin: 0;
+            white-space: nowrap;
+        }
+        .roster-plan-status {
+            position: relative;
+        }
+        #view-tropp.is-plan-mode .roster-plan-status-chip {
+            align-items: stretch;
+            align-self: center;
+            appearance: none;
+            background: transparent;
+            border-radius: 0.55rem;
+            border-style: solid;
+            border-width: 1.5px;
+            color: inherit;
+            cursor: pointer;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font: inherit;
+            margin: 0;
+            max-width: 100%;
+            overflow: hidden;
+            padding: 0;
+        }
+        #view-tropp.is-plan-mode .roster-plan-status-chip:focus {
+            outline: none;
+        }
+        #view-tropp.is-plan-mode .roster-plan-status-chip:focus-visible {
+            outline: 2px solid #ffe08a;
+            outline-offset: 2px;
+        }
+        .roster-plan-status-menu {
+            background: #0b2b4c;
+            border: 1.5px solid rgba(245, 197, 66, 0.72);
+            border-radius: 0.7rem;
+            box-shadow: 0 14px 28px rgba(2, 6, 23, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 0.12rem;
+            min-width: 8.4rem;
+            padding: 0.3rem;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.35rem);
+            z-index: 30;
+        }
+        .roster-plan-status-menu[hidden] {
+            display: none;
+        }
+        .roster-player-row.is-plan-row:has(.roster-plan-status-menu:not([hidden])) {
+            position: relative;
+            z-index: 6;
+        }
+        .roster-plan-status-option {
+            appearance: none;
+            background: transparent;
+            border: 0;
+            border-radius: 0.45rem;
+            color: #fffdf5;
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.78rem;
+            font-weight: 800;
+            padding: 0.42rem 0.6rem;
+            text-align: left;
+        }
+        .roster-plan-status-option:hover,
+        .roster-plan-status-option:focus-visible {
+            background: rgba(245, 197, 66, 0.16);
+            outline: none;
+        }
+        .roster-plan-status-option.is-current {
+            color: #ffe08a;
+        }
+        #view-tropp.is-plan-mode .roster-plan-status-chip .roster-badge {
+            align-items: center;
+            border-radius: 0;
+            border-style: solid;
+            border-width: 0;
+            box-shadow: none;
+            display: inline-flex;
+            font-size: 0.58rem;
+            font-weight: 900;
+            justify-content: center;
+            letter-spacing: 0.04em;
+            min-height: 1.32rem;
+            min-width: 0;
+            padding: 0.1rem 0.32rem 0.12rem;
+            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+            white-space: nowrap;
+        }
+        #view-tropp.is-plan-mode .roster-plan-status-chip.is-open {
+            border-color: #fff6d6;
+            box-shadow: 0 2px 0 #6b4a0c;
+        }
+        #view-tropp.is-plan-mode .roster-plan-status-chip.is-open .roster-badge {
+            background: linear-gradient(180deg, #ffe08a 0%, #f5c542 58%, #d4920a 100%);
+            color: #3d2a08;
+            text-shadow: 0 1px 0 rgba(255, 248, 220, 0.45);
+        }
+        #view-tropp.is-plan-mode .roster-plan-status-chip.is-continue {
+            border-color: #dcfce7;
+            box-shadow: 0 2px 0 #14532d;
+        }
+        #view-tropp.is-plan-mode .roster-plan-status-chip.is-continue .roster-badge {
+            background: linear-gradient(180deg, #86efac 0%, #22c55e 58%, #15803d 100%);
+            color: #f0fdf4;
+        }
+        #view-tropp.is-plan-mode .roster-plan-status-chip.is-leave {
+            border-color: #fee2e2;
+            box-shadow: 0 2px 0 #7f1d1d;
+        }
+        #view-tropp.is-plan-mode .roster-plan-status-chip.is-leave .roster-badge {
+            background: linear-gradient(180deg, #fca5a5 0%, #f87171 58%, #dc2626 100%);
+            color: #fef2f2;
+        }
+        #view-tropp.is-plan-mode .roster-plan-status-chip.is-new {
+            border-color: #dbeafe;
+            box-shadow: 0 2px 0 #1e3a8a;
+        }
+        #view-tropp.is-plan-mode .roster-plan-status-chip.is-new .roster-badge {
+            background: linear-gradient(180deg, #93c5fd 0%, #3b82f6 58%, #1d4ed8 100%);
+            color: #eff6ff;
         }
         .roster-plan-controls {
             display: flex;
@@ -28345,16 +28488,19 @@
                 min-height: 3.05rem;
             }
             .match-detail-page .match-stats-panel.is-game-card .match-stats-summary-thumb,
-            #view-tropp:not(.is-plan-mode) .roster-player-avatar {
+            #view-tropp:not(.is-plan-mode) .roster-player-avatar,
+            #view-tropp.is-plan-mode .roster-player-avatar {
                 height: 2.75rem;
                 width: 2.5rem;
             }
             .match-detail-page .match-stats-panel.is-game-card .match-stats-summary-name,
-            #view-tropp:not(.is-plan-mode) .roster-player-name-text {
+            #view-tropp:not(.is-plan-mode) .roster-player-name-text,
+            #view-tropp.is-plan-mode .roster-player-name-text {
                 font-size: 1rem;
             }
             .match-detail-page .match-stats-panel.is-game-card .match-stats-summary-meta,
-            #view-tropp:not(.is-plan-mode) .roster-player-meta {
+            #view-tropp:not(.is-plan-mode) .roster-player-meta,
+            #view-tropp.is-plan-mode .roster-player-meta {
                 font-size: 0.74rem;
             }
             .match-detail-page .match-stats-panel.is-game-card .match-stats-summary-bors {
