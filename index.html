@@ -365,6 +365,12 @@
 
                 <section class="match-detail-card roster-board-card roster-list-card">
                         <div class="roster-content relative z-10">
+                        <p id="rosterPlanStatusHint" class="roster-plan-status-hint" hidden>Trykk på planstatusen på spillerkortet for å endre den.</p>
+                        <div id="rosterPlanStatusNotice" class="roster-plan-status-notice" hidden>
+                            <p id="rosterPlanStatusNoticeText" role="status"></p>
+                            <button type="button" id="rosterPlanStatusNoticeAction" hidden></button>
+                        </div>
+                        <h3 id="rosterPlanListHeading" class="roster-plan-list-heading" tabindex="-1" hidden></h3>
                         <p id="rosterPlanSearchStatus" class="roster-plan-search-status" hidden aria-live="polite"></p>
                         <div id="playerRosterContainer" class="roster-list"></div>
 
