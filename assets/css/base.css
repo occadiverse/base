@@ -13427,17 +13427,12 @@
             outline: 2px solid #8ed4ff;
             outline-offset: 2px;
         }
-        #view-tropp.is-plan-mode .roster-work-heading {
-            padding-right: 5.4rem;
-        }
         #view-tropp.is-plan-mode .roster-mode-row {
-            justify-content: flex-end;
-            padding: 0;
-            position: absolute;
-            right: 0.9rem;
-            top: 0.62rem;
-            width: auto;
-            z-index: 2;
+            justify-content: flex-start;
+            order: 4;
+            padding: 0.35rem 0.9rem 0.8rem;
+            position: static;
+            width: 100%;
         }
         #view-tropp.is-plan-mode .roster-season-heading {
             display: none;
@@ -13445,28 +13440,9 @@
         #view-tropp.is-plan-mode .roster-mode-row .roster-mode-switch {
             width: auto;
         }
-        #view-tropp.is-plan-mode #roster-mode-now,
-        #view-tropp.is-plan-mode #roster-mode-now:hover,
-        #view-tropp.is-plan-mode #roster-mode-now:active {
-            background: transparent;
-            border-color: transparent;
-            box-shadow: none;
-            color: rgba(255, 246, 214, 0.78);
-            font-size: 0.78rem;
-            font-weight: 650;
-            height: auto;
-            letter-spacing: 0;
-            min-height: 1.8rem;
-            padding: 0.15rem 0.05rem;
-            text-shadow: none;
-            transform: none;
-            width: auto;
-        }
-        #view-tropp.is-plan-mode #roster-mode-now:hover {
-            color: #fffdf5;
-        }
         #view-tropp.is-plan-mode .roster-plan-kicker {
-            margin: 0.45rem 0.9rem 0;
+            margin: 0.55rem 0.9rem 0;
+            order: 2;
         }
         #view-tropp:not(.is-plan-mode) .roster-plan-filter-head {
             display: none;
@@ -13475,7 +13451,8 @@
             align-items: stretch;
             flex-direction: column;
             gap: 0;
-            padding: 0.55rem 0.9rem 0.15rem;
+            order: 3;
+            padding: 0.45rem 0.9rem 0.15rem;
         }
         #view-tropp.is-plan-mode .roster-search-line {
             align-items: center;
@@ -13519,7 +13496,8 @@
             display: flex;
             flex-direction: column;
             gap: 0.45rem;
-            padding: 0.45rem 0.9rem 0.9rem;
+            order: 1;
+            padding: 0.7rem 0.9rem 0.15rem;
         }
         #view-tropp.is-plan-mode .roster-plan-filter-head {
             align-items: center;
@@ -13794,22 +13772,15 @@
                 padding-left: 0.7rem;
                 padding-right: 0.7rem;
             }
-            #view-tropp.is-plan-mode .roster-work-heading {
-                padding-left: 0.7rem;
-                padding-right: 4.8rem;
-            }
             #view-tropp.is-plan-mode .roster-board-toolbar,
-            #view-tropp.is-plan-mode .roster-plan-filterbar {
+            #view-tropp.is-plan-mode .roster-plan-filterbar,
+            #view-tropp.is-plan-mode .roster-mode-row {
                 padding-left: 0.7rem;
                 padding-right: 0.7rem;
             }
             #view-tropp.is-plan-mode .roster-plan-kicker {
                 margin-left: 0.7rem;
                 margin-right: 0.7rem;
-            }
-            #view-tropp.is-plan-mode .roster-mode-row {
-                padding: 0;
-                right: 0.7rem;
             }
         }
         @media (min-width: 768px) {

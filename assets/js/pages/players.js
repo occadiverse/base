@@ -273,7 +273,11 @@ function syncRosterSeasonChrome() {
         kicker.textContent = 'Velg hvem som fortsetter eller slutter.';
     }
     if (planMode) setRosterVisibleAgeChip(null);
-    document.getElementById('rosterPlanStatusHint')?.toggleAttribute('hidden', !planMode);
+    const hint = document.getElementById('rosterPlanStatusHint');
+    if (hint) {
+        hint.hidden = true;
+        hint.textContent = '';
+    }
     if (!planMode) {
         const heading = document.getElementById('rosterPlanListHeading');
         if (heading) {
@@ -734,13 +738,6 @@ function closeRosterPlanStatusMenus() {
     return openToggle;
 }
 
-function rosterPlanFilterNoun(status) {
-    if (status === 'Uavklart') return 'Uavklarte spillere';
-    if (status === 'Ny spiller') return 'Nye spillere';
-    if (status === 'alle') return 'Alle spillere';
-    return status || 'Spillere';
-}
-
 function rosterPlanStatusSentenceLabel(status) {
     return status === 'Ny spiller' ? 'Ny spiller' : (status || 'Uavklart');
 }
@@ -786,20 +783,6 @@ function rosterPlanStatusView(event) {
 function syncRosterPlanStatusNotice() {
     if (!rosterPlanStatusEvent || window.rosterMode !== 'plan2027') return;
     showRosterPlanStatusNotice({ confirmed: rosterPlanStatusView(rosterPlanStatusEvent) });
-}
-
-function rosterPlanListHeadingText(filter, count, searchTerm) {
-    if (searchTerm) {
-        const where = filter === 'alle'
-            ? 'alle spillere'
-            : filter === 'Uavklart'
-                ? 'Uavklart'
-                : filter === 'Ny spiller'
-                    ? 'Nye spillere'
-                    : filter;
-        return `${count === 1 ? '1 treff' : `${count} treff`} i ${where}`;
-    }
-    return `${rosterPlanFilterNoun(filter)} · ${count}`;
 }
 
 function rosterPlanStatusNoticeSignature(confirmed) {
@@ -897,7 +880,7 @@ function settleRosterPlanStatusFocus(context, playerStillVisible) {
     }
     const toggles = [...document.querySelectorAll('#playerRosterContainer [data-roster-plan-status-toggle]')];
     if (!toggles.length) {
-        document.getElementById('rosterPlanListHeading')?.focus();
+        document.querySelector('#roster-plan-filters [role="tab"][aria-selected="true"]')?.focus();
         return;
     }
     toggles[Math.min(context.index, toggles.length - 1)]?.focus();
@@ -1444,11 +1427,14 @@ function renderRosterPlan() {
         searchStatusEl.textContent = '';
     }
     const hint = document.getElementById('rosterPlanStatusHint');
-    if (hint) hint.hidden = false;
+    if (hint) {
+        hint.hidden = true;
+        hint.textContent = '';
+    }
     const heading = document.getElementById('rosterPlanListHeading');
     if (heading) {
-        heading.hidden = false;
-        heading.textContent = rosterPlanListHeadingText(window.rosterPlanFilter, filteredPlayers.length, searchTerm);
+        heading.hidden = true;
+        heading.textContent = '';
     }
     const emptyTitle = document.getElementById('roster-empty-title');
     const emptyText = document.getElementById('roster-empty-text');
