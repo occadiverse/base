@@ -271,9 +271,32 @@
                                 <span id="rosterVisibleAge" class="roster-visible-age" hidden></span>
                             </div>
                         </div>
-                        <div class="roster-mode-switch">
-                            <button type="button" id="roster-mode-now" class="blknapp" hidden onclick="window.setRosterMode('now')">← Tropp 2026</button>
-                            <button type="button" id="roster-mode-plan" class="blknapp" onclick="window.setRosterMode('plan2027')">Planlegg 2027 →</button>
+                        <div class="roster-plan-line">
+                            <div class="roster-mode-switch">
+                                <button type="button" id="roster-mode-now" class="blknapp" hidden onclick="window.setRosterMode('now')">← Tropp 2026</button>
+                            </div>
+                            <div class="roster-plan-entry" id="roster-plan-entry">
+                                <button type="button" id="roster-mode-plan" class="roster-plan-entry-link" onclick="window.setRosterMode('plan2027')">
+                                    <span class="roster-plan-entry-gem" id="roster-plan-entry-gem" aria-hidden="true">27</span>
+                                    <span class="roster-plan-entry-copy">
+                                        <span class="roster-plan-entry-title" id="roster-plan-entry-title">Planlegg 2027</span>
+                                        <span id="rosterPlanPrompt" class="roster-plan-prompt"></span>
+                                    </span>
+                                </button>
+                                <button type="button" id="roster-plan-guide-toggle" class="roster-plan-guide-toggle" aria-expanded="false" aria-controls="roster-plan-guide-panel" aria-label="Vis mer om Planlegg 2027" onclick="window.toggleRosterPlanGuide()">
+                                    <i class="fa-solid fa-angle-down" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="roster-plan-guide" class="roster-plan-guide">
+                            <div id="roster-plan-guide-panel" class="roster-plan-guide-panel" hidden>
+                                <p>Her forbereder du neste års tropp. Årets aktive sesong endres ikke.</p>
+                                <ol>
+                                    <li><strong>Avklar spillerne.</strong> Trykk på Planlegg 2027 nederst på Spillertropp. Spillere med en 2026-sesong starter som Uavklart. Sett hver spiller til Fortsetter, Slutter eller Ny spiller.</li>
+                                    <li><strong>Opprett troppen.</strong> Trykk Opprett 2027-tropp når du vil skrive dem som skal med. Fortsetter og Ny spiller får en 2027-sesong. Uavklarte og spillere som slutter tas ikke med. 2026-dataene beholdes. Knappen kan brukes igjen for spillere som merkes senere.</li>
+                                    <li><strong>Aktiver sesongen.</strong> På Admin blir byttet til 2027 tilgjengelig når ingen er uavklart, minst én skal med, og 2027-troppen er skrevet. Du velger selv når det skjer. Forsiden og statistikken åpner da på 2027. Spillertropp viser fortsatt 2026.</li>
+                                </ol>
+                            </div>
                         </div>
                     </div>
                     <p id="rosterPlanKicker" class="roster-plan-kicker" hidden>Velg hvem som fortsetter eller slutter.</p>

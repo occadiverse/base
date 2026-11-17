@@ -45,12 +45,15 @@ function renderSidebar() {
                 </div>
 
                 <nav class="space-y-1.5">
-                    ${NAV_ITEMS.map((item, index) => `
-                        <a href="#" id="sidebar-${item.id}" onclick="switchTab('${item.id}')" class="tab-link portal-nav-link ${index === 0 ? 'is-active ' : ''}flex items-center space-x-3 px-4 py-3 rounded-xl transition-all">
+                    ${NAV_ITEMS.map((item, index) => {
+                        const open = item.id === 'tropp' ? 'openSquadFromMenu()' : "switchTab('" + item.id + "')";
+                        return `
+                        <a href="#" id="sidebar-${item.id}" onclick="${open}" class="tab-link portal-nav-link ${index === 0 ? 'is-active ' : ''}flex items-center space-x-3 px-4 py-3 rounded-xl transition-all">
                             <i class="fa-solid ${item.icon} w-5 text-center"></i>
                             <span>${item.label}</span>
                         </a>
-                    `).join('')}
+                    `;
+                    }).join('')}
                 </nav>
             </div>
 
@@ -82,14 +85,14 @@ function renderMobileHeader() {
                 </span>
             </div>
             <div class="portal-mobile-tools">
-                <button type="button" onclick="switchTab('tropp')" class="portal-btn portal-btn-icon-sm portal-btn-secondary portal-mobile-header-action portal-mobile-tropp-btn" title="Spillertropp" aria-label="Spillertropp">
+                <button type="button" onclick="openSquadFromMenu()" class="portal-btn portal-btn-icon-sm portal-btn-secondary portal-mobile-header-action portal-mobile-tropp-btn" title="Spillertropp" aria-label="Spillertropp">
                     <i class="fa-solid fa-users" aria-hidden="true"></i>
                 </button>
                 <button type="button" onclick="toggleMobileToolsMenu(event)" class="portal-btn portal-btn-icon-sm portal-btn-secondary portal-mobile-header-action portal-mobile-admin-btn" title="Meny" aria-label="Meny">
                     <i class="fa-solid fa-ellipsis-vertical text-lg" aria-hidden="true"></i>
                 </button>
                 <div id="portal-mobile-tools-menu" class="portal-mobile-tools-menu hidden">
-                    <button onclick="closeMobileToolsMenu(); switchTab('tropp')" class="portal-mobile-tools-item">
+                    <button onclick="closeMobileToolsMenu(); openSquadFromMenu()" class="portal-mobile-tools-item">
                         <i class="fa-solid fa-users"></i>
                         <span>Spillertropp</span>
                     </button>

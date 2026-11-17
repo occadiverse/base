@@ -124,6 +124,11 @@ function blurPortalViewFocus(viewEl) {
     if (viewEl.contains(active) && typeof active.blur === 'function') active.blur();
 }
 
+window.openSquadFromMenu = function() {
+    if (typeof window.setRosterMode === 'function') window.setRosterMode('now');
+    switchTab('tropp');
+};
+
 function switchTab(tabId, options = {}) {
     const previousTab = currentTab;
     if (previousTab && previousTab !== tabId && !options.skipHistory) {

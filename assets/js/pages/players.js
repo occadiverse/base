@@ -245,6 +245,104 @@ function getRosterSeasonYear(planMode) {
     return planMode ? window.ROSTER_PLAN_YEAR : window.ROSTER_PLAN_SOURCE_YEAR;
 }
 
+function rosterSeasonTodayKey() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function rosterMatchCountsForSeason(match, year) {
+    if (!match) return false;
+    if (typeof window.isTreningskamp === 'function' && window.isTreningskamp(match)) return false;
+    if (typeof window.activityBelongsToStatsYear === 'function' && !window.activityBelongsToStatsYear(match, year)) return false;
+    return true;
+}
+
+function rosterSeasonPlayedCount(year) {
+    return (Array.isArray(window.activeMatches) ? window.activeMatches : []).filter(match => {
+        if (!rosterMatchCountsForSeason(match, year)) return false;
+        if (typeof window.isHistoricalActivity === 'function' && !window.isHistoricalActivity(match)) return false;
+        const regular = typeof window.getMatchRegularScore === 'function'
+            ? window.getMatchRegularScore(match)
+            : null;
+        return Boolean(regular);
+    }).length;
+}
+
+function rosterSeasonHasUpcomingMatch(year) {
+    const today = rosterSeasonTodayKey();
+    return (Array.isArray(window.activeMatches) ? window.activeMatches : []).some(match => {
+        if (!rosterMatchCountsForSeason(match, year)) return false;
+        const date = String(match.date || '').slice(0, 10);
+        if (!date || date < today) return false;
+        const regular = typeof window.getMatchRegularScore === 'function'
+            ? window.getMatchRegularScore(match)
+            : null;
+        return !regular;
+    });
+}
+
+function rosterSeasonHasUpcomingMandatory(year) {
+    const today = rosterSeasonTodayKey();
+    return (Array.isArray(window.activeEvents) ? window.activeEvents : []).some(event => {
+        if (!event || event.type !== 'Trening') return false;
+        const date = String(event.date || '').slice(0, 10);
+        if (!date || date < today) return false;
+        const season = typeof window.getExplicitActivitySeasonYear === 'function'
+            ? window.getExplicitActivitySeasonYear(event)
+            : null;
+        if (season !== year) return false;
+        return typeof window.isMandatoryTraining === 'function' && window.isMandatoryTraining(event);
+    });
+}
+
+function rosterSeasonHasPrep(year) {
+    const training = typeof window.seasonHasTrainingActivity === 'function' && window.seasonHasTrainingActivity(year);
+    const start = typeof window.getMandatoryTrainingStart === 'function' && window.getMandatoryTrainingStart(year);
+    return Boolean(training || start || rosterSeasonHasUpcomingMatch(year));
+}
+
+function rosterUnresolvedPlanSentence(open, planYear) {
+    if (open === 1) return `1 spiller er fortsatt uavklart for ${planYear}.`;
+    return `${open} spillere er fortsatt uavklart for ${planYear}.`;
+}
+
+function rosterPlanPromptText() {
+    const activeYear = typeof window.getActiveSeasonYear === 'function'
+        ? window.getActiveSeasonYear()
+        : getRosterSeasonYear(false);
+    const planYear = getRosterSeasonYear(true);
+    const summary = typeof window.readRosterPlanSummary === 'function'
+        ? window.readRosterPlanSummary(planYear)
+        : { counts: {}, total: 0 };
+    const counts = summary?.counts || {};
+    const open = Number(counts.Uavklart) || 0;
+    const marked = (Number(counts.Fortsetter) || 0) + (Number(counts.Slutter) || 0) + (Number(counts['Ny spiller']) || 0);
+    const planned = Number(summary?.total) || 0;
+    const seasonOpen = rosterSeasonHasUpcomingMatch(activeYear) || rosterSeasonHasUpcomingMandatory(activeYear);
+    const played = rosterSeasonPlayedCount(activeYear);
+    const nextPrep = rosterSeasonPlayedCount(planYear) === 0 && rosterSeasonHasPrep(planYear);
+
+    if (seasonOpen) {
+        if (open > 0) return `Sesongen er i gang. ${rosterUnresolvedPlanSentence(open, planYear)}`;
+        if (marked > 0) return `Sesongen er i gang. Planen for ${planYear} er merket ferdig.`;
+        return `Sesongen er i gang. Merk hvem som fortsetter til ${planYear} før siste kamp.`;
+    }
+    if (nextPrep) {
+        if (open > 0) return `Oppkjøringen til ${planYear} er i gang. ${rosterUnresolvedPlanSentence(open, planYear)}`;
+        if (planned > 0) return `Oppkjøringen til ${planYear} er i gang. Alle i planen er merket.`;
+        return `Oppkjøringen til ${planYear} er i gang. Merk hvem som skal med.`;
+    }
+    if (played > 0) {
+        if (open > 0) return `${activeYear} er ferdigspilt. ${rosterUnresolvedPlanSentence(open, planYear)}`;
+        if (planned > 0) return `${activeYear} er ferdigspilt. Alle i planen er merket.`;
+        return `${activeYear} er ferdigspilt. Merk hvem som fortsetter til ${planYear}.`;
+    }
+    if (rosterSeasonHasPrep(activeYear)) {
+        return `Sesongen er ikke i gang. Planen for ${planYear} kan vente til mot slutten.`;
+    }
+    return `Merk hvem som fortsetter til ${planYear} når sesongen nærmer seg slutt.`;
+}
+
 function syncRosterSeasonChrome() {
     const planMode = window.rosterMode === 'plan2027';
     const nowYear = getRosterSeasonYear(false);
@@ -264,13 +362,24 @@ function syncRosterSeasonChrome() {
         nowBtn.textContent = `← ${nowYear}`;
         nowBtn.setAttribute('aria-label', `Tilbake til Tropp ${nowYear}`);
     }
+    const planEntry = document.getElementById('roster-plan-entry');
+    if (planEntry) planEntry.hidden = planMode;
     if (planBtn) {
         planBtn.hidden = planMode;
-        planBtn.textContent = `Planlegg ${planYear} →`;
+        const planLabel = `Planlegg ${planYear}`;
+        const planTitle = document.getElementById('roster-plan-entry-title');
+        const planGem = document.getElementById('roster-plan-entry-gem');
+        if (planTitle) planTitle.textContent = planLabel;
+        if (planGem) planGem.textContent = String(planYear).slice(-2);
     }
     if (kicker) {
         kicker.hidden = !planMode;
         kicker.textContent = 'Velg hvem som fortsetter eller slutter.';
+    }
+    const prompt = document.getElementById('rosterPlanPrompt');
+    if (prompt) {
+        prompt.hidden = planMode;
+        prompt.textContent = planMode ? '' : rosterPlanPromptText();
     }
     if (planMode) setRosterVisibleAgeChip(null);
     const hint = document.getElementById('rosterPlanStatusHint');
@@ -1515,6 +1624,16 @@ window.readRosterPlanSummary = function(year) {
     });
     const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
     return { year: target, counts, total };
+};
+
+window.toggleRosterPlanGuide = function() {
+    const button = document.getElementById('roster-plan-guide-toggle');
+    const panel = document.getElementById('roster-plan-guide-panel');
+    if (!button || !panel) return;
+    const open = button.getAttribute('aria-expanded') !== 'true';
+    button.setAttribute('aria-expanded', open ? 'true' : 'false');
+    button.setAttribute('aria-label', open ? 'Skjul mer om Planlegg 2027' : 'Vis mer om Planlegg 2027');
+    panel.hidden = !open;
 };
 
 window.setRosterMode = function(mode) {

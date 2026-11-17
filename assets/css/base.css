@@ -13349,10 +13349,207 @@
             padding: 0.6rem 0.8rem;
         }
         #view-tropp:not(.is-plan-mode) .roster-mode-row {
-            align-items: center;
+            align-items: stretch;
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
             justify-content: flex-start;
             order: 3;
             padding: 0.35rem 0.9rem 0.8rem;
+        }
+        #view-tropp .roster-plan-line {
+            align-items: stretch;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            width: 100%;
+        }
+        #view-tropp .roster-plan-entry {
+            min-width: 0;
+            position: relative;
+            width: 100%;
+        }
+        #view-tropp .roster-plan-entry[hidden] {
+            display: none;
+        }
+        #view-tropp .roster-plan-entry-link {
+            --note-wash: rgba(245, 197, 66, 0.22);
+            align-items: center;
+            appearance: none;
+            background:
+                radial-gradient(ellipse 90% 70% at 50% 0%, var(--note-wash), transparent 62%),
+                linear-gradient(180deg, rgba(18, 42, 72, 0.94) 0%, rgba(10, 28, 52, 0.88) 100%);
+            border: 1px solid rgba(245, 197, 66, 0.32);
+            border-radius: 0.95rem;
+            box-shadow:
+                0 2px 0 rgba(6, 16, 32, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            color: inherit;
+            cursor: pointer;
+            display: flex;
+            font: inherit;
+            gap: 0.6rem;
+            margin: 0;
+            min-width: 0;
+            padding: 0.7rem 3.1rem 0.75rem 0.8rem;
+            text-align: left;
+            width: 100%;
+        }
+        #view-tropp .roster-plan-entry-gem {
+            align-items: center;
+            background: linear-gradient(180deg, #fff8e1 0%, #f5c542 48%, #b8840f 100%);
+            border-radius: 999px;
+            box-shadow:
+                0 0 0 1.5px #6b4a0c,
+                0 3px 0 rgba(6, 16, 32, 0.75),
+                inset 0 1px 0 rgba(255, 255, 255, 0.55);
+            color: #3a2504;
+            display: inline-flex;
+            flex: 0 0 auto;
+            font-size: 0.72rem;
+            font-weight: 950;
+            height: 1.85rem;
+            justify-content: center;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+            width: 1.85rem;
+        }
+        #view-tropp .roster-plan-entry-copy {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            gap: 0.18rem;
+            min-width: 0;
+        }
+        #view-tropp .roster-plan-entry-title {
+            color: #fff6d6;
+            font-size: 0.86rem;
+            font-weight: 950;
+            letter-spacing: 0.05em;
+            line-height: 1.2;
+            text-shadow:
+                0 1px 0 #061020,
+                0 0 12px rgba(245, 197, 66, 0.4);
+            text-transform: uppercase;
+        }
+        #view-tropp:not(.is-plan-mode) .roster-plan-guide-panel {
+            border-top: 1px solid rgba(245, 197, 66, 0.22);
+            margin-top: 0.1rem;
+            padding-top: 0.7rem;
+        }
+        #view-tropp .roster-plan-guide:has(.roster-plan-guide-panel[hidden]) {
+            display: none;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            #view-tropp .roster-plan-entry-link:hover {
+                background:
+                    radial-gradient(ellipse 90% 70% at 50% 0%, var(--note-wash), transparent 62%),
+                    linear-gradient(180deg, rgba(38, 74, 118, 0.98) 0%, rgba(20, 48, 84, 0.96) 100%);
+                border-color: rgba(255, 224, 138, 0.8);
+            }
+        }
+        #view-tropp .roster-plan-entry-link:active {
+            filter: brightness(0.94);
+        }
+        #view-tropp .roster-plan-entry-link:focus {
+            outline: none;
+        }
+        #view-tropp .roster-plan-entry-link:focus-visible {
+            box-shadow:
+                0 0 0 3px rgba(245, 197, 66, 0.55),
+                0 2px 0 rgba(6, 16, 32, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            outline: none;
+        }
+        #view-tropp .roster-plan-prompt {
+            color: rgba(255, 253, 245, 0.92);
+            font-family: inherit;
+            font-size: 0.84rem;
+            font-weight: 650;
+            letter-spacing: 0;
+            line-height: 1.35;
+            margin: 0;
+            min-width: 0;
+        }
+        #view-tropp .roster-plan-prompt[hidden],
+        #view-tropp.is-plan-mode .roster-plan-prompt,
+        #view-tropp.is-plan-mode .roster-plan-guide,
+        #view-tropp.is-plan-mode .roster-plan-guide-toggle,
+        #view-tropp .roster-plan-guide-panel[hidden] {
+            display: none;
+        }
+        #view-tropp .roster-plan-guide {
+            min-width: 0;
+        }
+        #view-tropp .roster-plan-guide-toggle {
+            align-items: center;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(245, 197, 66, 0.35);
+            border-radius: 999px;
+            color: #ffe9a8;
+            cursor: pointer;
+            display: inline-flex;
+            flex: 0 0 auto;
+            height: 2.15rem;
+            justify-content: center;
+            padding: 0;
+            position: absolute;
+            right: 0.55rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2.15rem;
+            z-index: 1;
+        }
+        #view-tropp .roster-plan-guide-toggle i {
+            font-size: 0.95rem;
+            line-height: 1;
+            transition: transform 140ms ease;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            #view-tropp .roster-plan-guide-toggle:hover {
+                background: rgba(245, 197, 66, 0.16);
+                border-color: rgba(245, 197, 66, 0.7);
+            }
+        }
+        #view-tropp .roster-plan-guide-toggle[aria-expanded="true"] i {
+            transform: rotate(180deg);
+        }
+        #view-tropp .roster-plan-guide-toggle:focus-visible {
+            outline: 2px solid #8ed4ff;
+            outline-offset: 3px;
+        }
+        #view-tropp .roster-plan-guide-panel {
+            color: #fffdf5;
+            font-family: inherit;
+            font-size: 0.78rem;
+            font-weight: 700;
+            line-height: 1.45;
+            margin: 0.4rem 0 0;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.35);
+        }
+        #view-tropp .roster-plan-guide-panel p {
+            margin: 0 0 0.45rem;
+        }
+        #view-tropp .roster-plan-guide-panel ol,
+        #view-tropp .roster-plan-guide-panel li {
+            list-style: decimal outside;
+        }
+        #view-tropp .roster-plan-guide-panel ol {
+            margin: 0;
+            padding-left: 1.15rem;
+        }
+        #view-tropp .roster-plan-guide-panel li + li {
+            margin-top: 0.45rem;
+        }
+        #view-tropp .roster-plan-guide-panel strong {
+            font-weight: 900;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #view-tropp .roster-plan-guide-toggle i {
+                transition: none;
+            }
         }
         #view-tropp:not(.is-plan-mode) .roster-board-toolbar {
             align-items: stretch;
