@@ -294,6 +294,7 @@
             window.activePlayers = normalized;
             window.localStorage.setItem('bsk_local_players', JSON.stringify(normalized));
             if (typeof window.renderPlayerRoster === 'function') window.renderPlayerRoster();
+            if (typeof window.renderAdminSeasonSwitch === 'function') window.renderAdminSeasonSwitch();
             refreshVisibleStatistics();
 
             if (repairedPlayers.length > 0) {
@@ -467,8 +468,12 @@
                 }
                 const parsed = window.resolvePlayerSeasonYear?.(data.activeSeason);
                 if (parsed == null || typeof window.applyActiveSeasonYear !== 'function') return;
-                if (window._activeSeasonYear === parsed) return;
+                if (window._activeSeasonYear === parsed) {
+                    if (typeof window.renderAdminSeasonSwitch === 'function') window.renderAdminSeasonSwitch();
+                    return;
+                }
                 window.applyActiveSeasonYear(parsed);
+                if (typeof window.renderAdminSeasonSwitch === 'function') window.renderAdminSeasonSwitch();
             }, (error) => {
                 console.warn('Database-tilgang avvist for aktiv sesong (beholder lokal verdi):', error.message);
             });

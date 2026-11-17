@@ -692,8 +692,23 @@
                                 <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
                                 <span class="portal-btn-label">Oppdater all data til laget</span>
                             </button>
-                            <p class="text-[11px] text-slate-400 mt-2">Knytter alle spillere, kamper og aktiviteter til lagnavnet over. Kjøres automatisk ved oppstart.</p>
+                        <p class="text-[11px] text-slate-400 mt-2">Knytter alle spillere, kamper og aktiviteter til lagnavnet over. Kjøres automatisk ved oppstart.</p>
+                    </div>
+                </div>
+
+                    <div id="admin-season-card" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                        <div class="mb-4">
+                            <h3 class="font-extrabold text-lg text-slate-950">Aktiv sesong</h3>
+                            <p class="text-xs text-slate-500">Byttet til neste sesong låses opp når planen er ferdig. Tilbake til inneværende sesong er alltid åpent.</p>
                         </div>
+                        <p id="admin-season-current" class="text-sm font-extrabold text-bsk-blue mb-4">Aktiv sesong leses …</p>
+                        <ul id="admin-season-checks" class="space-y-2 mb-4" aria-label="Sjekkliste før sesongbytte"></ul>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <button type="button" id="admin-season-forward" class="portal-btn portal-btn-primary" data-admin-season-year="" disabled>Sett aktiv sesong</button>
+                            <button type="button" id="admin-season-back" class="portal-btn portal-btn-secondary" data-admin-season-year="" hidden>Sett aktiv sesong tilbake</button>
+                        </div>
+                        <p id="admin-season-status" class="text-xs text-slate-600 mt-3 min-h-[1rem]" role="status" aria-live="polite"></p>
+                        <p id="admin-season-note" class="text-[11px] text-slate-400 mt-2">Forsiden og statistikken følger sesongen du setter.</p>
                     </div>
 
                     <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">

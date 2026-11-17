@@ -10,6 +10,7 @@ window.updateDynamicSelectors = function() {
 };
 
 window.renderAdminTeamsList = function() {
+    if (typeof window.renderAdminSeasonSwitch === 'function') window.renderAdminSeasonSwitch();
     const listContainer = document.getElementById('admin-teams-list');
     if (!listContainer) return;
 
@@ -49,6 +50,184 @@ window.renderAdminTeamsList = function() {
     });
 };
 
+function adminSeasonCount(counts, key) {
+    const value = Number(counts?.[key]);
+    return Number.isInteger(value) && value > 0 ? value : 0;
+}
+
+function buildAdminSeasonSwitchModel(counts, targetYear) {
+    const year = typeof window.resolvePlayerSeasonYear === 'function'
+        ? window.resolvePlayerSeasonYear(targetYear)
+        : null;
+    const fortsetter = adminSeasonCount(counts, 'fortsetter');
+    const nySpiller = adminSeasonCount(counts, 'nySpiller');
+    const uavklart = adminSeasonCount(counts, 'uavklart');
+    const slutter = adminSeasonCount(counts, 'slutter');
+    const skalSkrives = adminSeasonCount(counts, 'skalSkrives');
+    const included = fortsetter + nySpiller;
+    const planned = included + uavklart + slutter;
+    const seasonLabel = year || '';
+    const checks = [
+        {
+            id: 'resolved',
+            ok: planned > 0 && uavklart === 0,
+            title: 'Ingen uavklarte',
+            detail: planned === 0
+                ? 'Planen har ingen spillere ennå.'
+                : (uavklart === 0
+                    ? 'Alle i planen er merket.'
+                    : `${uavklart} er fortsatt Uavklart.`)
+        },
+        {
+            id: 'included',
+            ok: included > 0,
+            title: 'Noen skal med',
+            detail: included === 0
+                ? 'Ingen er merket Fortsetter eller Ny spiller.'
+                : `${fortsetter} merket Fortsetter, ${nySpiller} merket Ny spiller.`
+        },
+        {
+            id: 'written',
+            ok: included > 0 && skalSkrives === 0,
+            title: 'Troppen er skrevet',
+            detail: included === 0
+                ? `Troppen kan skrives når noen skal med${seasonLabel ? ` i ${seasonLabel}` : ''}.`
+                : (skalSkrives === 0
+                    ? `Alle som skal med har en ${seasonLabel}-sesong.`
+                    : `${skalSkrives} venter på at troppen opprettes.`)
+        }
+    ];
+    return {
+        checks,
+        ready: checks.every(check => check.ok)
+    };
+}
+
+function getAdminSeasonSwitchReadiness() {
+    const sourceYear = typeof window.resolvePlayerSeasonYear === 'function'
+        ? window.resolvePlayerSeasonYear(window.ROSTER_PLAN_SOURCE_YEAR)
+        : null;
+    const targetYear = typeof window.resolvePlayerSeasonYear === 'function'
+        ? window.resolvePlayerSeasonYear(window.ROSTER_PLAN_YEAR)
+        : null;
+    const activeYear = typeof window.getActiveSeasonYear === 'function'
+        ? window.getActiveSeasonYear()
+        : null;
+    const playersReady = Array.isArray(window.activePlayers);
+    if (!playersReady || sourceYear == null || targetYear == null || typeof window.previewCreateSeasonRoster !== 'function') {
+        const waiting = buildAdminSeasonSwitchModel({}, targetYear);
+        waiting.checks.forEach(check => {
+            check.ok = false;
+            check.detail = 'Spillerlisten er ikke lastet ennå.';
+        });
+        waiting.ready = false;
+        return { ...waiting, sourceYear, targetYear, activeYear };
+    }
+    const plan = window.previewCreateSeasonRoster(sourceYear, targetYear);
+    return {
+        ...buildAdminSeasonSwitchModel(plan?.antall, targetYear),
+        sourceYear,
+        targetYear,
+        activeYear
+    };
+}
+
+let adminSeasonSwitchBusy = false;
+let adminSeasonSwitchBound = false;
+
+function bindAdminSeasonSwitch() {
+    if (adminSeasonSwitchBound) return;
+    const card = document.getElementById('admin-season-card');
+    if (!card) return;
+    adminSeasonSwitchBound = true;
+    card.addEventListener('click', event => {
+        const button = event.target.closest('[data-admin-season-year]');
+        if (!button || button.disabled || button.hidden) return;
+        applyAdminSeasonSwitch(button.getAttribute('data-admin-season-year'));
+    });
+}
+
+function renderAdminSeasonSwitch() {
+    const current = document.getElementById('admin-season-current');
+    const list = document.getElementById('admin-season-checks');
+    const forward = document.getElementById('admin-season-forward');
+    const back = document.getElementById('admin-season-back');
+    const note = document.getElementById('admin-season-note');
+    if (!current || !list || !forward || !back) return;
+    bindAdminSeasonSwitch();
+    const readiness = getAdminSeasonSwitchReadiness();
+    const activeLabel = readiness.activeYear || 'ikke satt';
+    current.textContent = `Aktiv sesong er ${activeLabel}.`;
+    list.innerHTML = readiness.checks.map(check => `
+        <li class="flex items-start gap-3 rounded-xl border px-3 py-3 ${check.ok ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-slate-50'}">
+            <i class="fa-solid ${check.ok ? 'fa-circle-check text-emerald-600' : 'fa-circle text-slate-300'} mt-0.5" aria-hidden="true"></i>
+            <div>
+                <p class="text-sm font-extrabold text-slate-900">${escapeRosterHtml(check.title)}</p>
+                <p class="text-xs text-slate-600">${escapeRosterHtml(check.ok ? `Oppfylt. ${check.detail}` : `Mangler. ${check.detail}`)}</p>
+            </div>
+        </li>
+    `).join('');
+    const alreadyForward = readiness.activeYear === readiness.targetYear;
+    forward.disabled = adminSeasonSwitchBusy || !readiness.ready || alreadyForward || readiness.targetYear == null;
+    forward.textContent = alreadyForward
+        ? `${readiness.targetYear} er aktiv sesong`
+        : `Sett aktiv sesong til ${readiness.targetYear || ''}`.trim();
+    forward.setAttribute('data-admin-season-year', readiness.targetYear == null ? '' : String(readiness.targetYear));
+    const showBack = readiness.sourceYear != null && readiness.activeYear !== readiness.sourceYear;
+    back.hidden = !showBack;
+    back.disabled = adminSeasonSwitchBusy || !showBack;
+    back.textContent = `Sett aktiv sesong tilbake til ${readiness.sourceYear || ''}`.trim();
+    back.setAttribute('data-admin-season-year', readiness.sourceYear == null ? '' : String(readiness.sourceYear));
+    if (note && readiness.sourceYear) {
+        note.textContent = `Forsiden og statistikken følger sesongen du setter. Spillertropp bruker ${readiness.sourceYear}.`;
+    }
+}
+
+async function applyAdminSeasonSwitch(year) {
+    if (adminSeasonSwitchBusy) return;
+    const readiness = getAdminSeasonSwitchReadiness();
+    const parsed = typeof window.resolvePlayerSeasonYear === 'function'
+        ? window.resolvePlayerSeasonYear(year)
+        : null;
+    if (parsed == null) return;
+    const goingForward = parsed === readiness.targetYear;
+    const goingBack = parsed === readiness.sourceYear;
+    if (!goingForward && !goingBack) return;
+    if (goingForward && !readiness.ready) return;
+    if (parsed === readiness.activeYear) return;
+    const question = goingForward
+        ? `Sett aktiv sesong til ${parsed}?\n\nForsiden og statistikken åpner da på ${parsed}. Spillertropp bruker ${readiness.sourceYear}.`
+        : `Sett aktiv sesong tilbake til ${parsed}?`;
+    if (!window.confirm(question)) return;
+    const status = document.getElementById('admin-season-status');
+    adminSeasonSwitchBusy = true;
+    renderAdminSeasonSwitch();
+    try {
+        const result = typeof window.setActiveSeasonYear === 'function'
+            ? await window.setActiveSeasonYear(parsed)
+            : { saved: false, reason: 'missing' };
+        if (status) {
+            if (result?.saved) status.textContent = `Aktiv sesong er lagret som ${parsed}.`;
+            else if (result?.localOnly) status.textContent = `Aktiv sesong er satt til ${parsed} på denne maskinen. Den ble ikke skrevet til databasen.`;
+            else if (result?.reason === 'database_save_failed') status.textContent = `Aktiv sesong er satt til ${parsed} på denne maskinen, men databasen avviste lagringen.`;
+            else status.textContent = 'Aktiv sesong ble ikke endret.';
+        }
+        if ((result?.saved || result?.localOnly || result?.reason === 'database_save_failed')
+            && typeof window.updateDashboard === 'function') {
+            window.updateDashboard();
+        }
+    } catch (error) {
+        console.error(error);
+        if (status) status.textContent = 'Aktiv sesong ble ikke endret.';
+    } finally {
+        adminSeasonSwitchBusy = false;
+        renderAdminSeasonSwitch();
+    }
+}
+
+window.buildAdminSeasonSwitchModel = buildAdminSeasonSwitchModel;
+window.renderAdminSeasonSwitch = renderAdminSeasonSwitch;
+
 window.rosterStatusFilter = 'Aktiv';
 window.rosterMode = 'now';
 window.rosterPlanFilter = 'Uavklart';
@@ -76,8 +255,9 @@ function syncRosterSeasonChrome() {
     const planBtn = document.getElementById('roster-mode-plan');
     const kicker = document.getElementById('rosterPlanKicker');
     const workCard = document.querySelector('#view-tropp .roster-work-card');
-    if (hero) hero.textContent = planMode ? `Spillertropp ${planYear}` : 'Spillertropp';
-    if (workCard) workCard.setAttribute('aria-label', planMode ? `Spillertropp ${planYear}` : 'Spillertropp');
+    const heroTitle = `Spillertropp ${planMode ? planYear : nowYear}`;
+    if (hero) hero.textContent = heroTitle;
+    if (workCard) workCard.setAttribute('aria-label', heroTitle);
     if (titleEl) titleEl.textContent = `Tropp ${nowYear}`;
     if (nowBtn) {
         nowBtn.hidden = !planMode;
@@ -104,39 +284,13 @@ function syncRosterSeasonChrome() {
     }
 }
 
-function setRosterVisibleAgeChip(players) {
+function setRosterVisibleAgeChip() {
     const ageEl = document.getElementById('rosterVisibleAge');
-    const hide = () => {
-        if (ageEl) {
-            ageEl.hidden = true;
-            ageEl.textContent = '';
-            ageEl.removeAttribute('aria-label');
-            ageEl.removeAttribute('title');
-        }
-    };
-    if (window.rosterMode === 'plan2027' || !Array.isArray(players) || !players.length) {
-        hide();
-        return;
-    }
-    const currentYear = new Date().getFullYear();
-    let totalAge = 0;
-    players.forEach(player => {
-        totalAge += currentYear - parseInt(player.fodselsaar || 2000, 10);
-    });
-    const avgAge = totalAge / players.length;
-    if (!Number.isFinite(avgAge)) {
-        hide();
-        return;
-    }
-    const text = `${avgAge.toFixed(1).replace('.', ',')} år`;
-    const accessible = `Snittalder for viste spillere: ${text}`;
-    if (ageEl) {
-        ageEl.hidden = false;
-        ageEl.innerHTML = `<i class="fa-solid fa-calendar" aria-hidden="true"></i><span aria-hidden="true">${text}</span>`;
-        ageEl.setAttribute('role', 'img');
-        ageEl.setAttribute('aria-label', accessible);
-        ageEl.title = 'Snittalder for viste spillere';
-    }
+    if (!ageEl) return;
+    ageEl.hidden = true;
+    ageEl.textContent = '';
+    ageEl.removeAttribute('aria-label');
+    ageEl.removeAttribute('title');
 }
 
 window.setPlayerStatusFilter = function(status) {
@@ -601,7 +755,7 @@ let rosterPlanStatusEvent = null;
 function rosterPlanStatusView(event) {
     const player = (window.activePlayers || []).find(entry => entry.id === event.playerId);
     const filter = window.rosterPlanFilter || 'Uavklart';
-    const searchTerm = (document.getElementById('playerSearchInput')?.value || '').trim();
+    const searchTerm = '';
     const status = player ? getRosterPlanStatus(player) : event.status;
     const view = {
         playerName: event.playerName,
@@ -827,7 +981,7 @@ function bindPlayerRosterEvents() {
             }
             const focusContext = captureRosterPlanStatusFocus(row.dataset.playerId);
             const playerName = row.querySelector('.roster-player-name-text')?.textContent?.trim() || 'Spilleren';
-            const searchTerm = (document.getElementById('playerSearchInput')?.value || '').trim();
+            const searchTerm = '';
             const playerId = row.dataset.playerId;
             rosterPlanStatusEvent = null;
             rosterPlanStatusUiDepth += 1;
@@ -1153,7 +1307,7 @@ function getRosterPlanPosition(player) {
 }
 
 function getRosterPlanPlayers() {
-    const searchTerm = (document.getElementById('playerSearchInput')?.value || '').trim();
+    const searchTerm = '';
     return (window.activePlayers || []).filter(player => rosterPlanPlayerVisibleInFilter(player, window.rosterPlanFilter, searchTerm));
 }
 
@@ -1283,7 +1437,7 @@ function renderRosterPlan() {
     setPlanCount('roster-plan-count-ny', counts['Ny spiller']);
     syncRosterPlanFilterChrome();
 
-    const searchTerm = (document.getElementById('playerSearchInput')?.value || '').trim();
+    const searchTerm = '';
     const searchStatusEl = document.getElementById('rosterPlanSearchStatus');
     if (searchStatusEl) {
         searchStatusEl.hidden = true;
