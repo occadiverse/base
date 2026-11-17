@@ -83,8 +83,10 @@ function buildAdminSeasonSwitchModel(counts, targetYear) {
             ok: included > 0,
             title: 'Noen skal med',
             detail: included === 0
-                ? 'Ingen er merket Fortsetter eller Ny spiller.'
-                : `${fortsetter} merket Fortsetter, ${nySpiller} merket Ny spiller.`
+                ? 'Ingen er merket Fortsetter.'
+                : (nySpiller
+                    ? `${fortsetter} merket Fortsetter, ${nySpiller} merket Ny spiller.`
+                    : `${fortsetter} merket Fortsetter.`)
         },
         {
             id: 'written',
@@ -233,7 +235,7 @@ window.rosterMode = 'now';
 window.rosterPlanFilter = 'Uavklart';
 window.ROSTER_PLAN_SOURCE_YEAR = 2026;
 window.ROSTER_PLAN_YEAR = 2027;
-window.ROSTER_PLAN_STATUSES = ['Uavklart', 'Fortsetter', 'Slutter', 'Ny spiller'];
+window.ROSTER_PLAN_STATUSES = ['Uavklart', 'Fortsetter', 'Slutter'];
 
 function getRosterSeasonYear(planMode) {
     const raw = planMode ? window.ROSTER_PLAN_YEAR : window.ROSTER_PLAN_SOURCE_YEAR;
@@ -373,8 +375,8 @@ function syncRosterSeasonChrome() {
         if (planGem) planGem.textContent = String(planYear).slice(-2);
     }
     if (kicker) {
-        kicker.hidden = !planMode;
-        kicker.textContent = 'Velg hvem som fortsetter eller slutter.';
+        kicker.hidden = true;
+        kicker.textContent = '';
     }
     const prompt = document.getElementById('rosterPlanPrompt');
     if (prompt) {
@@ -1494,16 +1496,10 @@ function restoreRosterPlanNoteDraft(draft) {
 function syncRosterPlanFilterChrome() {
     const filter = window.rosterPlanFilter;
     document.querySelectorAll('#roster-plan-filters [data-plan-filter]').forEach(button => {
-        const active = filter !== 'alle' && button.dataset.planFilter === filter;
+        const active = button.dataset.planFilter === filter;
         button.classList.toggle('is-active', active);
         button.setAttribute('aria-selected', active ? 'true' : 'false');
     });
-    const alle = document.getElementById('roster-plan-filter-alle');
-    if (alle) {
-        const active = filter === 'alle';
-        alle.classList.toggle('is-active', active);
-        alle.setAttribute('aria-selected', active ? 'true' : 'false');
-    }
 }
 
 function renderRosterPlan() {
@@ -1526,7 +1522,7 @@ function renderRosterPlan() {
     setPlanCount('roster-plan-count-uavklart', counts.Uavklart);
     setPlanCount('roster-plan-count-fortsetter', counts.Fortsetter);
     setPlanCount('roster-plan-count-slutter', counts.Slutter);
-    setPlanCount('roster-plan-count-ny', counts['Ny spiller']);
+    syncRosterCreateCard();
     syncRosterPlanFilterChrome();
 
     const searchTerm = '';
@@ -1636,6 +1632,16 @@ window.toggleRosterPlanGuide = function() {
     panel.hidden = !open;
 };
 
+function syncRosterCreateCard(button) {
+    const year = getRosterSeasonYear(true);
+    const createButton = button || document.getElementById('roster-create-season-btn');
+    const label = document.getElementById('roster-create-season-label');
+    const yearEl = document.getElementById('roster-create-season-year');
+    if (label) label.textContent = 'Opprett tropp';
+    if (yearEl) yearEl.textContent = String(year);
+    if (createButton) createButton.setAttribute('aria-label', `Opprett ${year}-tropp`);
+}
+
 window.setRosterMode = function(mode) {
     window.rosterMode = mode === 'plan2027' ? 'plan2027' : 'now';
     const planMode = window.rosterMode === 'plan2027';
@@ -1646,25 +1652,21 @@ window.setRosterMode = function(mode) {
     if (planTab) planTab.hidden = planMode;
     document.getElementById('roster-now-filters')?.classList.toggle('hidden', planMode);
     document.getElementById('roster-plan-filters')?.classList.toggle('hidden', !planMode);
-    document.getElementById('roster-create-season')?.classList.toggle('hidden', !planMode);
     const addLabel = document.getElementById('roster-add-player-label');
     const addButton = document.getElementById('roster-add-player-btn');
     const createButton = document.getElementById('roster-create-season-btn');
-    if (addLabel) addLabel.textContent = planMode ? 'Ny spiller' : 'Legg til spiller';
-    if (createButton) {
-        createButton.textContent = `Opprett ${getRosterSeasonYear(true)}-tropp`;
-        createButton.classList.toggle('hidden', !planMode);
-    }
+    if (addLabel) addLabel.textContent = 'Legg til spiller';
+    if (createButton) syncRosterCreateCard(createButton);
     if (addButton) {
-        const label = planMode ? `Legg til ny spiller i ${getRosterSeasonYear(true)}-planen` : 'Legg til spiller';
-        addButton.title = label;
-        addButton.setAttribute('aria-label', label);
+        addButton.hidden = planMode;
+        addButton.title = 'Legg til spiller';
+        addButton.setAttribute('aria-label', 'Legg til spiller');
     }
     window.renderPlayerRoster();
 };
 
 window.setRosterPlanFilter = function(status) {
-    window.rosterPlanFilter = window.ROSTER_PLAN_STATUSES.includes(status) || status === 'alle'
+    window.rosterPlanFilter = window.ROSTER_PLAN_STATUSES.includes(status)
         ? status
         : 'Uavklart';
     syncRosterPlanFilterChrome();
@@ -1719,9 +1721,8 @@ function fillCreateSeasonRosterDialog(plan) {
     const writeCount = counts.skalSkrives || 0;
     const lines = [
         `Fortsetter: ${counts.fortsetter || 0}`,
-        `Nye spillere: ${counts.nySpiller || 0}`,
         '',
-        'Spillere merket Fortsetter eller Ny spiller tas med.',
+        'Spillere merket Fortsetter tas med.',
         writeCount === 1
             ? `1 spiller vil bli lagt til i ${year}-troppen.`
             : `${writeCount} spillere vil bli lagt til i ${year}-troppen.`,

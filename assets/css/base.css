@@ -13635,21 +13635,41 @@
             display: none;
         }
         #view-tropp.is-plan-mode .roster-mode-row .roster-mode-switch {
-            width: auto;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: 0.85rem;
+            justify-content: space-between;
+            width: 100%;
+        }
+        #view-tropp .roster-plan-status-prompt {
+            color: #fffdf5;
+            flex: 1 1 auto;
+            font-family: Inter, sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0;
+            line-height: 1.4;
+            margin: 0;
+            min-width: 0;
+            text-align: left;
+            text-shadow: 0 1px 0 rgba(11, 43, 76, 0.55);
+        }
+        #view-tropp:not(.is-plan-mode) .roster-plan-status-prompt {
+            display: none;
         }
         #view-tropp.is-plan-mode .roster-plan-kicker {
             margin: 0.55rem 0.9rem 0;
             order: 2;
         }
-        #view-tropp:not(.is-plan-mode) .roster-plan-filter-head {
-            display: none;
+        #view-tropp .roster-plan-filter-tabs {
+            display: contents;
+        }
+        #view-tropp #roster-create-season-btn .stats-kamp-summary-metric-label {
+            letter-spacing: 0.02em;
+            line-height: 1.15;
         }
         #view-tropp.is-plan-mode .roster-board-toolbar {
-            align-items: stretch;
-            flex-direction: column;
-            gap: 0;
-            order: 3;
-            padding: 0.45rem 0.9rem 0.15rem;
+            display: none;
         }
         #view-tropp.is-plan-mode .roster-search-line {
             align-items: center;
@@ -13666,27 +13686,21 @@
         #view-tropp.is-plan-mode .roster-create-season.hidden {
             display: none;
         }
-        #view-tropp.is-plan-mode .roster-search-line > .roster-add-player-btn,
+        #view-tropp.is-plan-mode .roster-search-line > .roster-add-player-btn {
+            display: none;
+        }
         #view-tropp.is-plan-mode .roster-create-season-btn {
             flex: 0 0 auto;
-            order: 1;
+            order: 2;
             width: auto;
         }
-        #view-tropp.is-plan-mode .roster-create-season-btn {
-            order: 2;
-        }
         @container (max-width: 22rem) {
-            #view-tropp.is-plan-mode .roster-search-line > .roster-add-player-btn,
             #view-tropp.is-plan-mode .roster-create-season-btn {
                 flex: 1 1 100%;
             }
         }
         #view-tropp.is-plan-mode .roster-search-line .roster-search-wrap {
             display: none;
-        }
-        #view-tropp.is-plan-mode .roster-search-line .roster-plan-filter-head {
-            margin-left: auto;
-            order: 5;
         }
         #view-tropp.is-plan-mode .roster-plan-filterbar {
             align-items: stretch;
@@ -13696,30 +13710,10 @@
             order: 1;
             padding: 0.7rem 0.9rem 0.15rem;
         }
-        #view-tropp.is-plan-mode .roster-plan-filter-head {
-            align-items: center;
-            display: flex;
-            flex: 0 0 auto;
-            justify-content: flex-start;
-            min-width: 0;
-        }
         #view-tropp.is-plan-mode .roster-plan-filterbar .stats-kamp-summary-metric-grid {
             flex: none;
             min-width: 0;
             width: 100%;
-        }
-        #view-tropp.is-plan-mode .roster-plan-all-btn {
-            font-size: 0.78rem;
-            font-weight: 950;
-            height: 2.2rem;
-            letter-spacing: 0.01em;
-            padding: 0 0.95rem;
-            white-space: nowrap;
-            width: auto;
-        }
-        #view-tropp.is-plan-mode .roster-plan-all-btn:focus-visible {
-            outline: 2px solid #8ed4ff;
-            outline-offset: 2px;
         }
         #view-tropp:not(.is-plan-mode) #roster-now-filters {
             margin: 0;

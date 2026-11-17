@@ -273,6 +273,7 @@
                         </div>
                         <div class="roster-plan-line">
                             <div class="roster-mode-switch">
+                                <p id="roster-plan-status-prompt" class="roster-plan-status-prompt">Velg spillerstatus for kommende sesong.</p>
                                 <button type="button" id="roster-mode-now" class="blknapp" hidden onclick="window.setRosterMode('now')">← Tropp 2026</button>
                             </div>
                             <div class="roster-plan-entry" id="roster-plan-entry">
@@ -292,14 +293,14 @@
                             <div id="roster-plan-guide-panel" class="roster-plan-guide-panel" hidden>
                                 <p>Her forbereder du neste års tropp. Årets aktive sesong endres ikke.</p>
                                 <ol>
-                                    <li><strong>Avklar spillerne.</strong> Trykk på Planlegg 2027 nederst på Spillertropp. Spillere med en 2026-sesong starter som Uavklart. Sett hver spiller til Fortsetter, Slutter eller Ny spiller.</li>
-                                    <li><strong>Opprett troppen.</strong> Trykk Opprett 2027-tropp når du vil skrive dem som skal med. Fortsetter og Ny spiller får en 2027-sesong. Uavklarte og spillere som slutter tas ikke med. 2026-dataene beholdes. Knappen kan brukes igjen for spillere som merkes senere.</li>
+                                    <li><strong>Avklar spillerne.</strong> Trykk på Planlegg 2027 nederst på Spillertropp. Spillere med en 2026-sesong starter som Uavklart. Sett hver spiller til Fortsetter eller Slutter.</li>
+                                    <li><strong>Opprett troppen.</strong> Trykk Opprett 2027-tropp når du vil skrive dem som skal med. Fortsetter får en 2027-sesong. Uavklarte og spillere som slutter tas ikke med. 2026-dataene beholdes. Knappen kan brukes igjen for spillere som merkes senere.</li>
                                     <li><strong>Aktiver sesongen.</strong> På Admin blir byttet til 2027 tilgjengelig når ingen er uavklart, minst én skal med, og 2027-troppen er skrevet. Du velger selv når det skjer. Forsiden og statistikken åpner da på 2027. Spillertropp viser fortsatt 2026.</li>
                                 </ol>
                             </div>
                         </div>
                     </div>
-                    <p id="rosterPlanKicker" class="roster-plan-kicker" hidden>Velg hvem som fortsetter eller slutter.</p>
+                    <p id="rosterPlanKicker" class="roster-plan-kicker" hidden></p>
 
                     <div class="roster-board-toolbar relative z-10">
                         <div class="roster-search-line">
@@ -312,15 +313,9 @@
                                 <i class="fa-solid fa-plus" aria-hidden="true"></i>
                                 <span id="roster-add-player-label">Legg til spiller</span>
                             </button>
-                            <section id="roster-create-season" class="roster-create-season hidden" aria-label="Opprett troppen">
-                                <button type="button" id="roster-create-season-btn" class="roster-add-player-btn roster-create-season-btn" onclick="window.openCreateSeasonRosterDialog()">Opprett tropp</button>
-                            </section>
                             <div class="roster-search-wrap">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                                 <input type="search" id="playerSearchInput" oninput="handlePlayerSearchChange()" placeholder="Søk navn, drakt eller posisjon" class="roster-search-input" aria-label="Søk spillere">
-                            </div>
-                            <div class="roster-plan-filter-head">
-                                <button type="button" id="roster-plan-filter-alle" role="tab" class="blknapp roster-plan-all-btn" aria-selected="false" onclick="window.setRosterPlanFilter('alle')">Alle</button>
                             </div>
                         </div>
                     </div>
@@ -352,8 +347,9 @@
                         </button>
                     </div>
 
-                    <div id="roster-plan-filters" class="roster-plan-filterbar hidden relative z-10" role="tablist" aria-label="Filtrer etter planstatus" aria-owns="roster-plan-filter-alle">
+                    <div id="roster-plan-filters" class="roster-plan-filterbar hidden relative z-10">
                         <div class="stats-kamp-summary-metric-grid roster-count-filters">
+                            <div class="roster-plan-filter-tabs" role="tablist" aria-label="Filtrer etter planstatus">
                             <button type="button" id="roster-plan-filter-uavklart" data-plan-filter="Uavklart" role="tab" class="stats-kamp-summary-metric-card is-amber is-active" aria-selected="true" onclick="window.setRosterPlanFilter('Uavklart')">
                                 <i class="fa-solid fa-circle-question stats-kamp-summary-metric-bg-icon" aria-hidden="true"></i>
                                 <span class="stats-kamp-summary-metric-label">Uavklart</span>
@@ -372,11 +368,11 @@
                                 <strong class="stats-kamp-summary-metric-value" id="roster-plan-count-slutter">0</strong>
                                 <i class="fa-solid fa-check roster-count-check" aria-hidden="true"></i>
                             </button>
-                            <button type="button" id="roster-plan-filter-ny" data-plan-filter="Ny spiller" role="tab" class="stats-kamp-summary-metric-card is-blue" aria-selected="false" onclick="window.setRosterPlanFilter('Ny spiller')">
-                                <i class="fa-solid fa-user-plus stats-kamp-summary-metric-bg-icon" aria-hidden="true"></i>
-                                <span class="stats-kamp-summary-metric-label">Nye spillere</span>
-                                <strong class="stats-kamp-summary-metric-value" id="roster-plan-count-ny">0</strong>
-                                <i class="fa-solid fa-check roster-count-check" aria-hidden="true"></i>
+                            </div>
+                            <button type="button" id="roster-create-season-btn" class="stats-kamp-summary-metric-card is-blue" onclick="window.openCreateSeasonRosterDialog()" aria-label="Opprett 2027-tropp">
+                                <i class="fa-solid fa-file-circle-plus stats-kamp-summary-metric-bg-icon" aria-hidden="true"></i>
+                                <span class="stats-kamp-summary-metric-label" id="roster-create-season-label">Opprett tropp</span>
+                                <strong class="stats-kamp-summary-metric-value" id="roster-create-season-year">2027</strong>
                             </button>
                         </div>
                     </div>
