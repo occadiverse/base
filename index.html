@@ -186,12 +186,6 @@
                                     <h3>Kalender</h3>
                                 </div>
                             </div>
-                            <div class="calendar-section-actions">
-                                <button type="button" onclick="window.openActivityModal('Trening')" class="bsk-btn bsk-btn-chip match-list-add-btn calendar-add-btn" title="Ny aktivitet" aria-label="Ny aktivitet">
-                                    <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
-                                    <span>Ny</span>
-                                </button>
-                            </div>
                         </div>
 
                         <div class="calendar-heading-panel calendar-board-top">
@@ -226,7 +220,11 @@
                                 </div>
 
                                 <div class="calendar-heading-actions">
-                                    <button type="button" onclick="window.goToToday()" class="bsk-btn bsk-btn-chip calendar-today-mini-btn">I dag</button>
+                                    <button type="button" onclick="window.goToToday()" class="bsk-btn bsk-btn-chip calendar-today-mini-btn"><span>I dag</span></button>
+                                    <button type="button" onclick="window.openActivityModal('Trening')" class="bsk-btn bsk-btn-chip match-list-add-btn calendar-add-btn" title="Ny aktivitet" aria-label="Ny aktivitet">
+                                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                                        <span>Ny</span>
+                                    </button>
                                 </div>
                             </div>
 
@@ -274,7 +272,6 @@
                         <div class="roster-plan-line">
                             <div class="roster-mode-switch">
                                 <p id="roster-plan-status-prompt" class="roster-plan-status-prompt">Velg spillerstatus for kommende sesong.</p>
-                                <button type="button" id="roster-mode-now" class="blknapp" hidden onclick="window.setRosterMode('now')">← Tropp 2026</button>
                             </div>
                             <div class="roster-plan-entry" id="roster-plan-entry">
                                 <button type="button" id="roster-mode-plan" class="roster-plan-entry-link" onclick="window.setRosterMode('plan2027')">
@@ -291,12 +288,7 @@
                         </div>
                         <div id="roster-plan-guide" class="roster-plan-guide">
                             <div id="roster-plan-guide-panel" class="roster-plan-guide-panel" hidden>
-                                <p>Her forbereder du neste års tropp. Årets aktive sesong endres ikke.</p>
-                                <ol>
-                                    <li><strong>Avklar spillerne.</strong> Trykk på Planlegg 2027 nederst på Spillertropp. Spillere med en 2026-sesong starter som Uavklart. Sett hver spiller til Fortsetter eller Slutter.</li>
-                                    <li><strong>Opprett troppen.</strong> Trykk Opprett 2027-tropp når du vil skrive dem som skal med. Fortsetter får en 2027-sesong. Uavklarte og spillere som slutter tas ikke med. 2026-dataene beholdes. Knappen kan brukes igjen for spillere som merkes senere.</li>
-                                    <li><strong>Aktiver sesongen.</strong> På Admin blir byttet til 2027 tilgjengelig når ingen er uavklart, minst én skal med, og 2027-troppen er skrevet. Du velger selv når det skjer. Forsiden og statistikken åpner da på 2027. Spillertropp viser fortsatt 2026.</li>
-                                </ol>
+                                <p><strong>Avklar spillerne.</strong> Trykk på Planlegg 2027 nederst på Spillertropp. Spillere med en 2026-sesong starter som Uavklart. Sett hver spiller til Fortsetter eller Slutter.</p>
                             </div>
                         </div>
                     </div>
@@ -369,10 +361,10 @@
                                 <i class="fa-solid fa-check roster-count-check" aria-hidden="true"></i>
                             </button>
                             </div>
-                            <button type="button" id="roster-create-season-btn" class="stats-kamp-summary-metric-card is-blue" onclick="window.openCreateSeasonRosterDialog()" aria-label="Opprett 2027-tropp">
-                                <i class="fa-solid fa-file-circle-plus stats-kamp-summary-metric-bg-icon" aria-hidden="true"></i>
-                                <span class="stats-kamp-summary-metric-label" id="roster-create-season-label">Opprett tropp</span>
-                                <strong class="stats-kamp-summary-metric-value" id="roster-create-season-year">2027</strong>
+                            <button type="button" id="roster-mode-now" class="stats-kamp-summary-metric-card is-blue" onclick="window.setRosterMode('now')" aria-label="Tilbake til 2026">
+                                <i class="fa-solid fa-arrow-left stats-kamp-summary-metric-bg-icon" aria-hidden="true"></i>
+                                <span class="stats-kamp-summary-metric-label" id="roster-mode-now-label">Tilbake til</span>
+                                <strong class="stats-kamp-summary-metric-value" id="roster-mode-now-year">2026</strong>
                             </button>
                         </div>
                     </div>
@@ -715,21 +707,6 @@
                     </div>
                 </div>
 
-                    <div id="admin-season-card" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                        <div class="mb-4">
-                            <h3 class="font-extrabold text-lg text-slate-950">Aktiv sesong</h3>
-                            <p class="text-xs text-slate-500">Byttet til neste sesong låses opp når planen er ferdig. Tilbake til inneværende sesong er alltid åpent.</p>
-                        </div>
-                        <p id="admin-season-current" class="text-sm font-extrabold text-bsk-blue mb-4">Aktiv sesong leses …</p>
-                        <ul id="admin-season-checks" class="space-y-2 mb-4" aria-label="Sjekkliste før sesongbytte"></ul>
-                        <div class="flex flex-col sm:flex-row gap-2">
-                            <button type="button" id="admin-season-forward" class="portal-btn portal-btn-primary" data-admin-season-year="" disabled>Sett aktiv sesong</button>
-                            <button type="button" id="admin-season-back" class="portal-btn portal-btn-secondary" data-admin-season-year="" hidden>Sett aktiv sesong tilbake</button>
-                        </div>
-                        <p id="admin-season-status" class="text-xs text-slate-600 mt-3 min-h-[1rem]" role="status" aria-live="polite"></p>
-                        <p id="admin-season-note" class="text-[11px] text-slate-400 mt-2">Forsiden og statistikken følger sesongen du setter.</p>
-                    </div>
-
                     <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                         <div class="mb-4">
                             <h3 class="font-extrabold text-lg text-slate-950">Backup</h3>
@@ -995,17 +972,6 @@
     </div>
 
     <p id="portal-attendance-feedback" class="match-inline-status portal-attendance-feedback" aria-live="polite" hidden></p>
-
-    <div id="seasonRosterDialog" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4" onclick="if (event.target === this) window.closeCreateSeasonRosterDialog()">
-        <div class="season-roster-dialog" role="dialog" aria-modal="true" aria-labelledby="seasonRosterDialogTitle">
-            <h3 id="seasonRosterDialogTitle">Opprett 2027-tropp</h3>
-            <div id="seasonRosterDialogBody" class="season-roster-dialog-body"></div>
-            <div class="season-roster-dialog-actions">
-                <button type="button" class="bsk-btn bsk-btn-secondary" onclick="window.closeCreateSeasonRosterDialog()">Avbryt</button>
-                <button type="button" id="seasonRosterDialogConfirm" class="bsk-btn bsk-btn-primary" onclick="window.confirmCreateSeasonRoster()">Opprett 2027-tropp</button>
-            </div>
-        </div>
-    </div>
 
     <div id="playerModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm items-center justify-center z-50 p-4">
         <div class="match-detail-card player-modal-card w-full max-w-lg relative overflow-hidden max-h-[90vh] flex flex-col">

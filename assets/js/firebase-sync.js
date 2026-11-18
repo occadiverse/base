@@ -466,16 +466,8 @@
                 if (typeof window.applySeasonSettings === 'function') {
                     window.applySeasonSettings(data.seasonSettings);
                 }
-                const parsed = window.resolvePlayerSeasonYear?.(data.activeSeason);
-                if (parsed == null || typeof window.applyActiveSeasonYear !== 'function') return;
-                if (window._activeSeasonYear === parsed) {
-                    if (typeof window.renderAdminSeasonSwitch === 'function') window.renderAdminSeasonSwitch();
-                    return;
-                }
-                window.applyActiveSeasonYear(parsed);
-                if (typeof window.renderAdminSeasonSwitch === 'function') window.renderAdminSeasonSwitch();
             }, (error) => {
-                console.warn('Database-tilgang avvist for aktiv sesong (beholder lokal verdi):', error.message);
+                console.warn('Database-tilgang avvist for sesonginnstillinger (beholder lokal verdi):', error.message);
             });
         } else {
             loadAllFromLocalStorage();
@@ -1284,43 +1276,6 @@
                 };
             }
 
-            return { saved: true, written: changedPlayers.length, plan };
-        };
-
-        window.createSeasonRoster = async function(sourceYear, targetYear) {
-            if (typeof window.previewCreateSeasonRoster !== 'function' || typeof window.applyCreateSeasonRoster !== 'function') {
-                return { saved: false, reason: 'missing_preview' };
-            }
-            const current = window.activePlayers || [];
-            const applied = window.applyCreateSeasonRoster(current, sourceYear, targetYear);
-            const plan = applied.plan;
-            if (plan.sourceYear == null || plan.targetYear == null || plan.targetYear <= plan.sourceYear) {
-                return { saved: false, reason: 'invalid_year', plan };
-            }
-            const changedPlayers = applied.players.filter((player, index) => player !== current[index]);
-            if (!changedPlayers.length) {
-                return { saved: false, reason: 'nothing_to_write', written: 0, plan };
-            }
-            if (!isFirebaseWriteActive()) {
-                return { saved: false, reason: 'no_auth', localOnly: false, written: 0, plan };
-            }
-            try {
-                await Promise.all(changedPlayers.map(player => setDoc(
-                    doc(db, 'artifacts', appId, 'public', 'data', 'players', player.id),
-                    player
-                )));
-            } catch (error) {
-                console.error('Kunne ikke opprette neste sesongs tropp:', error);
-                return {
-                    saved: false,
-                    reason: 'database_save_failed',
-                    written: 0,
-                    plan,
-                    error: error.message || 'database_save_failed'
-                };
-            }
-            syncPlayers(applied.players);
-            if (typeof window.renderPlayerRoster === 'function') window.renderPlayerRoster();
             return { saved: true, written: changedPlayers.length, plan };
         };
 

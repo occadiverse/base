@@ -250,12 +250,6 @@ window.applyActiveSeasonYear = function(year) {
 };
 
 window.getActiveSeasonYear = function() {
-    const explicit = window.resolvePlayerSeasonYear(window._activeSeasonYear);
-    if (explicit != null) return explicit;
-    const years = typeof window.getStatsKampYearOptions === 'function'
-        ? window.getStatsKampYearOptions()
-        : [];
-    if (years.length) return years[0];
     return new Date().getFullYear();
 };
 
