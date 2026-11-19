@@ -245,6 +245,24 @@
                             <h3 id="selected-calendar-date">Velg en dato</h3>
                             <div id="daily-events-list" class="calendar-daily-list">
                             </div>
+                            <section class="calendar-year-plan" id="calendar-year-plan" aria-label="Årsplan">
+                                <div class="calendar-year-plan-head">
+                                    <div class="match-bench-heading calendar-section-heading">
+                                        <span class="match-game-card-icon calendar-section-mark" aria-hidden="true">
+                                            <i class="fa-solid fa-flag"></i>
+                                        </span>
+                                        <div class="match-bench-heading-copy">
+                                            <h3>Årsplan</h3>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="bsk-btn bsk-btn-chip calendar-year-plan-add" data-year-plan-action="add">
+                                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                                        <span>Legg til</span>
+                                    </button>
+                                </div>
+                                <div id="calendar-year-plan-form" class="calendar-year-plan-form" hidden></div>
+                                <div id="calendar-year-plan-list" class="calendar-year-plan-list"></div>
+                            </section>
                         </footer>
                     </div>
                 </section>
@@ -288,7 +306,7 @@
                         </div>
                         <div id="roster-plan-guide" class="roster-plan-guide">
                             <div id="roster-plan-guide-panel" class="roster-plan-guide-panel" hidden>
-                                <p><strong>Avklar spillerne.</strong> Trykk på Planlegg 2027 nederst på Spillertropp. Spillere med en 2026-sesong starter som Uavklart. Sett hver spiller til Fortsetter eller Slutter.</p>
+                                <p><strong>Avklar spillerne.</strong> De som er med i 2026 starter som Uavklart. Sett hver spiller til Fortsetter eller Slutter.</p>
                             </div>
                         </div>
                     </div>
@@ -429,13 +447,13 @@
                         </div>
                     </div>
                 </section>
-                <div id="stats-hall-of-fame-slot" class="stats-page-slot"></div>
-                <div id="stats-awards-slot" class="stats-page-slot"></div>
-                <div id="stats-spillerstats-slot" class="stats-page-slot"></div>
-                <div id="stats-arets-karinger-slot" class="stats-page-slot"></div>
-                <div id="stats-utvikling-slot" class="stats-page-slot"></div>
-                <div id="stats-oppfolging-slot" class="stats-page-slot"></div>
-                <div id="stats-oppmote-slot" class="stats-page-slot"></div>
+                <div id="stats-hall-of-fame-slot" class="stats-page-slot hidden"></div>
+                <div id="stats-awards-slot" class="stats-page-slot hidden"></div>
+                <div id="stats-spillerstats-slot" class="stats-page-slot hidden"></div>
+                <div id="stats-arets-karinger-slot" class="stats-page-slot hidden"></div>
+                <div id="stats-utvikling-slot" class="stats-page-slot hidden"></div>
+                <div id="stats-oppfolging-slot" class="stats-page-slot hidden"></div>
+                <div id="stats-oppmote-slot" class="stats-page-slot hidden"></div>
                 <div id="stats-kampdata-slot" class="stats-page-slot"></div>
                 <div id="stats-kampforkamp-slot" class="stats-page-slot"></div>
                 <div id="stats-kampstats-slot" class="stats-page-slot"></div>

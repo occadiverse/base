@@ -23,10 +23,12 @@
         let activeTeamsCollectionRef = null;
         let activePlayersCollectionRef = null;
         let activeEventsCollectionRef = null;
+        let activeYearPlanCollectionRef = null;
         let activeHallOfFameCollectionRef = null;
         let activeFollowUpsCollectionRef = null;
         let firebaseEnabled = false;
         let hasHandledInitialHallSnapshot = false;
+        let hasHandledInitialYearPlanSnapshot = false;
         let hasHandledInitialFollowUpSnapshot = false;
         let hasHandledInitialPlayersSnapshot = false;
 
@@ -59,6 +61,7 @@
             activeTeamsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'teams');
             activePlayersCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
             activeEventsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'events');
+            activeYearPlanCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'yearPlan');
             activeHallOfFameCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'hallOfFame');
             activeFollowUpsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'followUps');
             
@@ -325,6 +328,21 @@
             refreshVisibleStatistics();
         }
 
+        function syncYearPlan(items) {
+            const normalized = (items || []).map(item => {
+                const next = typeof window.normalizeYearPlanItem === 'function'
+                    ? window.normalizeYearPlanItem(item)
+                    : item;
+                if (!next) return null;
+                if (!next.id) next.id = (item && item.id) || crypto.randomUUID();
+                return next;
+            }).filter(Boolean);
+            window.yearPlanEvents = normalized;
+            window.localStorage.setItem('bsk_local_yearPlan', JSON.stringify(normalized));
+            if (typeof window.renderCalendar === 'function') window.renderCalendar();
+            else if (typeof window.renderYearPlan === 'function') window.renderYearPlan();
+        }
+
         function refreshVisibleStatistics() {
             if (window.currentTab !== 'statistikk') return;
             if (typeof window.switchStatTab !== 'function') return;
@@ -399,6 +417,26 @@
                     syncEvents(fb); 
                 }
             }, (error) => handleSyncError('events', syncEvents, initialMockEvents, error));
+
+            onSnapshot(activeYearPlanCollectionRef, (snapshot) => {
+                const fb = [];
+                snapshot.forEach((docSnap) => { fb.push({ ...docSnap.data(), id: docSnap.id }); });
+                if (!hasHandledInitialYearPlanSnapshot) {
+                    hasHandledInitialYearPlanSnapshot = true;
+                    if (fb.length === 0) {
+                        const local = getCachedCollection('yearPlan');
+                        if (local.length) {
+                            syncYearPlan(local);
+                            local.forEach(async (item) => {
+                                if (!item?.id) return;
+                                try { await setDoc(doc(activeYearPlanCollectionRef, item.id), item); } catch (error) {}
+                            });
+                            return;
+                        }
+                    }
+                }
+                syncYearPlan(fb);
+            }, (error) => handleSyncError('yearPlan', syncYearPlan, [], error));
 
             onSnapshot(activeHallOfFameCollectionRef, (snapshot) => {
                 const remote = readHallOfFameSnapshot(snapshot);
@@ -478,6 +516,7 @@
             syncTeams(loadCachedCollectionOrMock('teams', initialMockTeams));
             syncPlayers(loadCachedCollectionOrMock('players', initialMockPlayers));
             syncEvents(loadCachedCollectionOrMock('events', initialMockEvents));
+            syncYearPlan(getCachedCollection('yearPlan'));
         }
 
         window.saveMatchToDatabase = async function(matchObject) {
@@ -963,6 +1002,42 @@
                 console.error('Kunne ikke lagre kåring i databasen:', error);
                 throw createFirebaseWriteError('lagre kåring', error);
             }
+        };
+
+        window.saveYearPlanItem = async function(item) {
+            const next = typeof window.normalizeYearPlanItem === 'function'
+                ? window.normalizeYearPlanItem(item)
+                : { ...item };
+            if (!next) throw new Error('Hendelsen trenger en dato og et emne.');
+            next.id = next.id || crypto.randomUUID();
+            const current = [...(window.yearPlanEvents || [])];
+            const idx = current.findIndex(entry => entry.id === next.id);
+            if (idx > -1) current[idx] = next;
+            else current.push(next);
+            syncYearPlan(current);
+            if (isFirebaseWriteActive() && activeYearPlanCollectionRef) {
+                try {
+                    await setDoc(doc(activeYearPlanCollectionRef, next.id), next);
+                } catch (error) {
+                    console.error('Kunne ikke lagre årsplanhendelse i databasen:', error);
+                    throw createFirebaseWriteError('lagre hendelsen', error);
+                }
+            }
+            return next;
+        };
+
+        window.deleteYearPlanItemFromDatabase = async function(itemId) {
+            const current = (window.yearPlanEvents || []).filter(entry => entry.id !== itemId);
+            syncYearPlan(current);
+            if (isFirebaseWriteActive() && activeYearPlanCollectionRef) {
+                try {
+                    await deleteDoc(doc(activeYearPlanCollectionRef, itemId));
+                } catch (error) {
+                    console.error('Kunne ikke slette årsplanhendelse i databasen:', error);
+                    throw createFirebaseWriteError('slette hendelsen', error);
+                }
+            }
+            return true;
         };
 
         window.deleteEventFromDatabase = async function(eventId) {

@@ -591,6 +591,7 @@ window.renderCalendar = function() {
             const isOutsideActiveMonth = dayDate.getMonth() !== month;
             const matches = (window.activeMatches || []).filter(m => m.date === dateStr);
             const events = (window.activeEvents || []).filter(e => e.date === dateStr);
+            const planItems = (window.yearPlanEvents || []).filter(item => item.date === dateStr);
             const items = [
                 ...matches.map(m => ({
                     type: 'match',
@@ -599,6 +600,10 @@ window.renderCalendar = function() {
                 ...events.map(e => ({
                     type: e.type === 'Trening' ? 'training' : 'other',
                     label: e.title || e.type || 'Aktivitet'
+                })),
+                ...planItems.map(item => ({
+                    type: 'plan',
+                    label: item.title || 'Årsplan'
                 }))
             ];
 
@@ -661,6 +666,9 @@ window.updateDailySchedule = function() {
     const dateStr = window.selectedCalendarDateStr;
     const dayMatches = (window.activeMatches || []).filter(m => m.date === dateStr);
     const dayEvents = (window.activeEvents || []).filter(e => e.date === dateStr);
+    const dayPlan = (window.yearPlanEvents || [])
+        .map(item => typeof window.normalizeYearPlanItem === 'function' ? window.normalizeYearPlanItem(item) : item)
+        .filter(item => item && item.date === dateStr);
     const selectedDate = parseCalendarDate(dateStr);
     const selectedDateLabel = selectedDate.toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -670,7 +678,7 @@ window.updateDailySchedule = function() {
 
     listContainer.innerHTML = '';
 
-    if (dayMatches.length === 0 && dayEvents.length === 0) {
+    if (dayMatches.length === 0 && dayEvents.length === 0 && dayPlan.length === 0) {
         listContainer.innerHTML = `
             <div class="calendar-empty-state">
                 <div class="calendar-empty-icon" aria-hidden="true">
@@ -679,6 +687,7 @@ window.updateDailySchedule = function() {
                 <p class="calendar-empty-title">Ingen aktiviteter</p>
                 <p class="calendar-empty-text">Ledig dag</p>
             </div>`;
+        if (typeof window.renderYearPlan === 'function') window.renderYearPlan();
         return;
     }
 
@@ -801,6 +810,35 @@ window.updateDailySchedule = function() {
             </div>`;
     };
 
+    const renderDailyPlan = (item) => {
+        const timeHtml = item.time
+            ? `<span class="calendar-detail-time-dot" aria-hidden="true"></span><span class="calendar-daily-time">${escapeCalendarHtml(item.time)}</span>`
+            : '';
+        const notesHtml = item.notes
+            ? `<p class="calendar-plan-notes">${escapeCalendarHtml(item.notes)}</p>`
+            : '';
+        return `
+            <div class="calendar-detail-card calendar-plan-detail-card">
+                <i class="fa-solid fa-flag calendar-detail-watermark" aria-hidden="true"></i>
+                <div class="calendar-daily-card-content calendar-plan-card-content relative z-10">
+                    <div class="calendar-daily-icon-slot">
+                        <div class="calendar-detail-icon">
+                            <i class="fa-solid fa-flag"></i>
+                        </div>
+                    </div>
+                    <div class="calendar-daily-main">
+                        <div class="calendar-daily-title-block">
+                            <div class="calendar-daily-title-line">
+                                <h4 class="calendar-detail-title calendar-daily-title">${escapeCalendarHtml(item.title)}</h4>
+                                ${timeHtml}
+                            </div>
+                            ${notesHtml}
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+    };
+
     const getSortTime = (item) => {
         const time = item.data.time || '99:99';
         const [hours = 99, minutes = 99] = String(time).split(':').map(Number);
@@ -809,11 +847,17 @@ window.updateDailySchedule = function() {
 
     listContainer.innerHTML = [
         ...dayMatches.map(match => ({ type: 'match', data: match })),
-        ...dayEvents.map(event => ({ type: 'event', data: event }))
+        ...dayEvents.map(event => ({ type: 'event', data: event })),
+        ...dayPlan.map(item => ({ type: 'plan', data: item }))
     ]
         .sort((a, b) => getSortTime(a) - getSortTime(b))
-        .map(item => item.type === 'match' ? renderDailyMatch(item.data) : renderDailyEvent(item.data))
+        .map(item => {
+            if (item.type === 'match') return renderDailyMatch(item.data);
+            if (item.type === 'plan') return renderDailyPlan(item.data);
+            return renderDailyEvent(item.data);
+        })
         .join('');
+    if (typeof window.renderYearPlan === 'function') window.renderYearPlan();
 };
 
 window.openActivityModal = function(defaultType = 'Trening') {
@@ -1106,4 +1150,231 @@ window.saveNewActivity = async function(options = {}) {
     if (typeof window.renderCalendar === 'function') window.renderCalendar();
     if (typeof window.updateDailySchedule === 'function') window.updateDailySchedule();
     if (typeof window.updateHjemWidget === 'function') window.updateHjemWidget();
+};
+
+const yearPlanMonthShort = ['jan', 'feb', 'mars', 'apr', 'mai', 'juni', 'juli', 'aug', 'sep', 'okt', 'nov', 'des'];
+const yearPlanOpenIds = new Set();
+let yearPlanEditor = null;
+
+window.yearPlanEvents = window.yearPlanEvents || [];
+
+window.normalizeYearPlanItem = function(item) {
+    if (!item || typeof item !== 'object') return null;
+    const date = String(item.date || '').trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+    const title = String(item.title || '').trim();
+    if (!title) return null;
+    const time = String(item.time || '').trim();
+    return {
+        id: String(item.id || ''),
+        date,
+        time: /^\d{2}:\d{2}/.test(time) ? time.slice(0, 5) : '',
+        title,
+        notes: String(item.notes || '').trim()
+    };
+};
+
+function yearPlanViewYear() {
+    const source = window.visibleCalendarMonthDate || window.currentCalendarDate || new Date();
+    return source.getFullYear();
+}
+
+function formatYearPlanDate(dateStr) {
+    const date = parseCalendarDate(dateStr);
+    if (Number.isNaN(date.getTime())) return dateStr;
+    return `${date.getDate()}. ${yearPlanMonthShort[date.getMonth()]}`;
+}
+
+function bindYearPlanEvents() {
+    const root = document.getElementById('calendar-year-plan');
+    if (!root || root.dataset.yearPlanBound === 'true') return;
+    root.dataset.yearPlanBound = 'true';
+    root.addEventListener('click', (event) => {
+        const actionEl = event.target.closest('[data-year-plan-action]');
+        if (!actionEl || !root.contains(actionEl)) return;
+        const action = actionEl.dataset.yearPlanAction;
+        const id = actionEl.dataset.yearPlanId || '';
+        if (action === 'add') {
+            yearPlanEditor = { id: '' };
+            window.renderYearPlan();
+            return;
+        }
+        if (action === 'cancel') {
+            yearPlanEditor = null;
+            window.renderYearPlan();
+            return;
+        }
+        if (action === 'toggle') {
+            if (yearPlanOpenIds.has(id)) yearPlanOpenIds.delete(id);
+            else yearPlanOpenIds.add(id);
+            window.renderYearPlan();
+            return;
+        }
+        if (action === 'edit') {
+            yearPlanEditor = { id };
+            yearPlanOpenIds.add(id);
+            window.renderYearPlan();
+            return;
+        }
+        if (action === 'delete') {
+            const item = (window.yearPlanEvents || []).find(entry => entry.id === id);
+            const name = item?.title || 'hendelsen';
+            if (!window.confirm(`Slette «${name}» fra årsplanen?`)) return;
+            window.deleteYearPlanItem(id);
+            return;
+        }
+        if (action === 'save') {
+            event.preventDefault();
+            window.saveYearPlanFromForm();
+        }
+    });
+    root.addEventListener('submit', (event) => {
+        if (!event.target.closest('#calendar-year-plan-form')) return;
+        event.preventDefault();
+        window.saveYearPlanFromForm();
+    });
+}
+
+function renderYearPlanForm() {
+    const form = document.getElementById('calendar-year-plan-form');
+    if (!form) return;
+    if (!yearPlanEditor) {
+        form.hidden = true;
+        form.innerHTML = '';
+        delete form.dataset.editorId;
+        return;
+    }
+    const editorKey = yearPlanEditor.id || 'new';
+    if (form.dataset.editorId === editorKey && form.querySelector('form')) return;
+    form.dataset.editorId = editorKey;
+    const existing = (window.yearPlanEvents || []).find(item => item.id === yearPlanEditor.id);
+    const selectedDate = window.selectedCalendarDateStr || formatCalendarDate(new Date());
+    const date = existing?.date || selectedDate;
+    const time = existing?.time || '';
+    const title = existing?.title || '';
+    const notes = existing?.notes || '';
+    const heading = existing ? 'Endre hendelse' : 'Ny hendelse';
+    form.hidden = false;
+    form.innerHTML = `
+        <form class="calendar-year-plan-editor">
+            <p class="calendar-year-plan-editor-title">${heading}</p>
+            <div class="calendar-year-plan-editor-grid">
+                <label class="calendar-year-plan-field">
+                    <span>Dato</span>
+                    <input type="date" name="date" required value="${escapeCalendarHtml(date)}">
+                </label>
+                <label class="calendar-year-plan-field">
+                    <span>Tid</span>
+                    <input type="time" name="time" value="${escapeCalendarHtml(time)}">
+                </label>
+            </div>
+            <label class="calendar-year-plan-field">
+                <span>Emne</span>
+                <input type="text" name="title" required maxlength="80" value="${escapeCalendarHtml(title)}" placeholder="Kickoff, seriestart, avslutning...">
+            </label>
+            <label class="calendar-year-plan-field">
+                <span>Notater</span>
+                <textarea name="notes" rows="3" maxlength="600" placeholder="Praktisk info, sted, hvem som møter...">${escapeCalendarHtml(notes)}</textarea>
+            </label>
+            <div class="calendar-year-plan-editor-actions">
+                <button type="submit" class="bsk-btn bsk-btn-primary" data-year-plan-action="save">Lagre</button>
+                <button type="button" class="bsk-btn bsk-btn-secondary" data-year-plan-action="cancel">Avbryt</button>
+            </div>
+        </form>
+    `;
+}
+
+window.renderYearPlan = function() {
+    const list = document.getElementById('calendar-year-plan-list');
+    if (!list) return;
+    bindYearPlanEvents();
+    renderYearPlanForm();
+
+    const year = yearPlanViewYear();
+    const items = (window.yearPlanEvents || [])
+        .map(item => window.normalizeYearPlanItem(item))
+        .filter(item => item && item.date.slice(0, 4) === String(year))
+        .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time) || a.title.localeCompare(b.title, 'nb'));
+
+    if (!items.length) {
+        list.innerHTML = `<p class="calendar-year-plan-empty">Ingen hendelser i ${year} ennå.</p>`;
+        return;
+    }
+
+    const groups = new Map();
+    items.forEach(item => {
+        const month = Number(item.date.slice(5, 7)) - 1;
+        if (!groups.has(month)) groups.set(month, []);
+        groups.get(month).push(item);
+    });
+
+    list.innerHTML = [...groups.entries()].map(([month, rows]) => `
+        <section class="calendar-year-plan-month">
+            <h4>${calendarMonthNames[month]}</h4>
+            ${rows.map(item => {
+                const open = yearPlanOpenIds.has(item.id);
+                const selected = item.date === window.selectedCalendarDateStr;
+                const notes = item.notes
+                    ? `<p>${escapeCalendarHtml(item.notes)}</p>`
+                    : `<p class="is-empty">Ingen notater.</p>`;
+                return `
+                    <article class="calendar-year-plan-item${selected ? ' is-selected' : ''}${open ? ' is-open' : ''}">
+                        <button type="button" class="calendar-year-plan-row" data-year-plan-action="toggle" data-year-plan-id="${escapeCalendarHtml(item.id)}" aria-expanded="${open ? 'true' : 'false'}">
+                            <span class="calendar-year-plan-date">${escapeCalendarHtml(formatYearPlanDate(item.date))}</span>
+                            <span class="calendar-year-plan-time">${escapeCalendarHtml(item.time || '–')}</span>
+                            <span class="calendar-year-plan-subject">${escapeCalendarHtml(item.title)}</span>
+                            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                        </button>
+                        <div class="calendar-year-plan-notes"${open ? '' : ' hidden'}>
+                            ${notes}
+                            <div class="calendar-year-plan-note-actions">
+                                <button type="button" data-year-plan-action="edit" data-year-plan-id="${escapeCalendarHtml(item.id)}">Rediger</button>
+                                <button type="button" data-year-plan-action="delete" data-year-plan-id="${escapeCalendarHtml(item.id)}">Slett</button>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }).join('')}
+        </section>
+    `).join('');
+};
+
+window.saveYearPlanFromForm = async function() {
+    const form = document.querySelector('#calendar-year-plan-form form');
+    if (!form || !form.reportValidity()) return;
+    const data = new FormData(form);
+    const item = window.normalizeYearPlanItem({
+        id: yearPlanEditor?.id || '',
+        date: data.get('date'),
+        time: data.get('time'),
+        title: data.get('title'),
+        notes: data.get('notes')
+    });
+    if (!item) {
+        alert('Hendelsen trenger en dato og et emne.');
+        return;
+    }
+    try {
+        const saved = typeof window.saveYearPlanItem === 'function'
+            ? await window.saveYearPlanItem(item)
+            : item;
+        if (saved?.id) yearPlanOpenIds.add(saved.id);
+        yearPlanEditor = null;
+        window.renderYearPlan();
+    } catch (error) {
+        console.error(error);
+        alert(error.message || 'Kunne ikke lagre hendelsen.');
+    }
+};
+
+window.deleteYearPlanItem = async function(id) {
+    if (!id || typeof window.deleteYearPlanItemFromDatabase !== 'function') return;
+    try {
+        await window.deleteYearPlanItemFromDatabase(id);
+        yearPlanOpenIds.delete(id);
+        if (yearPlanEditor?.id === id) yearPlanEditor = null;
+    } catch (error) {
+        console.error(error);
+        alert(error.message || 'Kunne ikke slette hendelsen.');
+    }
 };

@@ -13013,7 +13013,50 @@
             }
             body.is-statistikk-env .stats-board-top,
             #view-statistikk.portal-view-mobile-peek .stats-board-top {
-                padding: 0.12rem 0.85rem 0.22rem;
+                padding: 0.35rem 1rem 0.42rem;
+            }
+            body.is-statistikk-env .stats-board-top::after,
+            #view-statistikk.portal-view-mobile-peek .stats-board-top::after {
+                background: linear-gradient(
+                    90deg,
+                    transparent 0%,
+                    rgba(214, 168, 64, 0.4) 8%,
+                    rgba(226, 184, 74, 0.95) 50%,
+                    rgba(214, 168, 64, 0.4) 92%,
+                    transparent 100%
+                );
+                box-shadow: 0 0 2px rgba(214, 168, 64, 0.2);
+                height: 1.5px;
+                left: 0.85rem;
+                right: 0.85rem;
+            }
+            body.is-statistikk-env .stats-board-heading,
+            #view-statistikk.portal-view-mobile-peek .stats-board-heading {
+                gap: 0.45rem;
+                min-height: 0;
+                padding: 0 0.05rem;
+            }
+            body.is-statistikk-env .match-bench-heading.stats-board-heading h3,
+            #view-statistikk.portal-view-mobile-peek .match-bench-heading.stats-board-heading h3 {
+                font-size: 1.16rem;
+                letter-spacing: 0.04em;
+                line-height: 1.15;
+                text-shadow: 0 1px 0 rgba(10, 26, 48, 0.4);
+            }
+            body.is-statistikk-env .stats-board-heading .stats-board-mark,
+            #view-statistikk.portal-view-mobile-peek .stats-board-heading .stats-board-mark,
+            body.is-statistikk-env .match-bench-heading .stats-board-mark,
+            #view-statistikk.portal-view-mobile-peek .match-bench-heading .stats-board-mark {
+                height: 2.15rem;
+                margin: 0;
+                transform: translateY(0.06rem) rotate(-10deg);
+                width: 2.15rem;
+            }
+            body.is-statistikk-env .stats-board-heading .stats-board-mark i,
+            #view-statistikk.portal-view-mobile-peek .stats-board-heading .stats-board-mark i,
+            body.is-statistikk-env .match-bench-heading .stats-board-mark i,
+            #view-statistikk.portal-view-mobile-peek .match-bench-heading .stats-board-mark i {
+                font-size: 1.55rem;
             }
             body.is-statistikk-env .stats-board-card,
             #view-statistikk.portal-view-mobile-peek .stats-board-card {
@@ -31836,6 +31879,9 @@
         .calendar-day-event-dot.is-other {
             background: #94a3b8;
         }
+        .calendar-day-event-dot.is-plan {
+            background: #f5c542;
+        }
         .calendar-day-cell.is-outside-month {
             background: linear-gradient(180deg, rgba(12, 32, 56, 0.42) 0%, rgba(4, 14, 28, 0.55) 100%);
             border-color: rgba(255, 224, 138, 0.1);
@@ -32406,6 +32452,57 @@
             color: #fffdf8;
             text-shadow: 0 1px 0 rgba(6, 26, 51, 0.55);
         }
+        /* Årsplan = gull Clash-plate, samme DNA som kamp og trening */
+        .calendar-bottomline .calendar-plan-detail-card,
+        .calendar-plan-detail-card {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.06) 40%, transparent 55%),
+                linear-gradient(180deg, #f6d56a 0%, #e0a820 46%, #b8860b 100%);
+            border-color: #5c3d08;
+            box-shadow:
+                0 5px 0 #3a2604,
+                0 9px 18px rgba(2, 6, 23, 0.42),
+                inset 0 1px 0 rgba(255, 255, 255, 0.45),
+                inset 0 -2px 0 rgba(92, 61, 8, 0.35);
+            color: #fffdf8;
+        }
+        .calendar-plan-detail-card .calendar-detail-watermark {
+            color: #3a2604;
+            opacity: 0.12;
+        }
+        .calendar-plan-detail-card .calendar-detail-icon {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(92, 61, 8, 0.55) 100%);
+            border-color: rgba(255, 253, 248, 0.5);
+            box-shadow:
+                0 2px 0 rgba(58, 38, 4, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            color: #fffdf8;
+        }
+        .calendar-plan-detail-card .calendar-detail-title,
+        .calendar-plan-detail-card .calendar-daily-title,
+        .calendar-plan-detail-card .calendar-daily-time {
+            color: #fffdf8;
+            text-shadow: 0 1px 0 rgba(58, 38, 4, 0.45);
+        }
+        .calendar-plan-detail-card .calendar-detail-time-dot {
+            background: rgba(255, 253, 248, 0.55);
+        }
+        .calendar-plan-detail-card .calendar-plan-card-content {
+            align-items: center;
+            padding-right: 0;
+        }
+        .calendar-plan-detail-card .calendar-daily-title {
+            flex: 0 1 auto;
+        }
+        .calendar-plan-notes {
+            color: rgba(255, 253, 248, 0.92);
+            font-size: 0.84rem;
+            font-weight: 650;
+            line-height: 1.4;
+            margin: 0.4rem 0 0;
+            text-shadow: 0 1px 0 rgba(58, 38, 4, 0.35);
+            white-space: pre-wrap;
+        }
         /* Annet = stålplate */
         .calendar-bottomline .calendar-event-detail-card.is-other,
         .calendar-event-detail-card.is-other {
@@ -32808,6 +32905,189 @@
             color: rgba(255, 255, 255, 0.7);
             font-size: 0.8rem;
             line-height: 1.5;
+        }
+        .calendar-year-plan {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            margin-top: 0.35rem;
+            min-width: 0;
+            width: 100%;
+        }
+        .calendar-year-plan-head {
+            align-items: center;
+            display: flex;
+            gap: 0.65rem;
+            justify-content: space-between;
+            min-width: 0;
+            padding: 0.15rem 0 0.55rem;
+            position: relative;
+        }
+        .calendar-year-plan-head::after {
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(214, 168, 64, 0.4) 8%,
+                rgba(226, 184, 74, 0.95) 50%,
+                rgba(214, 168, 64, 0.4) 92%,
+                transparent 100%
+            );
+            bottom: 0;
+            box-shadow: 0 0 2px rgba(214, 168, 64, 0.2);
+            content: "";
+            height: 1.5px;
+            left: 0;
+            pointer-events: none;
+            position: absolute;
+            right: 0;
+        }
+        .calendar-year-plan-head .calendar-section-heading {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .calendar-year-plan-empty {
+            color: rgba(255, 253, 245, 0.72);
+            font-size: 0.84rem;
+            font-weight: 650;
+            margin: 0;
+        }
+        .calendar-year-plan-month {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        .calendar-year-plan-month h4 {
+            color: rgba(255, 224, 138, 0.78);
+            font-size: 0.68rem;
+            font-weight: 950;
+            letter-spacing: 0.08em;
+            margin: 0.35rem 0 0;
+            text-transform: uppercase;
+        }
+        .calendar-year-plan-item {
+            min-width: 0;
+        }
+        .calendar-year-plan-row {
+            align-items: center;
+            background: #12345c;
+            border: 1.5px solid rgba(142, 212, 255, 0.38);
+            border-radius: 0.7rem;
+            color: #fffdf5;
+            cursor: pointer;
+            display: grid;
+            font: inherit;
+            gap: 0.45rem;
+            grid-template-columns: 4.4rem 3.1rem minmax(0, 1fr) auto;
+            min-height: 2.55rem;
+            padding: 0.4rem 0.65rem;
+            text-align: left;
+            width: 100%;
+        }
+        .calendar-year-plan-item.is-selected .calendar-year-plan-row,
+        .calendar-year-plan-item.is-open .calendar-year-plan-row {
+            border-color: rgba(255, 224, 138, 0.72);
+        }
+        .calendar-year-plan-date,
+        .calendar-year-plan-time {
+            color: rgba(255, 253, 245, 0.82);
+            font-size: 0.78rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .calendar-year-plan-subject {
+            font-size: 0.9rem;
+            font-weight: 900;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .calendar-year-plan-row i {
+            color: #ffe9a8;
+            font-size: 0.72rem;
+            transition: transform 140ms ease;
+        }
+        .calendar-year-plan-row[aria-expanded="true"] i {
+            transform: rotate(180deg);
+        }
+        .calendar-year-plan-notes {
+            color: rgba(255, 253, 245, 0.9);
+            font-size: 0.84rem;
+            font-weight: 650;
+            line-height: 1.45;
+            padding: 0.45rem 0.7rem 0.15rem;
+        }
+        .calendar-year-plan-notes p {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        .calendar-year-plan-notes p.is-empty {
+            color: rgba(255, 253, 245, 0.55);
+        }
+        .calendar-year-plan-note-actions {
+            display: flex;
+            gap: 0.85rem;
+            margin-top: 0.35rem;
+        }
+        .calendar-year-plan-note-actions button {
+            background: transparent;
+            border: 0;
+            color: #ffe9a8;
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.78rem;
+            font-weight: 850;
+            padding: 0.2rem 0;
+        }
+        .calendar-year-plan-note-actions button[data-year-plan-action="delete"] {
+            color: #ffb4b4;
+        }
+        .calendar-year-plan-form[hidden] {
+            display: none;
+        }
+        .calendar-year-plan-editor {
+            background: rgba(8, 28, 56, 0.55);
+            border: 1.5px solid rgba(255, 224, 138, 0.35);
+            border-radius: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            padding: 0.75rem;
+        }
+        .calendar-year-plan-editor-title {
+            color: #fffdf5;
+            font-size: 0.84rem;
+            font-weight: 900;
+            margin: 0;
+        }
+        .calendar-year-plan-editor-grid {
+            display: grid;
+            gap: 0.55rem;
+            grid-template-columns: 1fr 1fr;
+        }
+        .calendar-year-plan-field {
+            color: rgba(255, 253, 245, 0.78);
+            display: flex;
+            flex-direction: column;
+            font-size: 0.72rem;
+            font-weight: 800;
+            gap: 0.25rem;
+        }
+        .calendar-year-plan-field input,
+        .calendar-year-plan-field textarea {
+            background: #fffdf8;
+            border: 1px solid rgba(18, 63, 115, 0.18);
+            border-radius: 0.55rem;
+            color: #0b2b4c;
+            font: inherit;
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 0.45rem 0.55rem;
+            width: 100%;
+        }
+        .calendar-year-plan-editor-actions {
+            display: flex;
+            gap: 0.45rem;
         }
         @media (max-width: 640px) {
             .calendar-scroll-grid,
@@ -33798,9 +34078,24 @@
             text-shadow: none;
             text-transform: none;
         }
-        .calendar-nav-row .calendar-add-btn.bsk-btn-chip {
+        .calendar-nav-row .calendar-add-btn.bsk-btn-chip,
+        .calendar-year-plan-add.bsk-btn-chip {
             border-color: rgba(255, 224, 138, 0.72);
             color: #fffdf5;
+        }
+        .calendar-year-plan-add.bsk-btn-chip {
+            background: #12345c;
+            border: 1.5px solid rgba(255, 224, 138, 0.72);
+            border-radius: 0.55rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            flex: 0 0 auto;
+            font-size: 0.84rem;
+            font-weight: 950;
+            gap: 0.32rem;
+            letter-spacing: 0;
+            min-height: 2.35rem;
+            padding: 0.4rem 0.7rem 0.48rem;
+            text-transform: none;
         }
         @media (max-width: 767px) {
             .bsk-btn {
