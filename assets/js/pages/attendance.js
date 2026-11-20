@@ -1154,6 +1154,7 @@ window.saveNewActivity = async function(options = {}) {
 
 const yearPlanMonthShort = ['jan', 'feb', 'mars', 'apr', 'mai', 'juni', 'juli', 'aug', 'sep', 'okt', 'nov', 'des'];
 const yearPlanOpenIds = new Set();
+const yearPlanCollapsedYears = new Set();
 let yearPlanEditor = null;
 
 window.yearPlanEvents = window.yearPlanEvents || [];
@@ -1173,6 +1174,19 @@ window.normalizeYearPlanItem = function(item) {
         notes: String(item.notes || '').trim()
     };
 };
+
+function showYearPlanDate(dateStr) {
+    if (!dateStr) return;
+    window.selectCalendarDate(dateStr);
+    const cell = document.querySelector(`[data-calendar-date="${dateStr}"]`);
+    const scroller = document.querySelector('.calendar-mobile-main');
+    if (cell && scroller && scroller.scrollHeight > scroller.clientHeight + 8) {
+        const delta = cell.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+        scroller.scrollTop += delta - 16;
+        return;
+    }
+    cell?.scrollIntoView({ block: 'center' });
+}
 
 function yearPlanViewYear() {
     const source = window.visibleCalendarMonthDate || window.currentCalendarDate || new Date();
@@ -1195,8 +1209,11 @@ function bindYearPlanEvents() {
         const action = actionEl.dataset.yearPlanAction;
         const id = actionEl.dataset.yearPlanId || '';
         if (action === 'add') {
-            yearPlanEditor = { id: '' };
+            const targetYear = Number(actionEl.dataset.yearPlanYear) || yearPlanViewYear();
+            yearPlanCollapsedYears.delete(targetYear);
+            yearPlanEditor = { id: '', year: targetYear };
             window.renderYearPlan();
+            document.getElementById('calendar-year-plan-form')?.scrollIntoView({ block: 'nearest' });
             return;
         }
         if (action === 'cancel') {
@@ -1205,12 +1222,19 @@ function bindYearPlanEvents() {
             return;
         }
         if (action === 'toggle') {
+            const item = yearPlanItems().find(entry => entry.id === id);
+            if (item && item.date !== window.selectedCalendarDateStr) {
+                showYearPlanDate(item.date);
+                return;
+            }
             if (yearPlanOpenIds.has(id)) yearPlanOpenIds.delete(id);
             else yearPlanOpenIds.add(id);
             window.renderYearPlan();
             return;
         }
         if (action === 'edit') {
+            const item = yearPlanItems().find(entry => entry.id === id);
+            if (item) yearPlanCollapsedYears.delete(Number(item.date.slice(0, 4)));
             yearPlanEditor = { id };
             yearPlanOpenIds.add(id);
             window.renderYearPlan();
@@ -1221,6 +1245,13 @@ function bindYearPlanEvents() {
             const name = item?.title || 'hendelsen';
             if (!window.confirm(`Slette «${name}» fra årsplanen?`)) return;
             window.deleteYearPlanItem(id);
+            return;
+        }
+        if (action === 'toggle-year') {
+            const targetYear = Number(actionEl.dataset.yearPlanYear);
+            if (yearPlanCollapsedYears.has(targetYear)) yearPlanCollapsedYears.delete(targetYear);
+            else yearPlanCollapsedYears.add(targetYear);
+            window.renderYearPlan();
             return;
         }
         if (action === 'save') {
@@ -1244,12 +1275,17 @@ function renderYearPlanForm() {
         delete form.dataset.editorId;
         return;
     }
-    const editorKey = yearPlanEditor.id || 'new';
+    const editorKey = yearPlanEditor.id || `new-${yearPlanEditor.year || yearPlanViewYear()}`;
     if (form.dataset.editorId === editorKey && form.querySelector('form')) return;
     form.dataset.editorId = editorKey;
     const existing = (window.yearPlanEvents || []).find(item => item.id === yearPlanEditor.id);
     const selectedDate = window.selectedCalendarDateStr || formatCalendarDate(new Date());
-    const date = existing?.date || selectedDate;
+    const editorYear = Number(yearPlanEditor.year) || yearPlanViewYear();
+    const date = existing?.date || (
+        editorYear === yearPlanViewYear()
+            ? selectedDate
+            : yearPlanDateInYear(selectedDate, editorYear)
+    );
     const time = existing?.time || '';
     const title = existing?.title || '';
     const notes = existing?.notes || '';
@@ -1284,23 +1320,41 @@ function renderYearPlanForm() {
     `;
 }
 
-window.renderYearPlan = function() {
-    const list = document.getElementById('calendar-year-plan-list');
-    if (!list) return;
-    bindYearPlanEvents();
-    renderYearPlanForm();
+function yearPlanDateInYear(dateStr, year) {
+    const parsed = parseCalendarDate(dateStr);
+    const month = Number.isNaN(parsed.getTime()) ? 0 : parsed.getMonth();
+    const day = Number.isNaN(parsed.getTime()) ? 1 : parsed.getDate();
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    return formatCalendarDate(new Date(year, month, Math.min(day, lastDay)));
+}
 
-    const year = yearPlanViewYear();
-    const items = (window.yearPlanEvents || [])
-        .map(item => window.normalizeYearPlanItem(item))
-        .filter(item => item && item.date.slice(0, 4) === String(year))
-        .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time) || a.title.localeCompare(b.title, 'nb'));
+function yearPlanDateParts(dateStr) {
+    const date = parseCalendarDate(dateStr);
+    if (Number.isNaN(date.getTime())) return { day: '--', month: '---', weekday: '' };
+    return {
+        day: date.toLocaleDateString('no-NO', { day: '2-digit' }).replace('.', ''),
+        month: date.toLocaleDateString('no-NO', { month: 'short' }).replace('.', '').toUpperCase(),
+        weekday: date.toLocaleDateString('no-NO', { weekday: 'short' }).replace('.', '')
+    };
+}
 
-    if (!items.length) {
-        list.innerHTML = `<p class="calendar-year-plan-empty">Ingen hendelser i ${year} ennå.</p>`;
-        return;
+function yearPlanEditorYear() {
+    if (!yearPlanEditor) return null;
+    if (yearPlanEditor.id) {
+        const item = yearPlanItems().find(entry => entry.id === yearPlanEditor.id);
+        return item ? Number(item.date.slice(0, 4)) : null;
     }
+    return Number(yearPlanEditor.year) || yearPlanViewYear();
+}
 
+function yearPlanItems() {
+    return (window.yearPlanEvents || [])
+        .map(item => window.normalizeYearPlanItem(item))
+        .filter(Boolean)
+        .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time) || a.title.localeCompare(b.title, 'nb'));
+}
+
+function renderYearPlanMonths(items) {
     const groups = new Map();
     items.forEach(item => {
         const month = Number(item.date.slice(5, 7)) - 1;
@@ -1308,22 +1362,31 @@ window.renderYearPlan = function() {
         groups.get(month).push(item);
     });
 
-    list.innerHTML = [...groups.entries()].map(([month, rows]) => `
+    return [...groups.entries()].map(([month, rows]) => `
         <section class="calendar-year-plan-month">
             <h4>${calendarMonthNames[month]}</h4>
             ${rows.map(item => {
                 const open = yearPlanOpenIds.has(item.id);
                 const selected = item.date === window.selectedCalendarDateStr;
+                const parts = yearPlanDateParts(item.date);
                 const notes = item.notes
                     ? `<p>${escapeCalendarHtml(item.notes)}</p>`
                     : `<p class="is-empty">Ingen notater.</p>`;
                 return `
                     <article class="calendar-year-plan-item${selected ? ' is-selected' : ''}${open ? ' is-open' : ''}">
                         <button type="button" class="calendar-year-plan-row" data-year-plan-action="toggle" data-year-plan-id="${escapeCalendarHtml(item.id)}" aria-expanded="${open ? 'true' : 'false'}">
-                            <span class="calendar-year-plan-date">${escapeCalendarHtml(formatYearPlanDate(item.date))}</span>
+                            <span class="calendar-year-plan-date" aria-hidden="true">
+                                <span class="calendar-year-plan-date-day">${escapeCalendarHtml(parts.day)}</span>
+                                <span class="calendar-year-plan-date-month">${escapeCalendarHtml(parts.month)}</span>
+                            </span>
+                            <span class="calendar-year-plan-main">
+                                <span class="calendar-year-plan-weekday">${escapeCalendarHtml(parts.weekday)}</span>
+                                <span class="calendar-year-plan-subject">${escapeCalendarHtml(item.title)}</span>
+                            </span>
                             <span class="calendar-year-plan-time">${escapeCalendarHtml(item.time || '–')}</span>
-                            <span class="calendar-year-plan-subject">${escapeCalendarHtml(item.title)}</span>
-                            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                            <span class="calendar-year-plan-chevron" aria-hidden="true">
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </span>
                         </button>
                         <div class="calendar-year-plan-notes"${open ? '' : ' hidden'}>
                             ${notes}
@@ -1337,6 +1400,65 @@ window.renderYearPlan = function() {
             }).join('')}
         </section>
     `).join('');
+}
+
+function renderYearPlanSection(itemYear, rows) {
+    const collapsed = yearPlanCollapsedYears.has(itemYear);
+    const body = rows.length
+        ? renderYearPlanMonths(rows)
+        : `<p class="calendar-year-plan-empty">Ingen hendelser i ${itemYear} ennå.</p>`;
+    return `
+        <section class="calendar-year-plan-year-group${collapsed ? ' is-collapsed' : ''}">
+            <div class="calendar-year-plan-head">
+                <button type="button" class="match-bench-heading calendar-section-heading" data-year-plan-action="toggle-year" data-year-plan-year="${itemYear}" aria-expanded="${collapsed ? 'false' : 'true'}" aria-label="${collapsed ? 'Vis' : 'Skjul'} årsplan ${itemYear}">
+                    <span class="match-game-card-icon calendar-section-mark" aria-hidden="true">
+                        <i class="fa-solid fa-flag"></i>
+                    </span>
+                    <span class="match-bench-heading-copy">
+                        <span class="calendar-year-plan-year-title">Årsplan ${itemYear}</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-down calendar-year-plan-year-chevron" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="bsk-btn bsk-btn-chip calendar-year-plan-add" data-year-plan-action="add" data-year-plan-year="${itemYear}">
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                    <span>Legg til</span>
+                </button>
+            </div>
+            <div class="calendar-year-plan-year-content">
+                <div class="calendar-year-plan-form-slot" data-year-plan-form-slot="${itemYear}"></div>
+                ${body}
+            </div>
+        </section>
+    `;
+}
+
+window.renderYearPlan = function() {
+    const list = document.getElementById('calendar-year-plan-list');
+    const root = document.getElementById('calendar-year-plan');
+    const form = document.getElementById('calendar-year-plan-form');
+    if (!list || !root) return;
+    if (form && form.parentElement !== root) root.insertBefore(form, list);
+    bindYearPlanEvents();
+
+    const year = yearPlanViewYear();
+    const byYear = new Map();
+    yearPlanItems().forEach(item => {
+        const itemYear = Number(item.date.slice(0, 4));
+        if (!byYear.has(itemYear)) byYear.set(itemYear, []);
+        byYear.get(itemYear).push(item);
+    });
+
+    const years = new Set([year, ...byYear.keys()]);
+    list.innerHTML = [...years]
+        .sort((a, b) => a - b)
+        .map(itemYear => renderYearPlanSection(itemYear, byYear.get(itemYear) || []))
+        .join('');
+    const editorYear = yearPlanEditorYear();
+    if (form && editorYear) {
+        const slot = list.querySelector(`[data-year-plan-form-slot="${editorYear}"]`);
+        if (slot) slot.appendChild(form);
+    }
+    renderYearPlanForm();
 };
 
 window.saveYearPlanFromForm = async function() {

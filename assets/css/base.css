@@ -31304,7 +31304,8 @@
             position: relative;
             z-index: 2;
         }
-        .calendar-section-heading h3 {
+        .calendar-section-heading h3,
+        .calendar-section-heading .calendar-year-plan-year-title {
             color: #ffe9a8;
             font-size: 1.16rem;
             font-weight: 950;
@@ -32951,63 +32952,204 @@
             font-weight: 650;
             margin: 0;
         }
+        .calendar-year-plan-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.95rem;
+        }
+        .calendar-year-plan-year-group {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, transparent 36%),
+                linear-gradient(180deg, #1a4d86 0%, #0e3260 52%, #081e3c 100%);
+            border: 2px solid rgba(245, 197, 66, 0.62);
+            border-radius: 1.05rem;
+            box-shadow:
+                0 4px 0 #061526,
+                0 10px 18px rgba(2, 6, 23, 0.32),
+                inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            padding: 0.7rem 0.75rem 0.85rem;
+            position: relative;
+        }
+        .calendar-year-plan-year-group.is-collapsed {
+            padding-bottom: 0.55rem;
+        }
+        .calendar-year-plan-year-group.is-collapsed .calendar-year-plan-head {
+            padding-bottom: 0.1rem;
+        }
+        .calendar-year-plan-year-group.is-collapsed .calendar-year-plan-head::after {
+            display: none;
+        }
+        .calendar-year-plan-year-group.is-collapsed .calendar-year-plan-year-content {
+            display: none;
+        }
+        .calendar-year-plan-year-chevron {
+            color: #ffe9a8;
+            flex: 0 0 auto;
+            font-size: 0.72rem;
+            margin-left: 0.35rem;
+            transition: transform 160ms ease;
+        }
+        .calendar-year-plan-year-group:not(.is-collapsed) .calendar-year-plan-year-chevron {
+            transform: rotate(180deg);
+        }
+        .calendar-year-plan button.calendar-section-heading {
+            background: transparent;
+            border: 0;
+            color: inherit;
+            cursor: pointer;
+            font: inherit;
+            text-align: left;
+        }
         .calendar-year-plan-month {
             display: flex;
             flex-direction: column;
             gap: 0.35rem;
         }
         .calendar-year-plan-month h4 {
-            color: rgba(255, 224, 138, 0.78);
-            font-size: 0.68rem;
+            background: linear-gradient(90deg, rgba(245, 197, 66, 0.14) 0%, rgba(245, 197, 66, 0.03) 70%, transparent 100%);
+            border-radius: 0.5rem;
+            color: #ffe9a8;
+            font-size: 0.6rem;
             font-weight: 950;
-            letter-spacing: 0.08em;
-            margin: 0.35rem 0 0;
+            letter-spacing: 0.12em;
+            margin: 0.15rem 0 0;
+            padding: 0.22rem 0.65rem 0.26rem;
+            text-shadow: 0 1px 0 #0a1a30;
             text-transform: uppercase;
         }
         .calendar-year-plan-item {
             min-width: 0;
         }
+        .calendar-year-plan-item.is-open {
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.62) 0%, rgba(8, 28, 56, 0.82) 100%);
+            border: 1.5px solid rgba(255, 224, 138, 0.72);
+            border-radius: 0.85rem;
+            box-shadow:
+                0 2px 0 rgba(10, 26, 48, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
         .calendar-year-plan-row {
             align-items: center;
-            background: #12345c;
-            border: 1.5px solid rgba(142, 212, 255, 0.38);
-            border-radius: 0.7rem;
+            appearance: none;
+            background: linear-gradient(180deg, rgba(30, 80, 136, 0.62) 0%, rgba(8, 28, 56, 0.82) 100%);
+            border: 1.5px solid rgba(245, 197, 66, 0.42);
+            border-radius: 0.85rem;
+            box-shadow:
+                0 2px 0 rgba(10, 26, 48, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
             color: #fffdf5;
             cursor: pointer;
             display: grid;
             font: inherit;
-            gap: 0.45rem;
-            grid-template-columns: 4.4rem 3.1rem minmax(0, 1fr) auto;
-            min-height: 2.55rem;
-            padding: 0.4rem 0.65rem;
+            gap: 0.55rem;
+            grid-template-columns: auto minmax(0, 1fr) auto auto;
+            padding: 0.55rem 0.65rem;
             text-align: left;
             width: 100%;
         }
         .calendar-year-plan-item.is-selected .calendar-year-plan-row,
-        .calendar-year-plan-item.is-open .calendar-year-plan-row {
-            border-color: rgba(255, 224, 138, 0.72);
+        .calendar-year-plan-row:hover {
+            border-color: rgba(245, 197, 66, 0.72);
         }
-        .calendar-year-plan-date,
-        .calendar-year-plan-time {
-            color: rgba(255, 253, 245, 0.82);
-            font-size: 0.78rem;
-            font-weight: 800;
-            white-space: nowrap;
+        .calendar-year-plan-item.is-open .calendar-year-plan-row {
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        .calendar-year-plan-date {
+            align-items: center;
+            background: linear-gradient(180deg, rgba(18, 48, 88, 0.92) 0%, rgba(6, 22, 46, 0.95) 100%);
+            border: 2px solid rgba(255, 224, 138, 0.48);
+            border-radius: 0.7rem;
+            box-shadow:
+                0 2px 0 rgba(2, 6, 23, 0.45),
+                inset 0 1px 0 rgba(255, 253, 245, 0.18);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 2.95rem;
+            padding: 0.38rem 0.4rem 0.34rem;
+            position: relative;
+        }
+        .calendar-year-plan-date::before {
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 224, 138, 0.85) 22%,
+                #ffe08a 50%,
+                rgba(255, 224, 138, 0.85) 78%,
+                transparent 100%
+            );
+            content: "";
+            height: 2px;
+            left: 12%;
+            pointer-events: none;
+            position: absolute;
+            right: 12%;
+            top: 0;
+        }
+        .calendar-year-plan-date-day {
+            color: #fffdf5;
+            font-size: 1.12rem;
+            font-weight: 950;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            text-shadow: 0 1px 0 rgba(2, 6, 23, 0.45);
+        }
+        .calendar-year-plan-date-month {
+            color: #ffe08a;
+            font-size: 0.52rem;
+            font-weight: 950;
+            letter-spacing: 0.1em;
+            margin-top: 0.06rem;
+        }
+        .calendar-year-plan-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0.12rem;
+            min-width: 0;
+        }
+        .calendar-year-plan-weekday {
+            color: rgba(255, 224, 138, 0.62);
+            font-size: 0.58rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
         }
         .calendar-year-plan-subject {
-            font-size: 0.9rem;
+            color: #ffffff;
+            font-size: 0.95rem;
             font-weight: 900;
+            line-height: 1.15;
             min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .calendar-year-plan-row i {
-            color: #ffe9a8;
+        .calendar-year-plan-time {
+            color: #ffffff;
+            font-size: 0.92rem;
+            font-weight: 900;
+            line-height: 1;
+            white-space: nowrap;
+        }
+        .calendar-year-plan-chevron {
+            align-items: center;
+            color: rgba(255, 224, 138, 0.78);
+            display: flex;
+            justify-content: center;
+            width: 0.85rem;
+        }
+        .calendar-year-plan-chevron i {
             font-size: 0.72rem;
             transition: transform 140ms ease;
         }
-        .calendar-year-plan-row[aria-expanded="true"] i {
+        .calendar-year-plan-row[aria-expanded="true"] .calendar-year-plan-chevron i {
             transform: rotate(180deg);
         }
         .calendar-year-plan-notes {
@@ -33015,7 +33157,12 @@
             font-size: 0.84rem;
             font-weight: 650;
             line-height: 1.45;
-            padding: 0.45rem 0.7rem 0.15rem;
+            padding: 0.15rem 0.75rem 0.7rem;
+        }
+        .calendar-year-plan-item.is-open .calendar-year-plan-notes {
+            border-top: 1px solid rgba(255, 224, 138, 0.22);
+            margin: 0 0.65rem;
+            padding: 0.55rem 0.1rem 0.7rem;
         }
         .calendar-year-plan-notes p {
             margin: 0;
@@ -34088,14 +34235,46 @@
             border: 1.5px solid rgba(255, 224, 138, 0.72);
             border-radius: 0.55rem;
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            color: #fffdf5;
             flex: 0 0 auto;
             font-size: 0.84rem;
             font-weight: 950;
             gap: 0.32rem;
+            isolation: isolate;
             letter-spacing: 0;
             min-height: 2.35rem;
+            overflow: hidden;
             padding: 0.4rem 0.7rem 0.48rem;
+            position: relative;
             text-transform: none;
+        }
+        .calendar-year-plan-add.bsk-btn-chip::before {
+            background: linear-gradient(180deg, #2a5a80 0%, #214c70 100%);
+            border-radius: calc(0.55rem - 2.5px);
+            content: "";
+            height: 58%;
+            left: 2px;
+            pointer-events: none;
+            position: absolute;
+            right: 2px;
+            top: 2px;
+            z-index: 0;
+        }
+        .calendar-year-plan-add.bsk-btn-chip > * {
+            position: relative;
+            z-index: 1;
+        }
+        .calendar-year-plan-add.bsk-btn-chip:hover {
+            background: #163e6e;
+            border-color: rgba(255, 224, 138, 0.9);
+            color: #fffdf5;
+            transform: none;
+        }
+        .calendar-year-plan-add.bsk-btn-chip:hover::before {
+            background: linear-gradient(180deg, #346c94 0%, #285c80 100%);
+        }
+        .calendar-year-plan-add.bsk-btn-chip:active {
+            transform: translateY(1px);
         }
         @media (max-width: 767px) {
             .bsk-btn {
