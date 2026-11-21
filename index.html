@@ -190,66 +190,66 @@
 
                         <div class="calendar-heading-panel calendar-board-top">
                             <div class="calendar-nav-row" aria-label="Kalender-navigasjon">
-                                <div class="calendar-year-block min-w-0">
-                                    <div class="calendar-year-menu" data-calendar-year-menu>
-                                        <button
-                                            type="button"
-                                            id="calendar-year"
-                                            class="calendar-heading-year calendar-year-trigger"
-                                            data-calendar-year-toggle
-                                            aria-haspopup="listbox"
-                                            aria-expanded="false"
-                                            aria-label="Velg år, valgt 2026"
-                                            title="Velg år"
-                                        >
-                                            <span data-calendar-year-label>2026</span>
-                                            <i class="fa-solid fa-chevron-down calendar-year-trigger-chevron" aria-hidden="true"></i>
-                                        </button>
-                                        <div class="calendar-year-dropdown" role="listbox" aria-label="År" hidden data-calendar-year-panel></div>
-                                    </div>
-                                </div>
-
                                 <div class="calendar-month-nav" aria-label="Velg måned">
-                                    <button type="button" onclick="window.navigateCalendar(-1)" class="bsk-btn bsk-btn-icon calendar-month-chevron" title="Forrige måned">
+                                    <button type="button" onclick="window.navigateCalendar(-1)" class="bsk-btn bsk-btn-icon calendar-month-chevron" title="Forrige måned" aria-label="Forrige måned">
                                         <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
                                     </button>
-                                    <h2 id="calendar-month-year" class="calendar-heading-title">Mai</h2>
-                                    <button type="button" onclick="window.navigateCalendar(1)" class="bsk-btn bsk-btn-icon calendar-month-chevron" title="Neste måned">
+                                    <div class="calendar-month-readout">
+                                        <h2 id="calendar-month-year" class="calendar-heading-title">Mai</h2>
+                                        <div class="calendar-year-block min-w-0">
+                                            <div class="calendar-year-menu" data-calendar-year-menu>
+                                                <button
+                                                    type="button"
+                                                    id="calendar-year"
+                                                    class="calendar-heading-year calendar-year-trigger"
+                                                    data-calendar-year-toggle
+                                                    aria-haspopup="listbox"
+                                                    aria-expanded="false"
+                                                    aria-label="Velg år, valgt 2026"
+                                                    title="Velg år"
+                                                >
+                                                    <span data-calendar-year-label>2026</span>
+                                                    <i class="fa-solid fa-chevron-down calendar-year-trigger-chevron" aria-hidden="true"></i>
+                                                </button>
+                                                <div class="calendar-year-dropdown" role="listbox" aria-label="År" hidden data-calendar-year-panel></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="window.navigateCalendar(1)" class="bsk-btn bsk-btn-icon calendar-month-chevron" title="Neste måned" aria-label="Neste måned">
                                         <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                                     </button>
                                 </div>
-
-                                <div class="calendar-heading-actions">
-                                    <button type="button" onclick="window.goToToday()" class="bsk-btn bsk-btn-chip calendar-today-mini-btn"><span>I dag</span></button>
-                                    <button type="button" onclick="window.openActivityModal('Trening')" class="bsk-btn bsk-btn-chip match-list-add-btn calendar-add-btn" title="Ny aktivitet" aria-label="Ny aktivitet">
-                                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                                        <span>Ny</span>
-                                    </button>
-                                </div>
+                                <button type="button" onclick="window.goToToday()" class="bsk-btn bsk-btn-chip calendar-today-mini-btn"><span>I dag</span></button>
+                                <button type="button" onclick="window.openActivityModal('Trening')" class="bsk-btn bsk-btn-chip match-list-add-btn calendar-add-btn" title="Ny aktivitet" aria-label="Ny aktivitet">
+                                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                                    <span class="calendar-add-full">Ny aktivitet</span>
+                                    <span class="calendar-add-short">Ny</span>
+                                </button>
                             </div>
-
                         </div>
                     </div>
 
                     <div class="calendar-mobile-main relative z-10">
-                        <div class="calendar-body calendar-board-body">
-                            <div class="calendar-weekday-row" aria-hidden="true">
-                                <span>Man</span><span>Tir</span><span>Ons</span><span>Tor</span><span>Fre</span><span>Lør</span><span>Søn</span>
+                        <div class="calendar-main-layout">
+                            <div class="calendar-body calendar-board-body">
+                                <div class="calendar-weekday-row" aria-hidden="true">
+                                    <span>Man</span><span>Tir</span><span>Ons</span><span>Tor</span><span>Fre</span><span>Lør</span><span>Søn</span>
+                                </div>
+
+                                <div id="calendar-days-grid" class="calendar-scroll-grid">
+                                </div>
                             </div>
 
-                            <div id="calendar-days-grid" class="calendar-scroll-grid">
+                            <div class="calendar-day-panel calendar-bottomline">
+                                <h3 id="selected-calendar-date">Velg en dato</h3>
+                                <div id="daily-events-list" class="calendar-daily-list">
+                                </div>
                             </div>
                         </div>
-
-                        <footer class="match-detail-footer calendar-bottomline">
-                            <h3 id="selected-calendar-date">Velg en dato</h3>
-                            <div id="daily-events-list" class="calendar-daily-list">
-                            </div>
-                            <section class="calendar-year-plan" id="calendar-year-plan" aria-label="Årsplan">
-                                <div id="calendar-year-plan-form" class="calendar-year-plan-form" hidden></div>
-                                <div id="calendar-year-plan-list" class="calendar-year-plan-list"></div>
-                            </section>
-                        </footer>
+                        <section class="calendar-year-plan" id="calendar-year-plan" aria-label="Årsplan">
+                            <div id="calendar-year-plan-form" class="calendar-year-plan-form" hidden></div>
+                            <div id="calendar-year-plan-list" class="calendar-year-plan-list"></div>
+                        </section>
                     </div>
                 </section>
             </div>
