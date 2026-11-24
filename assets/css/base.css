@@ -9988,6 +9988,12 @@
             font-size: 0.62rem;
             pointer-events: none;
         }
+        .match-list-page .match-list-grid {
+            container-name: match-list;
+            container-type: inline-size;
+            min-width: 0;
+            width: 100%;
+        }
         .match-list-grid {
             display: flex;
             flex-direction: column;
@@ -11001,9 +11007,20 @@
             display: none;
         }
         .match-fixture-group-rows {
-            display: flex;
-            flex-direction: column;
+            display: grid;
             gap: 0.45rem;
+            grid-template-columns: minmax(0, 1fr);
+        }
+        /* To kort per rad bare når listen selv er bred nok. Halve desktopkolonner og mobil holder én. */
+        @container match-list (min-width: 44rem) {
+            .match-fixture-group-rows {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .match-fixture-row {
+                max-width: 100%;
+                min-width: 0;
+                width: auto;
+            }
         }
         .match-fixture-year-group {
             display: flex;
