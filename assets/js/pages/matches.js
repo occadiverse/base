@@ -522,9 +522,15 @@ function buildMatchFixtureGroupsHtml(matches, options = {}) {
         const countLabel = count === 1 ? '1 kamp' : `${count} kamper`;
         return `
         <section class="match-fixture-group">
-            <header class="match-fixture-month">
-                <span class="match-fixture-month-label">${escapeMatchHtml(group.monthLabel)}</span>
-                <span class="match-fixture-month-count" aria-label="${escapeMatchHtml(countLabel)}">${count}</span>
+            <header class="match-fixture-month match-phase-heading">
+                <span class="match-phase-banner">
+                    <span class="match-phase-plate">
+                        <span class="match-phase-heading-label">
+                            <span class="match-fixture-month-label">${escapeMatchHtml(group.monthLabel)}</span>
+                            <span class="match-fixture-month-count" aria-label="${escapeMatchHtml(countLabel)}">${count}</span>
+                        </span>
+                    </span>
+                </span>
             </header>
             <div class="match-fixture-group-rows">
                 ${group.matches.map(match => buildMatchFixtureRowHtml(match, { isUpcoming })).join('')}
