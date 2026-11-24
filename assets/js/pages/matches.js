@@ -564,8 +564,67 @@ function buildPastYearArchiveHtml(yearGroup) {
     `;
 }
 
+const MATCH_LIST_TYPE_KEYS = ['Serie', 'Cup', 'Treningskamp'];
+
+function getMatchListTypeFilters() {
+    const stored = window.matchListTypeFilters;
+    const filters = { Serie: true, Cup: true, Treningskamp: true };
+    if (stored && typeof stored === 'object') {
+        MATCH_LIST_TYPE_KEYS.forEach((type) => {
+            if (typeof stored[type] === 'boolean') filters[type] = stored[type];
+        });
+    }
+    if (!MATCH_LIST_TYPE_KEYS.some((type) => filters[type])) {
+        MATCH_LIST_TYPE_KEYS.forEach((type) => { filters[type] = true; });
+    }
+    window.matchListTypeFilters = filters;
+    return filters;
+}
+
+function matchListTypeKey(match) {
+    const type = String(match?.matchType || '').trim();
+    if (type === 'Cup' || type === 'Treningskamp') return type;
+    return 'Serie';
+}
+
+function matchPassesListTypeFilter(match, filters) {
+    return Boolean(filters[matchListTypeKey(match)]);
+}
+
+function bindMatchTypeFilterEvents() {
+    const root = document.getElementById('view-kamper');
+    if (!root || root.dataset.typeFilterBound === 'true') return;
+    root.dataset.typeFilterBound = 'true';
+    root.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-match-type-filter]');
+        if (!button || !root.contains(button)) return;
+        event.preventDefault();
+        toggleMatchListTypeFilter(button.dataset.matchTypeFilter);
+    });
+}
+
+function syncMatchListTypeFilterChrome() {
+    const filters = getMatchListTypeFilters();
+    document.querySelectorAll('#view-kamper [data-match-type-filter]').forEach((button) => {
+        const active = Boolean(filters[button.dataset.matchTypeFilter]);
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+}
+
+function toggleMatchListTypeFilter(type) {
+    if (!MATCH_LIST_TYPE_KEYS.includes(type)) return;
+    const filters = { ...getMatchListTypeFilters() };
+    const nextOn = !filters[type];
+    if (!nextOn && MATCH_LIST_TYPE_KEYS.filter((key) => filters[key]).length <= 1) return;
+    filters[type] = nextOn;
+    window.matchListTypeFilters = filters;
+    applyFilters();
+}
+
 function applyFilters() {
     bindMatchListEvents();
+    bindMatchTypeFilterEvents();
 
     const listContainer = document.getElementById('matchListContainer');
     const upcomingContainer = document.getElementById('matchListUpcomingContainer');
@@ -582,21 +641,26 @@ function applyFilters() {
     today.setHours(0, 0, 0, 0);
 
     const datedMatches = matches.filter(m => Boolean(m.date));
+    const typeFilters = getMatchListTypeFilters();
+    syncMatchListTypeFilterChrome();
 
-    const upcomingMatches = datedMatches
-        .filter(m => {
-            const matchDate = new Date(m.date);
-            matchDate.setHours(0, 0, 0, 0);
-            return matchDate >= today;
-        })
+    const isUpcomingDate = (match) => {
+        const matchDate = new Date(match.date);
+        matchDate.setHours(0, 0, 0, 0);
+        return matchDate >= today;
+    };
+    const upcomingAll = datedMatches.filter(isUpcomingDate);
+    const pastAll = datedMatches.filter(match => !isUpcomingDate(match));
+    const upcomingMatches = upcomingAll
+        .filter(match => matchPassesListTypeFilter(match, typeFilters))
         .sort((a, b) => new Date(a.date) - new Date(b.date));
-    const pastMatches = datedMatches
-        .filter(m => {
-            const matchDate = new Date(m.date);
-            matchDate.setHours(0, 0, 0, 0);
-            return matchDate < today;
-        })
+    const pastMatches = pastAll
+        .filter(match => matchPassesListTypeFilter(match, typeFilters))
         .sort((a, b) => new Date(b.date) - new Date(a.date));
+    const upcomingHiddenByType = upcomingAll.length > 0 && upcomingMatches.length === 0;
+    const pastHiddenByType = pastAll.length > 0 && pastMatches.length === 0;
+    const typeEmptyTitle = 'Ingen kamper i filteret';
+    const typeEmptyText = 'Slå på Serie, Cup eller Trening for å se dem.';
 
     if (window.matchListTimeFilterUserChosen !== true) {
         const hasAnyMatches = upcomingMatches.length > 0 || pastMatches.length > 0;
@@ -627,28 +691,33 @@ function applyFilters() {
 
     renderMatchListIntoContainer(upcomingContainer, upcomingMatches, {
         isUpcoming: true,
-        emptyTitle: 'Ingen kommende kamper',
-        emptyText: 'Legg til en kamp for å komme i gang.',
-        showAddCta: true,
+        emptyTitle: upcomingHiddenByType ? typeEmptyTitle : 'Ingen kommende kamper',
+        emptyText: upcomingHiddenByType ? typeEmptyText : 'Legg til en kamp for å komme i gang.',
+        showAddCta: !upcomingHiddenByType,
         compactEmpty: historyFocus
     });
     renderMatchListIntoContainer(pastContainer, pastMatches, {
         isUpcoming: false,
         archiveOlderYears: true,
-        emptyTitle: 'Ingen tidligere kamper',
-        emptyText: 'Resultater vises her når kamper er spilt.',
+        emptyTitle: pastHiddenByType ? typeEmptyTitle : 'Ingen tidligere kamper',
+        emptyText: pastHiddenByType ? typeEmptyText : 'Resultater vises her når kamper er spilt.',
         showAddCta: false
     });
 
     const isUpcoming = currentTimeFilter === 'kommende';
+    const mobileHiddenByType = isUpcoming ? upcomingHiddenByType : pastHiddenByType;
     renderMatchListIntoContainer(listContainer, sortedMatches, {
         isUpcoming,
         archiveOlderYears: !isUpcoming,
-        emptyTitle: isUpcoming ? 'Ingen kommende kamper' : 'Ingen tidligere kamper',
-        emptyText: isUpcoming
-            ? 'Legg til en kamp for å komme i gang.'
-            : 'Resultater vises her når kamper er spilt.',
-        showAddCta: isUpcoming
+        emptyTitle: mobileHiddenByType
+            ? typeEmptyTitle
+            : (isUpcoming ? 'Ingen kommende kamper' : 'Ingen tidligere kamper'),
+        emptyText: mobileHiddenByType
+            ? typeEmptyText
+            : (isUpcoming
+                ? 'Legg til en kamp for å komme i gang.'
+                : 'Resultater vises her når kamper er spilt.'),
+        showAddCta: isUpcoming && !mobileHiddenByType
     });
 }
 

@@ -9811,6 +9811,51 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
             padding: 0;
         }
+        .match-list-type-bar {
+            display: none;
+        }
+        .match-list-page .match-list-type-filter {
+            align-items: center;
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+            justify-content: center;
+        }
+        .match-list-page .match-type-filter-btn.blknapp {
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            line-height: 1;
+            min-width: 2.15rem;
+            padding: 0 0.62rem;
+            width: auto;
+        }
+        .match-list-page .match-type-filter-btn.blknapp span {
+            color: inherit;
+            text-shadow: inherit;
+        }
+        .match-list-page .match-type-filter-btn.blknapp:not(.is-active),
+        .match-list-page .match-type-filter-btn.blknapp:not(.is-active):hover {
+            background: linear-gradient(180deg, rgba(94, 176, 255, 0.45) 0%, rgba(26, 79, 158, 0.45) 100%);
+            border-color: rgba(200, 228, 255, 0.45);
+            box-shadow: 0 2px 0 rgba(10, 34, 68, 0.75);
+            color: rgba(244, 249, 255, 0.78);
+            opacity: 0.85;
+            transform: none;
+        }
+        .match-list-page .match-type-filter-btn.blknapp.is-active,
+        .match-list-page .match-type-filter-btn.blknapp.is-active:hover {
+            background: linear-gradient(180deg, #7ec2ff 0%, #2460b8 100%);
+            border-color: #c8e4ff;
+            box-shadow: 0 3px 0 #0f2f5c;
+            color: #f4f9ff;
+            opacity: 1;
+        }
+        .match-list-page .match-type-filter-btn.blknapp:focus-visible,
+        .match-list-page .match-type-filter-btn.blknapp.is-active:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(126, 194, 255, 0.45), 0 2px 0 rgba(10, 34, 68, 0.75);
+        }
         .match-filter-btn {
             align-items: center;
             background:
@@ -10761,6 +10806,9 @@
             border-bottom: 0;
             display: grid;
             gap: 0.4rem 0.55rem;
+            grid-template-areas:
+                "time add"
+                "types types";
             grid-template-columns: minmax(0, 1fr) auto;
             justify-content: stretch;
             margin: 0 auto;
@@ -10774,11 +10822,23 @@
             box-shadow: none;
             display: grid;
             gap: 0.35rem;
-            grid-column: auto;
+            grid-area: time;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             min-width: 0;
             padding: 0;
             width: 100%;
+        }
+        .match-list-mobile-card .match-list-type-filter {
+            grid-area: types;
+            justify-content: center;
+            justify-self: center;
+            min-width: 0;
+            padding-top: 0.15rem;
+            width: auto;
+        }
+        .match-list-mobile-card .match-list-mobile-toolbar .match-list-add-btn {
+            grid-area: add;
+            justify-self: end;
         }
         .match-list-page .match-list-mobile-toolbar .match-filter-btn,
         .match-list-page .match-list-mobile-toolbar .match-filter-btn.bsk-btn-chip,
@@ -11406,6 +11466,11 @@
             margin-top: 0;
         }
         @media (min-width: 1024px) {
+            .match-list-type-bar {
+                display: flex;
+                justify-content: center;
+                margin-bottom: 0.85rem;
+            }
             .match-list-desktop-columns {
                 align-items: start;
                 display: grid;

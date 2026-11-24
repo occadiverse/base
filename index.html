@@ -17,7 +17,7 @@
 
     <script src="assets/js/config/tailwind.config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/base.css?v=20261115-hjem-line">
+    <link rel="stylesheet" href="assets/css/base.css?v=20261124-kamptype2">
 </head>
 <body class="flex flex-col md:flex-row text-slate-800">
     <div id="portal-sidebar"></div>
@@ -60,6 +60,13 @@
             </div>
                         
             <div id="view-kamper" class="hidden portal-view portal-page match-list-page">
+                <div class="match-list-type-bar">
+                    <div class="match-list-type-filter" role="group" aria-label="Kamptype">
+                        <button type="button" class="blknapp match-type-filter-btn has-text is-active" data-match-type-filter="Serie" aria-pressed="true" title="Serie" aria-label="Serie"><span>Serie</span></button>
+                        <button type="button" class="blknapp match-type-filter-btn has-text is-active" data-match-type-filter="Cup" aria-pressed="true" title="Cup" aria-label="Cup"><span>Cup</span></button>
+                        <button type="button" class="blknapp match-type-filter-btn has-text is-active" data-match-type-filter="Treningskamp" aria-pressed="true" title="Treningskamp" aria-label="Treningskamp"><span>Trening</span></button>
+                    </div>
+                </div>
                 <div id="matchListDesktopColumns" class="match-list-desktop-columns" aria-label="Kommende og tidligere kamper">
                     <section class="match-detail-card match-list-column">
                         <div class="dashboard-next-match-watermark match-list-column-watermark">
@@ -137,6 +144,11 @@
                                     <span>Tidligere</span>
                                     <span class="match-filter-count" id="matchFilterPastCount">0</span>
                                 </button>
+                            </div>
+                            <div class="match-list-type-filter" role="group" aria-label="Kamptype">
+                                <button type="button" class="blknapp match-type-filter-btn has-text is-active" data-match-type-filter="Serie" aria-pressed="true" title="Serie" aria-label="Serie"><span>Serie</span></button>
+                                <button type="button" class="blknapp match-type-filter-btn has-text is-active" data-match-type-filter="Cup" aria-pressed="true" title="Cup" aria-label="Cup"><span>Cup</span></button>
+                                <button type="button" class="blknapp match-type-filter-btn has-text is-active" data-match-type-filter="Treningskamp" aria-pressed="true" title="Treningskamp" aria-label="Treningskamp"><span>Trening</span></button>
                             </div>
                             <button type="button"
                                     onclick="window.openActivityModal('Kamp')"
@@ -1724,7 +1736,7 @@
     <script src="assets/js/domain/backup.js?v=20260703-backup-v1"></script>
     <script src="assets/js/domain/club-logos.js?v=20261024-crest-eager"></script>
     <script src="assets/js/pages/players.js?v=20261114-tropp-count"></script>
-    <script src="assets/js/pages/matches.js?v=20261113-kamperliste2"></script>
+    <script src="assets/js/pages/matches.js?v=20261124-kamptype"></script>
     <script src="assets/js/pages/attendance.js?v=20261113-kamptype"></script>
     <script src="assets/js/pages/statistics.js?v=20261114-stats-gold-season"></script>
     <script src="assets/js/pages/tactics.js?v=20261111-kampflate"></script>
