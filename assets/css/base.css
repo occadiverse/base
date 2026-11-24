@@ -33396,7 +33396,8 @@
             gap: 0.25rem;
         }
         .calendar-year-plan-field input,
-        .calendar-year-plan-field textarea {
+        .calendar-year-plan-field textarea,
+        .calendar-year-plan-field select {
             background: #fffdf8;
             border: 1px solid rgba(18, 63, 115, 0.18);
             border-radius: 0.55rem;
@@ -33406,6 +33407,13 @@
             font-weight: 700;
             padding: 0.45rem 0.55rem;
             width: 100%;
+        }
+        .calendar-year-plan-type-hint {
+            color: rgba(255, 253, 245, 0.62);
+            font-size: 0.72rem;
+            font-weight: 750;
+            line-height: 1.35;
+            margin: -0.15rem 0 0;
         }
         .calendar-year-plan-editor-actions {
             display: flex;

@@ -591,7 +591,7 @@ window.renderCalendar = function() {
             const isOutsideActiveMonth = dayDate.getMonth() !== month;
             const matches = (window.activeMatches || []).filter(m => m.date === dateStr);
             const events = (window.activeEvents || []).filter(e => e.date === dateStr);
-            const planItems = (window.yearPlanEvents || []).filter(item => item.date === dateStr);
+            const planItems = (window.yearPlanEvents || []).filter(item => item.date === dateStr && !yearPlanLinkedMatch(item));
             const items = [
                 ...matches.map(m => ({
                     type: 'match',
@@ -668,7 +668,7 @@ window.updateDailySchedule = function() {
     const dayEvents = (window.activeEvents || []).filter(e => e.date === dateStr);
     const dayPlan = (window.yearPlanEvents || [])
         .map(item => typeof window.normalizeYearPlanItem === 'function' ? window.normalizeYearPlanItem(item) : item)
-        .filter(item => item && item.date === dateStr);
+        .filter(item => item && item.date === dateStr && !yearPlanLinkedMatch(item));
     const selectedDate = parseCalendarDate(dateStr);
     const selectedDateLabel = selectedDate.toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -1166,14 +1166,51 @@ window.normalizeYearPlanItem = function(item) {
     const title = String(item.title || '').trim();
     if (!title) return null;
     const time = String(item.time || '').trim();
+    const matchId = String(item.matchId || '').trim();
+    const matchType = yearPlanMatchType(item);
     return {
         id: String(item.id || ''),
         date,
         time: /^\d{2}:\d{2}/.test(time) ? time.slice(0, 5) : '',
         title,
-        notes: String(item.notes || '').trim()
+        notes: String(item.notes || '').trim(),
+        ...(matchType ? { matchType } : {}),
+        ...(matchId ? { matchId } : {})
     };
 };
+
+const YEAR_PLAN_MATCH_TYPES = [
+    { value: 'Treningskamp', label: 'Treningskamp', phrase: 'treningskamp' },
+    { value: 'Cup', label: 'Cupkamp', phrase: 'cupkamp' },
+    { value: 'Serie', label: 'Seriekamp', phrase: 'seriekamp' }
+];
+
+function yearPlanMatchType(item) {
+    const value = String(item?.matchType || '');
+    return YEAR_PLAN_MATCH_TYPES.some(type => type.value === value) ? value : '';
+}
+
+function yearPlanMatchTypeMeta(value) {
+    return YEAR_PLAN_MATCH_TYPES.find(type => type.value === value) || null;
+}
+
+function yearPlanItemIsMatch(item) {
+    return Boolean(yearPlanMatchType(item));
+}
+
+function yearPlanOpponentName(title) {
+    const stripped = String(title || '')
+        .replace(/^(treningskamp|seriekamp|cupkamp)\b[\s:\-–—]*/i, '')
+        .replace(/^(serie|cup)\b[\s:\-–—]+/i, '')
+        .replace(/^mot\s+/i, '')
+        .trim();
+    return stripped || String(title || '').trim();
+}
+
+function yearPlanLinkedMatch(item) {
+    if (!item?.matchId) return null;
+    return (window.activeMatches || []).find(match => match.id === item.matchId) || null;
+}
 
 function showYearPlanDate(dateStr) {
     if (!dateStr) return;
@@ -1247,6 +1284,16 @@ function bindYearPlanEvents() {
             window.deleteYearPlanItem(id);
             return;
         }
+        if (action === 'add-match') {
+            window.addYearPlanItemToMatches(id);
+            return;
+        }
+        if (action === 'open-match') {
+            const item = yearPlanItems().find(entry => entry.id === id);
+            const match = yearPlanLinkedMatch(item);
+            if (match && typeof window.goToMatchDetails === 'function') window.goToMatchDetails(match.id);
+            return;
+        }
         if (action === 'toggle-year') {
             const targetYear = Number(actionEl.dataset.yearPlanYear);
             if (yearPlanCollapsedYears.has(targetYear)) yearPlanCollapsedYears.delete(targetYear);
@@ -1289,7 +1336,12 @@ function renderYearPlanForm() {
     const time = existing?.time || '';
     const title = existing?.title || '';
     const notes = existing?.notes || '';
+    const matchType = yearPlanMatchType(existing);
     const heading = existing ? 'Endre hendelse' : 'Ny hendelse';
+    const eventOption = `<option value=""${!matchType ? ' selected' : ''}>Hendelse</option>`;
+    const matchOptions = YEAR_PLAN_MATCH_TYPES.map(type => `
+        <option value="${escapeCalendarHtml(type.value)}"${type.value === matchType ? ' selected' : ''}>${escapeCalendarHtml(type.label)}</option>
+    `).join('');
     form.hidden = false;
     form.innerHTML = `
         <form class="calendar-year-plan-editor">
@@ -1305,8 +1357,16 @@ function renderYearPlanForm() {
                 </label>
             </div>
             <label class="calendar-year-plan-field">
+                <span>Type</span>
+                <select name="matchType">
+                    <optgroup label="Ikke kamp">${eventOption}</optgroup>
+                    <optgroup label="Kamp">${matchOptions}</optgroup>
+                </select>
+            </label>
+            <p class="calendar-year-plan-type-hint">Hendelse er kickoff, sosialt og annet. Legg i kamper vises bare når typen er treningskamp, cupkamp eller seriekamp.</p>
+            <label class="calendar-year-plan-field">
                 <span>Emne</span>
-                <input type="text" name="title" required maxlength="80" value="${escapeCalendarHtml(title)}" placeholder="Kickoff, seriestart, avslutning...">
+                <input type="text" name="title" required maxlength="80" value="${escapeCalendarHtml(title)}" placeholder="Kickoff, seriestart, Grüner, Skeid...">
             </label>
             <label class="calendar-year-plan-field">
                 <span>Notater</span>
@@ -1369,9 +1429,16 @@ function renderYearPlanMonths(items) {
                 const open = yearPlanOpenIds.has(item.id);
                 const selected = item.date === window.selectedCalendarDateStr;
                 const parts = yearPlanDateParts(item.date);
+                const kind = yearPlanMatchTypeMeta(yearPlanMatchType(item));
                 const notes = item.notes
                     ? `<p>${escapeCalendarHtml(item.notes)}</p>`
                     : `<p class="is-empty">Ingen notater.</p>`;
+                const linkedMatch = yearPlanItemIsMatch(item) ? yearPlanLinkedMatch(item) : null;
+                const matchAction = !yearPlanItemIsMatch(item)
+                    ? ''
+                    : linkedMatch
+                        ? `<button type="button" data-year-plan-action="open-match" data-year-plan-id="${escapeCalendarHtml(item.id)}">Åpne kamp</button>`
+                        : `<button type="button" data-year-plan-action="add-match" data-year-plan-id="${escapeCalendarHtml(item.id)}">Legg i kamper</button>`;
                 return `
                     <article class="calendar-year-plan-item${selected ? ' is-selected' : ''}${open ? ' is-open' : ''}">
                         <button type="button" class="calendar-year-plan-row" data-year-plan-action="toggle" data-year-plan-id="${escapeCalendarHtml(item.id)}" aria-expanded="${open ? 'true' : 'false'}">
@@ -1380,7 +1447,7 @@ function renderYearPlanMonths(items) {
                                 <span class="calendar-year-plan-date-month">${escapeCalendarHtml(parts.month)}</span>
                             </span>
                             <span class="calendar-year-plan-main">
-                                <span class="calendar-year-plan-weekday">${escapeCalendarHtml(parts.weekday)}</span>
+                                <span class="calendar-year-plan-weekday">${escapeCalendarHtml(parts.weekday)}${kind ? ` · ${escapeCalendarHtml(kind.label)}` : ''}</span>
                                 <span class="calendar-year-plan-subject">${escapeCalendarHtml(item.title)}</span>
                             </span>
                             <span class="calendar-year-plan-time">${escapeCalendarHtml(item.time || '–')}</span>
@@ -1391,6 +1458,7 @@ function renderYearPlanMonths(items) {
                         <div class="calendar-year-plan-notes"${open ? '' : ' hidden'}>
                             ${notes}
                             <div class="calendar-year-plan-note-actions">
+                                ${matchAction}
                                 <button type="button" data-year-plan-action="edit" data-year-plan-id="${escapeCalendarHtml(item.id)}">Rediger</button>
                                 <button type="button" data-year-plan-action="delete" data-year-plan-id="${escapeCalendarHtml(item.id)}">Slett</button>
                             </div>
@@ -1465,12 +1533,17 @@ window.saveYearPlanFromForm = async function() {
     const form = document.querySelector('#calendar-year-plan-form form');
     if (!form || !form.reportValidity()) return;
     const data = new FormData(form);
+    const existing = yearPlanEditor?.id
+        ? (window.yearPlanEvents || []).find(entry => entry.id === yearPlanEditor.id)
+        : null;
     const item = window.normalizeYearPlanItem({
         id: yearPlanEditor?.id || '',
         date: data.get('date'),
         time: data.get('time'),
         title: data.get('title'),
-        notes: data.get('notes')
+        notes: data.get('notes'),
+        matchType: data.get('matchType'),
+        matchId: existing?.matchId || ''
     });
     if (!item) {
         alert('Hendelsen trenger en dato og et emne.');
@@ -1486,6 +1559,57 @@ window.saveYearPlanFromForm = async function() {
     } catch (error) {
         console.error(error);
         alert(error.message || 'Kunne ikke lagre hendelsen.');
+    }
+};
+
+window.addYearPlanItemToMatches = async function(id) {
+    const item = yearPlanItems().find(entry => entry.id === id);
+    if (!item || !yearPlanItemIsMatch(item)) return;
+    if (yearPlanLinkedMatch(item)) {
+        if (typeof window.goToMatchDetails === 'function') window.goToMatchDetails(item.matchId);
+        return;
+    }
+    if (typeof window.saveMatchToDatabase !== 'function' || typeof window.saveYearPlanItem !== 'function') {
+        alert('Kampen kan ikke lagres akkurat nå.');
+        return;
+    }
+
+    const opponent = yearPlanOpponentName(item.title);
+    const typeMeta = yearPlanMatchTypeMeta(item.matchType);
+    const when = `${formatYearPlanDate(item.date)} ${item.date.slice(0, 4)}`;
+    const timeBit = item.time ? ` kl. ${item.time}` : '';
+    const confirmed = window.confirm(
+        `Legge «${opponent}» inn som ${typeMeta?.phrase || 'kamp'} ${when}${timeBit}?\n\nHendelsen blir stående i årsplanen. Sted settes til ikke satt, og du kan endre kampen etterpå.`
+    );
+    if (!confirmed) return;
+
+    const existing = (window.activeMatches || []).find(match =>
+        match.date === item.date
+        && match.matchType === item.matchType
+        && String(match.opponent || '').trim().toLowerCase() === opponent.toLowerCase()
+    );
+    const matchId = existing?.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
+    try {
+        if (!existing) {
+            await window.saveMatchToDatabase({
+                id: matchId,
+                date: item.date,
+                time: item.time || '',
+                opponent,
+                pitch: 'Ikke satt',
+                matchType: item.matchType,
+                matchGroup: typeof window.getPrimaryTeamName === 'function' ? (window.getPrimaryTeamName() || '') : '',
+                venue: 'Hjemme',
+                result: ''
+            });
+        }
+        await window.saveYearPlanItem({ ...item, matchId });
+        yearPlanOpenIds.add(item.id);
+        window.renderYearPlan();
+        if (typeof window.renderCalendar === 'function') window.renderCalendar();
+    } catch (error) {
+        console.error(error);
+        alert(error.message || 'Kunne ikke legge kampen inn i kampoversikten.');
     }
 };
 
