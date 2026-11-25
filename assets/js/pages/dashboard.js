@@ -392,6 +392,31 @@ function hjemTodayKey() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
+function hjemPlanDateLabel(dateStr) {
+    const parts = String(dateStr || '').split('-').map(Number);
+    const year = parts[0];
+    const month = parts[1];
+    const day = parts[2];
+    const months = ['jan', 'feb', 'mars', 'apr', 'mai', 'juni', 'juli', 'aug', 'sep', 'okt', 'nov', 'des'];
+    if (!year || !month || !day || !months[month - 1]) return '';
+    const label = `${day}. ${months[month - 1]}`;
+    return year === new Date().getFullYear() ? label : `${label} ${year}`;
+}
+
+function hjemUpcomingYearPlan(limit = 3) {
+    const today = hjemTodayKey();
+    const matches = Array.isArray(window.activeMatches) ? window.activeMatches : [];
+    return (Array.isArray(window.yearPlanEvents) ? window.yearPlanEvents : [])
+        .map(item => typeof window.normalizeYearPlanItem === 'function' ? window.normalizeYearPlanItem(item) : null)
+        .filter(item => {
+            if (!item || item.date < today) return false;
+            if (item.matchId && matches.some(match => match.id === item.matchId)) return false;
+            return true;
+        })
+        .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time) || a.title.localeCompare(b.title, 'nb'))
+        .slice(0, limit);
+}
+
 function hjemMatchCountsForYear(match, year) {
     if (!match) return false;
     const team = typeof window.getStatsTeamFilter === 'function' ? window.getStatsTeamFilter() : 'Alle';
@@ -692,6 +717,15 @@ window.renderHjemOperations = function() {
                     </span>
                 </p>
             </div>` : '';
+        const planRows = hjemUpcomingYearPlan(3).map(item => `
+            <button type="button" class="hjem-now-plan-row" data-dashboard-action="open-calendar-date" data-event-date="${escapeDashboardHtml(item.date)}">
+                <span class="hjem-now-plan-topline">
+                    <span class="hjem-now-plan-date">${escapeDashboardHtml(hjemPlanDateLabel(item.date))}</span>
+                    <span class="hjem-now-plan-chevron" aria-hidden="true"><i class="fa-solid fa-chevron-right"></i></span>
+                </span>
+                <span class="hjem-now-plan-title">${escapeDashboardHtml(item.title)}</span>
+            </button>`).join('');
+        const planList = planRows ? `<div class="hjem-now-plan">${planRows}</div>` : '';
         nowSlot.innerHTML = `
             <section class="hjem-now" aria-label="Akkurat nå">
                 <article class="hjem-result-board">
@@ -701,6 +735,7 @@ window.renderHjemOperations = function() {
                     <div class="hjem-now-facts">
                         ${startLine}
                     </div>
+                    ${planList}
                 </article>
             </section>`;
     }
