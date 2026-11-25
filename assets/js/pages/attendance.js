@@ -602,7 +602,7 @@ window.renderCalendar = function() {
                     label: e.title || e.type || 'Aktivitet'
                 })),
                 ...planItems.map(item => ({
-                    type: 'plan',
+                    type: yearPlanStoredType(item) === YEAR_PLAN_TRAINING_TYPE ? 'training' : 'plan',
                     label: item.title || 'Årsplan'
                 }))
             ];
@@ -811,19 +811,21 @@ window.updateDailySchedule = function() {
     };
 
     const renderDailyPlan = (item) => {
+        const isTraining = yearPlanStoredType(item) === YEAR_PLAN_TRAINING_TYPE;
         const timeHtml = item.time
             ? `<span class="calendar-detail-time-dot" aria-hidden="true"></span><span class="calendar-daily-time">${escapeCalendarHtml(item.time)}</span>`
             : '';
         const notesHtml = item.notes
             ? `<p class="calendar-plan-notes">${escapeCalendarHtml(item.notes)}</p>`
             : '';
+        const icon = isTraining ? 'fa-person-running' : 'fa-flag';
         return `
-            <div class="calendar-detail-card calendar-plan-detail-card">
-                <i class="fa-solid fa-flag calendar-detail-watermark" aria-hidden="true"></i>
+            <div class="calendar-detail-card calendar-plan-detail-card${isTraining ? ' is-training' : ''}">
+                <i class="fa-solid ${icon} calendar-detail-watermark" aria-hidden="true"></i>
                 <div class="calendar-daily-card-content calendar-plan-card-content relative z-10">
                     <div class="calendar-daily-icon-slot">
                         <div class="calendar-detail-icon">
-                            <i class="fa-solid fa-flag"></i>
+                            <i class="fa-solid ${icon}"></i>
                         </div>
                     </div>
                     <div class="calendar-daily-main">
@@ -1167,18 +1169,19 @@ window.normalizeYearPlanItem = function(item) {
     if (!title) return null;
     const time = String(item.time || '').trim();
     const matchId = String(item.matchId || '').trim();
-    const matchType = yearPlanMatchType(item);
+    const storedType = yearPlanStoredType(item);
     return {
         id: String(item.id || ''),
         date,
         time: /^\d{2}:\d{2}/.test(time) ? time.slice(0, 5) : '',
         title,
         notes: String(item.notes || '').trim(),
-        ...(matchType ? { matchType } : {}),
+        ...(storedType ? { matchType: storedType } : {}),
         ...(matchId ? { matchId } : {})
     };
 };
 
+const YEAR_PLAN_TRAINING_TYPE = 'Trening';
 const YEAR_PLAN_MATCH_TYPES = [
     { value: 'Treningskamp', label: 'Treningskamp', phrase: 'treningskamp' },
     { value: 'Cup', label: 'Cupkamp', phrase: 'cupkamp' },
@@ -1188,6 +1191,18 @@ const YEAR_PLAN_MATCH_TYPES = [
 function yearPlanMatchType(item) {
     const value = String(item?.matchType || '');
     return YEAR_PLAN_MATCH_TYPES.some(type => type.value === value) ? value : '';
+}
+
+function yearPlanStoredType(item) {
+    const value = String(item?.matchType || '');
+    if (value === YEAR_PLAN_TRAINING_TYPE) return YEAR_PLAN_TRAINING_TYPE;
+    return yearPlanMatchType(item);
+}
+
+function yearPlanKind(item) {
+    const stored = yearPlanStoredType(item);
+    if (stored === YEAR_PLAN_TRAINING_TYPE) return { value: stored, label: 'Trening' };
+    return yearPlanMatchTypeMeta(stored);
 }
 
 function yearPlanMatchTypeMeta(value) {
@@ -1336,11 +1351,14 @@ function renderYearPlanForm() {
     const time = existing?.time || '';
     const title = existing?.title || '';
     const notes = existing?.notes || '';
-    const matchType = yearPlanMatchType(existing);
+    const storedType = yearPlanStoredType(existing);
     const heading = existing ? 'Endre hendelse' : 'Ny hendelse';
-    const eventOption = `<option value=""${!matchType ? ' selected' : ''}>Hendelse</option>`;
+    const eventOptions = `
+        <option value=""${!storedType ? ' selected' : ''}>Hendelse</option>
+        <option value="${YEAR_PLAN_TRAINING_TYPE}"${storedType === YEAR_PLAN_TRAINING_TYPE ? ' selected' : ''}>Trening</option>
+    `;
     const matchOptions = YEAR_PLAN_MATCH_TYPES.map(type => `
-        <option value="${escapeCalendarHtml(type.value)}"${type.value === matchType ? ' selected' : ''}>${escapeCalendarHtml(type.label)}</option>
+        <option value="${escapeCalendarHtml(type.value)}"${type.value === storedType ? ' selected' : ''}>${escapeCalendarHtml(type.label)}</option>
     `).join('');
     form.hidden = false;
     form.innerHTML = `
@@ -1359,11 +1377,11 @@ function renderYearPlanForm() {
             <label class="calendar-year-plan-field">
                 <span>Type</span>
                 <select name="matchType">
-                    <optgroup label="Ikke kamp">${eventOption}</optgroup>
+                    <optgroup label="Ikke kamp">${eventOptions}</optgroup>
                     <optgroup label="Kamp">${matchOptions}</optgroup>
                 </select>
             </label>
-            <p class="calendar-year-plan-type-hint">Hendelse er kickoff, sosialt og annet. Legg i kamper vises bare når typen er treningskamp, cupkamp eller seriekamp.</p>
+            <p class="calendar-year-plan-type-hint">Hendelse er kickoff, sosialt og annet. Trening blir en treningsøkt i kalenderen og tas ut av årsplanen. Legg i kamper vises bare når typen er treningskamp, cupkamp eller seriekamp.</p>
             <label class="calendar-year-plan-field">
                 <span>Emne</span>
                 <input type="text" name="title" required maxlength="80" value="${escapeCalendarHtml(title)}" placeholder="Kickoff, seriestart, Grüner, Skeid...">
@@ -1429,7 +1447,7 @@ function renderYearPlanMonths(items) {
                 const open = yearPlanOpenIds.has(item.id);
                 const selected = item.date === window.selectedCalendarDateStr;
                 const parts = yearPlanDateParts(item.date);
-                const kind = yearPlanMatchTypeMeta(yearPlanMatchType(item));
+                const kind = yearPlanKind(item);
                 const notes = item.notes
                     ? `<p>${escapeCalendarHtml(item.notes)}</p>`
                     : `<p class="is-empty">Ingen notater.</p>`;
@@ -1549,6 +1567,13 @@ window.saveYearPlanFromForm = async function() {
         alert('Hendelsen trenger en dato og et emne.');
         return;
     }
+    if (yearPlanStoredType(item) === YEAR_PLAN_TRAINING_TYPE) {
+        const moved = await window.addYearPlanItemToTraining(item);
+        if (!moved) return;
+        yearPlanEditor = null;
+        window.renderYearPlan();
+        return;
+    }
     try {
         const saved = typeof window.saveYearPlanItem === 'function'
             ? await window.saveYearPlanItem(item)
@@ -1559,6 +1584,62 @@ window.saveYearPlanFromForm = async function() {
     } catch (error) {
         console.error(error);
         alert(error.message || 'Kunne ikke lagre hendelsen.');
+    }
+};
+
+function yearPlanExistingTraining(item) {
+    const title = String(item?.title || '').trim().toLowerCase();
+    return (window.activeEvents || []).find(event =>
+        event.type === 'Trening'
+        && event.date === item.date
+        && String(event.title || '').trim().toLowerCase() === title
+    ) || null;
+}
+
+window.addYearPlanItemToTraining = async function(item) {
+    if (!item || yearPlanStoredType(item) !== YEAR_PLAN_TRAINING_TYPE) return false;
+    if (typeof window.saveEventToDatabase !== 'function') {
+        alert('Treningen kan ikke lagres akkurat nå.');
+        return false;
+    }
+    const team = typeof window.getPrimaryTeamName === 'function' ? (window.getPrimaryTeamName() || '') : '';
+    if (!team) {
+        alert('Fant ikke lag. Opprett eller velg et lag først.');
+        return false;
+    }
+
+    const when = `${formatYearPlanDate(item.date)} ${item.date.slice(0, 4)}`;
+    const timeBit = item.time ? ` kl. ${item.time}` : '';
+    const notesBit = item.notes ? '\n\nNotatet i årsplanen blir borte sammen med hendelsen.' : '';
+    const confirmed = window.confirm(
+        `Legge «${item.title}» inn som trening ${when}${timeBit}?\n\nHendelsen tas ut av årsplanen, så dagen bare viser treningen. Sted settes til ikke satt, og du kan endre treningen etterpå.${notesBit}`
+    );
+    if (!confirmed) return false;
+
+    const existing = yearPlanExistingTraining(item);
+    try {
+        if (!existing) {
+            const seasonYear = Number(item.date.slice(0, 4));
+            await window.saveEventToDatabase({
+                id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+                type: 'Trening',
+                title: item.title,
+                date: item.date,
+                time: item.time || '',
+                location: 'Ikke satt',
+                team,
+                seasonYear
+            });
+        }
+        if (item.id && typeof window.deleteYearPlanItem === 'function') {
+            await window.deleteYearPlanItem(item.id);
+        }
+        if (typeof window.selectCalendarDate === 'function') window.selectCalendarDate(item.date);
+        return true;
+    } catch (error) {
+        console.error(error);
+        alert(error.message || 'Kunne ikke legge treningen inn i kalenderen.');
+        return false;
     }
 };
 
