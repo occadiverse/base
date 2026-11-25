@@ -284,8 +284,9 @@ window.applySeasonSettings = function(settings) {
         }
     });
     const same = JSON.stringify(next) === JSON.stringify(window._seasonSettings || {});
+    const wasReady = window._seasonSettingsReady === true;
     window._seasonSettings = next;
-    if (!same && window._seasonSettingsReady) {
+    if (!same && (wasReady || Object.keys(next).length > 0)) {
         if (typeof window.invalidateDerivedStatsCache === 'function') window.invalidateDerivedStatsCache();
         if (typeof window.refreshTrainingObligationViews === 'function') window.refreshTrainingObligationViews();
     }
@@ -299,6 +300,32 @@ window.getMandatoryTrainingStart = function(year) {
     const record = window._seasonSettings?.[seasonYear] || window._seasonSettings?.[String(seasonYear)];
     const from = String(record?.mandatoryTrainingFrom || '').trim();
     return /^\d{4}-\d{2}-\d{2}$/.test(from) ? from : '';
+};
+
+window.describeMandatoryTrainingStart = function(year) {
+    const seasonYear = window.resolvePlayerSeasonYear(year);
+    const modelFrom = window.TRAINING_MANDATORY_MODEL_FROM_YEAR || 2027;
+    if (seasonYear == null || seasonYear < modelFrom) return null;
+    const start = window.getMandatoryTrainingStart(seasonYear);
+    if (!start) {
+        return {
+            year: seasonYear,
+            set: false,
+            date: '',
+            shortText: 'Obligatorisk treningsstart er ikke satt',
+            text: `Obligatorisk treningsstart ${seasonYear} er ikke satt. Treninger behandles som frivillige.`
+        };
+    }
+    const parts = start.split('-').map(Number);
+    const month = new Date(parts[0], parts[1] - 1, parts[2]).toLocaleDateString('nb-NO', { month: 'long' });
+    const spoken = `${parts[2]}. ${month} ${parts[0]}`;
+    return {
+        year: seasonYear,
+        set: true,
+        date: start,
+        shortText: `Obligatorisk treningsstart ${spoken}`,
+        text: `Obligatorisk treningsstart er satt til ${spoken}.`
+    };
 };
 
 window.isMandatoryTraining = function(activity) {

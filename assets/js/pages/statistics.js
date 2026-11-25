@@ -6218,7 +6218,7 @@ window.getFormScoreBorderClass = function(score, teamName) {
         window.statsLagSections = [
             { id: 'kampdata', label: 'Kamp', icon: 'fa-shield-halved' },
             { id: 'spillerdata', label: 'Spiller', icon: 'fa-users' },
-            { id: 'treningsdata', label: 'Trening', icon: 'fa-user-check', hideNav: true },
+            { id: 'treningsdata', label: 'Trening', icon: 'fa-user-check' },
             { id: 'halloffame', label: 'HOF', icon: 'fa-trophy' }
         ];
         window.statsLagSection = window.statsLagSection || 'kampdata';

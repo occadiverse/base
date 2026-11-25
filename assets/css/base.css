@@ -5605,6 +5605,45 @@
             font-size: 0.82rem;
             line-height: 1.4;
         }
+        .training-season-status,
+        .admin-training-start-status {
+            align-items: flex-start;
+            display: flex;
+            gap: 0.45rem;
+            line-height: 1.4;
+            margin: 0.75rem 0 0;
+        }
+        .training-season-status {
+            color: rgba(255, 248, 220, 0.92);
+            font-size: 0.9rem;
+            font-weight: 650;
+            margin-bottom: 0.75rem;
+        }
+        .training-season-status.is-set {
+            color: #d9f99d;
+        }
+        .training-season-status.is-missing {
+            color: #fde68a;
+        }
+        .admin-training-start-row {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .admin-training-start-row .portal-field {
+            max-width: 16rem;
+        }
+        .admin-training-start-status {
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        .admin-training-start-status.is-set {
+            color: #166534;
+        }
+        .admin-training-start-status.is-missing {
+            color: #9a3412;
+        }
         .dashboard-session-attendance-count {
             color: #fffdf5;
             font-size: clamp(1.15rem, 3.2vw, 1.55rem);

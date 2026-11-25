@@ -871,41 +871,69 @@ function buildTrainingDataRecommendationsHtml(match) {
     `;
 }
 
+function buildTrainingSeasonStatusHtml(year) {
+    const described = typeof window.describeMandatoryTrainingStart === 'function'
+        ? window.describeMandatoryTrainingStart(year)
+        : null;
+    if (!described) return '';
+    const tone = described.set ? 'is-set' : 'is-missing';
+    const icon = described.set ? 'fa-circle-check' : 'fa-circle-exclamation';
+    return `
+        <p class="training-season-status ${tone}">
+            <i class="fa-solid ${icon}" aria-hidden="true"></i>
+            <span>${escapeTrainingHtml(described.text)}</span>
+        </p>
+    `;
+}
+
 function buildTrainingSeasonAdminHtml(year) {
     const seasonYear = resolveTrainingAttendanceYear(year);
-    const modelFrom = window.TRAINING_MANDATORY_MODEL_FROM_YEAR || 2027;
-    const parts = [];
-    if (seasonYear >= modelFrom && typeof window.getMandatoryTrainingStart === 'function') {
-        const start = window.getMandatoryTrainingStart(seasonYear);
-        parts.push(`
-            <div class="training-season-start">
-                <label class="portal-label" for="training-start-${seasonYear}">Obligatorisk treningsstart ${seasonYear}</label>
-                <div class="training-season-start-row">
-                    <input
-                        id="training-start-${seasonYear}"
-                        type="date"
-                        class="portal-field"
-                        data-season-start-year="${seasonYear}"
-                        value="${escapeTrainingHtml(start)}"
-                    >
-                    <button type="button" class="bsk-btn bsk-btn-secondary" data-season-start-clear="${seasonYear}">Fjern</button>
-                </div>
-            </div>
-        `);
-    }
-    const missing = typeof window.getMissingTrainingStartNotice === 'function'
-        ? window.getMissingTrainingStartNotice(seasonYear)
-        : '';
+    const parts = [buildTrainingSeasonStatusHtml(seasonYear)];
     const active = typeof window.getActiveSeasonYear === 'function' ? window.getActiveSeasonYear() : null;
     const nextNotice = seasonYear === active && typeof window.getNextSeasonTrainingNotice === 'function'
         ? window.getNextSeasonTrainingNotice()
         : '';
-    if (missing) parts.push(`<p class="training-season-note">${escapeTrainingHtml(missing)}</p>`);
     if (nextNotice) parts.push(`<p class="training-season-note">${escapeTrainingHtml(nextNotice)}</p>`);
     return parts.join('');
 }
 
+window.renderAdminTrainingStart = function() {
+    const slot = document.getElementById('admin-training-start');
+    if (!slot) return;
+    const year = typeof window.getHjemTrainingStartYear === 'function'
+        ? window.getHjemTrainingStartYear()
+        : (window.TRAINING_MANDATORY_MODEL_FROM_YEAR || 2027);
+    const described = typeof window.describeMandatoryTrainingStart === 'function'
+        ? window.describeMandatoryTrainingStart(year)
+        : null;
+    if (!described) {
+        slot.innerHTML = '';
+        return;
+    }
+    const tone = described.set ? 'is-set' : 'is-missing';
+    const icon = described.set ? 'fa-circle-check' : 'fa-circle-exclamation';
+    slot.innerHTML = `
+        <label class="portal-label" for="admin-training-start-date">Obligatorisk treningsstart ${described.year}</label>
+        <div class="admin-training-start-row">
+            <input
+                id="admin-training-start-date"
+                type="date"
+                class="portal-field"
+                data-season-start-year="${described.year}"
+                value="${escapeTrainingHtml(described.date)}"
+            >
+            <button type="button" class="portal-btn portal-btn-secondary" data-season-start-clear="${described.year}">Fjern</button>
+        </div>
+        <p class="admin-training-start-status ${tone}">
+            <i class="fa-solid ${icon}" aria-hidden="true"></i>
+            <span>${escapeTrainingHtml(described.text)}</span>
+        </p>
+    `;
+};
+
 window.refreshTrainingObligationViews = function() {
+    if (typeof window.renderAdminTrainingStart === 'function') window.renderAdminTrainingStart();
+    if (typeof window.updateDashboard === 'function') window.updateDashboard();
     if (window.currentTab === 'oktside' && window._activeTrainingSessionId && typeof window.renderTrainingSession === 'function') {
         window.renderTrainingSession(window._activeTrainingSessionId);
     }
@@ -961,8 +989,14 @@ function buildTrainingDataAttendanceHtml(teamName, options = {}) {
         : (stats.delta > 0 ? 'is-up' : (stats.delta < 0 ? 'is-down' : 'is-flat'));
     const primaryLabel = rangeLabel
         || (eventOptions.limit ? `Siste ${eventOptions.limit}` : 'Sesong');
-    const seasonAdminHtml = buildTrainingSeasonAdminHtml(eventOptions.year);
     const viewedYear = resolveTrainingAttendanceYear(eventOptions.year);
+    const focusYear = typeof window.getHjemTrainingStartYear === 'function'
+        ? window.getHjemTrainingStartYear()
+        : null;
+    const seasonAdminHtml = [
+        buildTrainingSeasonAdminHtml(viewedYear),
+        focusYear && focusYear !== viewedYear ? buildTrainingSeasonStatusHtml(focusYear) : ''
+    ].join('');
     const modelFrom = window.TRAINING_MANDATORY_MODEL_FROM_YEAR || 2027;
     const emptyText = viewedYear >= modelFrom && stats.eventCount === 0
         ? 'Ingen obligatoriske treninger i sesongen ennå.'

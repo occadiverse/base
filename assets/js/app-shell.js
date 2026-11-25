@@ -6,6 +6,7 @@ function verifyAdminPin() {
         document.getElementById('admin-gate').classList.add('hidden');
         document.getElementById('admin-panel-content').classList.remove('hidden');
         renderAdminTeamsList();
+        if (typeof window.renderAdminTrainingStart === 'function') window.renderAdminTrainingStart();
         return;
     }
 
@@ -233,6 +234,7 @@ function switchTab(tabId, options = {}) {
         }
     } else if (tabId === 'admin' && isAdminUnlocked) {
         renderAdminTeamsList();
+        if (typeof window.renderAdminTrainingStart === 'function') window.renderAdminTrainingStart();
     } else if (tabId === 'hjem') {
         window.updateDashboard();
     } else if (tabId === 'taktikk') {

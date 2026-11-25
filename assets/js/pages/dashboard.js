@@ -530,17 +530,23 @@ function hjemResolvePhase(activeYear) {
 }
 
 function hjemTrainingStartStatus(year, alwaysShow) {
-    const modelFrom = window.TRAINING_MANDATORY_MODEL_FROM_YEAR || 2027;
-    if (!year || year < modelFrom) return null;
-    const start = hjemMandatoryStart(year);
-    if (start) {
-        return { year, label: `${hjemSeasonLongDate(start)} ${year}` };
-    }
-    if (alwaysShow || hjemSeasonHasTraining(year)) {
-        return { year, label: 'Ikke satt' };
-    }
+    const described = typeof window.describeMandatoryTrainingStart === 'function'
+        ? window.describeMandatoryTrainingStart(year)
+        : null;
+    if (!described) return null;
+    if (described.set || alwaysShow || hjemSeasonHasTraining(year)) return described;
     return null;
 }
+
+window.getHjemTrainingStartYear = function() {
+    const activeYear = typeof window.getActiveSeasonYear === 'function'
+        ? window.getActiveSeasonYear()
+        : new Date().getFullYear();
+    const phase = hjemResolvePhase(activeYear);
+    const year = phase.id === 'oppkjoring' ? phase.year : (phase.id === 'pause' ? activeYear + 1 : activeYear);
+    const from = window.TRAINING_MANDATORY_MODEL_FROM_YEAR || 2027;
+    return year >= from ? year : from;
+};
 
 function hjemFollowUpCount(activeYear) {
     if (typeof window.buildStatsFollowUps !== 'function') return null;
@@ -682,10 +688,7 @@ window.renderHjemOperations = function() {
                 <p class="hjem-now-fact-text">
                     <span class="hjem-now-fact-line">
                         <span class="hjem-note-gem is-blue hjem-now-gem" aria-hidden="true"><i class="fa-solid fa-calendar-check"></i></span>
-                        <span id="hjem-training-start-label">Sett obligatorisk treningsstart</span>
-                        <button type="button" class="hjem-now-chevron" data-dashboard-action="open-training-start" data-season-year="${escapeDashboardHtml(model.trainingStart.year)}" aria-labelledby="hjem-training-start-label">
-                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                        </button>
+                        <span>${escapeDashboardHtml(model.trainingStart.shortText)}</span>
                     </span>
                 </p>
             </div>` : '';
