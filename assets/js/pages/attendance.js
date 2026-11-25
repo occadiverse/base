@@ -1579,7 +1579,7 @@ window.addYearPlanItemToMatches = async function(id) {
     const when = `${formatYearPlanDate(item.date)} ${item.date.slice(0, 4)}`;
     const timeBit = item.time ? ` kl. ${item.time}` : '';
     const confirmed = window.confirm(
-        `Legge «${opponent}» inn som ${typeMeta?.phrase || 'kamp'} ${when}${timeBit}?\n\nHendelsen blir stående i årsplanen. Sted settes til ikke satt, og du kan endre kampen etterpå.`
+        `Legge «${opponent}» inn som ${typeMeta?.phrase || 'kamp'} ${when}${timeBit}?\n\nHendelsen tas ut av årsplanen, så dagen bare viser kampen. Sted settes til ikke satt, og du kan endre kampen etterpå.`
     );
     if (!confirmed) return;
 
@@ -1603,9 +1603,7 @@ window.addYearPlanItemToMatches = async function(id) {
                 result: ''
             });
         }
-        await window.saveYearPlanItem({ ...item, matchId });
-        yearPlanOpenIds.add(item.id);
-        window.renderYearPlan();
+        await window.deleteYearPlanItem(item.id);
         if (typeof window.renderCalendar === 'function') window.renderCalendar();
     } catch (error) {
         console.error(error);

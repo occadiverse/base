@@ -201,13 +201,7 @@ window.updateDashboard = function() {
                 plaque.textContent = 'Neste kamp';
                 heroCard.insertBefore(plaque, heroCard.firstChild);
             }
-            if (heroCard && !heroCard.querySelector('.hjem-action')) {
-                const cue = document.createElement('span');
-                cue.className = 'blknapp hjem-action is-cue';
-                cue.setAttribute('aria-hidden', 'true');
-                cue.innerHTML = '<i class="fa-solid fa-futbol"></i>';
-                heroCard.appendChild(cue);
-            }
+            heroCard?.querySelector('.hjem-action.is-cue')?.remove();
         } else if (upcoming.length > 0) {
             const nm = upcoming[0];
             heroContainer.innerHTML = `
